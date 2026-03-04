@@ -12,8 +12,10 @@ export function useWorkspaces() {
     queryFn: async () => {
       const res = await fetch(api.workspaces.list.path, { credentials: "include" });
       if (!res.ok) {
-        if (res.status === 401) throw new Error("Unauthorized");
-        throw new Error("Failed to fetch workspaces");
+        const errorText = await res.text().catch(() => "Unknown error");
+        console.error(`[useWorkspaces] Failed with status ${res.status}:`, errorText);
+        if (res.status === 401) throw new Error(`Unauthorized (401) - Session expired or invalid`);
+        throw new Error(`Failed to fetch workspaces (${res.status}): ${errorText}`);
       }
       return api.workspaces.list.responses[200].parse(await res.json());
     },
