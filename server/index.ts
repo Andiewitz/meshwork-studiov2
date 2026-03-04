@@ -2,6 +2,7 @@ import express, { type Request, Response, NextFunction } from "express";
 import { registerRoutes } from "./routes";
 import { serveStatic } from "./static";
 import { createServer } from "http";
+import cors from "cors";
 
 const app = express();
 const httpServer = createServer(app);
@@ -10,6 +11,17 @@ declare module "http" {
   interface IncomingMessage {
     rawBody: unknown;
   }
+}
+
+// CORS for production
+if (process.env.NODE_ENV === "production") {
+  const frontendUrl = process.env.FRONTEND_URL || "*";
+  app.use(cors({
+    origin: frontendUrl,
+    credentials: true,
+    methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
+    allowedHeaders: ["Content-Type", "Authorization"],
+  }));
 }
 
 app.use(
@@ -21,6 +33,11 @@ app.use(
 );
 
 app.use(express.urlencoded({ extended: false }));
+
+// Health check for Railway
+app.get("/health", (_req, res) => {
+  res.status(200).json({ status: "healthy", timestamp: new Date().toISOString() });
+});
 
 export function log(message: string, source = "express") {
   const formattedTime = new Date().toLocaleTimeString("en-US", {
