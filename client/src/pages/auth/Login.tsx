@@ -34,8 +34,8 @@ export default function Login() {
           title: "Welcome back!",
           description: `Logged in as ${data.user.email}`,
         });
-        // Invalidate auth query to refresh user state
-        await queryClient.invalidateQueries({ queryKey: ["/api/auth/me"] });
+        // Set user data directly to avoid loading screen
+        queryClient.setQueryData(["/api/auth/me"], data.user);
         setLocation("/");
       } else {
         toast({
