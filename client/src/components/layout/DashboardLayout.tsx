@@ -29,6 +29,7 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Input } from "@/components/ui/input";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 import { cn } from "@/lib/utils";
+import { MobileWarning } from "@/components/MobileWarning";
 
 interface DashboardLayoutProps {
   children: ReactNode;
@@ -156,6 +157,7 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
 
   return (
     <div className="min-h-screen bg-background text-foreground flex font-sans relative overflow-x-hidden">
+      <MobileWarning />
       <div className="meshwork-bg-text">MESHWORK STUDIO</div>
 
       {/* Desktop Sidebar */}
