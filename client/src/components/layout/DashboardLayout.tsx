@@ -158,7 +158,7 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
   );
 
   return (
-    <div className="min-h-screen bg-background text-foreground flex font-sans relative overflow-hidden">
+    <div className="h-screen bg-background text-foreground flex font-sans relative overflow-hidden">
       <MobileWarning />
       <div className="meshwork-bg-text">MESHWORK STUDIO</div>
 
@@ -172,7 +172,7 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
 
       {/* Main Content */}
       <div className={cn(
-        "flex-1 flex flex-col min-h-screen transition-all duration-300 ease-in-out relative z-10",
+        "flex-1 flex flex-col h-screen transition-all duration-300 ease-in-out relative z-10",
         isExpanded ? "lg:ml-64" : "lg:ml-20"
       )}>
         {/* Topbar - Fixed at top */}
