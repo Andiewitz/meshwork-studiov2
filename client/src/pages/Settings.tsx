@@ -21,6 +21,7 @@ import {
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
 import { apiRequest } from "@/lib/queryClient";
+import { cn } from "@/lib/utils";
 
 export default function Settings() {
   const { user, logout } = useAuth();
@@ -33,18 +34,19 @@ export default function Settings() {
   const [showPassword, setShowPassword] = useState(false);
   const [showNewPassword, setShowNewPassword] = useState(false);
 
-  // Profile form state
   const [firstName, setFirstName] = useState(user?.firstName || "");
   const [lastName, setLastName] = useState(user?.lastName || "");
-
-  // Password form state
   const [currentPassword, setCurrentPassword] = useState("");
   const [newPassword, setNewPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
-
-  // Delete confirmation
   const [deleteConfirmText, setDeleteConfirmText] = useState("");
   const [deleteDataConfirmText, setDeleteDataConfirmText] = useState("");
+
+  const themeButtons = [
+    { value: "light" as const, icon: Sun, label: "Light" },
+    { value: "dark" as const, icon: Moon, label: "Dark" },
+    { value: "system" as const, icon: Monitor, label: "System" },
+  ];
 
   const handleUpdateProfile = async () => {
     setIsUpdatingProfile(true);
@@ -53,26 +55,12 @@ export default function Settings() {
         firstName: firstName.trim() || null,
         lastName: lastName.trim() || null,
       });
-      
-      if (!res.ok) {
-        const error = await res.json();
-        throw new Error(error.message || "Failed to update profile");
-      }
-
-      // Update local user data immediately for better UX
+      if (!res.ok) throw new Error("Failed to update profile");
       const updatedUser = await res.json();
       queryClient.setQueryData(["/api/auth/me"], updatedUser);
-
-      toast({
-        title: "Profile Updated",
-        description: "Your profile has been updated successfully.",
-      });
+      toast({ title: "Profile updated", description: "Your changes have been saved." });
     } catch (error: any) {
-      toast({
-        title: "Error",
-        description: error.message,
-        variant: "destructive",
-      });
+      toast({ title: "Error", description: error.message, variant: "destructive" });
     } finally {
       setIsUpdatingProfile(false);
     }
@@ -80,48 +68,23 @@ export default function Settings() {
 
   const handleChangePassword = async () => {
     if (newPassword !== confirmPassword) {
-      toast({
-        title: "Error",
-        description: "New passwords do not match.",
-        variant: "destructive",
-      });
+      toast({ title: "Passwords don't match", description: "Please make sure your new passwords match.", variant: "destructive" });
       return;
     }
-
     if (newPassword.length < 8) {
-      toast({
-        title: "Error",
-        description: "Password must be at least 8 characters.",
-        variant: "destructive",
-      });
+      toast({ title: "Password too short", description: "Password must be at least 8 characters.", variant: "destructive" });
       return;
     }
-
     setIsChangingPassword(true);
     try {
-      const res = await apiRequest("POST", "/api/user/change-password", {
-        currentPassword,
-        newPassword,
-      });
-      
-      if (!res.ok) {
-        const error = await res.json();
-        throw new Error(error.message || "Failed to change password");
-      }
-
-      toast({
-        title: "Password Changed",
-        description: "Your password has been updated successfully.",
-      });
+      const res = await apiRequest("POST", "/api/user/change-password", { currentPassword, newPassword });
+      if (!res.ok) throw new Error("Failed to change password");
+      toast({ title: "Password changed", description: "Your password has been updated." });
       setCurrentPassword("");
       setNewPassword("");
       setConfirmPassword("");
     } catch (error: any) {
-      toast({
-        title: "Error",
-        description: error.message,
-        variant: "destructive",
-      });
+      toast({ title: "Error", description: error.message, variant: "destructive" });
     } finally {
       setIsChangingPassword(false);
     }
@@ -129,465 +92,266 @@ export default function Settings() {
 
   const handleDeleteAccount = async () => {
     if (deleteConfirmText !== "DELETE") {
-      toast({
-        title: "Error",
-        description: "Please type DELETE to confirm.",
-        variant: "destructive",
-      });
+      toast({ title: "Confirmation required", description: "Please type DELETE to confirm.", variant: "destructive" });
       return;
     }
-
     setIsDeletingAccount(true);
     try {
       const res = await apiRequest("DELETE", "/api/user/account");
-      
-      if (!res.ok) {
-        const error = await res.json();
-        throw new Error(error.message || "Failed to delete account");
-      }
-
-      toast({
-        title: "Account Deleted",
-        description: "Your account has been permanently deleted.",
-      });
+      if (!res.ok) throw new Error("Failed to delete account");
+      toast({ title: "Account deleted", description: "Your account has been permanently removed." });
       logout();
     } catch (error: any) {
-      toast({
-        title: "Error",
-        description: error.message,
-        variant: "destructive",
-      });
+      toast({ title: "Error", description: error.message, variant: "destructive" });
       setIsDeletingAccount(false);
     }
   };
 
   const handleDeleteAllData = async () => {
     if (deleteDataConfirmText !== "DELETE ALL") {
-      toast({
-        title: "Error",
-        description: "Please type DELETE ALL to confirm.",
-        variant: "destructive",
-      });
+      toast({ title: "Confirmation required", description: "Please type DELETE ALL to confirm.", variant: "destructive" });
       return;
     }
-
     setIsDeletingData(true);
     try {
       const res = await apiRequest("DELETE", "/api/user/data");
-      
-      if (!res.ok) {
-        const error = await res.json();
-        throw new Error(error.message || "Failed to delete data");
-      }
-
-      toast({
-        title: "Data Deleted",
-        description: "All your workspaces and data have been permanently deleted.",
-      });
+      if (!res.ok) throw new Error("Failed to delete data");
+      toast({ title: "Data deleted", description: "All your workspaces and projects have been removed." });
       setDeleteDataConfirmText("");
     } catch (error: any) {
-      toast({
-        title: "Error",
-        description: error.message,
-        variant: "destructive",
-      });
+      toast({ title: "Error", description: error.message, variant: "destructive" });
     } finally {
       setIsDeletingData(false);
     }
   };
 
   const handleExportData = () => {
-    toast({
-      title: "Export Requested",
-      description: "Your data export is being prepared. You will receive an email when it's ready.",
-    });
+    toast({ title: "Export requested", description: "We're preparing your data. You'll receive an email when it's ready." });
   };
 
   return (
-    <div className="flex flex-col gap-10 relative">
-      {/* Settings page background - diagonal grid pattern */}
-      <div className="absolute inset-0 -z-10 overflow-hidden pointer-events-none min-h-full">
+    <div className="max-w-3xl mx-auto pb-12 relative">
+      {/* Background */}
+      <div className="absolute inset-0 -z-10 overflow-hidden pointer-events-none">
         <div className="absolute inset-0 bg-[linear-gradient(45deg,transparent_49.5%,currentColor_49.5%,currentColor_50.5%,transparent_50.5%),linear-gradient(-45deg,transparent_49.5%,currentColor_49.5%,currentColor_50.5%,transparent_50.5%)] [background-size:40px_40px] opacity-[0.02]" />
-        <div className="absolute top-0 left-1/3 w-[400px] h-[400px] bg-gradient-radial from-amber-500/5 via-transparent to-transparent rounded-full blur-3xl" />
-        <div className="absolute bottom-1/3 right-0 w-[500px] h-[500px] bg-gradient-radial from-rose-500/5 via-transparent to-transparent rounded-full blur-3xl" />
+        <div className="absolute top-0 left-1/4 w-[500px] h-[500px] bg-gradient-radial from-amber-500/5 via-transparent to-transparent rounded-full blur-3xl" />
+        <div className="absolute bottom-1/4 right-0 w-[400px] h-[400px] bg-gradient-radial from-rose-500/5 via-transparent to-transparent rounded-full blur-3xl" />
       </div>
-      <div className="flex flex-col gap-2 -ml-2">
-        <h1 className="text-6xl md:text-8xl font-black uppercase tracking-tighter mix-blend-darken text-foreground leading-[0.85]">
+
+      {/* Header */}
+      <div className="mb-8">
+        <h1 className="text-3xl md:text-4xl font-display font-semibold tracking-tight text-foreground mb-2">
           Settings
         </h1>
-        <p className="mt-6 text-xl font-bold uppercase tracking-widest border-l-4 border-foreground pl-4 ml-2 max-w-md">
-          Manage your account, security, and data preferences.
+        <p className="text-muted-foreground">
+          Manage your account, appearance, and data preferences.
         </p>
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-        {/* Appearance Card */}
-        <Card className="brutal-card border-2 border-foreground">
-          <CardHeader>
+      <div className="space-y-6">
+        {/* Appearance */}
+        <Card className="border border-border/50 shadow-sm">
+          <CardHeader className="pb-4">
             <div className="flex items-center gap-3">
-              <div className="w-10 h-10 bg-foreground flex items-center justify-center text-background">
-                {resolvedTheme === "dark" ? <Moon className="w-5 h-5" /> : <Sun className="w-5 h-5" />}
+              <div className="w-10 h-10 rounded-lg bg-primary/10 flex items-center justify-center">
+                {resolvedTheme === "dark" ? <Moon className="w-5 h-5 text-primary" /> : <Sun className="w-5 h-5 text-primary" />}
               </div>
               <div>
-                <CardTitle className="font-black uppercase tracking-tighter">Appearance</CardTitle>
-                <CardDescription className="font-bold uppercase tracking-wider text-xs">
-                  Customize your theme and visual preferences
-                </CardDescription>
+                <CardTitle className="text-lg font-semibold">Appearance</CardTitle>
+                <CardDescription className="text-sm">Choose your preferred theme</CardDescription>
               </div>
             </div>
           </CardHeader>
-          <CardContent className="space-y-6">
-            <div className="space-y-3">
-              <Label className="font-bold uppercase tracking-wider text-xs">Theme</Label>
-              <div className="grid grid-cols-3 gap-3">
+          <CardContent className="pt-0">
+            <div className="flex gap-1 p-1 bg-muted rounded-lg w-fit">
+              {themeButtons.map(({ value, icon: Icon, label }) => (
                 <button
-                  onClick={() => setTheme("light")}
-                  className={`flex flex-col items-center gap-2 p-4 border-2 transition-all ${
-                    theme === "light" 
-                      ? "border-primary bg-primary/10" 
-                      : "border-border hover:border-foreground"
-                  }`}
+                  key={value}
+                  onClick={() => setTheme(value)}
+                  className={cn(
+                    "flex items-center gap-2 px-3 py-2 rounded-md text-sm font-medium transition-all",
+                    theme === value ? "bg-card text-foreground shadow-sm" : "text-muted-foreground hover:text-foreground"
+                  )}
                 >
-                  <Sun className="w-6 h-6" />
-                  <span className="font-bold text-xs uppercase">Light</span>
+                  <Icon className="w-4 h-4" />
+                  {label}
                 </button>
-                <button
-                  onClick={() => setTheme("dark")}
-                  className={`flex flex-col items-center gap-2 p-4 border-2 transition-all ${
-                    theme === "dark" 
-                      ? "border-primary bg-primary/10" 
-                      : "border-border hover:border-foreground"
-                  }`}
-                >
-                  <Moon className="w-6 h-6" />
-                  <span className="font-bold text-xs uppercase">Dark</span>
-                </button>
-                <button
-                  onClick={() => setTheme("system")}
-                  className={`flex flex-col items-center gap-2 p-4 border-2 transition-all ${
-                    theme === "system" 
-                      ? "border-primary bg-primary/10" 
-                      : "border-border hover:border-foreground"
-                  }`}
-                >
-                  <Monitor className="w-6 h-6" />
-                  <span className="font-bold text-xs uppercase">System</span>
-                </button>
-              </div>
-              <p className="text-xs text-muted-foreground">
-                Current mode: <span className="font-bold text-foreground capitalize">{resolvedTheme}</span>
-              </p>
+              ))}
             </div>
           </CardContent>
         </Card>
 
-        {/* Profile Card */}
-        <Card className="brutal-card border-2 border-foreground">
-          <CardHeader>
+        {/* Profile */}
+        <Card className="border border-border/50 shadow-sm">
+          <CardHeader className="pb-4">
             <div className="flex items-center gap-3">
-              <div className="w-10 h-10 bg-foreground flex items-center justify-center text-background">
-                <User className="w-5 h-5" />
+              <div className="w-10 h-10 rounded-lg bg-primary/10 flex items-center justify-center">
+                <User className="w-5 h-5 text-primary" />
               </div>
               <div>
-                <CardTitle className="font-black uppercase tracking-tighter">Profile</CardTitle>
-                <CardDescription className="font-bold uppercase tracking-wider text-xs">
-                  Update your personal information
-                </CardDescription>
+                <CardTitle className="text-lg font-semibold">Profile</CardTitle>
+                <CardDescription className="text-sm">Update your personal information</CardDescription>
               </div>
             </div>
           </CardHeader>
-          <CardContent className="space-y-6">
+          <CardContent className="pt-0 space-y-6">
             <div className="flex items-center gap-4">
-              <Avatar className="w-20 h-20 border-2 border-foreground rounded-none">
+              <Avatar className="w-14 h-14 border border-border">
                 <AvatarImage src={user?.profileImageUrl || undefined} />
-                <AvatarFallback className="bg-foreground text-background font-black text-2xl rounded-none">
+                <AvatarFallback className="bg-muted text-foreground font-semibold">
                   {user?.firstName?.[0] || user?.email?.[0] || "U"}
                 </AvatarFallback>
               </Avatar>
               <div>
-                <p className="font-bold text-sm uppercase tracking-wider text-muted-foreground">Profile Photo</p>
-                <p className="text-xs text-muted-foreground">Managed via Google OAuth</p>
+                <p className="font-medium text-sm">{user?.firstName} {user?.lastName}</p>
+                <p className="text-xs text-muted-foreground">{user?.email}</p>
               </div>
             </div>
 
             <div className="grid grid-cols-2 gap-4">
               <div className="space-y-2">
-                <Label htmlFor="firstName" className="font-bold uppercase tracking-wider text-xs">First Name</Label>
-                <Input
-                  id="firstName"
-                  value={firstName}
-                  onChange={(e) => setFirstName(e.target.value)}
-                  className="brutal-input"
-                  placeholder="John"
-                />
+                <Label htmlFor="firstName">First name</Label>
+                <Input id="firstName" value={firstName} onChange={(e) => setFirstName(e.target.value)} placeholder="John" />
               </div>
               <div className="space-y-2">
-                <Label htmlFor="lastName" className="font-bold uppercase tracking-wider text-xs">Last Name</Label>
-                <Input
-                  id="lastName"
-                  value={lastName}
-                  onChange={(e) => setLastName(e.target.value)}
-                  className="brutal-input"
-                  placeholder="Doe"
-                />
+                <Label htmlFor="lastName">Last name</Label>
+                <Input id="lastName" value={lastName} onChange={(e) => setLastName(e.target.value)} placeholder="Doe" />
               </div>
             </div>
 
-            <div className="space-y-2">
-              <Label htmlFor="email" className="font-bold uppercase tracking-wider text-xs">Email</Label>
-              <Input
-                id="email"
-                value={user?.email || ""}
-                disabled
-                className="brutal-input bg-muted"
-              />
-              <p className="text-xs text-muted-foreground">Email cannot be changed</p>
-            </div>
-
-            <Button
-              onClick={handleUpdateProfile}
-              disabled={isUpdatingProfile}
-              className="accent-btn w-full"
-            >
-              {isUpdatingProfile ? (
-                <>
-                  <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                  Updating...
-                </>
-              ) : (
-                "Update Profile"
-              )}
+            <Button onClick={handleUpdateProfile} disabled={isUpdatingProfile} className="w-full">
+              {isUpdatingProfile ? <><Loader2 className="w-4 h-4 mr-2 animate-spin" />Saving...</> : "Save changes"}
             </Button>
           </CardContent>
         </Card>
 
-        {/* Security Card - Only for email users */}
+        {/* Security */}
         {user?.authProvider === "email" && (
-        <Card className="brutal-card border-2 border-foreground">
-          <CardHeader>
-            <div className="flex items-center gap-3">
-              <div className="w-10 h-10 bg-foreground flex items-center justify-center text-background">
-                <Lock className="w-5 h-5" />
+          <Card className="border border-border/50 shadow-sm">
+            <CardHeader className="pb-4">
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 rounded-lg bg-primary/10 flex items-center justify-center">
+                  <Lock className="w-5 h-5 text-primary" />
+                </div>
+                <div>
+                  <CardTitle className="text-lg font-semibold">Security</CardTitle>
+                  <CardDescription className="text-sm">Change your password</CardDescription>
+                </div>
               </div>
-              <div>
-                <CardTitle className="font-black uppercase tracking-tighter">Security</CardTitle>
-                <CardDescription className="font-bold uppercase tracking-wider text-xs">
-                  Change your password
-                </CardDescription>
+            </CardHeader>
+            <CardContent className="pt-0 space-y-4">
+              <div className="space-y-2">
+                <Label htmlFor="currentPassword">Current password</Label>
+                <div className="relative">
+                  <Input
+                    id="currentPassword"
+                    type={showPassword ? "text" : "password"}
+                    value={currentPassword}
+                    onChange={(e) => setCurrentPassword(e.target.value)}
+                    placeholder="Enter current password"
+                    className="pr-10"
+                  />
+                  <button type="button" onClick={() => setShowPassword(!showPassword)} className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground">
+                    {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                  </button>
+                </div>
               </div>
-            </div>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            <div className="space-y-2">
-              <Label htmlFor="currentPassword" className="font-bold uppercase tracking-wider text-xs">Current Password</Label>
-              <div className="relative">
-                <Input
-                  id="currentPassword"
-                  type={showPassword ? "text" : "password"}
-                  value={currentPassword}
-                  onChange={(e) => setCurrentPassword(e.target.value)}
-                  className="brutal-input pr-10"
-                  placeholder="Enter current password"
-                />
-                <button
-                  type="button"
-                  onClick={() => setShowPassword(!showPassword)}
-                  className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
-                >
-                  {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
-                </button>
-              </div>
-            </div>
 
-            <div className="space-y-2">
-              <Label htmlFor="newPassword" className="font-bold uppercase tracking-wider text-xs">New Password</Label>
-              <div className="relative">
-                <Input
-                  id="newPassword"
-                  type={showNewPassword ? "text" : "password"}
-                  value={newPassword}
-                  onChange={(e) => setNewPassword(e.target.value)}
-                  className="brutal-input pr-10"
-                  placeholder="Enter new password (min 8 chars)"
-                />
-                <button
-                  type="button"
-                  onClick={() => setShowNewPassword(!showNewPassword)}
-                  className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
-                >
-                  {showNewPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
-                </button>
+              <div className="space-y-2">
+                <Label htmlFor="newPassword">New password</Label>
+                <div className="relative">
+                  <Input
+                    id="newPassword"
+                    type={showNewPassword ? "text" : "password"}
+                    value={newPassword}
+                    onChange={(e) => setNewPassword(e.target.value)}
+                    placeholder="At least 8 characters"
+                    className="pr-10"
+                  />
+                  <button type="button" onClick={() => setShowNewPassword(!showNewPassword)} className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground">
+                    {showNewPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                  </button>
+                </div>
               </div>
-            </div>
 
-            <div className="space-y-2">
-              <Label htmlFor="confirmPassword" className="font-bold uppercase tracking-wider text-xs">Confirm New Password</Label>
-              <Input
-                id="confirmPassword"
-                type="password"
-                value={confirmPassword}
-                onChange={(e) => setConfirmPassword(e.target.value)}
-                className="brutal-input"
-                placeholder="Confirm new password"
-              />
-            </div>
+              <div className="space-y-2">
+                <Label htmlFor="confirmPassword">Confirm new password</Label>
+                <Input id="confirmPassword" type="password" value={confirmPassword} onChange={(e) => setConfirmPassword(e.target.value)} placeholder="Re-enter new password" />
+              </div>
 
-            <Button
-              onClick={handleChangePassword}
-              disabled={isChangingPassword || !currentPassword || !newPassword || !confirmPassword}
-              className="accent-btn w-full"
-            >
-              {isChangingPassword ? (
-                <>
-                  <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                  Changing...
-                </>
-              ) : (
-                "Change Password"
-              )}
-            </Button>
-          </CardContent>
-        </Card>
+              <Button onClick={handleChangePassword} disabled={isChangingPassword || !currentPassword || !newPassword || !confirmPassword} className="w-full">
+                {isChangingPassword ? <><Loader2 className="w-4 h-4 mr-2 animate-spin" />Changing...</> : "Change password"}
+              </Button>
+            </CardContent>
+          </Card>
         )}
 
-        {/* Data & Privacy Card */}
-        <Card className="brutal-card border-2 border-foreground lg:col-span-2">
-          <CardHeader>
+        {/* Data & Privacy */}
+        <Card className="border border-border/50 shadow-sm">
+          <CardHeader className="pb-4">
             <div className="flex items-center gap-3">
-              <div className="w-10 h-10 bg-foreground flex items-center justify-center text-background">
-                <Download className="w-5 h-5" />
+              <div className="w-10 h-10 rounded-lg bg-primary/10 flex items-center justify-center">
+                <Download className="w-5 h-5 text-primary" />
               </div>
               <div>
-                <CardTitle className="font-black uppercase tracking-tighter">Data & Privacy</CardTitle>
-                <CardDescription className="font-bold uppercase tracking-wider text-xs">
-                  Manage your data and privacy settings
-                </CardDescription>
+                <CardTitle className="text-lg font-semibold">Data & Privacy</CardTitle>
+                <CardDescription className="text-sm">Manage your data and account</CardDescription>
               </div>
             </div>
           </CardHeader>
-          <CardContent className="space-y-6">
-            {/* Export Data */}
-            <div className="flex items-center justify-between p-4 border-2 border-border">
+          <CardContent className="pt-0 space-y-3">
+            <div className="flex items-center justify-between p-3 rounded-lg bg-muted/50">
               <div>
-                <h3 className="font-black uppercase tracking-tighter">Export Your Data</h3>
-                <p className="text-sm text-muted-foreground">Download all your workspaces, nodes, and account data</p>
+                <h3 className="font-medium text-sm">Export your data</h3>
+                <p className="text-xs text-muted-foreground">Download all your workspaces and projects</p>
               </div>
-              <Button onClick={handleExportData} variant="outline" className="brutal-btn">
-                <Download className="w-4 h-4 mr-2" />
-                Export Data
-              </Button>
+              <Button onClick={handleExportData} variant="outline" size="sm"><Download className="w-4 h-4 mr-2" />Export</Button>
             </div>
 
-            {/* Delete All Data */}
-            <div className="flex items-center justify-between p-4 border-2 border-destructive/50 bg-destructive/5">
+            <div className="flex items-center justify-between p-3 rounded-lg bg-destructive/5 border border-destructive/20">
               <div>
-                <h3 className="font-black uppercase tracking-tighter text-destructive">Delete All Data</h3>
-                <p className="text-sm text-muted-foreground">Permanently delete all your workspaces, nodes, and edges</p>
+                <h3 className="font-medium text-sm text-destructive">Delete all data</h3>
+                <p className="text-xs text-muted-foreground">Remove all workspaces. Account stays active.</p>
               </div>
               <AlertDialog>
                 <AlertDialogTrigger asChild>
-                  <Button variant="destructive" className="brutal-btn-destructive">
-                    <Trash2 className="w-4 h-4 mr-2" />
-                    Delete Data
-                  </Button>
+                  <Button variant="destructive" size="sm"><Trash2 className="w-4 h-4 mr-2" />Delete</Button>
                 </AlertDialogTrigger>
-                <AlertDialogContent className="brutal-card border-2 border-destructive">
+                <AlertDialogContent>
                   <AlertDialogHeader>
-                    <AlertDialogTitle className="font-black uppercase tracking-tighter flex items-center gap-2">
-                      <AlertTriangle className="w-5 h-5 text-destructive" />
-                      Delete All Data?
-                    </AlertDialogTitle>
-                    <AlertDialogDescription className="font-bold text-sm">
-                      This will permanently delete all your workspaces, nodes, edges, and collections.
-                      <br /><br />
-                      Your account will remain active, but all project data will be lost forever.
-                      <br /><br />
-                      <strong>Type "DELETE ALL" to confirm:</strong>
-                    </AlertDialogDescription>
+                    <AlertDialogTitle className="flex items-center gap-2 text-destructive"><AlertTriangle className="w-5 h-5" />Delete all data?</AlertDialogTitle>
+                    <AlertDialogDescription className="text-sm">This will permanently delete all your workspaces and projects. Your account will remain active.<br /><br />Type <strong>DELETE ALL</strong> to confirm.</AlertDialogDescription>
                   </AlertDialogHeader>
-                  <Input
-                    value={deleteDataConfirmText}
-                    onChange={(e) => setDeleteDataConfirmText(e.target.value)}
-                    className="brutal-input border-destructive"
-                    placeholder="DELETE ALL"
-                  />
+                  <Input value={deleteDataConfirmText} onChange={(e) => setDeleteDataConfirmText(e.target.value)} placeholder="DELETE ALL" className="border-destructive/50" />
                   <AlertDialogFooter>
-                    <AlertDialogCancel 
-                      className="brutal-btn"
-                      onClick={() => setDeleteDataConfirmText("")}
-                    >
-                      Cancel
-                    </AlertDialogCancel>
-                    <AlertDialogAction
-                      onClick={handleDeleteAllData}
-                      disabled={isDeletingData || deleteDataConfirmText !== "DELETE ALL"}
-                      className="bg-destructive text-destructive-foreground hover:bg-destructive/90 font-bold uppercase"
-                    >
-                      {isDeletingData ? (
-                        <>
-                          <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                          Deleting...
-                        </>
-                      ) : (
-                        "Delete All Data"
-                      )}
+                    <AlertDialogCancel onClick={() => setDeleteDataConfirmText("")}>Cancel</AlertDialogCancel>
+                    <AlertDialogAction onClick={handleDeleteAllData} disabled={isDeletingData || deleteDataConfirmText !== "DELETE ALL"} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">
+                      {isDeletingData ? <><Loader2 className="w-4 h-4 mr-2 animate-spin" />Deleting...</> : "Delete all data"}
                     </AlertDialogAction>
                   </AlertDialogFooter>
                 </AlertDialogContent>
               </AlertDialog>
             </div>
 
-            {/* Delete Account */}
-            <div className="flex items-center justify-between p-4 border-2 border-destructive bg-destructive/10">
+            <div className="flex items-center justify-between p-3 rounded-lg bg-destructive/10 border border-destructive/30">
               <div>
-                <h3 className="font-black uppercase tracking-tighter text-destructive">Delete Account</h3>
-                <p className="text-sm text-muted-foreground">Permanently delete your account and all associated data</p>
+                <h3 className="font-medium text-sm text-destructive">Delete account</h3>
+                <p className="text-xs text-muted-foreground">Permanently delete your account and all data</p>
               </div>
               <AlertDialog>
                 <AlertDialogTrigger asChild>
-                  <Button variant="destructive" className="brutal-btn-destructive">
-                    <Trash2 className="w-4 h-4 mr-2" />
-                    Delete Account
-                  </Button>
+                  <Button variant="destructive" size="sm"><Trash2 className="w-4 h-4 mr-2" />Delete</Button>
                 </AlertDialogTrigger>
-                <AlertDialogContent className="brutal-card border-2 border-destructive">
+                <AlertDialogContent>
                   <AlertDialogHeader>
-                    <AlertDialogTitle className="font-black uppercase tracking-tighter flex items-center gap-2">
-                      <AlertTriangle className="w-5 h-5 text-destructive" />
-                      Delete Account?
-                    </AlertDialogTitle>
-                    <AlertDialogDescription className="font-bold text-sm">
-                      This action cannot be undone. This will permanently delete your account and remove all your data from our servers.
-                      <br /><br />
-                      <strong>Type "DELETE" to confirm:</strong>
-                    </AlertDialogDescription>
+                    <AlertDialogTitle className="flex items-center gap-2 text-destructive"><AlertTriangle className="w-5 h-5" />Delete account?</AlertDialogTitle>
+                    <AlertDialogDescription className="text-sm">This cannot be undone. Your account and all data will be permanently removed.<br /><br />Type <strong>DELETE</strong> to confirm.</AlertDialogDescription>
                   </AlertDialogHeader>
-                  <Input
-                    value={deleteConfirmText}
-                    onChange={(e) => setDeleteConfirmText(e.target.value)}
-                    className="brutal-input border-destructive"
-                    placeholder="DELETE"
-                  />
+                  <Input value={deleteConfirmText} onChange={(e) => setDeleteConfirmText(e.target.value)} placeholder="DELETE" className="border-destructive/50" />
                   <AlertDialogFooter>
-                    <AlertDialogCancel 
-                      className="brutal-btn"
-                      onClick={() => setDeleteConfirmText("")}
-                    >
-                      Cancel
-                    </AlertDialogCancel>
-                    <AlertDialogAction
-                      onClick={handleDeleteAccount}
-                      disabled={isDeletingAccount || deleteConfirmText !== "DELETE"}
-                      className="bg-destructive text-destructive-foreground hover:bg-destructive/90 font-bold uppercase"
-                    >
-                      {isDeletingAccount ? (
-                        <>
-                          <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                          Deleting...
-                        </>
-                      ) : (
-                        "Delete Account"
-                      )}
+                    <AlertDialogCancel onClick={() => setDeleteConfirmText("")}>Cancel</AlertDialogCancel>
+                    <AlertDialogAction onClick={handleDeleteAccount} disabled={isDeletingAccount || deleteConfirmText !== "DELETE"} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">
+                      {isDeletingAccount ? <><Loader2 className="w-4 h-4 mr-2 animate-spin" />Deleting...</> : "Delete account"}
                     </AlertDialogAction>
                   </AlertDialogFooter>
                 </AlertDialogContent>
