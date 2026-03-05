@@ -127,7 +127,13 @@ export default function Home() {
   }
 
   return (
-    <div className="flex flex-col gap-8 pt-12 max-w-6xl mx-auto min-h-[calc(100vh-4rem)]">
+    <div className="flex flex-col gap-8 pt-12 max-w-6xl mx-auto min-h-[calc(100vh-4rem)] relative">
+      {/* Home page background - subtle dot grid pattern */}
+      <div className="absolute inset-0 -z-10 overflow-hidden pointer-events-none">
+        <div className="absolute inset-0 bg-[radial-gradient(circle_at_1px_1px,currentColor_1px,transparent_0)] [background-size:24px_24px] opacity-[0.03]" />
+        <div className="absolute top-0 right-0 w-[600px] h-[600px] bg-gradient-radial from-primary/5 via-transparent to-transparent rounded-full blur-3xl" />
+        <div className="absolute bottom-0 left-0 w-[400px] h-[400px] bg-gradient-radial from-accent/5 via-transparent to-transparent rounded-full blur-3xl" />
+      </div>
       {/* Decorative curved lines */}
       <div className="absolute top-20 left-0 w-32 h-32 pointer-events-none opacity-10">
         <svg viewBox="0 0 100 100" className="w-full h-full stroke-foreground fill-none">

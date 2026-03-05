@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { useAuth } from "@/hooks/use-auth";
+import { useTheme } from "@/hooks/use-theme";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -7,7 +8,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { useToast } from "@/hooks/use-toast";
 import { queryClient } from "@/lib/queryClient";
-import { Loader2, User, Lock, Trash2, Download, AlertTriangle, Eye, EyeOff } from "lucide-react";
+import { Loader2, User, Lock, Trash2, Download, AlertTriangle, Eye, EyeOff, Sun, Moon, Monitor } from "lucide-react";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -23,6 +24,7 @@ import { apiRequest } from "@/lib/queryClient";
 
 export default function Settings() {
   const { user, logout } = useAuth();
+  const { theme, setTheme, resolvedTheme } = useTheme();
   const { toast } = useToast();
   const [isUpdatingProfile, setIsUpdatingProfile] = useState(false);
   const [isChangingPassword, setIsChangingPassword] = useState(false);
@@ -202,7 +204,13 @@ export default function Settings() {
   };
 
   return (
-    <div className="flex flex-col gap-10">
+    <div className="flex flex-col gap-10 relative">
+      {/* Settings page background - diagonal grid pattern */}
+      <div className="absolute inset-0 -z-10 overflow-hidden pointer-events-none min-h-full">
+        <div className="absolute inset-0 bg-[linear-gradient(45deg,transparent_49.5%,currentColor_49.5%,currentColor_50.5%,transparent_50.5%),linear-gradient(-45deg,transparent_49.5%,currentColor_49.5%,currentColor_50.5%,transparent_50.5%)] [background-size:40px_40px] opacity-[0.02]" />
+        <div className="absolute top-0 left-1/3 w-[400px] h-[400px] bg-gradient-radial from-amber-500/5 via-transparent to-transparent rounded-full blur-3xl" />
+        <div className="absolute bottom-1/3 right-0 w-[500px] h-[500px] bg-gradient-radial from-rose-500/5 via-transparent to-transparent rounded-full blur-3xl" />
+      </div>
       <div className="flex flex-col gap-2 -ml-2">
         <h1 className="text-6xl md:text-8xl font-black uppercase tracking-tighter mix-blend-darken text-foreground leading-[0.85]">
           Settings
@@ -213,6 +221,66 @@ export default function Settings() {
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+        {/* Appearance Card */}
+        <Card className="brutal-card border-2 border-foreground">
+          <CardHeader>
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 bg-foreground flex items-center justify-center text-background">
+                {resolvedTheme === "dark" ? <Moon className="w-5 h-5" /> : <Sun className="w-5 h-5" />}
+              </div>
+              <div>
+                <CardTitle className="font-black uppercase tracking-tighter">Appearance</CardTitle>
+                <CardDescription className="font-bold uppercase tracking-wider text-xs">
+                  Customize your theme and visual preferences
+                </CardDescription>
+              </div>
+            </div>
+          </CardHeader>
+          <CardContent className="space-y-6">
+            <div className="space-y-3">
+              <Label className="font-bold uppercase tracking-wider text-xs">Theme</Label>
+              <div className="grid grid-cols-3 gap-3">
+                <button
+                  onClick={() => setTheme("light")}
+                  className={`flex flex-col items-center gap-2 p-4 border-2 transition-all ${
+                    theme === "light" 
+                      ? "border-primary bg-primary/10" 
+                      : "border-border hover:border-foreground"
+                  }`}
+                >
+                  <Sun className="w-6 h-6" />
+                  <span className="font-bold text-xs uppercase">Light</span>
+                </button>
+                <button
+                  onClick={() => setTheme("dark")}
+                  className={`flex flex-col items-center gap-2 p-4 border-2 transition-all ${
+                    theme === "dark" 
+                      ? "border-primary bg-primary/10" 
+                      : "border-border hover:border-foreground"
+                  }`}
+                >
+                  <Moon className="w-6 h-6" />
+                  <span className="font-bold text-xs uppercase">Dark</span>
+                </button>
+                <button
+                  onClick={() => setTheme("system")}
+                  className={`flex flex-col items-center gap-2 p-4 border-2 transition-all ${
+                    theme === "system" 
+                      ? "border-primary bg-primary/10" 
+                      : "border-border hover:border-foreground"
+                  }`}
+                >
+                  <Monitor className="w-6 h-6" />
+                  <span className="font-bold text-xs uppercase">System</span>
+                </button>
+              </div>
+              <p className="text-xs text-muted-foreground">
+                Current mode: <span className="font-bold text-foreground capitalize">{resolvedTheme}</span>
+              </p>
+            </div>
+          </CardContent>
+        </Card>
+
         {/* Profile Card */}
         <Card className="brutal-card border-2 border-foreground">
           <CardHeader>
