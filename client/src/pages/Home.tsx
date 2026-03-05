@@ -135,7 +135,7 @@ export default function Home() {
   }
 
   return (
-    <div className="flex flex-col gap-8 pt-12 max-w-6xl mx-auto min-h-[calc(100vh-4rem)] relative">
+    <div className="flex flex-col gap-8 max-w-6xl mx-auto min-h-[calc(100vh-4rem)] relative">
       {/* Home page background - fixed to cover full viewport */}
       <div className="fixed inset-0 -z-10 overflow-hidden pointer-events-none">
         <div className="absolute inset-0 bg-[radial-gradient(circle_at_1px_1px,currentColor_1px,transparent_0)] [background-size:24px_24px] opacity-[0.03]" />
