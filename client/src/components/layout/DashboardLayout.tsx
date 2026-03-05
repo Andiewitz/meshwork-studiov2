@@ -87,7 +87,7 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
                 "flex items-center gap-4 h-12 rounded-none transition-all duration-200 group relative border-2 border-transparent hover:border-foreground/20",
                 (isExpanded || isMobile) ? "px-4" : "justify-center",
                 isActive
-                  ? "bg-foreground text-background brutal-card shadow-[4px_4px_0px_0px_rgba(26,26,26,1)] border-foreground hover:border-foreground"
+                  ? "bg-primary text-primary-foreground border-primary shadow-sm"
                   : "text-muted-foreground hover:text-foreground hover:bg-black/5"
               )}>
                 <item.icon className={cn("w-5 h-5 shrink-0", isActive && "text-background")} />
@@ -97,7 +97,7 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
                   </span>
                 )}
                 {!isExpanded && !isMobile && (
-                  <div className="absolute left-full ml-4 px-3 py-1.5 bg-foreground text-background font-bold text-xs uppercase tracking-wider rounded-none opacity-0 group-hover:opacity-100 pointer-events-none transition-opacity z-50 whitespace-nowrap shadow-[4px_4px_0px_0px_rgba(26,26,26,1)] border-2 border-foreground">
+                  <div className="absolute left-full ml-4 px-3 py-1.5 bg-foreground text-background font-bold text-xs uppercase tracking-wider rounded-md opacity-0 group-hover:opacity-100 pointer-events-none transition-opacity z-50 whitespace-nowrap shadow-lg">
                     {item.label}
                   </div>
                 )}
@@ -122,7 +122,7 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
             <button className={cn(
-              "flex items-center gap-3 rounded-none transition-all border-2 border-transparent hover:border-foreground/20 p-2 brutal-card shadow-none hover:shadow-[4px_4px_0px_0px_rgba(26,26,26,1)] hover:bg-card hover:-translate-y-1 hover:-translate-x-1",
+              "flex items-center gap-3 rounded-lg transition-all border-2 border-transparent hover:border-foreground/20 p-2 hover:shadow-md hover:bg-card",
               (isExpanded || isMobile) ? "w-full" : "justify-center"
             )}>
               <Avatar className="w-10 h-10 border-2 border-foreground rounded-none shrink-0 bg-background">
