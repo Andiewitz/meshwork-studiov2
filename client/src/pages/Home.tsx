@@ -1,4 +1,4 @@
-import { useState, useMemo, useEffect } from "react";
+import { useState, useMemo } from "react";
 import { Link, useLocation } from "wouter";
 import { useWorkspaces, useDeleteWorkspace } from "@/hooks/use-workspaces";
 import { useAuth } from "@/hooks/use-auth";
@@ -9,7 +9,8 @@ import { Button } from "@/components/ui/button";
 import { ArrowRight, Loader2, Search, Box, Trash2, X } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { cn } from "@/lib/utils";
-import { motion } from "framer-motion";
+import { motion, AnimatePresence } from "framer-motion";
+import { LineSyncLoader } from "@/components/ui/loading-screen";
 
 export default function Home() {
   const [location, setLocation] = useLocation();
@@ -22,23 +23,34 @@ export default function Home() {
   const [sortBy, setSortBy] = useState<"recent" | "name">("recent");
   const [selectedIds, setSelectedIds] = useState<Set<number>>(new Set());
   const [isMultiSelectMode, setIsMultiSelectMode] = useState(false);
+  const [deletingIds, setDeletingIds] = useState<Set<number>>(new Set());
 
   const isWorkspacesPage = location === "/workspaces";
 
   const handleDelete = (id: number) => {
-    deleteWorkspace.mutate(id, {
-      onSuccess: () => {
-        toast({
-          title: "Deleted",
-          description: "Workspace has been removed.",
-        });
-        setSelectedIds(prev => {
-          const next = new Set(prev);
-          next.delete(id);
-          return next;
-        });
-      },
-    });
+    // Add to deleting set for animation
+    setDeletingIds(prev => new Set(prev).add(id));
+    // Small delay to let animation play before actual delete
+    setTimeout(() => {
+      deleteWorkspace.mutate(id, {
+        onSuccess: () => {
+          toast({
+            title: "Deleted",
+            description: "Workspace has been removed.",
+          });
+          setSelectedIds(prev => {
+            const next = new Set(prev);
+            next.delete(id);
+            return next;
+          });
+          setDeletingIds(prev => {
+            const next = new Set(prev);
+            next.delete(id);
+            return next;
+          });
+        },
+      });
+    }, 300);
   };
 
   const handleToggleSelection = (id: number) => {
@@ -119,17 +131,13 @@ export default function Home() {
   const userName = user?.firstName || user?.email?.split('@')[0] || "Architect";
 
   if (isAuthLoading || isWorkspacesLoading) {
-    return (
-      <div className="min-h-screen flex items-center justify-center bg-background">
-        <Loader2 className="w-10 h-10 animate-spin text-primary" />
-      </div>
-    );
+    return <LineSyncLoader message="Loading workspaces" />;
   }
 
   return (
     <div className="flex flex-col gap-8 pt-12 max-w-6xl mx-auto min-h-[calc(100vh-4rem)] relative">
-      {/* Home page background - subtle dot grid pattern */}
-      <div className="absolute inset-0 -z-10 overflow-hidden pointer-events-none">
+      {/* Home page background - fixed to cover full viewport */}
+      <div className="fixed inset-0 -z-10 overflow-hidden pointer-events-none">
         <div className="absolute inset-0 bg-[radial-gradient(circle_at_1px_1px,currentColor_1px,transparent_0)] [background-size:24px_24px] opacity-[0.03]" />
         <div className="absolute top-0 right-0 w-[600px] h-[600px] bg-gradient-radial from-primary/5 via-transparent to-transparent rounded-full blur-3xl" />
         <div className="absolute bottom-0 left-0 w-[400px] h-[400px] bg-gradient-radial from-accent/5 via-transparent to-transparent rounded-full blur-3xl" />
@@ -320,16 +328,32 @@ export default function Home() {
           </div>
 
           <div className="grid grid-cols-1 gap-3">
-            {filteredWorkspaces.map((workspace) => (
-              <WorkspaceCard
-                key={workspace.id}
-                workspace={workspace}
-                onDelete={handleDelete}
-                isSelected={selectedIds.has(workspace.id)}
-                onToggleSelect={handleToggleSelection}
-                isMultiSelectMode={isMultiSelectMode}
-              />
-            ))}
+            <AnimatePresence mode="popLayout">
+              {filteredWorkspaces.map((workspace) => (
+                <motion.div
+                  key={workspace.id}
+                  layout
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ 
+                    opacity: deletingIds.has(workspace.id) ? 0 : 1, 
+                    y: 0,
+                    scale: deletingIds.has(workspace.id) ? 0.95 : 1,
+                    x: deletingIds.has(workspace.id) ? -20 : 0
+                  }}
+                  exit={{ opacity: 0, scale: 0.9, x: -50 }}
+                  transition={{ duration: 0.3, ease: [0.25, 0.1, 0.25, 1] }}
+                >
+                  <WorkspaceCard
+                    workspace={workspace}
+                    onDelete={handleDelete}
+                    isSelected={selectedIds.has(workspace.id)}
+                    onToggleSelect={handleToggleSelection}
+                    isMultiSelectMode={isMultiSelectMode}
+                    isDeleting={deletingIds.has(workspace.id)}
+                  />
+                </motion.div>
+              ))}
+            </AnimatePresence>
             {!filteredWorkspaces.length && (
               <div className="brutal-card border-dashed border-2 border-foreground/30 flex flex-col items-center justify-center gap-4 py-16 px-8 bg-card/50">
                 <div className="w-16 h-16 border-2 border-foreground/20 flex items-center justify-center">

@@ -73,9 +73,10 @@ interface WorkspaceCardProps {
   isSelected?: boolean;
   onToggleSelect?: (id: number) => void;
   isMultiSelectMode?: boolean;
+  isDeleting?: boolean;
 }
 
-export function WorkspaceCard({ workspace, onDelete, isSelected, onToggleSelect, isMultiSelectMode }: WorkspaceCardProps) {
+export function WorkspaceCard({ workspace, onDelete, isSelected, onToggleSelect, isMultiSelectMode, isDeleting }: WorkspaceCardProps) {
   const [, setLocation] = useLocation();
   const { toast } = useToast();
   const updateWorkspace = useUpdateWorkspace();
@@ -282,7 +283,8 @@ export function WorkspaceCard({ workspace, onDelete, isSelected, onToggleSelect,
         <div 
           className={cn(
             "brutal-card cursor-pointer flex items-center justify-between p-4 bg-card transition-all group hover:bg-black/5 relative overflow-hidden",
-            isSelected && "bg-primary/10 border-primary"
+            isSelected && "bg-primary/10 border-primary",
+            isDeleting && "opacity-70 pointer-events-none"
           )}
           onClick={() => {
             if (isMultiSelectMode) {
@@ -292,6 +294,12 @@ export function WorkspaceCard({ workspace, onDelete, isSelected, onToggleSelect,
             }
           }}
         >
+          {/* Deleting overlay */}
+          {isDeleting && (
+            <div className="absolute inset-0 bg-destructive/10 flex items-center justify-center z-10">
+              <span className="text-xs font-bold uppercase tracking-wider text-destructive">Deleting...</span>
+            </div>
+          )}
           {/* Checkbox for multi-select */}
           {isMultiSelectMode && (
             <div className="mr-3">
