@@ -1,135 +1,273 @@
-import { useToast } from "@/hooks/use-toast";
-import { GitBranch, Bug, Lightbulb, Terminal } from "lucide-react";
+import { useState } from "react";
+import { Search, Grid3X3, List, Tag } from "lucide-react";
+import { Input } from "@/components/ui/input";
+import { cn } from "@/lib/utils";
+
+interface BlogPost {
+  id: number;
+  title: string;
+  subtitle: string;
+  date: string;
+  category: string;
+  readTime: string;
+  imageColor: string;
+  imagePattern?: string;
+}
+
+const fakePosts: BlogPost[] = [
+  {
+    id: 1,
+    title: "Improving skill-creator: Test, measure, and refine Agent Skills",
+    subtitle: "Skill authors can now verify that their skills work, catch regressions, and improve descriptions.",
+    date: "Mar 3, 2026",
+    category: "Claude Code",
+    readTime: "5 min read",
+    imageColor: "bg-[#E8DED5]",
+    imagePattern: "chart"
+  },
+  {
+    id: 2,
+    title: "Cowork and plugins for finance",
+    subtitle: "New integrations with financial data providers and trading platforms.",
+    date: "Feb 24, 2026",
+    category: "Enterprise AI",
+    readTime: "8 min read",
+    imageColor: "bg-[#7A8B6E]",
+    imagePattern: "stairs"
+  },
+  {
+    id: 3,
+    title: "Cowork and plugins for teams across the enterprise",
+    subtitle: "Deploy Claude across your organization with enterprise-grade security.",
+    date: "Feb 24, 2026",
+    category: "Agents",
+    readTime: "6 min read",
+    imageColor: "bg-[#D4846A]",
+    imagePattern: "book"
+  },
+  {
+    id: 4,
+    title: "Introducing Claude 4: Our most capable model yet",
+    subtitle: "Claude 4 brings enhanced reasoning, coding, and creative capabilities.",
+    date: "Feb 15, 2026",
+    category: "Product",
+    readTime: "12 min read",
+    imageColor: "bg-[#B8C5C4]",
+    imagePattern: "code"
+  },
+  {
+    id: 5,
+    title: "The future of AI-assisted development",
+    subtitle: "How Claude Code is transforming software engineering workflows.",
+    date: "Feb 10, 2026",
+    category: "Engineering",
+    readTime: "10 min read",
+    imageColor: "bg-[#C4A77D]",
+    imagePattern: "eye"
+  },
+  {
+    id: 6,
+    title: "Building reliable agent systems at scale",
+    subtitle: "Lessons learned from deploying autonomous agents in production.",
+    date: "Jan 28, 2026",
+    category: "Research",
+    readTime: "15 min read",
+    imageColor: "bg-[#D4846A]",
+    imagePattern: "nodes"
+  }
+];
+
+const filters = [
+  { label: "Sort by", options: ["Newest", "Oldest", "Popular"] },
+  { label: "Category", options: ["All", "Claude Code", "Enterprise AI", "Agents", "Product", "Research"] },
+  { label: "Product", options: ["All", "Claude", "Claude Code", "API", "Console"] },
+];
+
+function PatternSvg({ pattern }: { pattern: string }) {
+  const patterns: Record<string, JSX.Element> = {
+    chart: (
+      <svg viewBox="0 0 200 150" className="w-full h-full">
+        <path d="M40,110 Q60,60 80,90 T120,70 T160,50" fill="none" stroke="#1a1a1a" strokeWidth="3" />
+        <circle cx="80" cy="90" r="4" fill="#1a1a1a" />
+        <circle cx="120" cy="70" r="4" fill="#1a1a1a" />
+        <path d="M140,40 L150,30 M150,40 L160,30" stroke="#1a1a1a" strokeWidth="2" />
+      </svg>
+    ),
+    stairs: (
+      <svg viewBox="0 0 200 150" className="w-full h-full">
+        <path d="M60,120 L60,90 L90,90 L90,60 L120,60 L120,30" fill="none" stroke="#fff" strokeWidth="4" strokeLinecap="round" />
+        <path d="M130,40 Q140,30 150,40" fill="none" stroke="#fff" strokeWidth="2" />
+        <path d="M140,50 Q150,40 160,50" fill="none" stroke="#fff" strokeWidth="2" />
+      </svg>
+    ),
+    book: (
+      <svg viewBox="0 0 200 150" className="w-full h-full">
+        <rect x="60" y="40" width="80" height="70" rx="2" fill="none" stroke="#1a1a1a" strokeWidth="3" />
+        <line x1="100" y1="40" x2="100" y2="110" stroke="#1a1a1a" strokeWidth="2" />
+        <circle cx="75" cy="65" r="4" fill="#1a1a1a" />
+        <circle cx="125" cy="85" r="4" fill="#1a1a1a" />
+        <path d="M75,65 L125,85" stroke="#1a1a1a" strokeWidth="2" />
+      </svg>
+    ),
+    code: (
+      <svg viewBox="0 0 200 150" className="w-full h-full">
+        <path d="M70,75 L50,85 L70,95" fill="none" stroke="#1a1a1a" strokeWidth="3" strokeLinecap="round" />
+        <path d="M130,75 L150,85 L130,95" fill="none" stroke="#1a1a1a" strokeWidth="3" strokeLinecap="round" />
+        <path d="M85,105 L115,65" fill="none" stroke="#1a1a1a" strokeWidth="3" strokeLinecap="round" />
+      </svg>
+    ),
+    eye: (
+      <svg viewBox="0 0 200 150" className="w-full h-full">
+        <ellipse cx="100" cy="75" rx="40" ry="25" fill="none" stroke="#1a1a1a" strokeWidth="3" />
+        <circle cx="100" cy="75" r="12" fill="#1a1a1a" />
+        <path d="M140,75 L160,65 M155,75 L165,70" stroke="#1a1a1a" strokeWidth="2" />
+      </svg>
+    ),
+    nodes: (
+      <svg viewBox="0 0 200 150" className="w-full h-full">
+        <circle cx="70" cy="75" r="8" fill="#1a1a1a" />
+        <circle cx="130" cy="55" r="8" fill="#1a1a1a" />
+        <circle cx="130" cy="95" r="8" fill="#1a1a1a" />
+        <line x1="78" y1="75" x2="122" y2="55" stroke="#1a1a1a" strokeWidth="2" />
+        <line x1="78" y1="75" x2="122" y2="95" stroke="#1a1a1a" strokeWidth="2" />
+        <circle cx="100" cy="35" r="6" fill="none" stroke="#1a1a1a" strokeWidth="2" />
+        <line x1="100" y1="41" x2="100" y2="55" stroke="#1a1a1a" strokeWidth="2" />
+      </svg>
+    )
+  };
+  return patterns[pattern] || null;
+}
+
+function BlogCard({ post }: { post: BlogPost }) {
+  return (
+    <article className="group cursor-pointer">
+      {/* Image */}
+      <div className={cn("aspect-[4/3] rounded-xl overflow-hidden mb-4 relative", post.imageColor)}>
+        <div className="absolute inset-0 flex items-center justify-center p-8 opacity-60 group-hover:opacity-80 transition-opacity">
+          <PatternSvg pattern={post.imagePattern || "chart"} />
+        </div>
+      </div>
+      
+      {/* Content */}
+      <div className="space-y-2">
+        <p className="text-xs text-muted-foreground font-sans">{post.date}</p>
+        <h3 className="text-lg font-display font-semibold leading-snug group-hover:text-primary transition-colors line-clamp-2">
+          {post.title}
+        </h3>
+        <p className="text-sm text-muted-foreground font-sans line-clamp-2 leading-relaxed">
+          {post.subtitle}
+        </p>
+        <div className="flex items-center gap-2 pt-2">
+          <Tag className="w-3 h-3 text-muted-foreground" />
+          <span className="text-xs text-muted-foreground font-sans">{post.category}</span>
+        </div>
+      </div>
+    </article>
+  );
+}
 
 export default function DevPage() {
-  const { toast } = useToast();
+  const [viewMode, setViewMode] = useState<"grid" | "list">("grid");
+  const [searchTerm, setSearchTerm] = useState("");
+
+  const filteredPosts = fakePosts.filter(post =>
+    post.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    post.subtitle.toLowerCase().includes(searchTerm.toLowerCase())
+  );
 
   return (
-    <div className="flex flex-col gap-8 pt-2">
-      <div className="flex flex-col gap-2">
-        <h1 className="text-4xl md:text-5xl font-display font-bold tracking-tight text-foreground leading-[1.1]">
-          Dev Documentation
-        </h1>
-        <p className="text-base font-sans text-muted-foreground max-w-md leading-relaxed">
-          System logs, changelog, and technical notes
-        </p>
+    <div className="min-h-[calc(100vh-4rem)]">
+      {/* Header with search */}
+      <div className="mb-8">
+        <div className="flex items-center justify-between gap-4 mb-6">
+          <div className="flex-1 max-w-xl">
+            <div className="relative">
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+              <Input
+                type="text"
+                placeholder="Search posts"
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                className="pl-10 h-10 bg-card border-0 rounded-lg font-sans"
+              />
+            </div>
+          </div>
+          
+          <div className="flex items-center gap-2 bg-card rounded-lg p-1">
+            <button
+              onClick={() => setViewMode("grid")}
+              className={cn(
+                "p-2 rounded-md transition-colors",
+                viewMode === "grid" ? "bg-muted" : "hover:bg-muted/50"
+              )}
+            >
+              <Grid3X3 className="w-4 h-4" />
+            </button>
+            <button
+              onClick={() => setViewMode("list")}
+              className={cn(
+                "p-2 rounded-md transition-colors",
+                viewMode === "list" ? "bg-muted" : "hover:bg-muted/50"
+              )}
+            >
+              <List className="w-4 h-4" />
+            </button>
+          </div>
+        </div>
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        {/* Changelog Section */}
-        <div className="bg-card p-6 rounded-lg border">
-          <div className="flex items-center gap-3 mb-5">
-            <div className="w-9 h-9 rounded-md bg-primary/10 text-primary flex items-center justify-center">
-              <GitBranch className="w-4 h-4" />
-            </div>
-            <h2 className="text-lg font-display font-semibold tracking-tight">Changelog</h2>
-          </div>
-          <div className="space-y-4">
-            <div className="border-l-2 border-primary pl-4">
-              <div className="flex items-center gap-2 mb-1">
-                <span className="text-xs font-label font-semibold text-primary uppercase tracking-wide">v1.0.0</span>
-                <span className="text-xs font-sans text-muted-foreground">2026-03-05</span>
+      <div className="flex gap-8">
+        {/* Sidebar Filters */}
+        <aside className="w-48 shrink-0 hidden lg:block">
+          <div className="space-y-6">
+            <div>
+              <h4 className="text-sm font-semibold mb-4 font-sans">Filter and sort</h4>
+              <div className="space-y-4">
+                {filters.map((filter) => (
+                  <div key={filter.label} className="space-y-2">
+                    <label className="text-xs text-muted-foreground font-sans">{filter.label}</label>
+                    <select className="w-full bg-transparent text-sm font-sans border-0 border-b border-border rounded-none pb-2 focus:ring-0 focus:border-primary cursor-pointer">
+                      {filter.options.map((option) => (
+                        <option key={option} value={option.toLowerCase()}>{option}</option>
+                      ))}
+                    </select>
+                  </div>
+                ))}
               </div>
-              <ul className="text-sm font-sans space-y-1 text-foreground">
-                <li>Initial release with workspace management</li>
-                <li>Canvas node editor with real-time sync</li>
-                <li>User authentication and sessions</li>
-                <li>Multi-delete functionality</li>
-              </ul>
-            </div>
-            <div className="border-l-2 border-muted pl-4">
-              <div className="flex items-center gap-2 mb-1">
-                <span className="text-xs font-label font-semibold text-muted-foreground uppercase tracking-wide">v0.9.0</span>
-                <span className="text-xs font-sans text-muted-foreground">2026-03-01</span>
-              </div>
-              <ul className="text-sm font-sans space-y-1 text-muted-foreground">
-                <li>Beta testing release</li>
-                <li>Bug fixes and performance improvements</li>
-              </ul>
             </div>
           </div>
-        </div>
+        </aside>
 
-        {/* Known Issues */}
-        <div className="bg-card p-6 rounded-lg border">
-          <div className="flex items-center gap-3 mb-5">
-            <div className="w-9 h-9 rounded-md bg-destructive/10 text-destructive flex items-center justify-center">
-              <Bug className="w-4 h-4" />
+        {/* Blog Grid */}
+        <div className="flex-1">
+          {viewMode === "grid" ? (
+            <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
+              {filteredPosts.map((post) => (
+                <BlogCard key={post.id} post={post} />
+              ))}
             </div>
-            <h2 className="text-lg font-display font-semibold tracking-tight">Known Issues</h2>
-          </div>
-          <ul className="space-y-3">
-            <li className="flex items-start gap-3">
-              <span className="w-2 h-2 rounded-full bg-destructive mt-2 shrink-0" />
-              <span className="text-sm font-sans">Canvas zoom can be jumpy on trackpads</span>
-            </li>
-            <li className="flex items-start gap-3">
-              <span className="w-2 h-2 rounded-full bg-yellow-500 mt-2 shrink-0" />
-              <span className="text-sm font-sans">Edge connections sometimes don't snap properly</span>
-            </li>
-            <li className="flex items-start gap-3">
-              <span className="w-2 h-2 rounded-full bg-muted-foreground mt-2 shrink-0" />
-              <span className="text-sm font-sans">Large workspaces may load slowly</span>
-            </li>
-          </ul>
-        </div>
-
-        {/* Tech Stack */}
-        <div className="bg-card p-6 rounded-lg border">
-          <div className="flex items-center gap-3 mb-5">
-            <div className="w-9 h-9 rounded-md bg-foreground/10 flex items-center justify-center">
-              <Terminal className="w-4 h-4" />
+          ) : (
+            <div className="space-y-4">
+              {filteredPosts.map((post) => (
+                <div key={post.id} className="flex gap-4 p-4 bg-card rounded-xl group cursor-pointer hover:bg-muted/50 transition-colors">
+                  <div className={cn("w-32 h-24 rounded-lg shrink-0", post.imageColor)} />
+                  <div className="flex-1 space-y-1">
+                    <p className="text-xs text-muted-foreground font-sans">{post.date}</p>
+                    <h3 className="font-display font-semibold group-hover:text-primary transition-colors">
+                      {post.title}
+                    </h3>
+                    <p className="text-sm text-muted-foreground font-sans line-clamp-2">
+                      {post.subtitle}
+                    </p>
+                    <div className="flex items-center gap-4 pt-1">
+                      <span className="text-xs text-muted-foreground font-sans">{post.category}</span>
+                      <span className="text-xs text-muted-foreground font-sans">{post.readTime}</span>
+                    </div>
+                  </div>
+                </div>
+              ))}
             </div>
-            <h2 className="text-lg font-display font-semibold tracking-tight">Tech Stack</h2>
-          </div>
-          <div className="grid grid-cols-2 gap-4">
-            <div className="space-y-2">
-              <h3 className="font-label text-xs font-semibold uppercase tracking-wide text-muted-foreground">Frontend</h3>
-              <ul className="text-sm font-sans space-y-1 text-foreground">
-                <li>React + TypeScript</li>
-                <li>Tailwind CSS</li>
-                <li>Vite</li>
-                <li>React Flow</li>
-              </ul>
-            </div>
-            <div className="space-y-2">
-              <h3 className="font-label text-xs font-semibold uppercase tracking-wide text-muted-foreground">Backend</h3>
-              <ul className="text-sm font-sans space-y-1 text-foreground">
-                <li>Node.js + Express</li>
-                <li>PostgreSQL</li>
-                <li>Drizzle ORM</li>
-                <li>Passport.js</li>
-              </ul>
-            </div>
-          </div>
-        </div>
-
-        {/* Roadmap */}
-        <div className="bg-card p-6 rounded-lg border">
-          <div className="flex items-center gap-3 mb-5">
-            <div className="w-9 h-9 rounded-md bg-primary/10 text-primary flex items-center justify-center">
-              <Lightbulb className="w-4 h-4" />
-            </div>
-            <h2 className="text-lg font-display font-semibold tracking-tight">Roadmap</h2>
-          </div>
-          <ul className="space-y-3">
-            <li className="flex items-start gap-3">
-              <span className="w-2 h-2 rounded-full bg-primary mt-2 shrink-0" />
-              <span className="text-sm font-sans">Collaborative editing with WebSockets</span>
-            </li>
-            <li className="flex items-start gap-3">
-              <span className="w-2 h-2 rounded-full bg-primary mt-2 shrink-0" />
-              <span className="text-sm font-sans">Export to PNG/PDF</span>
-            </li>
-            <li className="flex items-start gap-3">
-              <span className="w-2 h-2 rounded-full bg-muted-foreground mt-2 shrink-0" />
-              <span className="text-sm font-sans">AI-powered layout suggestions</span>
-            </li>
-            <li className="flex items-start gap-3">
-              <span className="w-2 h-2 rounded-full bg-muted-foreground mt-2 shrink-0" />
-              <span className="text-sm font-sans">Mobile app version</span>
-            </li>
-          </ul>
+          )}
         </div>
       </div>
     </div>
