@@ -120,44 +120,28 @@ function Router() {
     );
   }
 
-  // Dashboard routes with layout
+  // Dashboard routes with layout - simplified, no glitchy animations
   return (
     <DashboardLayout>
-      <AnimatePresence mode="wait" initial={false}>
-        <motion.div
-          key={location}
-          initial={{ opacity: 0, y: 30 }}
-          animate={{ opacity: 1, y: 0 }}
-          exit={{ opacity: 0, y: -30 }}
-          transition={{ 
-            duration: 0.35, 
-            ease: [0.25, 0.1, 0.25, 1],
-            opacity: { duration: 0.25 }
-          }}
-          className="flex-1"
-          style={{ willChange: "opacity, transform" }}
-        >
-          <Switch location={location} key={location}>
-            <Route path="/">
-              <ProtectedRoute component={Home} />
-            </Route>
-            <Route path="/workspaces">
-              <ProtectedRoute component={Home} />
-            </Route>
-            <Route path="/settings">
-              <ProtectedRoute component={Settings} />
-            </Route>
-            <Route path="/dev">
-              <ProtectedRoute component={Dev} />
-            </Route>
-            <Route>
-              <PageTransition>
-                <NotFound />
-              </PageTransition>
-            </Route>
-          </Switch>
-        </motion.div>
-      </AnimatePresence>
+      <div className="flex-1">
+        <Switch location={location}>
+          <Route path="/">
+            <ProtectedRoute component={Home} />
+          </Route>
+          <Route path="/workspaces">
+            <ProtectedRoute component={Home} />
+          </Route>
+          <Route path="/settings">
+            <ProtectedRoute component={Settings} />
+          </Route>
+          <Route path="/dev">
+            <ProtectedRoute component={Dev} />
+          </Route>
+          <Route>
+            <NotFound />
+          </Route>
+        </Switch>
+      </div>
     </DashboardLayout>
   );
 }
