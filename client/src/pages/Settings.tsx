@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useAuth } from "@/hooks/use-auth";
 import { useTheme } from "@/hooks/use-theme";
 import { Button } from "@/components/ui/button";
@@ -8,7 +8,8 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { useToast } from "@/hooks/use-toast";
 import { queryClient } from "@/lib/queryClient";
-import { Loader2, User, Lock, Trash2, Download, AlertTriangle, Eye, EyeOff, Sun, Moon, Monitor } from "lucide-react";
+import { aiService, type ApiKey, type Provider } from "@/services/ai";
+import { Loader2, User, Lock, Trash2, Download, AlertTriangle, Eye, EyeOff, Sun, Moon, Monitor, Plus, Key, Check, X } from "lucide-react";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -41,6 +42,107 @@ export default function Settings() {
   const [confirmPassword, setConfirmPassword] = useState("");
   const [deleteConfirmText, setDeleteConfirmText] = useState("");
   const [deleteDataConfirmText, setDeleteDataConfirmText] = useState("");
+
+  // AI API Keys state
+  const [apiKeys, setApiKeys] = useState<ApiKey[]>([]);
+  const [providers, setProviders] = useState<Provider[]>([]);
+  const [isLoadingKeys, setIsLoadingKeys] = useState(false);
+  const [isAddingKey, setIsAddingKey] = useState(false);
+  const [newKeyProvider, setNewKeyProvider] = useState("openai");
+  const [newKeyValue, setNewKeyValue] = useState("");
+  const [showNewKey, setShowNewKey] = useState(false);
+
+  // Load API keys on mount
+  useEffect(() => {
+    loadApiKeys();
+    loadProviders();
+  }, []);
+
+  const loadApiKeys = async () => {
+    setIsLoadingKeys(true);
+    try {
+      const keys = await aiService.getApiKeys();
+      setApiKeys(keys);
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: "Failed to load API keys",
+        variant: "destructive",
+      });
+    } finally {
+      setIsLoadingKeys(false);
+    }
+  };
+
+  const loadProviders = async () => {
+    try {
+      const providerList = await aiService.getProviders();
+      setProviders(providerList);
+    } catch (error) {
+      console.error("Failed to load providers:", error);
+    }
+  };
+
+  const handleAddKey = async () => {
+    if (!newKeyValue.trim()) {
+      toast({
+        title: "Error",
+        description: "Please enter an API key",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    setIsAddingKey(true);
+    try {
+      await aiService.saveApiKey(newKeyProvider, newKeyValue);
+      toast({
+        title: "Success",
+        description: "API key added successfully",
+      });
+      setNewKeyValue("");
+      setShowNewKey(false);
+      loadApiKeys();
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: "Failed to add API key",
+        variant: "destructive",
+      });
+    } finally {
+      setIsAddingKey(false);
+    }
+  };
+
+  const handleDeleteKey = async (keyId: string) => {
+    try {
+      await aiService.deleteApiKey(keyId);
+      toast({
+        title: "Success",
+        description: "API key deleted",
+      });
+      loadApiKeys();
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: "Failed to delete API key",
+        variant: "destructive",
+      });
+    }
+  };
+
+  const handleToggleKey = async (keyId: string, isActive: boolean) => {
+    try {
+      await aiService.toggleKeyStatus(keyId, isActive);
+      loadApiKeys();
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: "Failed to update API key",
+        variant: "destructive",
+      });
+    }
+  };
 
   const themeButtons = [
     { value: "light" as const, icon: Sun, label: "Light" },
@@ -149,6 +251,106 @@ export default function Settings() {
       </div>
 
       <div className="space-y-6">
+        {/* AI API Keys */}
+        <Card className="border border-border/50 shadow-sm">
+          <CardHeader className="pb-4">
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 rounded-lg bg-primary/10 flex items-center justify-center">
+                <Key className="w-5 h-5 text-primary" />
+              </div>
+              <div>
+                <CardTitle className="text-lg font-semibold">AI API Keys</CardTitle>
+                <CardDescription className="text-sm">Manage your AI provider API keys (BYOK)</CardDescription>
+              </div>
+            </div>
+          </CardHeader>
+          <CardContent className="pt-0 space-y-6">
+            {/* Add new key section */}
+            <div className="space-y-4">
+              <div className="flex gap-2">
+                <select
+                  value={newKeyProvider}
+                  onChange={(e) => setNewKeyProvider(e.target.value)}
+                  className="h-10 rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
+                >
+                  {providers.map((p) => (
+                    <option key={p.id} value={p.id}>{p.name}</option>
+                  ))}
+                </select>
+                <div className="flex-1 relative">
+                  <Input
+                    type={showNewKey ? "text" : "password"}
+                    value={newKeyValue}
+                    onChange={(e) => setNewKeyValue(e.target.value)}
+                    placeholder="Enter API key"
+                    className="pr-10"
+                  />
+                  <button
+                    onClick={() => setShowNewKey(!showNewKey)}
+                    className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
+                  >
+                    {showNewKey ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                  </button>
+                </div>
+                <Button onClick={handleAddKey} disabled={isAddingKey}>
+                  {isAddingKey ? <Loader2 className="w-4 h-4 animate-spin" /> : <Plus className="w-4 h-4" />}
+                  Add
+                </Button>
+              </div>
+            </div>
+
+            {/* Existing keys list */}
+            {isLoadingKeys ? (
+              <div className="flex items-center justify-center py-4">
+                <Loader2 className="w-5 h-5 animate-spin text-muted-foreground" />
+              </div>
+            ) : apiKeys.length === 0 ? (
+              <p className="text-sm text-muted-foreground text-center py-4">
+                No API keys stored. Add your first key above.
+              </p>
+            ) : (
+              <div className="space-y-2">
+                {apiKeys.map((key) => (
+                  <div
+                    key={key.id}
+                    className="flex items-center justify-between p-3 rounded-lg border border-border bg-muted/50"
+                  >
+                    <div className="flex items-center gap-3">
+                      <div className="w-8 h-8 rounded-md bg-primary/10 flex items-center justify-center">
+                        <Key className="w-4 h-4 text-primary" />
+                      </div>
+                      <div>
+                        <p className="font-medium text-sm capitalize">{key.provider}</p>
+                        <p className="text-xs text-muted-foreground">{key.keyHint}</p>
+                      </div>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <button
+                        onClick={() => handleToggleKey(key.id, !key.isActive)}
+                        className={`px-2 py-1 text-xs rounded-full transition-colors ${
+                          key.isActive
+                            ? "bg-green-100 text-green-700 dark:bg-green-900 dark:text-green-300"
+                            : "bg-gray-100 text-gray-700 dark:bg-gray-800 dark:text-gray-400"
+                        }`}
+                      >
+                        {key.isActive ? "Active" : "Inactive"}
+                      </button>
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => handleDeleteKey(key.id)}
+                        className="text-destructive hover:text-destructive hover:bg-destructive/10"
+                      >
+                        <Trash2 className="w-4 h-4" />
+                      </Button>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+          </CardContent>
+        </Card>
+
         {/* Appearance */}
         <Card className="border border-border/50 shadow-sm">
           <CardHeader className="pb-4">
