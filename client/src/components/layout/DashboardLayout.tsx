@@ -89,11 +89,9 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
             return (
               <motion.div
                 key={item.href}
-                initial={{ opacity: 0, x: -20 }}
-                animate={{ opacity: 1, x: 0 }}
-                transition={{ delay: index * 0.05, duration: 0.3 }}
                 whileHover={{ scale: 1.02 }}
                 whileTap={{ scale: 0.98 }}
+                transition={{ duration: 0.2 }}
               >
                 <Link href={item.href} className={cn(
                   "flex items-center gap-3 h-10 rounded-lg transition-all duration-200 group relative",
