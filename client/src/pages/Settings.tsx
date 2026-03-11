@@ -64,11 +64,7 @@ export default function Settings() {
       const keys = await aiService.getApiKeys();
       setApiKeys(keys);
     } catch (error) {
-      toast({
-        title: "Error",
-        description: "Failed to load API keys",
-        variant: "destructive",
-      });
+      console.error("Failed to load API keys:", error);
     } finally {
       setIsLoadingKeys(false);
     }
