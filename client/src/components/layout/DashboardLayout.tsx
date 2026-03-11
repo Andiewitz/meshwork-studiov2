@@ -40,13 +40,13 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
   const { user, logout } = useAuth();
   const [location] = useLocation();
   const [isExpanded, setIsExpanded] = useState(false);
-  const hasAnimated = useRef(false);
-  const [animateKey, setAnimateKey] = useState(0);
+  const [shouldAnimateNav, setShouldAnimateNav] = useState(true);
+  const hasDoneInitialAnimation = useRef(false);
 
   // Trigger animation when expanding/collapsing navbar
   useEffect(() => {
-    if (hasAnimated.current) {
-      setAnimateKey((prev) => prev + 1);
+    if (hasDoneInitialAnimation.current) {
+      setShouldAnimateNav(true);
     }
   }, [isExpanded]);
 
@@ -98,13 +98,14 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
             const isActive = location === item.href;
             return (
               <motion.div
-                key={`${animateKey}-${item.href}`}
-                initial={hasAnimated.current ? { opacity: 0, x: -20 } : { opacity: 0, x: -20 }}
+                key={item.href}
+                initial={shouldAnimateNav ? { opacity: 0, x: -20 } : false}
                 animate={{ opacity: 1, x: 0 }}
                 transition={{ delay: index * 0.05, duration: 0.3 }}
                 onAnimationComplete={() => {
                   if (index === navItems.length - 1) {
-                    hasAnimated.current = true;
+                    hasDoneInitialAnimation.current = true;
+                    setShouldAnimateNav(false);
                   }
                 }}
                 whileHover={{ scale: 1.02 }}
