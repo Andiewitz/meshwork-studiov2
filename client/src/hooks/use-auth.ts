@@ -1,5 +1,6 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useState } from "react";
+import { secureFetch } from "../lib/secure-fetch";
 import type { User } from "@shared/schema";
 
 const API_BASE_URL = import.meta.env.VITE_API_URL || "";
@@ -37,7 +38,7 @@ async function fetchUser(): Promise<User | null> {
 }
 
 async function logout(): Promise<void> {
-  const response = await fetch(getApiUrl("/api/auth/logout"), {
+  const response = await secureFetch(getApiUrl("/api/auth/logout"), {
     method: "POST",
     credentials: "include",
   });

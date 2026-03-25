@@ -107,7 +107,8 @@ export const aiService = {
     temperature?: number;
     maxTokens?: number;
   }): AsyncGenerator<string, void, unknown> {
-    const res = await fetch("/api/ai/chat", {
+    const { secureFetch } = await import("../lib/secure-fetch");
+    const res = await secureFetch("/api/ai/chat", {
       method: "POST",
       headers: {
         "Content-Type": "application/json",

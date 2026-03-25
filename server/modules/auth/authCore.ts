@@ -9,11 +9,20 @@ import { createLocalStrategy } from "./strategies/local";
 const getSession = () => {
   const sessionTtl = 7 * 24 * 60 * 60 * 1000; // 1 week
   const connectionString = process.env.AUTH_DATABASE_URL || process.env.DATABASE_URL;
+  
+  // SECURITY: Require SESSION_SECRET in production
+  if (!process.env.SESSION_SECRET && process.env.NODE_ENV === "production") {
+    throw new Error("SESSION_SECRET environment variable is required in production");
+  }
+  
+  if (!process.env.SESSION_SECRET && process.env.NODE_ENV !== "production") {
+    console.warn("[AuthCore] WARNING: SESSION_SECRET not set, using insecure default for development only");
+  }
 
   if (!connectionString) {
     const MemoryStore = memorystore(session);
     return session({
-      secret: process.env.SESSION_SECRET || "dev_secret_change_me",
+      secret: process.env.SESSION_SECRET || "dev_only_insecure_dev_key_12345",
       resave: false,
       saveUninitialized: false,
       store: new MemoryStore({
@@ -38,8 +47,8 @@ const getSession = () => {
     saveUninitialized: false,
     cookie: {
       httpOnly: true,
-      secure: true,
-      sameSite: "none",
+      secure: process.env.NODE_ENV === "production",
+      sameSite: "strict",
       maxAge: sessionTtl,
     },
   });

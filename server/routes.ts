@@ -4,11 +4,15 @@ import { AuthModule } from "./modules/auth";
 import { WorkspaceModule } from "./modules/workspace";
 import { CanvasModule } from "./modules/canvas";
 import { AIModule } from "./modules/ai";
+import { registerCsrfRoutes } from "./routes/csrf";
 
 export async function registerRoutes(
   httpServer: Server,
   app: Express
 ): Promise<Server> {
+  // Initialize CSRF routes first (available before auth)
+  registerCsrfRoutes(app);
+
   // Initialize Auth Module first (as other modules might depend on its middleware)
   await AuthModule.initialize(app);
 

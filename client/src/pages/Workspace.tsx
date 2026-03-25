@@ -547,8 +547,8 @@ function WorkspaceView() {
         sync({ nodes, edges }, {
             onSuccess: () => {
                 toast({
-                    title: "Architecture Saved",
-                    description: "Distributed system config persisted.",
+                    title: "Workspace changes saved",
+                    description: "",
                 });
             }
         });

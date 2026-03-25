@@ -6,6 +6,7 @@ import { eq, and, inArray } from "drizzle-orm";
 import { hashPassword, verifyPassword } from "./password";
 import { isAuthenticated } from "./authCore";
 import { captchaMiddleware } from "./captcha";
+import { csrfProtection } from "../../middleware/csrf";
 
 // Register auth-specific routes
 export function registerAuthRoutes(app: Express): void {
@@ -21,8 +22,8 @@ export function registerAuthRoutes(app: Express): void {
     })
   );
 
-  // Register with email/password (with CAPTCHA)
-  app.post("/api/auth/register", captchaMiddleware, async (req: Request, res: Response) => {
+  // Register with email/password (with CAPTCHA and CSRF protection)
+  app.post("/api/auth/register", csrfProtection, captchaMiddleware, async (req: Request, res: Response) => {
     try {
       const { email, password, firstName, lastName } = req.body;
 
@@ -30,8 +31,11 @@ export function registerAuthRoutes(app: Express): void {
         return res.status(400).json({ message: "Email and password are required" });
       }
 
-      if (password.length < 8) {
-        return res.status(400).json({ message: "Password must be at least 8 characters" });
+      // SECURITY: Validate password strength
+      const { validatePasswordStrength } = await import("./password");
+      const validation = validatePasswordStrength(password);
+      if (!validation.valid) {
+        return res.status(400).json({ message: "Password does not meet security requirements", errors: validation.errors });
       }
 
       // Check if user already exists
@@ -69,8 +73,8 @@ export function registerAuthRoutes(app: Express): void {
     }
   });
 
-  // Login with email/password (NO CAPTCHA for returning users)
-  app.post("/api/auth/login", (req: Request, res: Response, next) => {
+  // Login with email/password (NO CAPTCHA for returning users, with CSRF protection)
+  app.post("/api/auth/login", csrfProtection, (req: Request, res: Response, next) => {
     passport.authenticate("local", (err: any, user: any, info: any) => {
       if (err) {
         return next(err);
@@ -157,7 +161,7 @@ export function registerAuthRoutes(app: Express): void {
   });
 
   // Change password
-  app.post("/api/user/change-password", isAuthenticated, async (req: any, res: Response) => {
+  app.post("/api/user/change-password", csrfProtection, isAuthenticated, async (req: any, res: Response) => {
     try {
       const userId = req.user.id;
       const { currentPassword, newPassword } = req.body;
@@ -166,8 +170,11 @@ export function registerAuthRoutes(app: Express): void {
         return res.status(400).json({ message: "Current password and new password are required" });
       }
 
-      if (newPassword.length < 8) {
-        return res.status(400).json({ message: "New password must be at least 8 characters" });
+      // SECURITY: Validate new password strength
+      const { validatePasswordStrength } = await import("./password");
+      const validation = validatePasswordStrength(newPassword);
+      if (!validation.valid) {
+        return res.status(400).json({ message: "New password does not meet security requirements", errors: validation.errors });
       }
 
       // Get user with password hash
@@ -203,7 +210,7 @@ export function registerAuthRoutes(app: Express): void {
   });
 
   // Delete all user data (workspaces, nodes, edges, collections)
-  app.delete("/api/user/data", isAuthenticated, async (req: any, res: Response) => {
+  app.delete("/api/user/data", csrfProtection, isAuthenticated, async (req: any, res: Response) => {
     try {
       const userId = req.user.id;
 
@@ -239,7 +246,7 @@ export function registerAuthRoutes(app: Express): void {
   });
 
   // Delete account and all data
-  app.delete("/api/user/account", isAuthenticated, async (req: any, res: Response) => {
+  app.delete("/api/user/account", csrfProtection, isAuthenticated, async (req: any, res: Response) => {
     try {
       const userId = req.user.id;
 

@@ -4,6 +4,7 @@ import { WorkspaceModule } from "../workspace";
 import { api } from "@shared/routes";
 import { AuthModule } from "../auth";
 import { z } from "zod";
+import { csrfProtection } from "../../middleware/csrf";
 
 export function registerCanvasRoutes(app: Express) {
     const { isAuthenticated } = AuthModule.middleware;
@@ -23,7 +24,7 @@ export function registerCanvasRoutes(app: Express) {
         res.json({ nodes, edges });
     });
 
-    app.post(api.workspaces.syncCanvas.path, isAuthenticated, async (req, res) => {
+    app.post(api.workspaces.syncCanvas.path, csrfProtection, isAuthenticated, async (req, res) => {
         const id = Number(req.params.id);
         const workspace = await workspaceStorage.getWorkspace(id);
         if (!workspace) return res.status(404).json({ message: "Workspace not found" });
@@ -37,7 +38,7 @@ export function registerCanvasRoutes(app: Express) {
     });
 
     // Duplicate canvas data when duplicating workspace
-    app.post("/api/workspaces/:id/duplicate-canvas", isAuthenticated, async (req, res) => {
+    app.post("/api/workspaces/:id/duplicate-canvas", csrfProtection, isAuthenticated, async (req, res) => {
         const id = Number(req.params.id);
         const { toWorkspaceId } = req.body;
         

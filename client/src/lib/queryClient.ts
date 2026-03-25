@@ -1,4 +1,5 @@
 import { QueryClient, QueryFunction } from "@tanstack/react-query";
+import { secureFetch } from "./secure-fetch";
 
 const API_BASE_URL = import.meta.env.VITE_API_URL || "";
 
@@ -19,7 +20,7 @@ export async function apiRequest(
   url: string,
   data?: unknown | undefined,
 ): Promise<Response> {
-  const res = await fetch(getApiUrl(url), {
+  const res = await secureFetch(getApiUrl(url), {
     method,
     headers: data ? { "Content-Type": "application/json" } : {},
     body: data ? JSON.stringify(data) : undefined,

@@ -4,6 +4,7 @@ import { CanvasModule } from "../canvas";
 import { api } from "@shared/routes";
 import { AuthModule } from "../auth";
 import { z } from "zod";
+import { csrfProtection } from "../../middleware/csrf";
 
 export function registerWorkspaceRoutes(app: Express) {
     const { isAuthenticated } = AuthModule.middleware;
@@ -17,7 +18,7 @@ export function registerWorkspaceRoutes(app: Express) {
         res.json(collections);
     });
 
-    app.post("/api/collections", isAuthenticated, async (req, res) => {
+    app.post("/api/collections", csrfProtection, isAuthenticated, async (req, res) => {
         try {
             const userId = (req.user as any)?.id;
             const collection = await workspaceStorage.createCollection({
@@ -41,7 +42,7 @@ export function registerWorkspaceRoutes(app: Express) {
         res.json(collection);
     });
 
-    app.put("/api/collections/:id", isAuthenticated, async (req, res) => {
+    app.put("/api/collections/:id", csrfProtection, isAuthenticated, async (req, res) => {
         const id = Number(req.params.id);
         const existing = await workspaceStorage.getCollectionById(id);
         if (!existing) return res.status(404).json({ message: "Collection not found" });
@@ -53,7 +54,7 @@ export function registerWorkspaceRoutes(app: Express) {
         res.json(updated);
     });
 
-    app.delete("/api/collections/:id", isAuthenticated, async (req, res) => {
+    app.delete("/api/collections/:id", csrfProtection, isAuthenticated, async (req, res) => {
         const id = Number(req.params.id);
         const existing = await workspaceStorage.getCollectionById(id);
         if (!existing) return res.status(404).json({ message: "Collection not found" });
@@ -83,7 +84,7 @@ export function registerWorkspaceRoutes(app: Express) {
         res.json(workspace);
     });
 
-    app.post(api.workspaces.create.path, isAuthenticated, async (req, res) => {
+    app.post(api.workspaces.create.path, csrfProtection, isAuthenticated, async (req, res) => {
         try {
             const input = api.workspaces.create.input.parse(req.body);
             const userId = (req.user as any)?.id;
@@ -100,7 +101,7 @@ export function registerWorkspaceRoutes(app: Express) {
         }
     });
 
-    app.put(api.workspaces.update.path, isAuthenticated, async (req, res) => {
+    app.put(api.workspaces.update.path, csrfProtection, isAuthenticated, async (req, res) => {
         const id = Number(req.params.id);
         const existing = await workspaceStorage.getWorkspace(id);
         if (!existing) return res.status(404).json({ message: "Not found" });
@@ -112,7 +113,7 @@ export function registerWorkspaceRoutes(app: Express) {
         res.json(updated);
     });
 
-    app.delete(api.workspaces.delete.path, isAuthenticated, async (req, res) => {
+    app.delete(api.workspaces.delete.path, csrfProtection, isAuthenticated, async (req, res) => {
         const id = Number(req.params.id);
         const existing = await workspaceStorage.getWorkspace(id);
         if (!existing) return res.status(404).json({ message: "Not found" });
@@ -127,7 +128,7 @@ export function registerWorkspaceRoutes(app: Express) {
         res.status(204).send();
     });
 
-    app.post(api.workspaces.duplicate.path, isAuthenticated, async (req, res) => {
+    app.post(api.workspaces.duplicate.path, csrfProtection, isAuthenticated, async (req, res) => {
         const id = Number(req.params.id);
         const existing = await workspaceStorage.getWorkspace(id);
         if (!existing) return res.status(404).json({ message: "Not found" });

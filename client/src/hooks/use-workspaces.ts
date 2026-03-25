@@ -1,6 +1,7 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { api, buildUrl } from "@shared/routes";
 import { type CreateWorkspaceRequest, type UpdateWorkspaceRequest } from "@shared/schema";
+import { secureFetch } from "../lib/secure-fetch";
 import { useAuth } from "./use-auth";
 
 const API_BASE_URL = import.meta.env.VITE_API_URL || "";
@@ -53,7 +54,7 @@ export function useCreateWorkspace() {
 
   return useMutation({
     mutationFn: async (data: CreateWorkspaceRequest) => {
-      const res = await fetch(getApiUrl(api.workspaces.create.path), {
+      const res = await secureFetch(getApiUrl(api.workspaces.create.path), {
         method: api.workspaces.create.method,
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(data),
@@ -80,7 +81,7 @@ export function useUpdateWorkspace() {
   return useMutation({
     mutationFn: async ({ id, ...updates }: { id: number } & UpdateWorkspaceRequest) => {
       const url = buildUrl(api.workspaces.update.path, { id });
-      const res = await fetch(getApiUrl(url), {
+      const res = await secureFetch(getApiUrl(url), {
         method: api.workspaces.update.method,
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(updates),
@@ -103,7 +104,7 @@ export function useDeleteWorkspace() {
   return useMutation({
     mutationFn: async (id: number) => {
       const url = buildUrl(api.workspaces.delete.path, { id });
-      const res = await fetch(getApiUrl(url), {
+      const res = await secureFetch(getApiUrl(url), {
         method: api.workspaces.delete.method,
         credentials: "include",
       });
@@ -123,7 +124,7 @@ export function useDuplicateWorkspace() {
   return useMutation({
     mutationFn: async ({ id, title }: { id: number; title?: string }) => {
       const url = buildUrl(api.workspaces.duplicate.path, { id });
-      const res = await fetch(getApiUrl(url), {
+      const res = await secureFetch(getApiUrl(url), {
         method: api.workspaces.duplicate.method,
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ title }),

@@ -3,6 +3,9 @@ import { registerRoutes } from "./routes";
 import { serveStatic } from "./static";
 import { createServer } from "http";
 import cors from "cors";
+import helmet from "helmet";
+import cookieParser from "cookie-parser";
+import { csrfProtection, generateCsrfToken, validateCsrfToken } from "./middleware/csrf";
 
 const app = express();
 const httpServer = createServer(app);
@@ -13,26 +16,37 @@ declare module "http" {
   }
 }
 
-// CORS for production
-if (process.env.NODE_ENV === "production") {
-  const frontendUrl = process.env.FRONTEND_URL || "*";
+// SECURITY: Add security headers
+app.use(helmet());
+
+// CORS configuration (for all environments)
+const frontendUrl = process.env.FRONTEND_URL || (process.env.NODE_ENV === "production" ? "" : "http://localhost:5173");
+if (frontendUrl) {
   app.use(cors({
     origin: frontendUrl,
     credentials: true,
     methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
     allowedHeaders: ["Content-Type", "Authorization"],
   }));
+} else if (process.env.NODE_ENV !== "production") {
+  app.use(cors({ origin: true, credentials: true }));
 }
 
+// SECURITY: Add request size limits to prevent DoS
 app.use(
   express.json({
+    limit: "5mb",
     verify: (req, _res, buf) => {
       req.rawBody = buf;
     },
   }),
 );
 
-app.use(express.urlencoded({ extended: false }));
+app.use(express.urlencoded({ extended: false, limit: "5mb" }));
+
+// SECURITY: CSRF Protection - Setup cookie parser before CSRF middleware
+app.use(cookieParser());
+app.use(csrfProtection);
 
 // Health check for Railway
 app.get("/health", (_req, res) => {

@@ -15,7 +15,7 @@ export function createLocalStrategy() {
     },
     async (email: string, password: string, done) => {
       try {
-        console.log("[LocalAuth] Login attempt for email:", email);
+        // SECURITY: Minimal logging - never log email or auth attempts
         
         // Find user by email
         const [user] = await db
@@ -23,30 +23,25 @@ export function createLocalStrategy() {
           .from(users)
           .where(eq(users.email, email));
 
-        console.log("[LocalAuth] User found:", user ? "yes" : "no");
-
         if (!user) {
-          console.log("[LocalAuth] User not found:", email);
-          return done(null, false, { message: "No account found with this email address" });
+          // SECURITY: Generic error message to prevent email enumeration
+          return done(null, false, { message: "Invalid email or password" });
         }
 
         // Check if user has a password (email auth)
         if (!user.passwordHash) {
-          console.log("[LocalAuth] No password hash - social login account");
-          return done(null, false, { message: "This account uses social login" });
+          // SECURITY: Generic error message
+          return done(null, false, { message: "Invalid email or password" });
         }
 
         // Verify password
-        console.log("[LocalAuth] Verifying password...");
         const isValid = await verifyPassword(password, user.passwordHash);
-        console.log("[LocalAuth] Password valid:", isValid);
         
         if (!isValid) {
-          console.log("[LocalAuth] Password incorrect for user:", email);
-          return done(null, false, { message: "Incorrect password" });
+          // SECURITY: Generic error message to prevent brute force detection
+          return done(null, false, { message: "Invalid email or password" });
         }
 
-        console.log("[LocalAuth] Login successful for:", user.id);
         return done(null, {
           id: user.id,
           email: user.email,
@@ -56,7 +51,7 @@ export function createLocalStrategy() {
           authProvider: user.authProvider,
         });
       } catch (err) {
-        console.error("[LocalAuth] Error:", err);
+        console.error("[LocalAuth] Authentication error - check logs for details");
         return done(err);
       }
     }
