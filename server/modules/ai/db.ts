@@ -9,11 +9,27 @@ const { Pool } = pg;
 const connectionString = process.env.DATABASE_URL;
 
 if (!connectionString) {
-  throw new Error("[AI] DATABASE_URL not set");
+  if (process.env.NODE_ENV === "production") {
+    throw new Error("[AI] DATABASE_URL not set");
+  }
+  console.warn("[AI] DATABASE_URL not set, AI module will not work until configured");
 }
 
-const pool = new Pool({ connectionString });
-export const db = drizzle(pool, { schema });
+let db: any = null;
+if (connectionString) {
+  const pool = new Pool({ connectionString });
+  db = drizzle(pool, { schema });
+} else {
+  // Placeholder db for development without database
+  db = {
+    select: () => ({ from: () => ({ where: () => ({ limit: () => Promise.resolve([]) }) }) }),
+    insert: () => ({ values: () => Promise.resolve([]) }),
+    update: () => ({ set: () => ({ where: () => Promise.resolve({}) }) }),
+    delete: () => ({ from: () => ({ where: () => Promise.resolve({}) }) }),
+  };
+}
+
+export { db };
 
 // Types from schema
 export type UserApiKey = typeof schema.userApiKeys.$inferSelect;

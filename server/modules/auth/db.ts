@@ -44,6 +44,22 @@ async function createTables() {
         `);
         console.log("[AuthDB] Sessions table created/verified");
 
+        // Create login_attempts table for account lockout protection
+        await pool.query(`
+            CREATE TABLE IF NOT EXISTS login_attempts (
+                id VARCHAR PRIMARY KEY DEFAULT gen_random_uuid(),
+                email VARCHAR NOT NULL,
+                failed INTEGER NOT NULL DEFAULT 0,
+                last_attempt TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+                locked_until TIMESTAMP,
+                created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
+            );
+            
+            CREATE INDEX IF NOT EXISTS IDX_login_attempts_email ON login_attempts(email);
+            CREATE INDEX IF NOT EXISTS IDX_login_attempts_locked_until ON login_attempts(locked_until);
+        `);
+        console.log("[AuthDB] Login attempts table created/verified");
+
     } catch (err) {
         console.error("[AuthDB] Failed to create tables:", err);
     }

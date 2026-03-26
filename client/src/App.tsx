@@ -5,6 +5,7 @@ import { Toaster } from "@/components/ui/toaster";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { useAuth } from "@/hooks/use-auth";
 import { useTheme, ThemeProvider } from "@/hooks/use-theme";
+import { useCsrfTokenInitializer } from "@/lib/csrf-init";
 import { RedirectingScreen } from "@/components/ui/loading-screen";
 import { AnimatePresence, motion } from "framer-motion";
 import { cn } from "@/lib/utils";
@@ -154,6 +155,9 @@ function Router() {
 }
 
 function App() {
+  // Initialize CSRF token on app load
+  useCsrfTokenInitializer();
+
   return (
     <QueryClientProvider client={queryClient}>
       <ThemeProvider>

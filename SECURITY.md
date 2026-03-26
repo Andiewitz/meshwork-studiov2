@@ -137,12 +137,30 @@ This document outlines the security audit performed on the Meshwork-Studio codeb
 
 - **Priority**: HIGH (now complete)
 
-### 2. ⚠️ No Account Lockout on Failed Attempts
-- **Status**: Not yet implemented
-- **Recommendation**:
-  - Implement exponential backoff after 5 failed login attempts
-  - Use Redis or database to track attempt counts
-  - Reset after successful login
+### 2. ✅ Account Lockout on Failed Attempts
+- **Status**: IMPLEMENTED
+- **Solution Applied**:
+  - Created `server/modules/auth/lockout.ts` service with exponential backoff
+  - Added `login_attempts` table to track failed attempts per email
+  - Lock threshold: 5 failed attempts
+  - Exponential backoff lockout duration:
+    - 6th attempt: 15 minutes
+    - 7th attempt: 30 minutes
+    - 8th attempt: 60 minutes
+    - 9th+ attempts: cap at 8 hours max
+  - Automatic unlock after lockout duration expires
+  - Counter resets on successful login
+  - Integration in local.ts strategy checks lockout before password verification
+  - Client receives `locked_until` timestamp in error response for UI feedback
+  
+- **Files Modified/Created**:
+  - `shared/schema.ts` - Added loginAttempts table
+  - `server/modules/auth/db.ts` - Added table creation
+  - `server/modules/auth/lockout.ts` - New service module
+  - `server/modules/auth/strategies/local.ts` - Integrated lockout checks
+  - `server/modules/auth/routes.ts` - Enhanced login response with lockout info
+
+- **Priority**: HIGH (now complete)
 
 ### 3. ⚠️ No Rate Limiting
 - **Status**: Not yet implemented
@@ -257,6 +275,38 @@ curl -H "Origin: https://evil.com" http://localhost:5000/api/auth/me
 ```bash
 curl -I http://localhost:5000 -X POST /api/auth/login
 # Cookie should have: HttpOnly, Secure (in prod), SameSite=Strict
+```
+
+### 5. Test Account Lockout
+```bash
+# First, register a test account if needed
+curl -X POST http://localhost:5000/api/auth/register \
+  -H "Content-Type: application/json" \
+  -d '{"email":"locktest@example.com","password":"StrongPass123!"}'
+
+# Make 5 failed login attempts
+for i in {1..5}; do
+  curl -X POST http://localhost:5000/api/auth/login \
+    -H "Content-Type: application/json" \
+    -d '{"email":"locktest@example.com","password":"WrongPassword"}' \
+    -H "X-CSRF-Token: your_csrf_token"
+done
+
+# 6th attempt should return locked message with locked_until timestamp
+curl -X POST http://localhost:5000/api/auth/login \
+  -H "Content-Type: application/json" \
+  -d '{"email":"locktest@example.com","password":"WrongPassword"}' \
+  -H "X-CSRF-Token: your_csrf_token"
+# Response: {"message":"Account temporarily locked...","locked_until":"2026-03-25T..."}
+
+# Even correct password won't work while locked
+curl -X POST http://localhost:5000/api/auth/login \
+  -H "Content-Type: application/json" \
+  -d '{"email":"locktest@example.com","password":"StrongPass123!"}' \
+  -H "X-CSRF-Token: your_csrf_token"
+
+# After lockout expires (15 min default), login succeeds with correct password
+# and the attempt counter resets
 ```
 
 ---

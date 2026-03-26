@@ -9,7 +9,13 @@
     "start": "NODE_ENV=production node dist/index.cjs",
     "railway:start": "npm run build:server && npm run start",
     "check": "tsc",
-    "db:push": "drizzle-kit push"
+    "db:push": "drizzle-kit push",
+    "test": "vitest",
+    "test:ui": "vitest --ui",
+    "test:run": "vitest run",
+    "test:coverage": "vitest run --coverage",
+    "test:auth": "vitest tests/unit/auth tests/integration/auth",
+    "test:lockout": "vitest tests/unit/auth/lockout.test.ts tests/integration/auth/lockout-routes.test.ts"
   },
   "dependencies": {
     "@hookform/resolvers": "^3.10.0",
@@ -107,14 +113,17 @@
     "@types/react-dom": "^18.3.1",
     "@types/ws": "^8.5.13",
     "@vitejs/plugin-react": "^4.7.0",
+    "@vitest/ui": "^4.1.1",
     "autoprefixer": "^10.4.20",
     "drizzle-kit": "^0.31.8",
     "esbuild": "^0.25.0",
+    "happy-dom": "^20.8.8",
     "postcss": "^8.4.47",
     "tailwindcss": "^3.4.17",
     "tsx": "^4.20.5",
     "typescript": "5.6.3",
-    "vite": "^7.3.0"
+    "vite": "^7.3.0",
+    "vitest": "^4.1.1"
   },
   "overrides": {
     "drizzle-kit": {

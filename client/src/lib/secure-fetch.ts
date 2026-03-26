@@ -60,16 +60,17 @@ export async function secureFetch(
 }
 
 /**
- * Get CSRF token from local storage or sessionStorage
+ * Get CSRF token from sessionStorage
  */
 function getCsrfToken(): string {
-  // First try to get from response header cache (set during fetch)
   if (typeof window !== "undefined") {
     const stored = sessionStorage.getItem("csrfToken");
-    if (stored) return stored;
+    if (stored) {
+      console.log("[SecureFetch] Using CSRF token from sessionStorage");
+      return stored;
+    }
   }
-
-  // Otherwise return empty - will be fetched on demand
+  console.warn("[SecureFetch] No CSRF token found in sessionStorage");
   return "";
 }
 

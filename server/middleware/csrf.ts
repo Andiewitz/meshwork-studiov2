@@ -60,6 +60,7 @@ export const validateCsrfToken = (req: Request, res: Response, next: NextFunctio
     if (err) {
       // CSRF token validation failed
       console.warn("[CSRF] Token validation failed for:", req.method, req.path);
+      console.warn("[CSRF] Error:", err.message);
       return res.status(403).json({
         message: "CSRF validation failed",
         error: process.env.NODE_ENV === "production" ? undefined : err.message,

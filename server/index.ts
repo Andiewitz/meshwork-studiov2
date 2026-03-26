@@ -17,7 +17,19 @@ declare module "http" {
 }
 
 // SECURITY: Add security headers
-app.use(helmet());
+// In development, allow inline scripts for Vite HMR and React development
+if (process.env.NODE_ENV === "production") {
+  app.use(helmet());
+} else {
+  app.use(helmet({
+    contentSecurityPolicy: {
+      directives: {
+        scriptSrc: ["'self'", "'unsafe-inline'", "localhost"],
+        connectSrc: ["'self'", "localhost:*", "ws://localhost:*"],
+      },
+    },
+  }));
+}
 
 // CORS configuration (for all environments)
 const frontendUrl = process.env.FRONTEND_URL || (process.env.NODE_ENV === "production" ? "" : "http://localhost:5173");
@@ -26,7 +38,7 @@ if (frontendUrl) {
     origin: frontendUrl,
     credentials: true,
     methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
-    allowedHeaders: ["Content-Type", "Authorization"],
+    allowedHeaders: ["Content-Type", "Authorization", "X-CSRF-Token"],
   }));
 } else if (process.env.NODE_ENV !== "production") {
   app.use(cors({ origin: true, credentials: true }));
@@ -46,7 +58,10 @@ app.use(express.urlencoded({ extended: false, limit: "5mb" }));
 
 // SECURITY: CSRF Protection - Setup cookie parser before CSRF middleware
 app.use(cookieParser());
-app.use(csrfProtection);
+
+// Note: CSRF protection is applied per-route in auth routes,
+// not globally, because it needs session middleware to be initialized first.
+// Session middleware is initialized by setupAuth() in registerRoutes()
 
 // Health check for Railway
 app.get("/health", (_req, res) => {

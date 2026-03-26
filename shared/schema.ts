@@ -85,6 +85,19 @@ export const edges = pgTable("edges", {
   animated: integer("animated").default(0), // 0 or 1
 });
 
+// Login attempt tracking for account lockout protection
+export const loginAttempts = pgTable("login_attempts", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  email: varchar("email").notNull(),
+  failed: integer("failed").notNull().default(0), // Number of failed attempts
+  lastAttempt: timestamp("last_attempt").notNull().defaultNow(),
+  lockedUntil: timestamp("locked_until"), // When the account will be unlocked
+  createdAt: timestamp("created_at").notNull().defaultNow(),
+}, (table) => [
+  index("IDX_login_attempts_email").on(table.email),
+  index("IDX_login_attempts_locked_until").on(table.lockedUntil),
+]);
+
 export const insertCollectionSchema = createInsertSchema(collections).omit({ id: true, createdAt: true });
 // Custom validation for workspace title
 const titleRegex = /^[a-zA-Z0-9\-_\s]+$/; // Alphanumeric, spaces, hyphens, underscores only
