@@ -35,3 +35,20 @@ coverage/
 
 # OS files
 Thumbs.db
+
+# Debug / build output
+build_debug.txt
+build_error.txt
+tsc_output.txt
+server_start_log.txt
+output.log
+
+# Replit / attached assets
+attached_assets/
+.replit
+replit.nix
+.cache/
+
+# Agent / AI tooling
+.agent/
+.gemini/
