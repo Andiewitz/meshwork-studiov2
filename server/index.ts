@@ -6,9 +6,16 @@ import cors from "cors";
 import helmet from "helmet";
 import cookieParser from "cookie-parser";
 import { csrfProtection, generateCsrfToken, validateCsrfToken } from "./middleware/csrf";
+import { apiLimiter } from "./middleware/rateLimit";
 
 const app = express();
 const httpServer = createServer(app);
+
+// SECURITY: Trust the NGINX reverse proxy so rate limiting works per user IP, not proxy IP
+app.set("trust proxy", 1);
+
+// SECURITY: Apply global rate limiting to all API routes
+app.use("/api/", apiLimiter);
 
 declare module "http" {
   interface IncomingMessage {

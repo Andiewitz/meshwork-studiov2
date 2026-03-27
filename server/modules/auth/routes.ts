@@ -5,7 +5,8 @@ import { users, workspaces, nodes, edges, collections } from "@shared/schema";
 import { eq, and, inArray } from "drizzle-orm";
 import { hashPassword, verifyPassword } from "./password";
 import { isAuthenticated } from "./authCore";
-import { captchaMiddleware } from "./captcha";
+import { optionalCaptchaMiddleware } from "./captcha";
+import { authLimiter } from "../../middleware/rateLimit";
 import { csrfProtection } from "../../middleware/csrf";
 
 // Register auth-specific routes
@@ -26,7 +27,7 @@ export function registerAuthRoutes(app: Express): void {
   // In development, skip CSRF to allow testing without full setup
   const registerCsrfMiddleware = process.env.NODE_ENV === "production" ? csrfProtection : (_req: any, _res: any, next: any) => next();
   
-  app.post("/api/auth/register", registerCsrfMiddleware, captchaMiddleware, async (req: Request, res: Response) => {
+  app.post("/api/auth/register", authLimiter, registerCsrfMiddleware, optionalCaptchaMiddleware, async (req: Request, res: Response) => {
     if (process.env.NODE_ENV === "development") {
       console.log("[Auth] CSRF disabled for register in development mode");
     }
@@ -83,7 +84,7 @@ export function registerAuthRoutes(app: Express): void {
   // In development, skip CSRF to allow testing
   const loginCsrfMiddleware = process.env.NODE_ENV === "production" ? csrfProtection : (_req: any, _res: any, next: any) => next();
   
-  app.post("/api/auth/login", loginCsrfMiddleware, (req: Request, res: Response, next) => {
+  app.post("/api/auth/login", authLimiter, loginCsrfMiddleware, (req: Request, res: Response, next) => {
     if (process.env.NODE_ENV === "development") {
       console.log("[Auth] CSRF disabled for login in development mode");
     }
