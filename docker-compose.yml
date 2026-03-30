@@ -13,6 +13,11 @@ services:
       - '5434:5432'
     volumes:
       - pgdata_workspace:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U user -d emnesh_workspace"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
 
   emnesh-auth-db:
     container_name: emnesh-postgres-auth
@@ -26,6 +31,11 @@ services:
       - '5433:5432'
     volumes:
       - pgdata_auth:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U user -d emnesh_auth"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
 
   emnesh-backend:
     container_name: emnesh-backend-api
@@ -53,10 +63,10 @@ services:
       # App URL for redirects
       APP_URL: ${APP_URL:-http://localhost:5000}
     depends_on:
-      - emnesh-workspace-db
-      - emnesh-auth-db
-
-
+      emnesh-workspace-db:
+        condition: service_healthy
+      emnesh-auth-db:
+        condition: service_healthy
 
   emnesh-frontend:
     container_name: emnesh-frontend

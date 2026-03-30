@@ -99,6 +99,10 @@ import {
 } from '@/components/canvas/icons/KubernetesIcons';
 
 import { nodeTypes, nodeTypesList } from '@/features/workspace/utils/nodeTypes';
+import { nodeDimensions } from "@/features/workspace/utils/dimensions";
+import { generateTemplate } from "@/features/workspace/utils/templates";
+import { PropertiesSidebar } from "@/features/workspace/components/PropertiesSidebar";
+import { calculateContainment, calculateGlobalPosition } from "@/features/workspace/utils/containment";
 
 function WorkspaceView() {
     const { id } = useParams();
@@ -248,69 +252,7 @@ function WorkspaceView() {
     const addNode = useCallback((type: string, label: string, position = { x: 100, y: 100 }) => {
         takeSnapshot();
         const nodeTypeInfo = nodeTypesList.find(n => n.type === type);
-
-        // Match dimensions from SystemNode
-        const dimensions: Record<string, { w: number, h: number }> = {
-            server: { w: 168, h: 72 },
-            microservice: { w: 168, h: 72 },
-            worker: { w: 168, h: 72 },
-            logic: { w: 168, h: 72 },
-            database: { w: 144, h: 120 },
-            cache: { w: 144, h: 120 },
-            storage: { w: 144, h: 120 },
-            search: { w: 144, h: 120 },
-            influxdb: { w: 144, h: 120 },
-            snowflake: { w: 144, h: 120 },
-            clickhouse: { w: 144, h: 120 },
-            gateway: { w: 192, h: 72 },
-            loadBalancer: { w: 192, h: 72 },
-            cdn: { w: 192, h: 72 },
-            bus: { w: 192, h: 72 },
-            queue: { w: 192, h: 72 },
-            route53: { w: 192, h: 72 },
-            nats: { w: 192, h: 72 },
-            socketio: { w: 144, h: 72 },
-            pusher: { w: 144, h: 72 },
-            github_actions: { w: 168, h: 72 },
-            jenkins: { w: 168, h: 72 },
-            circleci: { w: 168, h: 72 },
-            gitlab: { w: 168, h: 72 },
-            argocd: { w: 168, h: 72 },
-            vault: { w: 168, h: 72 },
-            auth0: { w: 168, h: 72 },
-            okta: { w: 168, h: 72 },
-            waf: { w: 168, h: 72 },
-            prometheus: { w: 168, h: 72 },
-            grafana: { w: 168, h: 72 },
-            datadog: { w: 168, h: 72 },
-            stripe: { w: 168, h: 72 },
-            twilio: { w: 168, h: 72 },
-            sendgrid: { w: 168, h: 72 },
-            shopify: { w: 168, h: 72 },
-            paypal: { w: 168, h: 72 },
-            note: { w: 192, h: 192 },
-            annotation: { w: 160, h: 48 },
-            text: { w: 200, h: 40 },
-            vpc: { w: 408, h: 312 },
-            region: { w: 600, h: 408 },
-            // Kubernetes
-            'k8s-pod': { w: 144, h: 96 },
-            'k8s-deployment': { w: 192, h: 96 },
-            'k8s-replicaset': { w: 168, h: 96 },
-            'k8s-statefulset': { w: 168, h: 96 },
-            'k8s-daemonset': { w: 168, h: 96 },
-            'k8s-service': { w: 168, h: 72 },
-            'k8s-ingress': { w: 168, h: 72 },
-            'k8s-configmap': { w: 168, h: 72 },
-            'k8s-secret': { w: 168, h: 72 },
-            'k8s-pvc': { w: 168, h: 96 },
-            'k8s-job': { w: 144, h: 72 },
-            'k8s-cronjob': { w: 168, h: 96 },
-            'k8s-hpa': { w: 168, h: 96 },
-            'k8s-namespace': { w: 408, h: 312 },
-        };
-
-        const dim = dimensions[type] || { w: 168, h: 96 };
+        const dim = nodeDimensions[type] || { w: 168, h: 96 };
 
         const newNode: Node = {
             id: `${type}-${Date.now()}`,
@@ -459,110 +401,7 @@ function WorkspaceView() {
 
     const applyTemplate = (templateType: string, position: { x: number, y: number }) => {
         takeSnapshot();
-        const base = position;
-        let newNodes: Node[] = [];
-        let newEdges: Edge[] = [];
-
-        if (templateType === 'template:ecommerce') {
-            const r53 = { id: `r53-${Date.now()}`, type: 'route53', position: { x: base.x, y: base.y }, data: { label: 'Global DNS', category: 'Networking' }, style: { width: 192, height: 72 } };
-            const waf = { id: `waf-${Date.now()}`, type: 'waf', position: { x: base.x + 240, y: base.y }, data: { label: 'Cloudflare WAF', category: 'Security' }, style: { width: 168, height: 72 } };
-            const cdn = { id: `cdn-${Date.now()}`, type: 'cdn', position: { x: base.x + 240, y: base.y + 120 }, data: { label: 'Static Assets', category: 'Networking' }, style: { width: 192, height: 72 } };
-            const alb = { id: `alb-${Date.now()}`, type: 'loadBalancer', position: { x: base.x + 480, y: base.y }, data: { label: 'Core ALB', category: 'Networking' }, style: { width: 192, height: 72 } };
-
-            // Microservices
-            const auth = { id: `auth-${Date.now()}`, type: 'auth0', position: { x: base.x + 720, y: base.y - 120 }, data: { label: 'Auth Service', category: 'Security' }, style: { width: 168, height: 72 } };
-            const product = { id: `prod-${Date.now()}`, type: 'microservice', position: { x: base.x + 720, y: base.y }, data: { label: 'Product API', category: 'Compute' }, style: { width: 168, height: 72 } };
-            const order = { id: `order-${Date.now()}`, type: 'microservice', position: { x: base.x + 720, y: base.y + 120 }, data: { label: 'Order Service', category: 'Compute' }, style: { width: 168, height: 72 } };
-
-            // Support
-            const redis = { id: `redis-${Date.now()}`, type: 'cache', position: { x: base.x + 960, y: base.y - 60 }, data: { label: 'Catalog Cache', category: 'Data' }, style: { width: 144, height: 120 } };
-            const pg = { id: `pg-${Date.now()}`, type: 'database', position: { x: base.x + 960, y: base.y + 60 }, data: { label: 'Master DB', provider: 'postgresql', category: 'Data' }, style: { width: 144, height: 120 } };
-            const stripe = { id: `stripe-${Date.now()}`, type: 'stripe', position: { x: base.x + 960, y: base.y + 240 }, data: { label: 'Payments', category: 'External' }, style: { width: 168, height: 72 } };
-
-            // Event Bus
-            const kafka = { id: `kafka-${Date.now()}`, type: 'bus', position: { x: base.x + 720, y: base.y + 240 }, data: { label: 'Event Stream', category: 'Networking' }, style: { width: 192, height: 72 } };
-
-            newNodes = [r53, waf, cdn, alb, auth, product, order, redis, pg, stripe, kafka];
-            newEdges = [
-                { id: `e-${Date.now()}-1`, source: r53.id, target: waf.id, type: 'step', style: { stroke: '#444', strokeWidth: 2 } },
-                { id: `e-${Date.now()}-2`, source: waf.id, target: alb.id, type: 'step', style: { stroke: '#444', strokeWidth: 2 } },
-                { id: `e-${Date.now()}-3`, source: waf.id, target: cdn.id, type: 'step', style: { stroke: '#444', strokeWidth: 2 } },
-                { id: `e-${Date.now()}-4`, source: alb.id, target: auth.id, type: 'step', style: { stroke: '#444', strokeWidth: 2 } },
-                { id: `e-${Date.now()}-5`, source: alb.id, target: product.id, type: 'step', style: { stroke: '#444', strokeWidth: 2 } },
-                { id: `e-${Date.now()}-6`, source: alb.id, target: order.id, type: 'step', style: { stroke: '#444', strokeWidth: 2 } },
-                { id: `e-${Date.now()}-7`, source: product.id, target: redis.id, type: 'step', style: { stroke: '#444', strokeWidth: 2 } },
-                { id: `e-${Date.now()}-8`, source: order.id, target: pg.id, type: 'step', style: { stroke: '#444', strokeWidth: 2 } },
-                { id: `e-${Date.now()}-9`, source: order.id, target: kafka.id, type: 'step', style: { stroke: '#444', strokeWidth: 2 } },
-                { id: `e-${Date.now()}-10`, source: order.id, target: stripe.id, type: 'step', style: { stroke: '#444', strokeWidth: 2 } },
-            ];
-        } else if (templateType === 'template:ai-platform') {
-            const app = { id: `app-${Date.now()}`, type: 'app', position: { x: base.x, y: base.y }, data: { label: 'AI Client App', category: 'External' }, style: { width: 168, height: 72 } };
-            const nats = { id: `nats-${Date.now()}`, type: 'nats', position: { x: base.x + 240, y: base.y }, data: { label: 'Real-time Ingress', category: 'Networking' }, style: { width: 192, height: 72 } };
-            const influx = { id: `inf-${Date.now()}`, type: 'influxdb', position: { x: base.x + 480, y: base.y - 120 }, data: { label: 'Telemetry Store', category: 'Data' }, style: { width: 144, height: 120 } };
-            const worker = { id: `worker-${Date.now()}`, type: 'worker', position: { x: base.x + 480, y: base.y }, data: { label: 'Inference Engine', category: 'Compute' }, style: { width: 168, height: 72 } };
-            const vault = { id: `vault-${Date.now()}`, type: 'vault', position: { x: base.x + 480, y: base.y + 120 }, data: { label: 'Secrets Mgmt', category: 'Security' }, style: { width: 168, height: 72 } };
-
-            const snowflake = { id: `snow-${Date.now()}`, type: 'snowflake', position: { x: base.x + 720, y: base.y }, data: { label: 'Model Warehouse', category: 'Data' }, style: { width: 144, height: 120 } };
-            const clickhouse = { id: `ch-${Date.now()}`, type: 'clickhouse', position: { x: base.x + 720, y: base.y + 180 }, data: { label: 'Vector Search', category: 'Data' }, style: { width: 144, height: 120 } };
-
-            const prom = { id: `prom-${Date.now()}`, type: 'prometheus', position: { x: base.x + 960, y: base.y - 60 }, data: { label: 'Metrics', category: 'Monitoring' }, style: { width: 168, height: 72 } };
-            const grafana = { id: `graf-${Date.now()}`, type: 'grafana', position: { x: base.x + 960, y: base.y + 60 }, data: { label: 'AI Dashboard', category: 'Monitoring' }, style: { width: 168, height: 72 } };
-
-            newNodes = [app, nats, influx, worker, vault, snowflake, clickhouse, prom, grafana];
-            newEdges = [
-                { id: `e-${Date.now()}-1`, source: app.id, target: nats.id, type: 'step', style: { stroke: '#444', strokeWidth: 2 } },
-                { id: `e-${Date.now()}-2`, source: nats.id, target: influx.id, type: 'step', style: { stroke: '#444', strokeWidth: 2 } },
-                { id: `e-${Date.now()}-3`, source: nats.id, target: worker.id, type: 'step', style: { stroke: '#444', strokeWidth: 2 } },
-                { id: `e-${Date.now()}-4`, source: worker.id, target: vault.id, type: 'step', style: { stroke: '#444', strokeWidth: 2, strokeDasharray: '5,5' } },
-                { id: `e-${Date.now()}-5`, source: worker.id, target: snowflake.id, type: 'step', style: { stroke: '#444', strokeWidth: 2 } },
-                { id: `e-${Date.now()}-6`, source: worker.id, target: clickhouse.id, type: 'step', style: { stroke: '#444', strokeWidth: 2 } },
-                { id: `e-${Date.now()}-7`, source: snowflake.id, target: prom.id, type: 'step', style: { stroke: '#444', strokeWidth: 2 } },
-                { id: `e-${Date.now()}-8`, source: prom.id, target: grafana.id, type: 'step', style: { stroke: '#444', strokeWidth: 2 } },
-            ];
-        } else if (templateType === 'template:enterprise-k8s') {
-            const region = { id: `reg-${Date.now()}`, type: 'region', position: { x: base.x, y: base.y }, data: { label: 'AWS us-east-1', category: 'Infrastructure' }, style: { width: 1200, height: 600 } };
-            const vpc = { id: `vpc-${Date.now()}`, type: 'vpc', position: { x: base.x + 50, y: base.y + 50 }, data: { label: 'Prod VPC', category: 'Infrastructure' }, parentId: region.id, style: { width: 1100, height: 500 } };
-
-            const ingress = { id: `ing-${Date.now()}`, type: 'k8s-ingress', position: { x: base.x + 100, y: base.y + 150 }, data: { label: 'Public Ingress', category: 'Kubernetes' }, parentId: vpc.id, style: { width: 168, height: 72 } };
-            const svc = { id: `svc-${Date.now()}`, type: 'k8s-service', position: { x: base.x + 300, y: base.y + 150 }, data: { label: 'Cluster Svc', category: 'Kubernetes' }, parentId: vpc.id, style: { width: 168, height: 72 } };
-
-            const deploy = { id: `dep-${Date.now()}`, type: 'k8s-deployment', position: { x: base.x + 500, y: base.y + 150 }, data: { label: 'Web Deploy', category: 'Kubernetes' }, parentId: vpc.id, style: { width: 192, height: 96 } };
-            const pod1 = { id: `p1-${Date.now()}`, type: 'k8s-pod', position: { x: base.x + 750, y: base.y + 100 }, data: { label: 'Replica A', category: 'Kubernetes' }, parentId: vpc.id, style: { width: 144, height: 96 } };
-            const pod2 = { id: `p2-${Date.now()}`, type: 'k8s-pod', position: { x: base.x + 750, y: base.y + 220 }, data: { label: 'Replica B', category: 'Kubernetes' }, parentId: vpc.id, style: { width: 144, height: 96 } };
-
-            const argo = { id: `argo-${Date.now()}`, type: 'argocd', position: { x: base.x + vpc.style.width + 100, y: base.y + 100 }, data: { label: 'GitOps (ArgoCD)', category: 'CI/CD' }, style: { width: 168, height: 72 } };
-            const actions = { id: `act-${Date.now()}`, type: 'github_actions', position: { x: base.x + vpc.style.width + 100, y: base.y + 200 }, data: { label: 'CI Pipeline', category: 'CI/CD' }, style: { width: 168, height: 72 } };
-
-            newNodes = [region, vpc, ingress, svc, deploy, pod1, pod2, argo, actions];
-            newEdges = [
-                { id: `e-${Date.now()}-1`, source: ingress.id, target: svc.id, type: 'step', style: { stroke: '#444', strokeWidth: 2 } },
-                { id: `e-${Date.now()}-2`, source: svc.id, target: deploy.id, type: 'step', style: { stroke: '#444', strokeWidth: 2 } },
-                { id: `e-${Date.now()}-3`, source: deploy.id, target: pod1.id, type: 'step', style: { stroke: '#444', strokeWidth: 2 } },
-                { id: `e-${Date.now()}-4`, source: deploy.id, target: pod2.id, type: 'step', style: { stroke: '#444', strokeWidth: 2 } },
-                { id: `e-${Date.now()}-5`, source: actions.id, target: argo.id, type: 'step', style: { stroke: '#444', strokeWidth: 2 } },
-                { id: `e-${Date.now()}-6`, source: argo.id, target: deploy.id, type: 'step', style: { stroke: '#444', strokeWidth: 2, strokeDasharray: '5,5' } },
-            ];
-        } else if (templateType === 'template:fintech-saas') {
-            const lb = { id: `lb-${Date.now()}`, type: 'loadBalancer', position: { x: base.x, y: base.y }, data: { label: 'Edge Gateway', category: 'Networking' }, style: { width: 192, height: 72 } };
-            const auth = { id: `okta-${Date.now()}`, type: 'okta', position: { x: base.x + 240, y: base.y - 100 }, data: { label: 'Identity (Okta)', category: 'Security' }, style: { width: 168, height: 72 } };
-            const api = { id: `api-${Date.now()}`, type: 'microservice', position: { x: base.x + 240, y: base.y + 50 }, data: { label: 'Transaction API', category: 'Compute' }, style: { width: 168, height: 72 } };
-
-            const psql = { id: `psql-${Date.now()}`, type: 'database', position: { x: base.x + 480, y: base.y - 50 }, data: { label: 'Ledger DB', provider: 'postgresql', category: 'Data' }, style: { width: 144, height: 120 } };
-            const stripe = { id: `stripe-${Date.now()}`, type: 'stripe', position: { x: base.x + 480, y: base.y + 150 }, data: { label: 'Processor', category: 'External' }, style: { width: 168, height: 72 } };
-
-            const dd = { id: `dd-${Date.now()}`, type: 'datadog', position: { x: base.x + 720, y: base.y }, data: { label: 'Observability', category: 'Monitoring' }, style: { width: 168, height: 72 } };
-            const twilio = { id: `tw-${Date.now()}`, type: 'twilio', position: { x: base.x + 720, y: base.y + 120 }, data: { label: '2FA (Twilio)', category: 'External' }, style: { width: 168, height: 72 } };
-
-            newNodes = [lb, auth, api, psql, stripe, dd, twilio];
-            newEdges = [
-                { id: `e-${Date.now()}-1`, source: lb.id, target: auth.id, type: 'step', style: { stroke: '#444', strokeWidth: 2 } },
-                { id: `e-${Date.now()}-2`, source: lb.id, target: api.id, type: 'step', style: { stroke: '#444', strokeWidth: 2 } },
-                { id: `e-${Date.now()}-3`, source: api.id, target: psql.id, type: 'step', style: { stroke: '#444', strokeWidth: 2 } },
-                { id: `e-${Date.now()}-4`, source: api.id, target: stripe.id, type: 'step', style: { stroke: '#444', strokeWidth: 2 } },
-                { id: `e-${Date.now()}-5`, source: api.id, target: dd.id, type: 'step', style: { stroke: '#444', strokeWidth: 2 } },
-                { id: `e-${Date.now()}-6`, source: api.id, target: twilio.id, type: 'step', style: { stroke: '#444', strokeWidth: 2 } },
-            ];
-        }
+        const { nodes: newNodes, edges: newEdges } = generateTemplate(templateType, position);
 
         setNodes((nds) => nds.concat(newNodes));
         setEdges((eds) => eds.concat(newEdges));
@@ -662,64 +501,45 @@ function WorkspaceView() {
     }, [takeSnapshot]);
 
     const onNodeDragStop = useCallback((_: any, node: Node) => {
-        // Find if this node was dropped inside a container
-        // Containment logic for VPC, Region, and K8s Namespace
-        const containers = nodes.filter(n => ['vpc', 'region', 'k8s-namespace'].includes(n.type!) && n.id !== node.id);
+        const { parentId, localPosition } = calculateContainment(node, nodes);
 
-        // Current dragged node center (approximate using measured or style)
-        const w = node.measured?.width || (node.style?.width as number) || 120;
-        const h = node.measured?.height || (node.style?.height as number) || 80;
-        const centerX = node.position.x + w / 2;
-        const centerY = node.position.y + h / 2;
-
-        const parent = containers.find(c => {
-            const cw = (c.style?.width as number) || 0;
-            const ch = (c.style?.height as number) || 0;
-            return centerX >= c.position.x &&
-                centerX <= c.position.x + cw &&
-                centerY >= c.position.y &&
-                centerY <= c.position.y + ch;
-        });
-
-        if (parent && node.parentId !== parent.id) {
-            // Drop into new parent
+        if (parentId) {
             setNodes((nds) => nds.map((n) => {
                 if (n.id === node.id) {
-                    return {
-                        ...n,
-                        parentId: parent.id,
-                        // Note: Removing extent: 'parent' to allow dragging out
-                        position: {
-                            x: n.position.x - parent.position.x,
-                            y: n.position.y - parent.position.y
-                        }
-                    };
+                    return { ...n, parentId, position: localPosition! };
                 }
                 return n;
             }));
-        } else if (!parent && node.parentId) {
-            // Dragged out of parent
-            const parentNode = nodes.find(n => n.id === node.parentId);
-            if (parentNode) {
-                setNodes((nds) => nds.map((n) => {
-                    if (n.id === node.id) {
-                        return {
-                            ...n,
-                            parentId: undefined,
-                            extent: undefined,
-                            position: {
-                                x: n.position.x + parentNode.position.x,
-                                y: n.position.y + parentNode.position.y
-                            }
-                        };
-                    }
-                    return n;
-                }));
+        } else {
+            // Check if we dragged out of a parent
+            const containers = nodes.filter(n => ['vpc', 'region', 'k8s-namespace'].includes(n.type!) && n.id !== node.id);
+            const w = node.measured?.width || (node.style?.width as number) || 120;
+            const h = node.measured?.height || (node.style?.height as number) || 80;
+            const centerX = node.position.x + w / 2;
+            const centerY = node.position.y + h / 2;
+
+            const isStillInParent = containers.some(c => {
+                const cw = (c.style?.width as number) || 0;
+                const ch = (c.style?.height as number) || 0;
+                return centerX >= c.position.x && centerX <= c.position.x + cw &&
+                       centerY >= c.position.y && centerY <= c.position.y + ch;
+            });
+
+            if (!isStillInParent && node.parentId) {
+                const globalPos = calculateGlobalPosition(node, nodes);
+                if (globalPos) {
+                    setNodes((nds) => nds.map((n) => {
+                        if (n.id === node.id) {
+                            return { ...n, parentId: undefined, extent: undefined, position: globalPos };
+                        }
+                        return n;
+                    }));
+                }
             }
         }
     }, [nodes, setNodes]);
 
-    const selectedNode = nodes.find((n) => n.id === selectedNodeId);
+    const selectedNode = nodes.find((n) => n.id === selectedNodeId) || null;
 
     if (isLoading) {
         return (
@@ -1300,508 +1120,12 @@ function WorkspaceView() {
                                         )}
                                     </div>
                                 ) : (
-                                    <div className="p-4 space-y-6">
-                                        {selectedNode ? (
-                                            <>
-                                                <section className="space-y-4">
-                                                    {selectedNode.type === 'note' ? (
-                                                        <div className="space-y-1.5">
-                                                            <Label className="text-[10px] uppercase tracking-widest font-bold text-white/30">Note Contents</Label>
-                                                            <Textarea
-                                                                data-property-input="true"
-                                                                value={(selectedNode.data?.label as string) || ''}
-                                                                onChange={(e) => updateNodeData(selectedNode.id, { label: e.target.value })}
-                                                                className="min-h-[200px] rounded-md focus:ring-0 bg-white/5 border-white/10 text-white focus:border-white/20 text-[12px] resize-none"
-                                                                placeholder="Type your note here..."
-                                                            />
-                                                        </div>
-                                                    ) : (
-                                                        <div className="space-y-4">
-                                                            <div className="space-y-1.5">
-                                                                <Label className="text-[10px] uppercase tracking-widest font-bold text-white/30">Display Name</Label>
-                                                                <Input
-                                                                    data-property-input="true"
-                                                                    value={(selectedNode.data?.label as string) || ''}
-                                                                    onChange={(e) => updateNodeData(selectedNode.id, { label: e.target.value })}
-                                                                    className="h-8 rounded-md focus:ring-0 bg-white/5 border-white/10 text-white focus:border-white/20 text-[12px]"
-                                                                />
-                                                            </div>
-
-                                                            <div className="space-y-1.5">
-                                                                <Label className="text-[10px] uppercase tracking-widest font-bold text-white/30">Description</Label>
-                                                                <Textarea
-                                                                    value={(selectedNode.data?.description as string) || ''}
-                                                                    onChange={(e) => updateNodeData(selectedNode.id, { description: e.target.value })}
-                                                                    className="min-h-[60px] rounded-md focus:ring-0 bg-white/5 border-white/10 text-white focus:border-white/20 text-[11px] resize-none"
-                                                                    placeholder="Add architectural details..."
-                                                                />
-                                                            </div>
-                                                        </div>
-                                                    )}
-                                                </section>
-
-                                                <div className="h-px bg-white/5" />
-
-                                                <section className="space-y-4">
-                                                    <Label className="text-[10px] uppercase tracking-widest font-bold text-white/30">Dimensions</Label>
-                                                    <div className="grid grid-cols-2 gap-3">
-                                                        <div className="space-y-1.5">
-                                                            <div className="text-[9px] text-white/20 uppercase font-bold">Width (PX)</div>
-                                                            <Input
-                                                                type="number"
-                                                                min={24}
-                                                                value={Math.round(Number(selectedNode.style?.width ?? (selectedNode as any).measured?.width ?? 0))}
-                                                                onChange={(e) => {
-                                                                    const val = parseInt(e.target.value);
-                                                                    if (!isNaN(val) && val > 0) {
-                                                                        updateNodeStyle(selectedNode.id, { width: val });
-                                                                    }
-                                                                }}
-                                                                className="h-8 rounded-md bg-white/5 border-white/10 text-white text-[11px]"
-                                                            />
-                                                        </div>
-                                                        <div className="space-y-1.5">
-                                                            <div className="text-[9px] text-white/20 uppercase font-bold">Height (PX)</div>
-                                                            <Input
-                                                                type="number"
-                                                                min={24}
-                                                                value={Math.round(Number(selectedNode.style?.height ?? (selectedNode as any).measured?.height ?? 0))}
-                                                                onChange={(e) => {
-                                                                    const val = parseInt(e.target.value);
-                                                                    if (!isNaN(val) && val > 0) {
-                                                                        updateNodeStyle(selectedNode.id, { height: val });
-                                                                    }
-                                                                }}
-                                                                className="h-8 rounded-md bg-white/5 border-white/10 text-white text-[11px]"
-                                                            />
-                                                        </div>
-                                                    </div>
-                                                </section>
-
-                                                <div className="h-px bg-white/5" />
-
-                                                <section className="space-y-4">
-                                                    <Label className="text-[10px] uppercase tracking-widest font-bold text-white/30">Technical Configuration</Label>
-
-                                                    <div className="space-y-3">
-                                                        {selectedNode.type === 'database' && (
-                                                            <div className="space-y-1.5">
-                                                                <div className="text-[9px] text-white/20 uppercase font-bold">Provider</div>
-                                                                <select
-                                                                    value={(selectedNode.data?.provider as string) || 'postgresql'}
-                                                                    onChange={(e) => updateNodeData(selectedNode.id, { provider: e.target.value })}
-                                                                    className="w-full h-8 rounded-md bg-white/5 border-white/10 text-white text-[11px] focus:ring-0 px-2 outline-none"
-                                                                >
-                                                                    <option value="postgresql" className="bg-[#1a1a1a]">PostgreSQL</option>
-                                                                    <option value="mongodb" className="bg-[#1a1a1a]">MongoDB</option>
-                                                                    <option value="mysql" className="bg-[#1a1a1a]">MySQL</option>
-                                                                    <option value="redis" className="bg-[#1a1a1a]">Redis</option>
-                                                                    <option value="oracle" className="bg-[#1a1a1a]">Oracle</option>
-                                                                    <option value="dynamodb" className="bg-[#1a1a1a]">DynamoDB</option>
-                                                                </select>
-                                                            </div>
-                                                        )}
-
-                                                        {['gateway', 'loadBalancer', 'api', 'cdn'].includes(selectedNode.type!) && (
-                                                            <div className="grid grid-cols-2 gap-3">
-                                                                <div className="space-y-1.5">
-                                                                    <div className="text-[9px] text-white/20 uppercase font-bold">Protocol</div>
-                                                                    <Input
-                                                                        value={(selectedNode.data?.protocol as string) || 'HTTPS'}
-                                                                        onChange={(e) => updateNodeData(selectedNode.id, { protocol: e.target.value })}
-                                                                        className="h-8 rounded-md bg-white/5 border-white/10 text-white text-[11px]"
-                                                                    />
-                                                                </div>
-                                                                <div className="space-y-1.5">
-                                                                    <div className="text-[9px] text-white/20 uppercase font-bold">Port</div>
-                                                                    <Input
-                                                                        value={(selectedNode.data?.port as string) || '443'}
-                                                                        onChange={(e) => updateNodeData(selectedNode.id, { port: e.target.value })}
-                                                                        className="h-8 rounded-md bg-white/5 border-white/10 text-white text-[11px]"
-                                                                    />
-                                                                </div>
-                                                            </div>
-                                                        )}
-
-                                                        {['server', 'microservice', 'worker'].includes(selectedNode.type!) && (
-                                                            <div className="grid grid-cols-2 gap-3">
-                                                                <div className="space-y-1.5">
-                                                                    <div className="text-[9px] text-white/20 uppercase font-bold">CPU</div>
-                                                                    <Input
-                                                                        value={(selectedNode.data?.cpu as string) || '2 vCPU'}
-                                                                        onChange={(e) => updateNodeData(selectedNode.id, { cpu: e.target.value })}
-                                                                        className="h-8 rounded-md bg-white/5 border-white/10 text-white text-[11px]"
-                                                                    />
-                                                                </div>
-                                                                <div className="space-y-1.5">
-                                                                    <div className="text-[9px] text-white/20 uppercase font-bold">RAM</div>
-                                                                    <Input
-                                                                        value={(selectedNode.data?.ram as string) || '4GB'}
-                                                                        onChange={(e) => updateNodeData(selectedNode.id, { ram: e.target.value })}
-                                                                        className="h-8 rounded-md bg-white/5 border-white/10 text-white text-[11px]"
-                                                                    />
-                                                                </div>
-                                                            </div>
-                                                        )}
-
-                                                        <div className="space-y-1.5">
-                                                            <div className="text-[9px] text-white/20 uppercase font-bold">Environment</div>
-                                                            <select
-                                                                value={(selectedNode.data?.env as string) || 'production'}
-                                                                onChange={(e) => updateNodeData(selectedNode.id, { env: e.target.value })}
-                                                                className="w-full h-8 rounded-md bg-white/5 border-white/10 text-white text-[11px] focus:ring-0 px-2 outline-none"
-                                                            >
-                                                                <option value="production" className="bg-[#1a1a1a]">Production</option>
-                                                                <option value="staging" className="bg-[#1a1a1a]">Staging</option>
-                                                                <option value="development" className="bg-[#1a1a1a]">Development</option>
-                                                            </select>
-                                                        </div>
-
-                                                        {['user', 'app', 'api'].includes(selectedNode.type!) && (
-                                                            <div className="space-y-1.5">
-                                                                <div className="text-[9px] text-white/20 uppercase font-bold">Endpoint / URL</div>
-                                                                <Input
-                                                                    value={(selectedNode.data?.url as string) || ''}
-                                                                    onChange={(e) => updateNodeData(selectedNode.id, { url: e.target.value })}
-                                                                    placeholder="https://api.example.com"
-                                                                    className="h-8 rounded-md bg-white/5 border-white/10 text-white text-[11px]"
-                                                                />
-                                                            </div>
-                                                        )}
-
-                                                        {/* Storage Specific */}
-                                                        {selectedNode.type === 'storage' && (
-                                                            <div className="grid grid-cols-2 gap-3">
-                                                                <div className="space-y-1.5">
-                                                                    <div className="text-[9px] text-white/20 uppercase font-bold">Capacity</div>
-                                                                    <Input
-                                                                        value={(selectedNode.data?.capacity as string) || '500GB'}
-                                                                        onChange={(e) => updateNodeData(selectedNode.id, { capacity: e.target.value })}
-                                                                        className="h-8 rounded-md bg-white/5 border-white/10 text-white text-[11px]"
-                                                                    />
-                                                                </div>
-                                                                <div className="space-y-1.5">
-                                                                    <div className="text-[9px] text-white/20 uppercase font-bold">Type</div>
-                                                                    <select
-                                                                        value={(selectedNode.data?.storageType as string) || 'object'}
-                                                                        onChange={(e) => updateNodeData(selectedNode.id, { storageType: e.target.value })}
-                                                                        className="w-full h-8 rounded-md bg-white/5 border-white/10 text-white text-[11px] focus:ring-0 px-2 outline-none"
-                                                                    >
-                                                                        <option value="object" className="bg-[#1a1a1a]">Object (S3)</option>
-                                                                        <option value="block" className="bg-[#1a1a1a]">Block (EBS)</option>
-                                                                        <option value="file" className="bg-[#1a1a1a]">File (EFS)</option>
-                                                                    </select>
-                                                                </div>
-                                                            </div>
-                                                        )}
-
-                                                        {/* Queue Specific */}
-                                                        {selectedNode.type === 'queue' && (
-                                                            <div className="grid grid-cols-2 gap-3">
-                                                                <div className="space-y-1.5">
-                                                                    <div className="text-[9px] text-white/20 uppercase font-bold">Queue Type</div>
-                                                                    <select
-                                                                        value={(selectedNode.data?.queueType as string) || 'standard'}
-                                                                        onChange={(e) => updateNodeData(selectedNode.id, { queueType: e.target.value })}
-                                                                        className="w-full h-8 rounded-md bg-white/5 border-white/10 text-white text-[11px] focus:ring-0 px-2 outline-none"
-                                                                    >
-                                                                        <option value="standard" className="bg-[#1a1a1a]">Standard</option>
-                                                                        <option value="fifo" className="bg-[#1a1a1a]">FIFO</option>
-                                                                    </select>
-                                                                </div>
-                                                                <div className="space-y-1.5">
-                                                                    <div className="text-[9px] text-white/20 uppercase font-bold">Retention</div>
-                                                                    <Input
-                                                                        value={(selectedNode.data?.retention as string) || '4 days'}
-                                                                        onChange={(e) => updateNodeData(selectedNode.id, { retention: e.target.value })}
-                                                                        className="h-8 rounded-md bg-white/5 border-white/10 text-white text-[11px]"
-                                                                    />
-                                                                </div>
-                                                            </div>
-                                                        )}
-
-                                                        {/* Cache Specific */}
-                                                        {selectedNode.type === 'cache' && (
-                                                            <div className="space-y-1.5">
-                                                                <div className="text-[9px] text-white/20 uppercase font-bold">Eviction Policy</div>
-                                                                <select
-                                                                    value={(selectedNode.data?.eviction as string) || 'lru'}
-                                                                    onChange={(e) => updateNodeData(selectedNode.id, { eviction: e.target.value })}
-                                                                    className="w-full h-8 rounded-md bg-white/5 border-white/10 text-white text-[11px] focus:ring-0 px-2 outline-none"
-                                                                >
-                                                                    <option value="lru" className="bg-[#1a1a1a]">LRU (Least Recently Used)</option>
-                                                                    <option value="lfu" className="bg-[#1a1a1a]">LFU (Least Frequently Used)</option>
-                                                                    <option value="ttl" className="bg-[#1a1a1a]">TTL (Time To Live)</option>
-                                                                </select>
-                                                            </div>
-                                                        )}
-
-                                                        {/* Data Bus Specific */}
-                                                        {selectedNode.type === 'bus' && (
-                                                            <div className="grid grid-cols-2 gap-3">
-                                                                <div className="space-y-1.5">
-                                                                    <div className="text-[9px] text-white/20 uppercase font-bold">Partitions</div>
-                                                                    <Input
-                                                                        type="number"
-                                                                        value={(selectedNode.data?.partitions as number) || 3}
-                                                                        onChange={(e) => updateNodeData(selectedNode.id, { partitions: parseInt(e.target.value) })}
-                                                                        className="h-8 rounded-md bg-white/5 border-white/10 text-white text-[11px]"
-                                                                    />
-                                                                </div>
-                                                                <div className="space-y-1.5">
-                                                                    <div className="text-[9px] text-white/20 uppercase font-bold">Replication</div>
-                                                                    <Input
-                                                                        type="number"
-                                                                        value={(selectedNode.data?.replication as number) || 2}
-                                                                        onChange={(e) => updateNodeData(selectedNode.id, { replication: parseInt(e.target.value) })}
-                                                                        className="h-8 rounded-md bg-white/5 border-white/10 text-white text-[11px]"
-                                                                    />
-                                                                </div>
-                                                            </div>
-                                                        )}
-
-                                                        {selectedNode.type === 'database' && (
-                                                            <div className="space-y-1.5">
-                                                                <Label className="text-[9px] uppercase tracking-widest font-bold text-white/20">Collections / Tables</Label>
-                                                                <Textarea
-                                                                    placeholder="users&#10;orders&#10;products"
-                                                                    value={(selectedNode.data?.collections as string[] || []).join('\n')}
-                                                                    onChange={(e) => {
-                                                                        const colls = e.target.value.split('\n').filter(s => s.trim() !== '');
-                                                                        updateNodeData(selectedNode.id, { collections: colls });
-                                                                    }}
-                                                                    className="min-h-[80px] rounded-md focus:ring-0 bg-white/5 border-white/10 text-white focus:border-white/20 resize-none text-[11px] font-mono"
-                                                                />
-                                                            </div>
-                                                        )}
-
-                                                        {/* Kubernetes Specific Properties */}
-                                                        {selectedNode.type?.startsWith('k8s-') && (
-                                                            <>
-                                                                <div className="h-px bg-white/5 my-2" />
-                                                                <div className="text-[9px] text-blue-400/60 uppercase font-bold tracking-widest flex items-center gap-1.5 mb-2">
-                                                                    <svg width="10" height="10" viewBox="0 0 24 24" fill="none">
-                                                                        <path d="M12 2L21 7V17L12 22L3 17V7L12 2Z" stroke="currentColor" strokeWidth="2" fill="currentColor" fillOpacity="0.3" />
-                                                                    </svg>
-                                                                    Kubernetes
-                                                                </div>
-
-                                                                {/* Status */}
-                                                                <div className="space-y-1.5">
-                                                                    <div className="text-[9px] text-white/20 uppercase font-bold">Status</div>
-                                                                    <select
-                                                                        value={(selectedNode.data?.status as string) || ''}
-                                                                        onChange={(e) => updateNodeData(selectedNode.id, { status: e.target.value || undefined })}
-                                                                        className="w-full h-8 rounded-md bg-white/5 border-white/10 text-white text-[11px] focus:ring-0 px-2 outline-none"
-                                                                    >
-                                                                        <option value="" className="bg-[#1a1a1a]">Default (K8s Blue)</option>
-                                                                        <option value="healthy" className="bg-[#1a1a1a]">✅ Healthy</option>
-                                                                        <option value="error" className="bg-[#1a1a1a]">❌ Error</option>
-                                                                        <option value="pending" className="bg-[#1a1a1a]">⏳ Pending</option>
-                                                                    </select>
-                                                                </div>
-
-                                                                {/* Replicas — for Deployment, ReplicaSet, StatefulSet, DaemonSet */}
-                                                                {['k8s-deployment', 'k8s-replicaset', 'k8s-statefulset', 'k8s-daemonset'].includes(selectedNode.type!) && (
-                                                                    <div className="space-y-1.5">
-                                                                        <div className="text-[9px] text-white/20 uppercase font-bold">Replicas</div>
-                                                                        <Input
-                                                                            type="number"
-                                                                            min={0}
-                                                                            value={(selectedNode.data?.replicas as number) || 1}
-                                                                            onChange={(e) => updateNodeData(selectedNode.id, { replicas: parseInt(e.target.value) || 1 })}
-                                                                            className="h-8 rounded-md bg-white/5 border-white/10 text-white text-[11px]"
-                                                                        />
-                                                                    </div>
-                                                                )}
-
-                                                                {/* Image — for Pod, Deployment, StatefulSet, DaemonSet, Job, CronJob */}
-                                                                {['k8s-pod', 'k8s-deployment', 'k8s-statefulset', 'k8s-daemonset', 'k8s-job', 'k8s-cronjob'].includes(selectedNode.type!) && (
-                                                                    <div className="space-y-1.5">
-                                                                        <div className="text-[9px] text-white/20 uppercase font-bold">Container Image</div>
-                                                                        <Input
-                                                                            value={(selectedNode.data?.image as string) || ''}
-                                                                            onChange={(e) => updateNodeData(selectedNode.id, { image: e.target.value })}
-                                                                            placeholder="nginx:latest"
-                                                                            className="h-8 rounded-md bg-white/5 border-white/10 text-white text-[11px] font-mono"
-                                                                        />
-                                                                    </div>
-                                                                )}
-
-                                                                {/* Service Type & Port */}
-                                                                {selectedNode.type === 'k8s-service' && (
-                                                                    <div className="grid grid-cols-2 gap-3">
-                                                                        <div className="space-y-1.5">
-                                                                            <div className="text-[9px] text-white/20 uppercase font-bold">Service Type</div>
-                                                                            <select
-                                                                                value={(selectedNode.data?.serviceType as string) || 'ClusterIP'}
-                                                                                onChange={(e) => updateNodeData(selectedNode.id, { serviceType: e.target.value })}
-                                                                                className="w-full h-8 rounded-md bg-white/5 border-white/10 text-white text-[11px] focus:ring-0 px-2 outline-none"
-                                                                            >
-                                                                                <option value="ClusterIP" className="bg-[#1a1a1a]">ClusterIP</option>
-                                                                                <option value="NodePort" className="bg-[#1a1a1a]">NodePort</option>
-                                                                                <option value="LoadBalancer" className="bg-[#1a1a1a]">LoadBalancer</option>
-                                                                                <option value="ExternalName" className="bg-[#1a1a1a]">ExternalName</option>
-                                                                            </select>
-                                                                        </div>
-                                                                        <div className="space-y-1.5">
-                                                                            <div className="text-[9px] text-white/20 uppercase font-bold">Port</div>
-                                                                            <Input
-                                                                                value={(selectedNode.data?.port as string) || '80'}
-                                                                                onChange={(e) => updateNodeData(selectedNode.id, { port: e.target.value })}
-                                                                                className="h-8 rounded-md bg-white/5 border-white/10 text-white text-[11px]"
-                                                                            />
-                                                                        </div>
-                                                                    </div>
-                                                                )}
-
-                                                                {/* Ingress — Host & Path */}
-                                                                {selectedNode.type === 'k8s-ingress' && (
-                                                                    <div className="grid grid-cols-2 gap-3">
-                                                                        <div className="space-y-1.5">
-                                                                            <div className="text-[9px] text-white/20 uppercase font-bold">Host</div>
-                                                                            <Input
-                                                                                value={(selectedNode.data?.host as string) || ''}
-                                                                                onChange={(e) => updateNodeData(selectedNode.id, { host: e.target.value })}
-                                                                                placeholder="app.example.com"
-                                                                                className="h-8 rounded-md bg-white/5 border-white/10 text-white text-[11px] font-mono"
-                                                                            />
-                                                                        </div>
-                                                                        <div className="space-y-1.5">
-                                                                            <div className="text-[9px] text-white/20 uppercase font-bold">Path</div>
-                                                                            <Input
-                                                                                value={(selectedNode.data?.path as string) || '/'}
-                                                                                onChange={(e) => updateNodeData(selectedNode.id, { path: e.target.value })}
-                                                                                className="h-8 rounded-md bg-white/5 border-white/10 text-white text-[11px] font-mono"
-                                                                            />
-                                                                        </div>
-                                                                    </div>
-                                                                )}
-
-                                                                {/* PVC — Storage Size & Access Mode */}
-                                                                {selectedNode.type === 'k8s-pvc' && (
-                                                                    <div className="grid grid-cols-2 gap-3">
-                                                                        <div className="space-y-1.5">
-                                                                            <div className="text-[9px] text-white/20 uppercase font-bold">Storage Size</div>
-                                                                            <Input
-                                                                                value={(selectedNode.data?.storageSize as string) || '10Gi'}
-                                                                                onChange={(e) => updateNodeData(selectedNode.id, { storageSize: e.target.value })}
-                                                                                className="h-8 rounded-md bg-white/5 border-white/10 text-white text-[11px]"
-                                                                            />
-                                                                        </div>
-                                                                        <div className="space-y-1.5">
-                                                                            <div className="text-[9px] text-white/20 uppercase font-bold">Access Mode</div>
-                                                                            <select
-                                                                                value={(selectedNode.data?.accessMode as string) || 'ReadWriteOnce'}
-                                                                                onChange={(e) => updateNodeData(selectedNode.id, { accessMode: e.target.value })}
-                                                                                className="w-full h-8 rounded-md bg-white/5 border-white/10 text-white text-[11px] focus:ring-0 px-2 outline-none"
-                                                                            >
-                                                                                <option value="ReadWriteOnce" className="bg-[#1a1a1a]">ReadWriteOnce</option>
-                                                                                <option value="ReadOnlyMany" className="bg-[#1a1a1a]">ReadOnlyMany</option>
-                                                                                <option value="ReadWriteMany" className="bg-[#1a1a1a]">ReadWriteMany</option>
-                                                                            </select>
-                                                                        </div>
-                                                                    </div>
-                                                                )}
-
-                                                                {/* CronJob — Schedule */}
-                                                                {selectedNode.type === 'k8s-cronjob' && (
-                                                                    <div className="space-y-1.5">
-                                                                        <div className="text-[9px] text-white/20 uppercase font-bold">Schedule (Cron)</div>
-                                                                        <Input
-                                                                            value={(selectedNode.data?.schedule as string) || '*/5 * * * *'}
-                                                                            onChange={(e) => updateNodeData(selectedNode.id, { schedule: e.target.value })}
-                                                                            placeholder="*/5 * * * *"
-                                                                            className="h-8 rounded-md bg-white/5 border-white/10 text-white text-[11px] font-mono"
-                                                                        />
-                                                                    </div>
-                                                                )}
-
-                                                                {/* HPA — Min/Max Replicas & Target CPU */}
-                                                                {selectedNode.type === 'k8s-hpa' && (
-                                                                    <div className="grid grid-cols-3 gap-2">
-                                                                        <div className="space-y-1.5">
-                                                                            <div className="text-[9px] text-white/20 uppercase font-bold">Min</div>
-                                                                            <Input
-                                                                                type="number"
-                                                                                min={1}
-                                                                                value={(selectedNode.data?.minReplicas as number) || 1}
-                                                                                onChange={(e) => updateNodeData(selectedNode.id, { minReplicas: parseInt(e.target.value) || 1 })}
-                                                                                className="h-8 rounded-md bg-white/5 border-white/10 text-white text-[11px]"
-                                                                            />
-                                                                        </div>
-                                                                        <div className="space-y-1.5">
-                                                                            <div className="text-[9px] text-white/20 uppercase font-bold">Max</div>
-                                                                            <Input
-                                                                                type="number"
-                                                                                min={1}
-                                                                                value={(selectedNode.data?.maxReplicas as number) || 10}
-                                                                                onChange={(e) => updateNodeData(selectedNode.id, { maxReplicas: parseInt(e.target.value) || 10 })}
-                                                                                className="h-8 rounded-md bg-white/5 border-white/10 text-white text-[11px]"
-                                                                            />
-                                                                        </div>
-                                                                        <div className="space-y-1.5">
-                                                                            <div className="text-[9px] text-white/20 uppercase font-bold">CPU %</div>
-                                                                            <Input
-                                                                                type="number"
-                                                                                min={1}
-                                                                                max={100}
-                                                                                value={(selectedNode.data?.targetCpu as number) || 80}
-                                                                                onChange={(e) => updateNodeData(selectedNode.id, { targetCpu: parseInt(e.target.value) || 80 })}
-                                                                                className="h-8 rounded-md bg-white/5 border-white/10 text-white text-[11px]"
-                                                                            />
-                                                                        </div>
-                                                                    </div>
-                                                                )}
-                                                            </>
-                                                        )}
-                                                    </div>
-                                                </section>
-
-                                                <div className="h-px bg-white/5" />
-
-                                                <section className="space-y-4 pb-12">
-                                                    <div className="flex items-center justify-between">
-                                                        <Label className="text-[10px] uppercase tracking-widest font-bold text-white/30">Node Appearance</Label>
-                                                        <div className={`px-2 py-0.5 rounded text-[9px] font-bold uppercase ${selectedNode?.data?.category === 'Data' ? 'bg-amber-500/20 text-amber-500' : 'bg-indigo-500/20 text-indigo-500'}`}>
-                                                            {(selectedNode?.data?.category as string) || 'Node'}
-                                                        </div>
-                                                    </div>
-                                                    <div className="grid grid-cols-4 gap-2 pb-4">
-                                                        {['#4F46E5', '#F59E0B', '#10B981', '#8B5CF6', '#EF4444', '#06B6D4', '#222222', '#FFFFFF'].map(color => (
-                                                            <button
-                                                                key={color}
-                                                                onClick={() => selectedNode && updateNodeStyle(selectedNode.id, `2px solid ${color}`)}
-                                                                className="w-full aspect-square rounded-lg border relative transition-all hover:scale-110 border-white/5"
-                                                                style={{ backgroundColor: color }}
-                                                            >
-                                                                {(selectedNode?.style?.border as string)?.toLowerCase().includes(color.toLowerCase()) && (
-                                                                    <div className="absolute inset-0 flex items-center justify-center">
-                                                                        <div className="w-1.5 h-1.5 rounded-full bg-white mix-blend-difference shadow-sm" />
-                                                                    </div>
-                                                                )}
-                                                            </button>
-                                                        ))}
-                                                    </div>
-
-                                                    <button
-                                                        onClick={() => deleteNode(selectedNode.id)}
-                                                        className="w-full h-10 flex items-center justify-center gap-2 rounded-lg border border-red-500/20 bg-red-500/5 hover:bg-red-500/10 text-red-400 transition-all font-bold text-[10px] uppercase tracking-widest mt-6"
-                                                    >
-                                                        <Trash2 className="w-3.5 h-3.5" />
-                                                        Delete Component
-                                                    </button>
-                                                </section>
-                                            </>
-                                        ) : (
-                                            <div className="h-full flex flex-col items-center justify-center text-center p-4 py-20">
-                                                <Box className="w-8 h-8 mb-4 text-white/5" />
-                                                <p className="text-[11px] uppercase tracking-widest font-bold leading-relaxed text-white/20">
-                                                    Select a node on the canvas to edit its properties
-                                                </p>
-                                            </div>
-                                        )}
-                                    </div>
+                                    <PropertiesSidebar
+                                        selectedNode={selectedNode}
+                                        updateNodeData={updateNodeData}
+                                        updateNodeStyle={updateNodeStyle}
+                                        deleteNode={deleteNode}
+                                    />
                                 )}
                             </div>
 
