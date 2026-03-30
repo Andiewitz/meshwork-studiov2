@@ -107,8 +107,11 @@ import { calculateContainment, calculateGlobalPosition } from "@/features/worksp
 function WorkspaceView() {
     const { id } = useParams();
     const workspaceId = Number(id);
-    const { data: canvasData, isLoading, sync, isSyncing } = useCanvas(workspaceId);
-    const { data: workspace } = useWorkspace(workspaceId);
+    const { data: canvasData, isLoading: isCanvasLoading, sync, isSyncing, isError: isCanvasError } = useCanvas(workspaceId);
+    const { data: workspace, isLoading: isWorkspaceLoading, isError: isWorkspaceError } = useWorkspace(workspaceId);
+
+    const isLoading = isCanvasLoading || isWorkspaceLoading;
+    const isError = isCanvasError || isWorkspaceError;
     const { user } = useAuth();
     const { toast } = useToast();
     const { screenToFlowPosition } = useReactFlow();
@@ -545,6 +548,23 @@ function WorkspaceView() {
         return (
             <div className="h-screen w-screen flex items-center justify-center bg-[#000000]">
                 <Loader2 className="w-8 h-8 animate-spin text-white/10" />
+            </div>
+        );
+    }
+
+    if (isError || (!isLoading && !workspace)) {
+        return (
+            <div className="h-screen w-screen flex flex-col items-center justify-center bg-[#000000] text-white font-sans">
+                <Box className="w-16 h-16 text-white/10 mb-6" />
+                <h1 className="text-2xl font-black uppercase tracking-widest mb-3">Project Not Found</h1>
+                <p className="text-white/40 mb-8 max-w-md text-center text-sm leading-relaxed">
+                    The architecture project you are looking for does not exist, has been deleted, or you do not have permission to access it.
+                </p>
+                <Link href="/">
+                    <button className="px-6 py-2.5 bg-white/5 hover:bg-white/10 border border-white/10 rounded-md transition-colors text-[11px] font-bold tracking-[0.2em] uppercase text-white/80 hover:text-white">
+                        Return to Library
+                    </button>
+                </Link>
             </div>
         );
     }

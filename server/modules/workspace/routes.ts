@@ -102,15 +102,23 @@ export function registerWorkspaceRoutes(app: Express) {
     });
 
     app.put(api.workspaces.update.path, csrfProtection, isAuthenticated, async (req, res) => {
-        const id = Number(req.params.id);
-        const existing = await workspaceStorage.getWorkspace(id);
-        if (!existing) return res.status(404).json({ message: "Not found" });
+        try {
+            const input = api.workspaces.update.input.parse(req.body);
+            const id = Number(req.params.id);
+            const existing = await workspaceStorage.getWorkspace(id);
+            if (!existing) return res.status(404).json({ message: "Not found" });
 
-        const userId = (req.user as any)?.id;
-        if (existing.userId !== userId) return res.status(401).json({ message: "Unauthorized" });
+            const userId = (req.user as any)?.id;
+            if (existing.userId !== userId) return res.status(401).json({ message: "Unauthorized" });
 
-        const updated = await workspaceStorage.updateWorkspace(id, req.body);
-        res.json(updated);
+            const updated = await workspaceStorage.updateWorkspace(id, input);
+            res.json(updated);
+        } catch (err) {
+            if (err instanceof z.ZodError) {
+                return res.status(400).json({ message: err.errors[0].message });
+            }
+            throw err;
+        }
     });
 
     app.delete(api.workspaces.delete.path, csrfProtection, isAuthenticated, async (req, res) => {
