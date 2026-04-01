@@ -16,7 +16,7 @@ export function registerCanvasRoutes(app: Express) {
         const workspace = await workspaceStorage.getWorkspace(id);
         if (!workspace) return res.status(404).json({ message: "Workspace not found" });
 
-        const userId = (req.user as any)?.id;
+        const userId = req.user!.id;
         if (workspace.userId !== userId) return res.status(401).json({ message: "Unauthorized" });
 
         const nodes = await canvasStorage.getNodes(id);
@@ -29,7 +29,7 @@ export function registerCanvasRoutes(app: Express) {
         const workspace = await workspaceStorage.getWorkspace(id);
         if (!workspace) return res.status(404).json({ message: "Workspace not found" });
 
-        const userId = (req.user as any)?.id;
+        const userId = req.user!.id;
         if (workspace.userId !== userId) return res.status(401).json({ message: "Unauthorized" });
 
         const { nodes, edges } = api.workspaces.syncCanvas.input.parse(req.body);
@@ -45,7 +45,7 @@ export function registerCanvasRoutes(app: Express) {
         const workspace = await workspaceStorage.getWorkspace(id);
         if (!workspace) return res.status(404).json({ message: "Source workspace not found" });
 
-        const userId = (req.user as any)?.id;
+        const userId = req.user!.id;
         if (workspace.userId !== userId) return res.status(401).json({ message: "Unauthorized" });
 
         await canvasStorage.duplicateCanvas(id, toWorkspaceId);

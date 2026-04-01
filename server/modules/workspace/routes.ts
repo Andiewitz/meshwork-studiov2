@@ -12,7 +12,7 @@ export function registerWorkspaceRoutes(app: Express) {
 
     // Collections (Subcollections)
     app.get("/api/collections", isAuthenticated, async (req, res) => {
-        const userId = (req.user as any)?.id;
+        const userId = req.user!.id;
         const parentId = req.query.parentId ? Number(req.query.parentId) : null;
         const collections = await workspaceStorage.getCollections(userId, parentId);
         res.json(collections);
@@ -20,7 +20,7 @@ export function registerWorkspaceRoutes(app: Express) {
 
     app.post("/api/collections", csrfProtection, isAuthenticated, async (req, res) => {
         try {
-            const userId = (req.user as any)?.id;
+            const userId = req.user!.id;
             const collection = await workspaceStorage.createCollection({
                 ...req.body,
                 userId
@@ -36,7 +36,7 @@ export function registerWorkspaceRoutes(app: Express) {
         const collection = await workspaceStorage.getCollectionById(id);
         if (!collection) return res.status(404).json({ message: "Collection not found" });
 
-        const userId = (req.user as any)?.id;
+        const userId = req.user!.id;
         if (collection.userId !== userId) return res.status(401).json({ message: "Unauthorized" });
 
         res.json(collection);
@@ -47,7 +47,7 @@ export function registerWorkspaceRoutes(app: Express) {
         const existing = await workspaceStorage.getCollectionById(id);
         if (!existing) return res.status(404).json({ message: "Collection not found" });
 
-        const userId = (req.user as any)?.id;
+        const userId = req.user!.id;
         if (existing.userId !== userId) return res.status(401).json({ message: "Unauthorized" });
 
         const updated = await workspaceStorage.updateCollection(id, req.body);
@@ -59,7 +59,7 @@ export function registerWorkspaceRoutes(app: Express) {
         const existing = await workspaceStorage.getCollectionById(id);
         if (!existing) return res.status(404).json({ message: "Collection not found" });
 
-        const userId = (req.user as any)?.id;
+        const userId = req.user!.id;
         if (existing.userId !== userId) return res.status(401).json({ message: "Unauthorized" });
 
         await workspaceStorage.deleteCollection(id);
@@ -68,7 +68,7 @@ export function registerWorkspaceRoutes(app: Express) {
 
     // Workspace routes
     app.get(api.workspaces.list.path, isAuthenticated, async (req, res) => {
-        const userId = (req.user as any)?.id;
+        const userId = req.user!.id;
         const collectionId = req.query.collectionId ? Number(req.query.collectionId) : null;
         const workspaces = await workspaceStorage.getWorkspaces(userId, collectionId);
         res.json(workspaces);
@@ -78,7 +78,7 @@ export function registerWorkspaceRoutes(app: Express) {
         const workspace = await workspaceStorage.getWorkspace(Number(req.params.id));
         if (!workspace) return res.status(404).json({ message: 'Workspace not found' });
 
-        const userId = (req.user as any)?.id;
+        const userId = req.user!.id;
         if (workspace.userId !== userId) return res.status(401).json({ message: "Unauthorized" });
 
         res.json(workspace);
@@ -87,7 +87,7 @@ export function registerWorkspaceRoutes(app: Express) {
     app.post(api.workspaces.create.path, csrfProtection, isAuthenticated, async (req, res) => {
         try {
             const input = api.workspaces.create.input.parse(req.body);
-            const userId = (req.user as any)?.id;
+            const userId = req.user!.id;
             const workspace = await workspaceStorage.createWorkspace({
                 ...input,
                 userId
@@ -108,7 +108,7 @@ export function registerWorkspaceRoutes(app: Express) {
             const existing = await workspaceStorage.getWorkspace(id);
             if (!existing) return res.status(404).json({ message: "Not found" });
 
-            const userId = (req.user as any)?.id;
+            const userId = req.user!.id;
             if (existing.userId !== userId) return res.status(401).json({ message: "Unauthorized" });
 
             const updated = await workspaceStorage.updateWorkspace(id, input);
@@ -126,7 +126,7 @@ export function registerWorkspaceRoutes(app: Express) {
         const existing = await workspaceStorage.getWorkspace(id);
         if (!existing) return res.status(404).json({ message: "Not found" });
 
-        const userId = (req.user as any)?.id;
+        const userId = req.user!.id;
         if (existing.userId !== userId) return res.status(401).json({ message: "Unauthorized" });
 
         // Delete canvas data first (nodes and edges)
@@ -141,7 +141,7 @@ export function registerWorkspaceRoutes(app: Express) {
         const existing = await workspaceStorage.getWorkspace(id);
         if (!existing) return res.status(404).json({ message: "Not found" });
 
-        const userId = (req.user as any)?.id;
+        const userId = req.user!.id;
         if (existing.userId !== userId) return res.status(401).json({ message: "Unauthorized" });
 
         const { title } = req.body;

@@ -11,7 +11,7 @@ const router = Router();
  */
 router.get("/keys", isAuthenticated, async (req: Request, res: Response) => {
   try {
-    const userId = (req.user as any).id;
+    const userId = req.user!.id;
     const keys = await getUserApiKeys(userId);
     
     // Return keys without encrypted data
@@ -34,7 +34,7 @@ router.get("/keys", isAuthenticated, async (req: Request, res: Response) => {
  */
 router.post("/keys", isAuthenticated, async (req: Request, res: Response) => {
   try {
-    const userId = (req.user as any).id;
+    const userId = req.user!.id;
     const { provider, apiKey } = req.body;
     
     // Validate input
@@ -103,7 +103,7 @@ router.post("/keys/test", isAuthenticated, async (req: Request, res: Response) =
  */
 router.delete("/keys/:id", isAuthenticated, async (req: Request, res: Response) => {
   try {
-    const userId = (req.user as any).id;
+    const userId = req.user!.id;
     const keyId = req.params.id as string;
     
     const deleted = await deleteApiKey(userId, keyId);
@@ -125,7 +125,7 @@ router.delete("/keys/:id", isAuthenticated, async (req: Request, res: Response) 
  */
 router.post("/keys/:id/toggle", isAuthenticated, async (req: Request, res: Response) => {
   try {
-    const userId = (req.user as any).id;
+    const userId = req.user!.id;
     const keyId = req.params.id as string;
     const { isActive } = req.body;
     
@@ -157,7 +157,7 @@ router.post("/keys/:id/toggle", isAuthenticated, async (req: Request, res: Respo
  */
 router.post("/chat", isAuthenticated, async (req: Request, res: Response) => {
   try {
-    const userId = (req.user as any).id;
+    const userId = req.user!.id;
     const { provider, model, messages, temperature, maxTokens, stream } = req.body;
     
     if (!provider || !model || !messages || !Array.isArray(messages)) {

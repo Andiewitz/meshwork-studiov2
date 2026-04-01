@@ -98,13 +98,6 @@ export const loginAttempts = pgTable("login_attempts", {
   index("IDX_login_attempts_locked_until").on(table.lockedUntil),
 ]);
 
-export const verificationAttempts = pgTable("verification_attempts", {
-  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
-  email: varchar("email").unique().notNull(),
-  attemptCount: integer("attempt_count").default(0),
-  lastAttemptAt: timestamp("last_attempt_at").defaultNow(),
-  resetAt: timestamp("reset_at"),
-});
 
 export const insertCollectionSchema = createInsertSchema(collections).omit({ id: true, createdAt: true });
 // Custom validation for workspace title
