@@ -7,7 +7,7 @@ import {
     type InsertNode,
     type InsertEdge,
 } from "@shared/schema";
-import { eq } from "drizzle-orm";
+import { eq, inArray, sql } from "drizzle-orm";
 
 export interface ICanvasStorage {
     // Canvas operations
@@ -28,13 +28,56 @@ export class CanvasDatabaseStorage implements ICanvasStorage {
 
     async syncCanvas(workspaceId: number, newNodes: InsertNode[], newEdges: InsertEdge[]): Promise<void> {
         await db.transaction(async (tx: any) => {
-            await tx.delete(edges).where(eq(edges.workspaceId, workspaceId));
-            await tx.delete(nodes).where(eq(nodes.workspaceId, workspaceId));
+            // 1. Fetch existing IDs
+            const existingNodesData = await tx.select({ id: nodes.id }).from(nodes).where(eq(nodes.workspaceId, workspaceId));
+            const existingEdgesData = await tx.select({ id: edges.id }).from(edges).where(eq(edges.workspaceId, workspaceId));
+
+            const existingNodeIds = new Set<string>(existingNodesData.map((n: any) => n.id));
+            const existingEdgeIds = new Set<string>(existingEdgesData.map((e: any) => e.id));
+
+            const newNodeIds = new Set<string>(newNodes.map(n => n.id));
+            const newEdgeIds = new Set<string>(newEdges.map(e => e.id));
+
+            // 2. Identify stale nodes and edges to prune
+            const nodesToDelete = Array.from(existingNodeIds).filter(id => !newNodeIds.has(id)) as string[];
+            const edgesToDelete = Array.from(existingEdgeIds).filter(id => !newEdgeIds.has(id)) as string[];
+
+            // 3. Delete orphaned entities explicitly
+            if (edgesToDelete.length > 0) {
+                await tx.delete(edges).where(inArray(edges.id, edgesToDelete));
+            }
+            if (nodesToDelete.length > 0) {
+                await tx.delete(nodes).where(inArray(nodes.id, nodesToDelete));
+            }
+
+            // 4. Safely Upsert
             if (newNodes.length > 0) {
-                await tx.insert(nodes).values(newNodes.map(n => ({ ...n, workspaceId })));
+                await tx.insert(nodes).values(newNodes.map(n => ({ ...n, workspaceId })))
+                    .onConflictDoUpdate({
+                        target: nodes.id,
+                        set: {
+                            type: sql`EXCLUDED.type`,
+                            position: sql`EXCLUDED.position`,
+                            data: sql`EXCLUDED.data`,
+                            parentId: sql`EXCLUDED.parent_id`,
+                            extent: sql`EXCLUDED.extent`,
+                        }
+                    });
             }
             if (newEdges.length > 0) {
-                await tx.insert(edges).values(newEdges.map(e => ({ ...e, workspaceId })));
+                await tx.insert(edges).values(newEdges.map(e => ({ ...e, workspaceId })))
+                    .onConflictDoUpdate({
+                        target: edges.id,
+                        set: {
+                            source: sql`EXCLUDED.source`,
+                            target: sql`EXCLUDED.target`,
+                            sourceHandle: sql`EXCLUDED.source_handle`,
+                            targetHandle: sql`EXCLUDED.target_handle`,
+                            type: sql`EXCLUDED.type`,
+                            data: sql`EXCLUDED.data`,
+                            animated: sql`EXCLUDED.animated`,
+                        }
+                    });
             }
         });
     }

@@ -48,7 +48,7 @@ export function createLocalStrategy() {
           return done(null, false, { 
             message: "Account temporarily locked due to too many failed login attempts. Please try again later.",
             lockedUntil: lockoutStatus.lockedUntil,
-          });
+          } as any);
         }
 
         // SECURITY: Minimal logging - never log email or auth attempts
@@ -94,7 +94,7 @@ export function createLocalStrategy() {
           return done(null, false, { 
             message,
             lockedUntil: failureInfo.lockedUntil,
-          });
+          } as any);
         }
 
         // Successful login - reset failed attempts
@@ -107,7 +107,7 @@ export function createLocalStrategy() {
           lastName: user.lastName,
           profileImageUrl: user.profileImageUrl,
           authProvider: user.authProvider,
-        });
+        } as Express.User);
       } catch (err) {
         console.error("[LocalAuth] Authentication error - check logs for details");
         return done(err);

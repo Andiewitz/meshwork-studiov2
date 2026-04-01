@@ -98,7 +98,7 @@ export async function isAccountLocked(email: string): Promise<{ locked: boolean;
 /**
  * Record a failed login attempt
  */
-export async function recordFailedAttempt(email: string): Promise<{ locked: boolean; lockedUntil?: Date; attemptsRemaining?: number }> {
+export async function recordFailedAttempt(email: string): Promise<{ locked: boolean; lockedUntil?: Date | null; attemptsRemaining?: number }> {
   try {
     const [existingAttempt] = await db
       .select()

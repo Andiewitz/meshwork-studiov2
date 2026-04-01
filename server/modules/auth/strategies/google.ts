@@ -60,7 +60,7 @@ export function createGoogleStrategy() {
             lastName: lastName || existingUser.lastName,
             profileImageUrl: profileImageUrl || existingUser.profileImageUrl,
             authProvider: "google",
-          });
+          } as Express.User);
         }
 
         // Create new user
@@ -81,8 +81,8 @@ export function createGoogleStrategy() {
           firstName: newUser.firstName,
           lastName: newUser.lastName,
           profileImageUrl: newUser.profileImageUrl,
-          authProvider: "google",
-        });
+          authProvider: newUser.authProvider,
+        } as Express.User);
       } catch (err) {
         console.error("[GoogleAuth] Error:", err);
         return done(err as Error);
