@@ -162,10 +162,11 @@ Every major system has its own deep-dive guide:
 |----------|-------------------|
 | **[Security Architecture](./docs/SECURITY.md)** | Auth flows, IDOR protection, brute-force lockouts, AES-256 encryption, CSRF, rate limiting, PII redaction |
 | **[Canvas Engine](./docs/ENGINE.md)** | How drag-and-drop works, spatial containment logic, the Postgres upsert sync strategy |
+| **[AI Engine Guide](./docs/AI_ENGINE.md)** | Bring-your-own-key AI integration, encryption flow, and API endpoints |
 | **[Testing Strategy](./docs/TESTING.md)** | The testing pyramid, how to run tests, how to write new ones |
-| **[BYOK AI Service](./docs/BYOK-AI-Service.md)** | Bring-your-own-key AI integration, encryption flow, API endpoints |
 | **[NGINX Architecture](./docs/NGINX_ARCHITECTURE.md)** | Why NGINX sits in front of Express, SPA routing, caching |
 | **[Settings & Privacy](./docs/SETTINGS.md)** | User profile management, account deletion, data export |
+| **[Security Audit Report](./docs/AUDIT_REPORT.md)** | The original security audit and critical fixes implemented during hardening |
 | **[Post-Mortem Log](./docs/post-mortem.md)** | Every production bug we've found and fixed, with root cause analysis |
 
 ---
