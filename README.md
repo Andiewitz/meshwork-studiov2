@@ -10,301 +10,245 @@
 </p>
 
 <p align="center">
-  <strong>Enterprise-grade visual architecture design platform with production-ready authentication and real-time collaboration.</strong>
+  <strong>A visual architecture design platform with enterprise-grade security, AI-assisted diagramming, and a high-performance canvas engine.</strong>
 </p>
 
 ---
 
-## 🚀 Live Demo
+## What is Meshwork Studio?
 
-**Coming Soon** - Deployed on Vercel with PostgreSQL backend
+Meshwork Studio lets you design system architecture diagrams by dragging infrastructure components onto an infinite canvas and connecting them. Think of it as Figma for backend engineers — you can visually map out your servers, databases, VPCs, Kubernetes clusters, and more.
 
----
+### Core Features
 
-## 📖 What is Meshwork Studio?
-
-Meshwork Studio is a **visual architecture design platform** that enables teams to design, document, and collaborate on system architecture diagrams. Built with modern web technologies and enterprise-grade security.
-
-### Key Features
-
-- **🎨 Visual Architecture Editor** - Drag-and-drop interface for designing system diagrams
-- **🔐 Enterprise Authentication** - Multi-strategy auth with OAuth, local login, and 2FA-ready
-- **👥 Real-time Collaboration** - WebSocket-powered live editing
-- **📁 Workspace Management** - Organize diagrams with collections and tags
-- **🎭 Dark/Light Themes** - Full theme support with next-themes
-- **🐳 Docker-First Deployment** - Complete containerization with nginx reverse proxy
-- **🔒 Security Hardened** - XSS, CSRF, SQL injection protection built-in
+- **🎨 60+ Infrastructure Components** — Drag-and-drop servers, databases, load balancers, Lambda functions, Kubernetes pods, and more onto a visual canvas
+- **🧠 AI-Assisted Design** — Bring your own OpenAI/Anthropic API key to generate architecture suggestions (keys are AES-256 encrypted, never stored in plaintext)
+- **📦 Spatial Containment** — Drop an EC2 instance into a VPC and it automatically nests inside, just like real infrastructure
+- **⚡ Smart Sync** — Canvas changes are persisted using a Postgres upsert strategy that only writes what changed, not the entire diagram
+- **🔐 Security Hardened** — IDOR protection, brute-force lockouts, CSRF tokens, rate limiting, and PII-safe logging
+- **📁 Workspaces & Collections** — Organize diagrams into projects with nested folder structures
+- **🎭 Dark/Light Themes** — Full theme support
+- **🐳 Docker-Ready** — One command to launch the full stack with NGINX, Postgres, and the app
 
 ---
 
-## 🏗️ Architecture Overview
+## Architecture
 
 ```
-┌─────────────────────────────────────────────────────────────────────────────┐
-│                           MESHWORK STUDIO v1.0                              │
-└─────────────────────────────────────────────────────────────────────────────┘
-
 ┌────────────────────┐     ┌────────────────────┐     ┌────────────────────┐
-│   CLIENT LAYER     │     │   API GATEWAY      │     │   SERVICE LAYER    │
-│   (React + Vite)   │◄────│   (Nginx 80)       │◄────│   (Express 5000)   │
+│   CLIENT LAYER     │     │   NGINX GATEWAY    │     │   API SERVER       │
+│   (React + Vite)   │◄───►│   (Port 80)        │◄───►│   (Express :5000)  │
 │                    │     │                    │     │                    │
-│ • React 18         │     │ • Reverse Proxy    │     │ • TypeScript       │
-│ • TanStack Query   │     │ • Static Assets    │     │ • Passport.js      │
-│ • React Flow       │     │ • SPA Fallback     │     │ • Session Mgmt     │
-│ • Tailwind + Radix │     │ • Gzip Compression │     │ • Zod Validation   │
-└────────────────────┘     └────────────────────┘     └──────────┬───────────┘
+│ • React 18         │     │ • Reverse Proxy    │     │ • Passport.js Auth │
+│ • React Flow       │     │ • Static Assets    │     │ • Drizzle ORM      │
+│ • TanStack Query   │     │ • Gzip + Caching   │     │ • Zod Validation   │
+│ • Tailwind + Radix │     │ • SPA Fallback     │     │ • AES-256 BYOK     │
+└────────────────────┘     └────────────────────┘     └────────┬───────────┘
                                                                │
-                                  ┌────────────────────────────┼────────────┐
-                                  │         DATA LAYER         │            │
-                                  │                            ▼            │
-                                  │  ┌──────────────┐  ┌──────────────┐   │
-                                  │  │  PostgreSQL  │  │  PostgreSQL  │   │
-                                  │  │   Auth DB    │  │ Workspace DB │   │
-                                  │  │   :5432      │  │   :5433      │   │
-                                  │  └──────────────┘  └──────────────┘   │
-                                  └─────────────────────────────────────────┘
+                                          ┌────────────────────┼────────────┐
+                                          │       DATA LAYER   │            │
+                                          │                    ▼            │
+                                          │  ┌──────────────┐  ┌────────┐  │
+                                          │  │  PostgreSQL   │  │ Postgres│  │
+                                          │  │  Auth DB      │  │ Work DB │  │
+                                          │  │  :5433        │  │ :5434   │  │
+                                          │  └──────────────┘  └────────┘  │
+                                          └─────────────────────────────────┘
 ```
 
 ---
 
-## 🛠️ Tech Stack
-
-### Frontend
-| Technology | Purpose |
-|------------|---------|
-| **React 18** | UI framework with concurrent features |
-| **TypeScript** | Type safety across the entire stack |
-| **TanStack Query** | Server state management with caching |
-| **React Flow** | Visual node-based diagram editor |
-| **Tailwind CSS** | Utility-first styling |
-| **Radix UI** | Accessible, unstyled component primitives |
-| **Framer Motion** | Smooth page transitions |
-| **Wouter** | Lightweight routing (2KB vs 40KB React Router) |
-
-### Backend
-| Technology | Purpose |
-|------------|---------|
-| **Node.js + Express** | Fast, scalable API server |
-| **Passport.js** | Multi-strategy authentication |
-| **Drizzle ORM** | Type-safe SQL with PostgreSQL |
-| **Zod** | Runtime schema validation |
-| **Argon2id** | Password hashing (PHC winner) |
-| **WebSocket** | Real-time collaboration |
-
-### DevOps
-| Technology | Purpose |
-|------------|---------|
-| **Docker Compose** | Multi-container orchestration |
-| **Nginx** | Reverse proxy + static server |
-| **Drizzle Kit** | Database migrations |
-| **Vite** | Fast development + optimized builds |
-
----
-
-## 🚀 Quick Start
+## Quick Start
 
 ### Prerequisites
-- Docker Desktop (Windows/Mac) or Docker Engine (Linux)
-- Node.js 18+ (for local development)
-- npm 9+ or pnpm
 
-### Option 1: Docker (Recommended)
+- **Docker Desktop** (for the full stack) or **Node.js 18+** (for local dev)
+
+### Option 1: Docker (Full Stack)
 
 ```bash
-# Clone the repository
 git clone https://github.com/yourusername/meshwork-studio.git
 cd meshwork-studio
 
-# Copy environment template
-cp .env.example .env
+cp .env.template .env
+# Edit .env with your credentials
 
-# Edit .env with your credentials (see Configuration section)
-
-# Start all services
 docker-compose up -d
-
-# Access the application
-open http://localhost
+# Visit http://localhost
 ```
 
 ### Option 2: Local Development
 
 ```bash
-# Install dependencies
 npm install
-
-# Set up databases (requires PostgreSQL running)
-npm run db:push
-
-# Start development server
 npm run dev
+# Visit http://localhost:5000
 
-# In another terminal, start frontend dev server
-cd client && npm run dev
+# Dev login:  test@example.com / Test123!@#
 ```
 
 ---
 
-## ⚙️ Configuration
+## Tech Stack
 
-Create a `.env` file in the project root:
+### Frontend
 
-```bash
-# Database URLs
-AUTH_DATABASE_URL=postgresql://postgres:postgres@localhost:5432/auth
-WORKSPACE_DATABASE_URL=postgresql://postgres:postgres@localhost:5433/workspace
+| Technology | Purpose |
+|------------|---------|
+| **React 18** | UI framework |
+| **TypeScript** | Type safety across the full stack |
+| **React Flow** | Node-based visual diagram editor |
+| **TanStack Query** | Server state management with caching |
+| **Tailwind CSS** | Utility-first styling |
+| **Radix UI** | Accessible component primitives |
+| **Framer Motion** | Page transitions |
+| **Wouter** | Lightweight client-side routing (2KB) |
 
-# Session Secret (generate with: openssl rand -base64 32)
-SESSION_SECRET=your_random_256_bit_secret_here
+### Backend
 
-# Google OAuth (get from Google Cloud Console)
-GOOGLE_CLIENT_ID=your_google_client_id
-GOOGLE_CLIENT_SECRET=your_google_client_secret
-
-# CAPTCHA (get from hCaptcha dashboard)
-HCAPTCHA_SECRET=your_hcaptcha_secret
-
-# Email (for verification - optional)
-SMTP_HOST=smtp.resend.com
-SMTP_USER=resend
-SMTP_PASS=your_resend_api_key
-```
-
----
-
-## 📸 Screenshots
-
-<p align="center">
-  <em>Screenshots coming soon - Dashboard view with workspace cards and visual editor</em>
-</p>
-
----
-
-## 🔐 Security Features
-
-### Authentication
-- ✅ **Multi-strategy auth** (Local email/password + Google OAuth)
-- ✅ **Argon2id password hashing** (OWASP recommended, PHC winner)
-- ✅ **Production-grade CAPTCHA** with replay protection
-- ✅ **Session management** with secure HTTP-only cookies
-- ✅ **CSRF protection** via SameSite cookies
-
-### Input Validation
-- ✅ **Defense in depth** - Client-side + Schema + Database layers
-- ✅ **XSS prevention** - React automatic escaping
-- ✅ **SQL injection proof** - Drizzle ORM parameterized queries
-- ✅ **Input sanitization** - Emoji blocking, character limits (16 chars)
+| Technology | Purpose |
+|------------|---------|
+| **Express 5** | API server |
+| **Passport.js** | Multi-strategy authentication |
+| **Drizzle ORM** | Type-safe PostgreSQL queries |
+| **Zod** | Runtime schema validation |
+| **bcrypt** | Password hashing (12 salt rounds) |
+| **AES-256-GCM** | API key encryption for BYOK AI |
 
 ### Infrastructure
-- ✅ **Docker containerization** with non-root users
-- ✅ **Nginx reverse proxy** with security headers
-- ✅ **Static asset caching** with content hashing
-- ✅ **SPA fallback** for client-side routing
 
-Read the full [Authentication Documentation](./docs/AUTHENTICATION.md) for security details.
+| Technology | Purpose |
+|------------|---------|
+| **Docker Compose** | Multi-container orchestration |
+| **NGINX** | Reverse proxy, static serving, gzip |
+| **Vitest** | Unit and integration testing |
+| **Playwright** | End-to-end browser testing |
+| **Drizzle Kit** | Database schema migrations |
 
 ---
 
-## 🧪 Development
-
-### Available Scripts
+## Available Scripts
 
 ```bash
-npm run dev          # Start development server
-npm run build        # Production build (client + server)
-npm run start        # Start production server
-npm run check        # TypeScript type checking
-npm run db:push      # Push schema changes to database
+# Development
+npm run dev              # Start the dev server (API + frontend)
+npm run check            # TypeScript type checking (must pass with 0 errors)
+
+# Testing
+npm run test:run         # Run all 64 tests (~2 seconds)
+npm run test:coverage    # Generate HTML coverage report
+npm run test:lockout     # Run auth lockout tests specifically
+
+# Production
+npm run build            # Bundle client + server
+npm run start            # Start production server
+
+# Database
+npm run db:push          # Push schema changes to PostgreSQL
+
+# Docker
+docker-compose up -d     # Start full stack
+docker-compose logs -f   # Tail all container logs
+docker-compose down -v   # Stop and remove volumes
 ```
 
-### Docker Commands
+---
+
+## Documentation
+
+Every major system has its own deep-dive guide:
+
+| Document | What You'll Learn |
+|----------|-------------------|
+| **[Security Architecture](./docs/SECURITY.md)** | Auth flows, IDOR protection, brute-force lockouts, AES-256 encryption, CSRF, rate limiting, PII redaction |
+| **[Canvas Engine](./docs/ENGINE.md)** | How drag-and-drop works, spatial containment logic, the Postgres upsert sync strategy |
+| **[Testing Strategy](./docs/TESTING.md)** | The testing pyramid, how to run tests, how to write new ones |
+| **[BYOK AI Service](./docs/BYOK-AI-Service.md)** | Bring-your-own-key AI integration, encryption flow, API endpoints |
+| **[NGINX Architecture](./docs/NGINX_ARCHITECTURE.md)** | Why NGINX sits in front of Express, SPA routing, caching |
+| **[Settings & Privacy](./docs/SETTINGS.md)** | User profile management, account deletion, data export |
+| **[Post-Mortem Log](./docs/post-mortem.md)** | Every production bug we've found and fixed, with root cause analysis |
+
+---
+
+## Security Highlights
+
+This isn't a toy project with `if (loggedIn)` checks. Every security feature is battle-tested:
+
+| Feature | Implementation |
+|---------|---------------|
+| **IDOR Protection** | Every data endpoint verifies resource ownership — tested with cross-user attack simulations |
+| **Brute-Force Lockout** | Progressive delays (1min → 5min → 15min → 30min → 60min) after failed login attempts |
+| **CSRF Protection** | Double-submit cookie pattern on all 15 state-changing endpoints |
+| **Rate Limiting** | 100 req/min globally, 10 req/15min on auth routes |
+| **API Key Encryption** | AES-256-GCM with unique IVs — keys never stored in plaintext |
+| **PII-Safe Logging** | Production logs automatically redact emails, passwords, tokens, and API keys |
+| **Input Validation** | 4-layer defense: Client → Zod → Drizzle ORM → React output encoding |
+| **Type Safety** | Zero `any` casts in route handlers — backed by global Express.User type declaration |
+
+Read the full [Security Architecture](./docs/SECURITY.md) for details.
+
+---
+
+## Project Structure
+
+```
+meshwork-studio/
+├── client/                      # React frontend
+│   └── src/
+│       ├── features/workspace/  # Canvas components and utilities
+│       ├── hooks/               # React Query hooks
+│       ├── lib/                 # secureFetch, CSRF, query client
+│       └── pages/               # Route-level page components
+├── server/                      # Express backend
+│   ├── modules/
+│   │   ├── auth/                # Passport strategies, lockout, CAPTCHA
+│   │   ├── canvas/              # Node/edge storage with upsert sync
+│   │   ├── workspace/           # Workspace CRUD with IDOR checks
+│   │   └── ai/                  # BYOK encryption and AI proxy
+│   ├── middleware/              # CSRF, rate limiting
+│   └── types/                   # Express.User type augmentation
+├── shared/                      # Drizzle schema + Zod validators
+├── tests/
+│   ├── unit/                    # Pure logic tests
+│   ├── integration/             # HTTP route tests with Supertest
+│   └── e2e/                     # Playwright browser tests
+├── docs/                        # Deep-dive documentation
+├── docker-compose.yml           # Full stack orchestration
+├── nginx.conf                   # Reverse proxy configuration
+└── vitest.config.ts             # Test runner configuration
+```
+
+---
+
+## Environment Variables
+
+Copy `.env.template` to `.env` and fill in your values:
 
 ```bash
-docker-compose up -d              # Start all services
-docker-compose logs -f backend  # Tail backend logs
-docker-compose restart frontend  # Restart frontend after build
-docker-compose down -v           # Stop and remove volumes
+# Database
+DATABASE_URL=postgresql://user:password@localhost:5434/emnesh_workspace
+AUTH_DATABASE_URL=postgresql://user:password@localhost:5433/emnesh_auth
+
+# Auth
+SESSION_SECRET=<generate with: openssl rand -base64 32>
+GOOGLE_CLIENT_ID=<from Google Cloud Console>
+GOOGLE_CLIENT_SECRET=<from Google Cloud Console>
+
+# AI Encryption (for BYOK feature)
+ENCRYPTION_KEY=<generate with: node -e "console.log(require('crypto').randomBytes(32).toString('base64'))">
+
+# CAPTCHA (optional — skipped in development)
+HCAPTCHA_SECRET=<from hCaptcha dashboard>
 ```
 
 ---
 
-## 📚 Documentation
+## License
 
-| Document | Description |
-|----------|-------------|
-| [Authentication](./docs/AUTHENTICATION.md) | Security architecture, auth flows, edge cases |
-| [Post-Mortem](./docs/post-mortem.md) | Bug fixes, infrastructure issues, lessons learned |
-
----
-
-## 🗺️ Roadmap
-
-### Completed ✅
-- [x] Visual architecture editor with React Flow
-- [x] Multi-strategy authentication (Local + OAuth)
-- [x] Enterprise-grade CAPTCHA with replay protection
-- [x] Input validation (16 chars, no emojis, alphanumeric)
-- [x] XSS/CSRF protection
-- [x] SQL injection prevention (Drizzle ORM)
-- [x] Docker containerization
-- [x] Workspace management with collections
-
-### In Progress 🚧
-- [ ] Email verification system
-- [ ] User profile management
-- [ ] Export diagrams to PNG/SVG
-- [ ] Undo/redo history
-
-### Planned 📋
-- [ ] Two-Factor Authentication (2FA)
-- [ ] Real-time collaborative editing
-- [ ] Role-based access control (RBAC)
-- [ ] SAML/SSO enterprise integration
-- [ ] Audit logging & compliance
-- [ ] API rate limiting
-- [ ] Webhooks for integrations
-- [ ] Mobile-responsive diagram editor
-
----
-
-## 🤝 Contributing
-
-We welcome contributions! Please see our [Contributing Guide](./CONTRIBUTING.md) (coming soon) for details.
-
-### Development Workflow
-
-1. Fork the repository
-2. Create a feature branch (`git checkout -b feature/amazing-feature`)
-3. Commit your changes (`git commit -m 'Add amazing feature'`)
-4. Push to the branch (`git push origin feature/amazing-feature`)
-5. Open a Pull Request
-
----
-
-## 📝 License
-
-Distributed under the MIT License. See `LICENSE` for more information.
-
----
-
-## 🙏 Acknowledgments
-
-- [React Flow](https://reactflow.dev/) - The node-based editor powering our diagram tool
-- [Radix UI](https://www.radix-ui.com/) - Accessible component primitives
-- [Drizzle ORM](https://orm.drizzle.team/) - Type-safe SQL
-- [Passport.js](http://www.passportjs.org/) - Authentication middleware
-
----
-
-## 👤 Contact
-
-**Meshwork Studio Team**
-
-- Project Link: [https://github.com/yourusername/meshwork-studio](https://github.com/yourusername/meshwork-studio)
-- Demo: [https://meshwork-studio.vercel.app](https://meshwork-studio.vercel.app) (coming soon)
+MIT License. See `LICENSE` for details.
 
 ---
 
 <p align="center">
-  <strong>Built with ❤️ and TypeScript</strong>
+  <strong>Built with TypeScript, secured by design.</strong>
 </p>

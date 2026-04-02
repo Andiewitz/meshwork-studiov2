@@ -101,7 +101,24 @@ app.use((req, res, next) => {
     const duration = Date.now() - start;
     if (path.startsWith("/api")) {
       let logLine = `${req.method} ${path} ${res.statusCode} in ${duration}ms`;
-      if (capturedJsonResponse) {
+      
+      // SECURITY: Sanitize logs to prevent leaking sensitive data (PII, tokens, etc.)
+      if (capturedJsonResponse && process.env.NODE_ENV === "production") {
+        const sanitized = { ...capturedJsonResponse };
+        const sensitiveKeys = ["email", "password", "token", "passwordHash", "apiKey", "secret"];
+        
+        const redact = (obj: any) => {
+          for (const key in obj) {
+            if (sensitiveKeys.some(sk => key.toLowerCase().includes(sk.toLowerCase()))) {
+              obj[key] = "[REDACTED]";
+            } else if (typeof obj[key] === "object" && obj[key] !== null) {
+              redact(obj[key]);
+            }
+          }
+        };
+        redact(sanitized);
+        logLine += ` :: ${JSON.stringify(sanitized)}`;
+      } else if (capturedJsonResponse) {
         logLine += ` :: ${JSON.stringify(capturedJsonResponse)}`;
       }
 
