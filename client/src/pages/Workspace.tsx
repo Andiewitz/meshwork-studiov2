@@ -1063,7 +1063,7 @@ function WorkspaceView() {
                                                 <div className="grid grid-cols-3 gap-1">
                                                     {[
                                                         { id: 'straight', label: 'Diagonal', icon: Minus, rotate: true },
-                                                        { id: 'smoothstep', label: 'Curved', icon: Spline },
+                                                        { id: 'default', label: 'Curved', icon: Spline },
                                                         { id: 'step', label: 'Orthogonal', icon: Milestone }
                                                     ].map((tool) => (
                                                         <button
