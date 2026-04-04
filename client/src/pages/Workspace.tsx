@@ -1009,79 +1009,76 @@ function WorkspaceView() {
                                     </button>
                                     <Popover>
                                         <PopoverTrigger asChild>
-                                            <button className={`p-2.5 rounded-xl transition-all ${edgeType ? 'bg-black/5 text-black' : 'text-black/40 hover:text-black hover:bg-black/5'}`} title="Line Type">
-                                                {edgeType === 'step' && <Milestone className="w-4 h-4" />}
-                                                {edgeType === 'smoothstep' && <Spline className="w-4 h-4" />}
-                                                {edgeType === 'straight' && <Minus className="w-4 h-4 rotate-45" />}
-                                                {edgeType === 'default' && <ArrowUpRight className="w-4 h-4" />}
+                                            <button className="flex items-center gap-1.5 p-2 px-3 rounded-xl transition-all text-black/70 hover:text-black hover:bg-black/5" title="Connection Settings">
+                                                <Spline className="w-4 h-4" />
+                                                <ChevronDown className="w-3 h-3 text-black/30" />
                                             </button>
                                         </PopoverTrigger>
-                                        <PopoverContent className="w-auto p-1 bg-white border border-black/10 rounded-xl shadow-2xl z-[150]" side="top" align="center" sideOffset={12}>
-                                            <div className="flex gap-1 p-1">
-                                                {[
-                                                    { id: 'step', icon: Milestone },
-                                                    { id: 'smoothstep', icon: Spline },
-                                                    { id: 'straight', icon: Minus, rotate: true },
-                                                    { id: 'default', icon: ArrowUpRight }
-                                                ].map((tool) => (
-                                                    <button
-                                                        key={tool.id}
-                                                        onClick={() => {
-                                                            setEdgeType(tool.id as any);
-                                                            // Apply to selected edges
-                                                            setEdges(eds => eds.map(e => e.selected ? { ...e, type: tool.id } : e));
-                                                        }}
-                                                        className={`p-2 rounded-lg transition-all ${edgeType === tool.id ? 'bg-black text-white' : 'text-black/40 hover:text-black hover:bg-black/5'}`}
-                                                    >
-                                                        <tool.icon className={`w-4 h-4 ${tool.rotate ? 'rotate-45' : ''}`} />
-                                                    </button>
-                                                ))}
-                                            </div>
-                                        </PopoverContent>
-                                    </Popover>
-                                    <div className="h-5 w-px mx-1 bg-black/10" />
-                                    <Popover>
-                                        <PopoverTrigger asChild>
-                                            <button className={`p-2.5 rounded-xl transition-all ${edgeStyle !== 'solid' || hasArrow ? 'bg-black/5 text-black' : 'text-black/40 hover:text-black hover:bg-black/5'}`} title="Line Style">
-                                                <div className="relative">
-                                                    <Minus className="w-4 h-4" />
-                                                    {hasArrow && <ArrowRight className="w-2.5 h-2.5 absolute -right-1 -top-1 bg-white rounded-full p-0.5 border border-black/10" />}
+                                        <PopoverContent className="w-64 p-3 bg-white border border-black/10 rounded-xl shadow-2xl z-[150] space-y-4" side="top" align="center" sideOffset={12}>
+                                            {/* Style & Arrow */}
+                                            <div className="space-y-2">
+                                                <div className="text-[10px] uppercase font-bold tracking-widest text-black/40 px-1">Line Style</div>
+                                                <div className="grid grid-cols-3 gap-1">
+                                                    {[
+                                                        { id: 'solid', label: 'Normal', icon: Minus, hasArrow: false },
+                                                        { id: 'dashed', label: 'Broken', icon: Minus, hasArrow: false },
+                                                        { id: 'arrow', label: 'Arrow', icon: ArrowRight, hasArrow: true }
+                                                    ].map(style => {
+                                                        const isSelected = (edgeStyle === (style.id === 'dashed' ? 'dashed' : 'solid')) && (hasArrow === style.hasArrow);
+                                                        return (
+                                                            <button
+                                                                key={style.id}
+                                                                onClick={() => {
+                                                                    const newStyle = style.id === 'dashed' ? 'dashed' : 'solid';
+                                                                    const newArrow = style.hasArrow;
+                                                                    setEdgeStyle(newStyle as any);
+                                                                    setHasArrow(newArrow);
+                                                                    // Apply to selected
+                                                                    setEdges(eds => eds.map(e => {
+                                                                        if (!e.selected) return e;
+                                                                        const s: any = { ...e.style, strokeDasharray: undefined };
+                                                                        if (newStyle === 'dashed') s.strokeDasharray = '5 5';
+                                                                        let m: any = undefined;
+                                                                        if (newArrow) m = { type: 'arrowclosed' as const, color: '#444' };
+                                                                        return { ...e, style: s, markerEnd: m };
+                                                                    }));
+                                                                }}
+                                                                className={`flex flex-col items-center justify-center gap-1.5 h-16 rounded-lg border transition-all ${isSelected ? 'bg-black text-white border-black shadow-md' : 'bg-transparent text-black/60 border-black/5 hover:bg-black/5 hover:border-black/10'}`}
+                                                            >
+                                                                {style.id === 'dashed' ? (
+                                                                    <div className="w-4 h-0 border-b-2 border-dashed border-current my-2" />
+                                                                ) : (
+                                                                    <style.icon className="w-4 h-4" />
+                                                                )}
+                                                                <span className="text-[10px] font-bold">{style.label}</span>
+                                                            </button>
+                                                        );
+                                                    })}
                                                 </div>
-                                            </button>
-                                        </PopoverTrigger>
-                                        <PopoverContent className="w-auto p-1 bg-white border border-black/10 rounded-xl shadow-2xl z-[150]" side="top" align="center" sideOffset={12}>
-                                            <div className="flex gap-1 p-1 items-center">
-                                                {[
-                                                    { id: 'solid', label: 'Solid', icon: Minus },
-                                                    { id: 'dashed', label: 'Dashed', icon: Minus, className: 'border-b-2 border-dashed border-black/20 w-4 h-0 block mx-auto my-2' },
-                                                    { id: 'dotted', label: 'Dotted', icon: Minus, className: 'border-b-2 border-dotted border-black/20 w-4 h-0 block mx-auto my-2' }
-                                                ].map((style) => (
-                                                    <button
-                                                        key={style.id}
-                                                        onClick={() => {
-                                                            setEdgeStyle(style.id as any);
-                                                            // Apply to selected edges
-                                                            setEdges(eds => eds.map(e => {
-                                                                if (!e.selected) return e;
-                                                                const s: any = { ...e.style, strokeDasharray: undefined };
-                                                                if (style.id === 'dashed') s.strokeDasharray = '5 5';
-                                                                if (style.id === 'dotted') s.strokeDasharray = '2 2';
-                                                                return { ...e, style: s };
-                                                            }));
-                                                        }}
-                                                        className={`flex items-center justify-between px-3 py-2 text-[12px] transition-colors rounded-lg ${edgeStyle === style.id ? 'bg-black text-white' : 'text-black/70 hover:bg-black/5 hover:text-black'}`}
-                                                    >
-                                                        {style.id === 'solid' ? <Minus className="w-4 h-4" /> : <div className={`w-4 h-0.5 ${style.id === 'dashed' ? 'border-b-2 border-dashed' : 'border-b-2 border-dotted'} ${edgeStyle === style.id ? 'border-white' : 'border-black/40'}`} />}
-                                                    </button>
-                                                ))}
-                                                <div className="h-4 w-px bg-black/10 mx-1" />
-                                                <button
-                                                    onClick={() => setHasArrow(!hasArrow)}
-                                                    className={`p-2.5 rounded-lg transition-all ${hasArrow ? 'bg-amber-500 text-white shadow-lg' : 'text-black/40 hover:text-black hover:bg-black/5'}`}
-                                                    title="Toggle Arrow"
-                                                >
-                                                    <ArrowRight className="w-4 h-4" />
-                                                </button>
+                                            </div>
+
+                                            {/* Shape */}
+                                            <div className="space-y-2">
+                                                <div className="text-[10px] uppercase font-bold tracking-widest text-black/40 px-1">Line Shape</div>
+                                                <div className="grid grid-cols-3 gap-1">
+                                                    {[
+                                                        { id: 'straight', label: 'Diagonal', icon: Minus, rotate: true },
+                                                        { id: 'smoothstep', label: 'Curved', icon: Spline },
+                                                        { id: 'step', label: 'Orthogonal', icon: Milestone }
+                                                    ].map((tool) => (
+                                                        <button
+                                                            key={tool.id}
+                                                            onClick={() => {
+                                                                setEdgeType(tool.id as any);
+                                                                setEdges(eds => eds.map(e => e.selected ? { ...e, type: tool.id } : e));
+                                                            }}
+                                                            className={`flex flex-col items-center justify-center gap-1.5 h-16 rounded-lg border transition-all ${edgeType === tool.id ? 'bg-black text-white border-black shadow-md' : 'bg-transparent text-black/60 border-black/5 hover:bg-black/5 hover:border-black/10'}`}
+                                                        >
+                                                            <tool.icon className={`w-4 h-4 ${tool.rotate ? 'rotate-45' : ''}`} />
+                                                            <span className="text-[10px] font-bold">{tool.label}</span>
+                                                        </button>
+                                                    ))}
+                                                </div>
                                             </div>
                                         </PopoverContent>
                                     </Popover>

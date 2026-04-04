@@ -154,9 +154,9 @@ export function SystemNode({ data, selected, type, width, height }: NodeProps) {
                     absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-3 h-3 rounded-full transition-all border-2
                     ${selected ? 'bg-black border-black ring-4 ring-black/5' : 'bg-white border-black/40 group-hover:border-black'}
                 `} />
-                <Handle type="target" position={Position.Top} style={{ top: '50%', left: '50%', transform: 'translate(-50%, -50%)' }} className="!opacity-0 !w-full !h-full !border-0" />
                 <Handle type="source" position={Position.Top} style={{ top: '50%', left: '50%', transform: 'translate(-50%, -50%)' }} className="!opacity-0 !w-full !h-full !border-0" />
             </div>
+
         );
     }
 
@@ -176,14 +176,10 @@ export function SystemNode({ data, selected, type, width, height }: NodeProps) {
             />
             <div className="group w-full h-full relative">
                 {/* Connection Handles — sharp squares */}
-                <Handle type="target" position={Position.Top} id="t-t" className={handleCls} />
-                <Handle type="source" position={Position.Top} id="t-s" className={handleCls} />
-                <Handle type="target" position={Position.Bottom} id="b-t" className={handleCls} />
-                <Handle type="source" position={Position.Bottom} id="b-s" className={handleCls} />
-                <Handle type="target" position={Position.Left} id="l-t" className={handleCls} />
-                <Handle type="source" position={Position.Left} id="l-s" className={handleCls} />
-                <Handle type="target" position={Position.Right} id="r-t" className={handleCls} />
-                <Handle type="source" position={Position.Right} id="r-s" className={handleCls} />
+                <Handle type="source" position={Position.Top} id="top" className={handleCls} />
+                <Handle type="source" position={Position.Bottom} id="bottom" className={handleCls} />
+                <Handle type="source" position={Position.Left} id="left" className={handleCls} />
+                <Handle type="source" position={Position.Right} id="right" className={handleCls} />
 
                 {/* ── PLAIN TEXT ANNOTATION ── */}
                 {type === 'annotation' ? (
