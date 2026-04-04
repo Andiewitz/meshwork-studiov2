@@ -66,7 +66,7 @@ export async function verifyCaptcha(
   }
 
   // Validate token format (prevent injection)
-  if (!token || typeof token !== 'string' || token.length < 10 || token.length > 1000) {
+  if (!token || typeof token !== 'string' || token.length < 10 || token.length > 5000) {
     console.error('[Captcha] Invalid token format');
     return { success: false, error: 'Invalid CAPTCHA token format' };
   }
