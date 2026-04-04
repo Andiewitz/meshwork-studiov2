@@ -57,7 +57,7 @@ export default function Register() {
     }
     
     // In strict production, ensure captcha is solved before hitting API
-    if (import.meta.env.PROD && !captchaToken) {
+    if (import.meta.env.PROD && import.meta.env.VITE_RECAPTCHA_SITE_KEY && !captchaToken) {
       toast({
         title: "Verification required",
         description: "Please complete the CAPTCHA check to register.",
@@ -292,21 +292,22 @@ export default function Register() {
               </div>
             </div>
 
-            {/* Robust Google ReCAPTCHA v2 implementation */}
-            <div className="flex justify-center py-2 w-full overflow-hidden">
-              <ReCAPTCHA
-                ref={recaptchaRef}
-                sitekey={import.meta.env.VITE_RECAPTCHA_SITE_KEY || "6LeIxAcTAAAAAJcZVRqyHh71UMIEGNQ_MXjiZKhI"} // Use real env key or default testing key
-                onChange={(token) => setCaptchaToken(token || "")}
-                onExpired={() => setCaptchaToken("")}
-                theme="dark" // Assuming the site uses dark mode
-              />
-            </div>
+            {import.meta.env.VITE_RECAPTCHA_SITE_KEY && (
+              <div className="flex justify-center py-2 w-full overflow-hidden">
+                <ReCAPTCHA
+                  ref={recaptchaRef}
+                  sitekey={import.meta.env.VITE_RECAPTCHA_SITE_KEY}
+                  onChange={(token) => setCaptchaToken(token || "")}
+                  onExpired={() => setCaptchaToken("")}
+                  theme="dark"
+                />
+              </div>
+            )}
 
             <Button
               type="submit"
               className="w-full accent-btn"
-              disabled={isLoading || (import.meta.env.PROD && !captchaToken)}
+              disabled={isLoading || (import.meta.env.PROD && import.meta.env.VITE_RECAPTCHA_SITE_KEY && !captchaToken)}
             >
               {isLoading ? (
                 <>

@@ -197,12 +197,14 @@ export function captchaMiddleware(req: any, res: any, next: any) {
  * Use environment variable to control
  */
 export function optionalCaptchaMiddleware(req: any, res: any, next: any) {
-  // In production with CAPTCHA configured, require it
-  // In dev without CAPTCHA keys, skip it
+  // Only enforce CAPTCHA if keys are configured.
+  // This allows the user to enable/disable CAPTCHA by simply adding/removing the env var.
   const config = getCaptchaConfig();
   
-  if (!config && process.env.NODE_ENV !== 'production') {
-    console.log('[Captcha] Skipping verification in dev mode (no CAPTCHA keys configured)');
+  if (!config) {
+    if (process.env.NODE_ENV !== 'production') {
+      console.log('[Captcha] Skipping verification (no CAPTCHA keys configured)');
+    }
     return next();
   }
   
