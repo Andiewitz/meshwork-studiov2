@@ -19,7 +19,7 @@ export default function Login() {
 
   // Validation
   const isEmailValid = email.length > 0 && /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
-  const isPasswordValid = password.length >= 8;
+  const isPasswordValid = password.length >= 12;
 
   const handleEmailLogin = async (e: React.FormEvent) => {
     e.preventDefault();

@@ -7,6 +7,7 @@ import { useToast } from "@/hooks/use-toast";
 import { Loader2, Box, Eye, EyeOff } from "lucide-react";
 import { apiRequest } from "@/lib/queryClient";
 import ReCAPTCHA from "react-google-recaptcha";
+import { PASSWORD_POLICY, validatePasswordStrength } from "@shared/auth";
 
 export default function Register() {
   const [, setLocation] = useLocation();
@@ -32,7 +33,8 @@ export default function Register() {
 
   // Validation
   const isEmailValid = formData.email.length > 0 && /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email);
-  const isPasswordValid = formData.password.length >= 8;
+  const passwordValidation = validatePasswordStrength(formData.password);
+  const isPasswordValid = passwordValidation.valid;
   const isConfirmPasswordValid = formData.confirmPassword.length > 0 && formData.password === formData.confirmPassword;
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -47,10 +49,10 @@ export default function Register() {
       return;
     }
 
-    if (formData.password.length < 8) {
+    if (!isPasswordValid) {
       toast({
-        title: "Password too short",
-        description: "Password must be at least 8 characters.",
+        title: "Password does not meet requirements",
+        description: passwordValidation.errors[0] || "Please check your password.",
         variant: "destructive",
       });
       return;
@@ -241,7 +243,7 @@ export default function Register() {
                   onChange={(e) => setFormData({ ...formData, password: e.target.value })}
                   onBlur={() => setTouched(prev => ({ ...prev, password: true }))}
                   required
-                  minLength={8}
+                  minLength={PASSWORD_POLICY.minLength}
                   className={`border-2 pr-10 transition-all duration-200 ${
                     touched.password && isPasswordValid
                       ? "border-green-500 bg-green-50/30" 
@@ -258,7 +260,32 @@ export default function Register() {
                   {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
                 </button>
               </div>
-              <p className="text-xs text-muted-foreground">Must be at least 8 characters</p>
+              
+              <div className="mt-2 space-y-1">
+                <p className="text-xs font-bold uppercase tracking-widest text-muted-foreground mb-2">Password Requirements:</p>
+                <div className="grid grid-cols-1 gap-1">
+                  <div className={`flex items-center text-[10px] ${formData.password.length >= PASSWORD_POLICY.minLength ? "text-green-500" : "text-muted-foreground"}`}>
+                    <div className={`w-2 h-2 rounded-full mr-2 ${formData.password.length >= PASSWORD_POLICY.minLength ? "bg-green-500" : "bg-muted/30 border border-muted-foreground/30"}`} />
+                    At least {PASSWORD_POLICY.minLength} characters
+                  </div>
+                  <div className={`flex items-center text-[10px] ${/[A-Z]/.test(formData.password) ? "text-green-500" : "text-muted-foreground"}`}>
+                    <div className={`w-2 h-2 rounded-full mr-2 ${/[A-Z]/.test(formData.password) ? "bg-green-500" : "bg-muted/30 border border-muted-foreground/30"}`} />
+                    One uppercase letter
+                  </div>
+                  <div className={`flex items-center text-[10px] ${/[a-z]/.test(formData.password) ? "text-green-500" : "text-muted-foreground"}`}>
+                    <div className={`w-2 h-2 rounded-full mr-2 ${/[a-z]/.test(formData.password) ? "bg-green-500" : "bg-muted/30 border border-muted-foreground/30"}`} />
+                    One lowercase letter
+                  </div>
+                  <div className={`flex items-center text-[10px] ${/\d/.test(formData.password) ? "text-green-500" : "text-muted-foreground"}`}>
+                    <div className={`w-2 h-2 rounded-full mr-2 ${/\d/.test(formData.password) ? "bg-green-500" : "bg-muted/30 border border-muted-foreground/30"}`} />
+                    One number
+                  </div>
+                  <div className={`flex items-center text-[10px] ${/[!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?]/.test(formData.password) ? "text-green-500" : "text-muted-foreground"}`}>
+                    <div className={`w-2 h-2 rounded-full mr-2 ${/[!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?]/.test(formData.password) ? "bg-green-500" : "bg-muted/30 border border-muted-foreground/30"}`} />
+                    One special character
+                  </div>
+                </div>
+              </div>
             </div>
 
             <div className="space-y-2">

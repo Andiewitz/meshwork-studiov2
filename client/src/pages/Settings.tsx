@@ -23,6 +23,7 @@ import {
 } from "@/components/ui/alert-dialog";
 import { apiRequest } from "@/lib/queryClient";
 import { cn } from "@/lib/utils";
+import { PASSWORD_POLICY, validatePasswordStrength } from "@shared/auth";
 
 export default function Settings() {
   const { user, logout } = useAuth();
@@ -169,8 +170,9 @@ export default function Settings() {
       toast({ title: "Passwords don't match", description: "Please make sure your new passwords match.", variant: "destructive" });
       return;
     }
-    if (newPassword.length < 8) {
-      toast({ title: "Password too short", description: "Password must be at least 8 characters.", variant: "destructive" });
+    const passwordValidation = validatePasswordStrength(newPassword);
+    if (!passwordValidation.valid) {
+      toast({ title: "Password does not meet requirements", description: passwordValidation.errors[0], variant: "destructive" });
       return;
     }
     setIsChangingPassword(true);
@@ -463,12 +465,38 @@ export default function Settings() {
                     type={showNewPassword ? "text" : "password"}
                     value={newPassword}
                     onChange={(e) => setNewPassword(e.target.value)}
-                    placeholder="At least 8 characters"
+                    placeholder={`At least ${PASSWORD_POLICY.minLength} characters`}
                     className="pr-10"
                   />
                   <button type="button" onClick={() => setShowNewPassword(!showNewPassword)} className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground">
                     {showNewPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
                   </button>
+                </div>
+                
+                <div className="mt-2 space-y-1">
+                  <p className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground mb-1">Requirements:</p>
+                  <div className="grid grid-cols-2 gap-x-4 gap-y-1">
+                    <div className={`flex items-center text-[10px] ${newPassword.length >= PASSWORD_POLICY.minLength ? "text-green-500" : "text-muted-foreground"}`}>
+                      <div className={`w-1.5 h-1.5 rounded-full mr-2 ${newPassword.length >= PASSWORD_POLICY.minLength ? "bg-green-500" : "bg-muted/30 border border-muted-foreground/30"}`} />
+                      {PASSWORD_POLICY.minLength}+ chars
+                    </div>
+                    <div className={`flex items-center text-[10px] ${/[A-Z]/.test(newPassword) ? "text-green-500" : "text-muted-foreground"}`}>
+                      <div className={`w-1.5 h-1.5 rounded-full mr-2 ${/[A-Z]/.test(newPassword) ? "bg-green-500" : "bg-muted/30 border border-muted-foreground/30"}`} />
+                      Uppercase
+                    </div>
+                    <div className={`flex items-center text-[10px] ${/[a-z]/.test(newPassword) ? "text-green-500" : "text-muted-foreground"}`}>
+                      <div className={`w-1.5 h-1.5 rounded-full mr-2 ${/[a-z]/.test(newPassword) ? "bg-green-500" : "bg-muted/30 border border-muted-foreground/30"}`} />
+                      Lowercase
+                    </div>
+                    <div className={`flex items-center text-[10px] ${/\d/.test(newPassword) ? "text-green-500" : "text-muted-foreground"}`}>
+                      <div className={`w-1.5 h-1.5 rounded-full mr-2 ${/\d/.test(newPassword) ? "bg-green-500" : "bg-muted/30 border border-muted-foreground/30"}`} />
+                      Number
+                    </div>
+                    <div className={`flex items-center text-[10px] ${/[!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?]/.test(newPassword) ? "text-green-500" : "text-muted-foreground"}`}>
+                      <div className={`w-1.5 h-1.5 rounded-full mr-2 ${/[!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?]/.test(newPassword) ? "bg-green-500" : "bg-muted/30 border border-muted-foreground/30"}`} />
+                      Special char
+                    </div>
+                  </div>
                 </div>
               </div>
 
