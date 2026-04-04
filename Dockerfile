@@ -16,6 +16,8 @@ RUN npm run build
 # Runtime stage
 FROM node:20-alpine
 
+RUN apk add --no-cache libc6-compat
+
 WORKDIR /app
 
 # Copy production build artifacts
@@ -24,15 +26,10 @@ COPY --from=builder /app/package*.json ./
 COPY --from=builder /app/node_modules/connect-pg-simple/table.sql ./dist/table.sql
 
 # Install only production dependencies
-# This is necessary because some dependencies are marked as external in esbuild
 RUN npm install --omit=dev
 
 # Set environment variables
 ENV NODE_ENV=production
-ENV PORT=5000
-
-# Expose the application port
-EXPOSE 5000
 
 # Start the application
 CMD ["npm", "start"]
