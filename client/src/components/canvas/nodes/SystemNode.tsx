@@ -24,14 +24,14 @@ import {
 } from 'lucide-react';
 import { 
     SiLinux, SiDocker, SiCelery, SiAwslambda, SiPostgresql, SiRedis, SiAmazons3, 
-    SiElasticsearch, SiInfluxdb, SiSnowflake, SiClickhouse, SiAmazonapigateway, 
-    SiNginx, SiCloudflare, SiApachekafka, SiRabbitmq, SiAmazonroute53, SiNats, 
+    SiElasticsearch, SiInfluxdb, SiSnowflake, SiClickhouse, 
+    SiNginx, SiCloudflare, SiApachekafka, SiRabbitmq, 
     SiSocketdotio, SiPusher, SiGithubactions, SiJenkins, SiCircleci, SiGitlab, 
-    SiArgocd, SiHashicorpvault, SiAuth0, SiOkta, SiPrometheus, SiGrafana, SiDatadog, 
-    SiAmazonaws, SiReact, SiOpenapi, SiStripe, SiTwilio, SiSendgrid, SiShopify, 
+    SiAuth0, SiOkta, SiPrometheus, SiGrafana, SiDatadog, 
+    SiReact, SiStripe, SiTwilio, SiSendgrid, SiShopify, 
     SiPaypal, SiMongodb, SiMysql, SiOracle, SiAmazondynamodb, SiKubernetes 
 } from 'react-icons/si';
-import { k8sIcons } from '../icons/KubernetesIcons';
+import { k8sIcons, K8sLogo } from '../icons/KubernetesIcons';
 
 // ─────────────────────────────────────────────────────────────
 // Per-node-type brand mapping — every node gets a unique logo & color
@@ -62,13 +62,13 @@ const nodeBrands: Record<string, NodeBrand> = {
     clickhouse: { Icon: SiClickhouse, isReactIcon: true, color: '#FFCC01', borderColor: '#CCA301', label: 'CLICKHOUSE' },
 
     // ── Networking ──
-    gateway: { Icon: SiAmazonapigateway, isReactIcon: true, color: '#FF4F8B', borderColor: '#CC3F6F', label: 'GATEWAY' },
+    gateway: { Icon: LucideZap, isReactIcon: true, color: '#FF4F8B', borderColor: '#CC3F6F', label: 'GATEWAY' },
     loadBalancer: { Icon: SiNginx, isReactIcon: true, color: '#009639', borderColor: '#00782E', label: 'NGINX' },
     cdn: { Icon: SiCloudflare, isReactIcon: true, color: '#F38020', borderColor: '#C2661A', label: 'CDN' },
     bus: { Icon: SiApachekafka, isReactIcon: true, color: '#231F20', borderColor: '#444444', label: 'KAFKA' },
     queue: { Icon: SiRabbitmq, isReactIcon: true, color: '#FF6600', borderColor: '#CC5200', label: 'RABBITMQ' },
-    route53: { Icon: SiAmazonroute53, isReactIcon: true, color: '#8C4FFF', borderColor: '#703FCC', label: 'ROUTE 53' },
-    nats: { Icon: SiNats, isReactIcon: true, color: '#27AAE1', borderColor: '#1F88B0', label: 'NATS' },
+    route53: { Icon: LucideGlobe, isReactIcon: true, color: '#8C4FFF', borderColor: '#703FCC', label: 'ROUTE 53' },
+    nats: { Icon: LucideActivity, isReactIcon: true, color: '#27AAE1', borderColor: '#1F88B0', label: 'NATS' },
     socketio: { Icon: SiSocketdotio, isReactIcon: true, color: '#010101', borderColor: '#333333', label: 'SOCKET.IO' },
     pusher: { Icon: SiPusher, isReactIcon: true, color: '#300D4F', borderColor: '#260A3F', label: 'PUSHER' },
 
@@ -77,10 +77,10 @@ const nodeBrands: Record<string, NodeBrand> = {
     jenkins: { Icon: SiJenkins, isReactIcon: true, color: '#D24939', borderColor: '#A83A2E', label: 'JENKINS' },
     circleci: { Icon: SiCircleci, isReactIcon: true, color: '#343434', borderColor: '#2A2A2A', label: 'CIRCLECI' },
     gitlab: { Icon: SiGitlab, isReactIcon: true, color: '#FC6D26', borderColor: '#C9571E', label: 'GITLAB' },
-    argocd: { Icon: SiArgocd, isReactIcon: true, color: '#EF7B4D', borderColor: '#BF623D', label: 'ARGO CD' },
+    argocd: { Icon: LucideBox, isReactIcon: true, color: '#EF7B4D', borderColor: '#BF623D', label: 'ARGO CD' },
 
     // ── Security ──
-    vault: { Icon: SiHashicorpvault, isReactIcon: true, color: '#60BEA3', borderColor: '#4D9882', label: 'VAULT' },
+    vault: { Icon: LucideLock, isReactIcon: true, color: '#60BEA3', borderColor: '#4D9882', label: 'VAULT' },
     auth0: { Icon: SiAuth0, isReactIcon: true, color: '#EB5424', borderColor: '#BC431D', label: 'AUTH0' },
     okta: { Icon: SiOkta, isReactIcon: true, color: '#007DC1', borderColor: '#00649A', label: 'OKTA' },
     waf: { Icon: SiCloudflare, isReactIcon: true, color: '#F38020', borderColor: '#C2661A', label: 'WAF' },
@@ -91,13 +91,13 @@ const nodeBrands: Record<string, NodeBrand> = {
     datadog: { Icon: SiDatadog, isReactIcon: true, color: '#632CA6', borderColor: '#4F2385', label: 'DATADOG' },
 
     // ── Infrastructure ──
-    vpc: { Icon: SiAmazonaws, isReactIcon: true, color: '#232F3E', borderColor: '#3A4A5C', label: 'VPC' },
-    region: { Icon: SiAmazonaws, isReactIcon: true, color: '#232F3E', borderColor: '#3A4A5C', label: 'REGION' },
+    vpc: { Icon: LucideServer, isReactIcon: true, color: '#232F3E', borderColor: '#3A4A5C', label: 'VPC' },
+    region: { Icon: LucideGlobe, isReactIcon: true, color: '#232F3E', borderColor: '#3A4A5C', label: 'REGION' },
 
     // ── External Services ──
     user: { Icon: UserIcon, isReactIcon: true, color: '#6366F1', borderColor: '#4F46E5', label: 'USER' },
     app: { Icon: SiReact, isReactIcon: true, color: '#20232A', borderColor: '#383A45', label: 'APP' },
-    api: { Icon: SiOpenapi, isReactIcon: true, color: '#6BA539', borderColor: '#55842E', label: 'API' },
+    api: { Icon: LucideGlobe, isReactIcon: true, color: '#6BA539', borderColor: '#55842E', label: 'API' },
     stripe: { Icon: SiStripe, isReactIcon: true, color: '#008CDD', borderColor: '#0070B1', label: 'STRIPE' },
     twilio: { Icon: SiTwilio, isReactIcon: true, color: '#F22F46', borderColor: '#C12538', label: 'TWILIO' },
     sendgrid: { Icon: SiSendgrid, isReactIcon: true, color: '#1A82E2', borderColor: '#1568B5', label: 'SENDGRID' },
@@ -128,7 +128,7 @@ export function SystemNode({ data, selected, type, width, height }: NodeProps) {
     const zoneIconSize = width ? Math.max(12, Math.floor(width / 30)) : 12;
 
     const brand: NodeBrand = isKubernetes
-        ? { Icon: SiKubernetes, isReactIcon: true, color: '#326CE5', borderColor: '#2457B5', label: (type as string)?.replace('k8s-', '').toUpperCase() || 'K8S' }
+        ? { Icon: K8sLogo, isReactIcon: true, color: '#326CE5', borderColor: '#2457B5', label: (type as string)?.replace('k8s-', '').toUpperCase() || 'K8S' }
         : (providerBrands[provider] || nodeBrands[type as string] || { Icon: '', color: '#4F46E5', borderColor: '#4338CA', label: (type as string || 'NODE').toUpperCase() });
 
     const statusOverrides: Record<string, { color: string; borderColor: string }> = {
@@ -292,13 +292,13 @@ export function SystemNode({ data, selected, type, width, height }: NodeProps) {
                         }}
                     >
                         {/* K8s helm watermark */}
-                        <SiKubernetes
+                        <K8sLogo
                             className="absolute right-2 bottom-2 w-8 h-8 object-contain opacity-[0.06] pointer-events-none text-white"
                         />
 
                         {/* Logo container — sharp square */}
                         <div className="relative w-10 h-10 bg-white/15 flex items-center justify-center flex-shrink-0">
-                            {typeof brand.Icon !== 'string' && <brand.Icon size={20} className="text-white" />}
+                            {brand.Icon && typeof brand.Icon !== 'string' && <brand.Icon size={20} className="text-white" />}
                             {K8sResourceIcon && (
                                 <div className="absolute -bottom-1 -right-1 w-4 h-4 bg-white/20 flex items-center justify-center">
                                     {K8sResourceIcon}
