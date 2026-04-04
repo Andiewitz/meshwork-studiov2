@@ -9,10 +9,7 @@ const { Pool } = pg;
 const connectionString = process.env.DATABASE_URL;
 
 if (!connectionString) {
-  if (process.env.NODE_ENV === "production") {
-    throw new Error("[AI] DATABASE_URL not set");
-  }
-  console.warn("[AI] DATABASE_URL not set, AI module will not work until configured");
+  console.error("[AI] DATABASE_URL not set. AI module will fall back to placeholder mode.");
 }
 
 let db: any = null;

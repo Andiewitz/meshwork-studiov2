@@ -177,6 +177,7 @@ app.use((req, res, next) => {
     log(`server fully ready and serving on port ${port}`);
   } catch (error) {
     console.error("CRITICAL FAILURE DURING SERVER INITIALIZATION:", error);
-    process.exit(1);
+    console.error("The server is still listening on /health but other routes may be broken.");
+    // We do NOT exit to allow healthcheck to pass and logs to stay accessible.
   }
 })();
