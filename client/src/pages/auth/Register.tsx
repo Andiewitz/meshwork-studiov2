@@ -263,26 +263,26 @@ export default function Register() {
               
               <div className="mt-2 space-y-1">
                 <p className="text-xs font-bold uppercase tracking-widest text-muted-foreground mb-2">Password Requirements:</p>
-                <div className="grid grid-cols-1 gap-1">
+                <div className="grid grid-cols-2 gap-x-4 gap-y-1">
                   <div className={`flex items-center text-[10px] ${formData.password.length >= PASSWORD_POLICY.minLength ? "text-green-500" : "text-muted-foreground"}`}>
                     <div className={`w-2 h-2 rounded-full mr-2 ${formData.password.length >= PASSWORD_POLICY.minLength ? "bg-green-500" : "bg-muted/30 border border-muted-foreground/30"}`} />
-                    At least {PASSWORD_POLICY.minLength} characters
+                    {PASSWORD_POLICY.minLength}+ chars
                   </div>
                   <div className={`flex items-center text-[10px] ${/[A-Z]/.test(formData.password) ? "text-green-500" : "text-muted-foreground"}`}>
                     <div className={`w-2 h-2 rounded-full mr-2 ${/[A-Z]/.test(formData.password) ? "bg-green-500" : "bg-muted/30 border border-muted-foreground/30"}`} />
-                    One uppercase letter
+                    Uppercase
                   </div>
                   <div className={`flex items-center text-[10px] ${/[a-z]/.test(formData.password) ? "text-green-500" : "text-muted-foreground"}`}>
                     <div className={`w-2 h-2 rounded-full mr-2 ${/[a-z]/.test(formData.password) ? "bg-green-500" : "bg-muted/30 border border-muted-foreground/30"}`} />
-                    One lowercase letter
+                    Lowercase
                   </div>
                   <div className={`flex items-center text-[10px] ${/\d/.test(formData.password) ? "text-green-500" : "text-muted-foreground"}`}>
                     <div className={`w-2 h-2 rounded-full mr-2 ${/\d/.test(formData.password) ? "bg-green-500" : "bg-muted/30 border border-muted-foreground/30"}`} />
-                    One number
+                    Number
                   </div>
                   <div className={`flex items-center text-[10px] ${/[!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?]/.test(formData.password) ? "text-green-500" : "text-muted-foreground"}`}>
                     <div className={`w-2 h-2 rounded-full mr-2 ${/[!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?]/.test(formData.password) ? "bg-green-500" : "bg-muted/30 border border-muted-foreground/30"}`} />
-                    One special character
+                    Special Char
                   </div>
                 </div>
               </div>

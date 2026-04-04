@@ -1,4 +1,4 @@
-import { pgTable, text, serial, timestamp, integer, jsonb, varchar, index, boolean } from "drizzle-orm/pg-core";
+import { pgTable, text, serial, timestamp, integer, jsonb, varchar, index, boolean, primaryKey } from "drizzle-orm/pg-core";
 import { createInsertSchema } from "drizzle-zod";
 import { z } from "zod";
 import { sql } from "drizzle-orm";
@@ -64,17 +64,20 @@ export const workspaces = pgTable("workspaces", {
 });
 
 export const nodes = pgTable("nodes", {
-  id: text("id").primaryKey(), // React Flow uses string IDs
+  id: text("id").notNull(), // React Flow uses string IDs
   workspaceId: integer("workspace_id").references(() => workspaces.id).notNull(),
   type: text("type"),
   position: jsonb("position").$type<{ x: number, y: number }>().notNull(),
   data: jsonb("data").$type<any>().notNull(),
   parentId: text("parent_id"),
   extent: text("extent"), // 'parent' or undefined
-});
+}, (table) => [
+  primaryKey({ columns: [table.id, table.workspaceId] }),
+  index("IDX_nodes_workspace_id").on(table.workspaceId),
+]);
 
 export const edges = pgTable("edges", {
-  id: text("id").primaryKey(),
+  id: text("id").notNull(),
   workspaceId: integer("workspace_id").references(() => workspaces.id).notNull(),
   source: text("source").notNull(),
   target: text("target").notNull(),
@@ -83,7 +86,10 @@ export const edges = pgTable("edges", {
   type: text("type"),
   data: jsonb("data").$type<any>(),
   animated: integer("animated").default(0), // 0 or 1
-});
+}, (table) => [
+  primaryKey({ columns: [table.id, table.workspaceId] }),
+  index("IDX_edges_workspace_id").on(table.workspaceId),
+]);
 
 // Login attempt tracking for account lockout protection
 export const loginAttempts = pgTable("login_attempts", {

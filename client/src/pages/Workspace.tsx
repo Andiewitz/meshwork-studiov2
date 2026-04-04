@@ -141,6 +141,7 @@ function WorkspaceView() {
 
     const history = useRef<{ nodes: Node[]; edges: Edge[] }[]>([]);
     const redoStack = useRef<{ nodes: Node[]; edges: Edge[] }[]>([]);
+    const lastLoadedId = useRef<number | null>(null);
 
     const takeSnapshot = useCallback(() => {
         history.current.push({ nodes: JSON.parse(JSON.stringify(nodes)), edges: JSON.parse(JSON.stringify(edges)) });
@@ -210,11 +211,12 @@ function WorkspaceView() {
     }, []);
 
     useEffect(() => {
-        if (canvasData) {
+        if (canvasData && lastLoadedId.current !== workspaceId) {
             setNodes(canvasData.nodes || []);
             setEdges(canvasData.edges || []);
+            lastLoadedId.current = workspaceId;
         }
-    }, [canvasData, setNodes, setEdges]);
+    }, [canvasData, workspaceId, setNodes, setEdges]);
 
     useEffect(() => {
         setEdges((eds) =>
@@ -345,7 +347,14 @@ function WorkspaceView() {
             onSuccess: () => {
                 toast({
                     title: "Workspace changes saved",
-                    description: "",
+                    description: "Your architecture has been successfully synchronized.",
+                });
+            },
+            onError: (err: any) => {
+                toast({
+                    title: "Failed to save changes",
+                    description: err.message || "An error occurred while saving. Please try again.",
+                    variant: "destructive",
                 });
             }
         });

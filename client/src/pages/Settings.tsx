@@ -494,7 +494,7 @@ export default function Settings() {
                     </div>
                     <div className={`flex items-center text-[10px] ${/[!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?]/.test(newPassword) ? "text-green-500" : "text-muted-foreground"}`}>
                       <div className={`w-1.5 h-1.5 rounded-full mr-2 ${/[!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?]/.test(newPassword) ? "bg-green-500" : "bg-muted/30 border border-muted-foreground/30"}`} />
-                      Special char
+                      Special Char
                     </div>
                   </div>
                 </div>

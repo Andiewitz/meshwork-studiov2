@@ -7,7 +7,7 @@ import {
     type InsertNode,
     type InsertEdge,
 } from "@shared/schema";
-import { eq, inArray, sql } from "drizzle-orm";
+import { eq, inArray, sql, and } from "drizzle-orm";
 
 export interface ICanvasStorage {
     // Canvas operations
@@ -44,17 +44,27 @@ export class CanvasDatabaseStorage implements ICanvasStorage {
 
             // 3. Delete orphaned entities explicitly
             if (edgesToDelete.length > 0) {
-                await tx.delete(edges).where(inArray(edges.id, edgesToDelete));
+                await tx.delete(edges).where(
+                    and(
+                        eq(edges.workspaceId, workspaceId),
+                        inArray(edges.id, edgesToDelete)
+                    )
+                );
             }
             if (nodesToDelete.length > 0) {
-                await tx.delete(nodes).where(inArray(nodes.id, nodesToDelete));
+                await tx.delete(nodes).where(
+                    and(
+                        eq(nodes.workspaceId, workspaceId),
+                        inArray(nodes.id, nodesToDelete)
+                    )
+                );
             }
 
             // 4. Safely Upsert
             if (newNodes.length > 0) {
                 await tx.insert(nodes).values(newNodes.map(n => ({ ...n, workspaceId })))
                     .onConflictDoUpdate({
-                        target: nodes.id,
+                        target: [nodes.id, nodes.workspaceId],
                         set: {
                             type: sql`EXCLUDED.type`,
                             position: sql`EXCLUDED.position`,
@@ -67,7 +77,7 @@ export class CanvasDatabaseStorage implements ICanvasStorage {
             if (newEdges.length > 0) {
                 await tx.insert(edges).values(newEdges.map(e => ({ ...e, workspaceId })))
                     .onConflictDoUpdate({
-                        target: edges.id,
+                        target: [edges.id, edges.workspaceId],
                         set: {
                             source: sql`EXCLUDED.source`,
                             target: sql`EXCLUDED.target`,
@@ -118,23 +128,22 @@ export class CanvasMemStorage implements ICanvasStorage {
             if (edge.workspaceId === workspaceId) this.edgesMap.delete(id);
         }
         for (const n of newNodes) {
-            this.nodesMap.set(n.id, { ...n, workspaceId } as Node);
+            this.nodesMap.set(`${workspaceId}:${n.id}`, { ...n, workspaceId } as Node);
         }
         for (const e of newEdges) {
-            this.edgesMap.set(e.id, { ...e, workspaceId } as Edge);
+            this.edgesMap.set(`${workspaceId}:${e.id}`, { ...e, workspaceId } as Edge);
         }
     }
 
     async duplicateCanvas(fromWorkspaceId: number, toWorkspaceId: number): Promise<void> {
-        for (const node of Array.from(this.nodesMap.values())) {
-            if (node.workspaceId === fromWorkspaceId) {
-                this.nodesMap.set(node.id, { ...node, workspaceId: toWorkspaceId });
-            }
+        const nodesToDuplicate = Array.from(this.nodesMap.values()).filter(n => n.workspaceId === fromWorkspaceId);
+        const edgesToDuplicate = Array.from(this.edgesMap.values()).filter(e => e.workspaceId === fromWorkspaceId);
+
+        for (const node of nodesToDuplicate) {
+            this.nodesMap.set(`${toWorkspaceId}:${node.id}`, { ...node, workspaceId: toWorkspaceId } as Node);
         }
-        for (const edge of Array.from(this.edgesMap.values())) {
-            if (edge.workspaceId === fromWorkspaceId) {
-                this.edgesMap.set(edge.id, { ...edge, workspaceId: toWorkspaceId });
-            }
+        for (const edge of edgesToDuplicate) {
+            this.edgesMap.set(`${toWorkspaceId}:${edge.id}`, { ...edge, workspaceId: toWorkspaceId } as Edge);
         }
     }
 }
