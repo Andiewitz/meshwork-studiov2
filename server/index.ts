@@ -24,16 +24,30 @@ declare module "http" {
   }
 }
 
-// SECURITY: Add security headers
-// In development, allow inline scripts for Vite HMR and React development
+// SECURITY: Add security headers with CSP for external resources
+const cspConfig = {
+  directives: {
+    ...helmet.contentSecurityPolicy.getDefaultDirectives(),
+    "script-src": ["'self'", "'unsafe-inline'", "https://www.google.com", "https://www.gstatic.com"],
+    "frame-src": ["'self'", "https://www.google.com", "https://recaptcha.google.com"],
+    "connect-src": ["'self'", frontendUrl, "https://www.google.com", "https://www.gstatic.com"],
+    "img-src": ["'self'", "data:", "https://www.gstatic.com"],
+    "style-src": ["'self'", "'unsafe-inline'", "https://fonts.googleapis.com"],
+    "font-src": ["'self'", "https://fonts.gstatic.com", "data:"],
+  },
+};
+
 if (process.env.NODE_ENV === "production") {
-  app.use(helmet());
+  app.use(helmet({
+    contentSecurityPolicy: cspConfig,
+  }));
 } else {
   app.use(helmet({
     contentSecurityPolicy: {
       directives: {
-        scriptSrc: ["'self'", "'unsafe-inline'", "localhost"],
-        connectSrc: ["'self'", "localhost:*", "ws://localhost:*"],
+        ...cspConfig.directives,
+        scriptSrc: ["'self'", "'unsafe-inline'", "localhost", "https://www.google.com", "https://www.gstatic.com"],
+        connectSrc: ["'self'", "localhost:*", "ws://localhost:*", "https://www.google.com", "https://www.gstatic.com"],
       },
     },
   }));
