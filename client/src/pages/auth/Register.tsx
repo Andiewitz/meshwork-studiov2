@@ -155,8 +155,17 @@ export default function Register() {
       <div className="w-full max-w-md relative z-10">
         {/* Logo */}
         <div className="flex items-center justify-center mb-8">
-          <div className="w-12 h-12 border-2 border-foreground flex items-center justify-center bg-card">
-            <Box className="w-6 h-6" />
+          <div className="w-12 h-12 border-2 border-foreground flex items-center justify-center overflow-hidden shrink-0">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32" className="w-full h-full">
+              <rect width="32" height="32" fill="#1A1A1A"/>
+              <rect x="0" y="0" width="32" height="32" fill="none" stroke="#FF3D00" strokeWidth="2.5"/>
+              <line x1="8" y1="8" x2="24" y2="8" stroke="white" strokeWidth="2" strokeLinecap="square"/>
+              <line x1="8" y1="8" x2="16" y2="24" stroke="white" strokeWidth="2" strokeLinecap="square"/>
+              <line x1="24" y1="8" x2="16" y2="24" stroke="white" strokeWidth="2" strokeLinecap="square"/>
+              <rect x="4" y="4" width="8" height="8" fill="#FF3D00"/>
+              <rect x="20" y="4" width="8" height="8" fill="white"/>
+              <rect x="12" y="20" width="8" height="8" fill="white"/>
+            </svg>
           </div>
           <span className="ml-3 text-2xl font-black uppercase tracking-tighter">
             Meshwork Studio
