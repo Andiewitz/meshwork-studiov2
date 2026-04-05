@@ -46,36 +46,37 @@
   /* Brutalist sharp corners */
 }
 
-
 .dark {
-  /* Dark mode also neo-brutalist but inverted */
-  --background: 0 0% 5%;
-  --foreground: 0 0% 100%;
+  /* Dark mode: neo-brutalist, brand-consistent, NOT a flat inversion */
+  --background: 0 0% 7%;          /* #121212 — deep charcoal, not pure black */
+  --foreground: 30 10% 92%;       /* #EBEBEA — warm off-white, easier on eyes */
 
-  --card: 0 0% 10%;
-  --card-foreground: 0 0% 100%;
+  --card: 0 0% 10%;               /* #1A1A1A */
+  --card-foreground: 30 10% 92%;
 
-  --popover: 0 0% 10%;
-  --popover-foreground: 0 0% 100%;
+  --popover: 0 0% 12%;
+  --popover-foreground: 30 10% 92%;
 
-  --primary: 262 83% 65%;
+  /* Keep the brand orange-red — don't swap to purple */
+  --primary: 14 100% 50%;         /* #FF3D00 */
   --primary-foreground: 0 0% 100%;
 
-  --secondary: 0 0% 15%;
-  --secondary-foreground: 0 0% 100%;
+  --secondary: 0 0% 14%;
+  --secondary-foreground: 30 10% 92%;
 
-  --muted: 0 0% 20%;
-  --muted-foreground: 0 0% 70%;
+  --muted: 0 0% 18%;
+  --muted-foreground: 0 0% 55%;
 
-  --accent: 262 83% 65%;
+  --accent: 14 100% 50%;          /* #FF3D00 */
   --accent-foreground: 0 0% 100%;
 
-  --destructive: 0 62% 30%;
+  --destructive: 0 72% 45%;
   --destructive-foreground: 0 0% 100%;
 
-  --border: 0 0% 100%;
-  --input: 0 0% 15%;
-  --ring: 262 83% 65%;
+  /* Warm off-white border — less harsh than pure white */
+  --border: 30 10% 80%;           /* #CECECB */
+  --input: 0 0% 14%;
+  --ring: 14 100% 50%;
 }
 
 @layer base {
@@ -97,21 +98,21 @@
 
 @layer components {
   .neo-border {
-    @apply border-2 border-[#1A1A1A] dark:border-white;
+    @apply border-2 border-[#1A1A1A] dark:border-[#CECECB];
   }
 
   .neo-shadow {
-    @apply shadow-[8px_8px_0px_0px_rgba(26, 26, 26, 1)] dark:shadow-[8px_8px_0px_0px_rgba(255, 255, 255, 1)];
+    @apply shadow-[8px_8px_0px_0px_rgba(26,26,26,1)] dark:shadow-[6px_6px_0px_0px_rgba(255,61,0,0.7)];
     transition: transform 0.3s ease, box-shadow 0.3s ease;
   }
 
   .neo-shadow:hover {
     transform: translate(-4px, -4px);
-    @apply shadow-[12px_12px_0px_0px_rgba(26, 26, 26, 1)] dark:shadow-[12px_12px_0px_0px_rgba(255, 255, 255, 1)];
+    @apply shadow-[12px_12px_0px_0px_rgba(26,26,26,1)] dark:shadow-[10px_10px_0px_0px_rgba(255,61,0,0.7)];
   }
 
   .neo-shadow-lg {
-    @apply shadow-[12px_12px_0px_0px_rgba(26, 26, 26, 1)] dark:shadow-[12px_12px_0px_0px_rgba(255, 255, 255, 1)];
+    @apply shadow-[12px_12px_0px_0px_rgba(26,26,26,1)] dark:shadow-[10px_10px_0px_0px_rgba(255,61,0,0.7)];
   }
 
   .neo-card {
@@ -144,6 +145,10 @@
     pointer-events: none;
     white-space: nowrap;
     user-select: none;
+  }
+
+  .dark .meshwork-bg-text {
+    color: rgba(255, 61, 0, 0.04); /* subtle brand-red tint in dark mode */
   }
 
   .scrollbar-hide::-webkit-scrollbar {
