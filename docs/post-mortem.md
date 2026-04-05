@@ -243,3 +243,65 @@ docker-compose up -d emnesh-backend
 11. **Animations should be invisible** - If users notice the transition, it's too flashy. Subtle fades + small movements beat scale/blur effects.
 
 12. **Express 4 route syntax matters** - `app.use("*")` is invalid; use `app.get(/.*/)` for catch-all SPA routes. Always check server logs when routes fail silently.
+
+13. **Type coercion across stack boundaries silently breaks things** - JavaScript booleans sent to a Postgres `INTEGER` column don't get coerced — they throw a runtime error. Always normalize types at the API boundary.
+
+14. **Dark mode is a design decision, not a CSS filter** - Simple black↔white inversion produces harsh white shadows and loses brand identity. Treat dark mode as a distinct palette: warm off-whites, brand-consistent accent colors, intentional shadow colors.
+
+---
+
+## April 5, 2026 Session
+
+### 11. `animated: false` — Postgres Integer Crash
+
+**The Problem:**
+Saving a canvas diagram in the workspace would occasionally fail with a 500 error. Server logs showed:
+
+```
+invalid input syntax for type integer: "false"
+```
+
+**Root Cause:**
+The `edges` table in PostgreSQL stores the `animated` property as `INTEGER` (0 or 1). React Flow sets `edge.animated` as a JavaScript boolean (`true` / `false`). When edges were synced to the API, the boolean was serialized as the string `"false"`, which Postgres immediately rejected for an integer column.
+
+The mismatch had always existed in the schema but wasn't triggered until animated edges (set during "simulate" mode) were synced to the database.
+
+**The Fix:**
+Normalize `edge.animated` to an integer before the API request in `use-canvas.ts`:
+
+```typescript
+const normalizedEdges = edges.map(edge => ({
+    ...edge,
+    animated: edge.animated ? 1 : 0
+}));
+const res = await apiRequest("POST", url, { nodes, edges: normalizedEdges });
+```
+
+**Files Changed:** `client/src/hooks/use-canvas.ts`
+
+---
+
+### 12. Dark Mode Inversion — Brand Identity & Visual Quality
+
+**The Problem:**
+Dark mode looked visually cheap. Specific issues:
+- Primary accent color switched from `#FF3D00` (brand orange-red) to a random purple (`#8B5CF6`) — no design reason
+- Neo-brutalist box shadows used pure white (`rgba(255, 255, 255, 1)`) which looked fluorescent and harsh
+- All borders were pure white, further increasing the harsh contrast
+
+**Root Cause:**
+The `.dark` CSS class block in `index.css` had been written as a simple inversion: swap all black values to white and pick an arbitrary purple for the primary. This is the "lazy" approach that doesn't consider the aesthetics of the light-on-dark rendering.
+
+**The Fix:**
+Redesigned dark mode as a distinct palette:
+
+| Property | Before | After |
+|----------|--------|-------|
+| Primary | Purple `262 83% 65%` | Brand red `#FF3D00` (unchanged from light) |
+| Background | Pure black `#0D0D0D` | Deep charcoal `#121212` |
+| Foreground | Pure white | Warm off-white `#EBEBEA` |
+| Borders | Pure white | Warm off-white `#CECECB` |
+| Shadows | White `rgba(255,255,255,1)` | Brand red `rgba(255,61,0,0.7)` |
+
+**Files Changed:** `client/src/index.css`
+

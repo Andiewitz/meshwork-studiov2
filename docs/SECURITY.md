@@ -114,6 +114,51 @@ State-changing requests (POST, PUT, DELETE) require a valid CSRF token in the `X
 
 **Protected endpoints:** 15 routes across auth, workspace, and canvas modules.
 
+### `secureFetch` — Client-Side CSRF Automation
+
+**File:** `client/src/lib/secure-fetch.ts`
+
+All state-changing fetch calls in the app go through `secureFetch` instead of the native `fetch`. It's a drop-in replacement with one extra behaviour: it automatically injects the CSRF token header.
+
+```typescript
+// Usage is identical to fetch()
+const res = await secureFetch('/api/workspaces', {
+  method: 'POST',
+  body: JSON.stringify(data),
+});
+```
+
+**How it works:**
+
+```
+secureFetch called with POST/PUT/DELETE
+        │
+        ▼
+Read CSRF token from sessionStorage["csrfToken"]
+        │
+        ▼
+Inject X-CSRF-Token header into the request
+        │
+        ▼
+Forward to native fetch() — response returned as-is
+```
+
+**Why `sessionStorage`, not `localStorage`?**
+
+The CSRF token is intentionally tab-scoped. `sessionStorage` is cleared when the browser tab closes. This means:
+- A tab opened from a phishing link cannot read another tab's CSRF token
+- Closing and reopening a tab forces a fresh token fetch (from `/api/csrf-token`)
+- Multiple open tabs each have their own independent CSRF token
+
+**Token lifecycle:**
+
+| Event | Effect |
+|-------|--------|
+| App loads / user logs in | `use-csrf-token.ts` fetches token from `/api/csrf-token`, calls `storeCsrfToken()` |
+| State-changing request | `secureFetch` reads from sessionStorage and injects header |
+| User logs out | `clearCsrfToken()` removes token from sessionStorage |
+| Tab closed | sessionStorage cleared automatically by browser |
+
 ---
 
 ## Brute-Force Protection

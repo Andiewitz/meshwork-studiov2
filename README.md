@@ -135,7 +135,7 @@ npm run dev              # Start the dev server (API + frontend)
 npm run check            # TypeScript type checking (must pass with 0 errors)
 
 # Testing
-npm run test:run         # Run all 64 tests (~2 seconds)
+npm run test:run         # Run all tests
 npm run test:coverage    # Generate HTML coverage report
 npm run test:lockout     # Run auth lockout tests specifically
 
@@ -144,7 +144,9 @@ npm run build            # Bundle client + server
 npm run start            # Start production server
 
 # Database
-npm run db:push          # Push schema changes to PostgreSQL
+npm run db:generate      # Generate new migration files from schema changes
+npm run db:migrate       # Apply pending migrations to the database
+npm run db:push          # Push schema changes directly (dev shortcut, no migration files)
 
 # Docker
 docker-compose up -d     # Start full stack
@@ -162,11 +164,15 @@ Every major system has its own deep-dive guide:
 |----------|-------------------|
 | **[Security Architecture](./docs/SECURITY.md)** | Auth flows, IDOR protection, brute-force lockouts, AES-256 encryption, CSRF, rate limiting, PII redaction |
 | **[Canvas Engine](./docs/ENGINE.md)** | How drag-and-drop works, spatial containment logic, the Postgres upsert sync strategy |
+| **[Canvas Persistence](./docs/PERSISTENCE.md)** | The offline-first localStorage cache layer, debounced auto-save, and edge normalization fix |
+| **[Workspace & Collections API](./docs/WORKSPACES.md)** | Full REST API reference for workspaces and collections, IDOR pattern, client hooks |
 | **[AI Engine Guide](./docs/AI_ENGINE.md)** | Bring-your-own-key AI integration, encryption flow, and API endpoints |
+| **[Theming & Design System](./docs/THEMING.md)** | Dark/light/system modes, neo-brutalist CSS utilities, brand identity |
 | **[Testing Strategy](./docs/TESTING.md)** | The testing pyramid, how to run tests, how to write new ones |
 | **[Vercel + Railway Deployment](./docs/DEPLOYMENT.md)** | How to connect your frontend and backend across domains with SSL, CORS, and secure cookies |
 | **[NGINX Architecture](./docs/NGINX_ARCHITECTURE.md)** | Why NGINX sits in front of Express, SPA routing, caching |
 | **[Settings & Privacy](./docs/SETTINGS.md)** | User profile management, account deletion, data export |
+| **[Database Backup & Restore](./docs/BACKUP.md)** | How to back up both Postgres databases and restore from a dump |
 | **[Security Audit Report](./docs/AUDIT_REPORT.md)** | The original security audit and critical fixes implemented during hardening |
 | **[Post-Mortem Log](./docs/post-mortem.md)** | Every production bug we've found and fixed, with root cause analysis |
 

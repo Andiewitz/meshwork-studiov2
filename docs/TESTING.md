@@ -111,6 +111,39 @@ These tests verify the spatial logic that determines whether a dragged node land
 | *Should calculate global position* | Converting from local `(50, 50)` inside a parent at `(200, 200)` correctly returns global `(250, 250)` |
 | *Should return undefined with no parent* | Nodes without parents have no global position to calculate |
 
+### Canvas Local Cache
+
+**File:** `tests/unit/workspace/canvas-cache.test.ts`
+
+These tests verify the localStorage persistence layer that acts as an offline-first fail-safe for unsaved canvas changes.
+
+| Test | What It Proves |
+|------|---------------|
+| *Should save canvas data with a timestamp* | `saveCanvasToLocalCache` writes nodes, edges, and a Unix timestamp to localStorage |
+| *Should retrieve correctly parsed canvas data* | `getCanvasFromLocalCache` reads and correctly parses stored JSON |
+| *Should return null if no cache exists* | Returns `null` for an unknown workspace ID — no exception thrown |
+| *Should clear only the specific workspace cache* | `clearCanvasLocalCache(42)` removes workspace 42 but leaves workspace 99 intact |
+| *Should handle corrupt JSON gracefully* | Returns `null` and fires `console.warn` instead of crashing the app |
+
+**Note on environment:** Vitest runs in a Node environment where `localStorage` doesn't exist. These tests use `vi.stubGlobal` to mock it:
+
+```typescript
+let mockStorage: Record<string, string> = {};
+
+beforeEach(() => {
+    mockStorage = {};
+    vi.stubGlobal('localStorage', {
+        getItem: vi.fn((key) => mockStorage[key] || null),
+        setItem: vi.fn((key, value) => { mockStorage[key] = value; }),
+        removeItem: vi.fn((key) => { delete mockStorage[key]; }),
+        clear: vi.fn(() => { mockStorage = {}; })
+    });
+    vi.clearAllMocks();
+});
+```
+
+Use this same pattern in any future test that interacts with browser storage APIs.
+
 ### Auth Lockout Logic
 
 **File:** `tests/unit/auth/lockout.test.ts`

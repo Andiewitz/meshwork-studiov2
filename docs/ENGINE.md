@@ -7,8 +7,10 @@
 1. [The Big Picture](#the-big-picture)
 2. [Node System](#node-system)
 3. [Spatial Containment](#spatial-containment)
-4. [Database Sync Strategy](#database-sync-strategy)
-5. [Data Flow](#data-flow)
+4. [Canvas Persistence](#canvas-persistence)
+5. [Database Sync Strategy](#database-sync-strategy)
+6. [Canvas Templates](#canvas-templates)
+7. [Data Flow](#data-flow)
 
 ---
 
@@ -16,7 +18,7 @@
 
 The canvas is the heart of Meshwork Studio. It's where users visually design system architectures by dragging infrastructure components (servers, databases, VPCs, Kubernetes pods) onto an infinite 2D workspace and connecting them with edges.
 
-Under the hood, this is powered by three layers working together:
+Under the hood, this is powered by **four layers** working together:
 
 ```
 ┌──────────────────────────────────────────────────────────────┐
@@ -26,7 +28,10 @@ Under the hood, this is powered by three layers working together:
 │  CONTAINMENT ENGINE (Spatial Logic)                           │
 │  Determines parent-child nesting (e.g. EC2 inside a VPC)     │
 ├──────────────────────────────────────────────────────────────┤
-│  UPSERT SYNC (Persistence Layer)                              │
+│  LOCAL CACHE (Fail-safe Persistence)                          │
+│  Instantly saves every change to localStorage — zero network  │
+├──────────────────────────────────────────────────────────────┤
+│  UPSERT SYNC (Long-term Persistence)                          │
 │  Efficiently saves only what changed to PostgreSQL            │
 └──────────────────────────────────────────────────────────────┘
 ```
@@ -130,6 +135,64 @@ globalY = localPosition.y + parent.position.y
 
 ---
 
+## Canvas Persistence
+
+Before data reaches the database, it passes through a **local cache layer** that provides instant, network-free persistence on every change.
+
+### Local Cache
+
+Every change to nodes or edges is immediately written to `localStorage` using the key:
+```
+meshwork-canvas-cache-{workspaceId}
+```
+
+The cache stores:
+```typescript
+interface CanvasCache {
+    nodes: Node[];
+    edges: Edge[];
+    timestamp: number;  // Unix ms
+}
+```
+
+### Why This Matters
+
+| Scenario | Without Cache | With Cache |
+|----------|--------------|------------|
+| Refresh before auto-save | ❌ Work lost | ✅ Restored from localStorage |
+| Network drops mid-session | ❌ Sync fails silently | ✅ Cache persists, retries on next change |
+| Browser crash | ❌ Work lost | ✅ Restored on next open |
+
+### Auto-Save (Debounced)
+
+A 3-second debounce is applied to the database sync — only the final resting state is sent, not every intermediate drag frame:
+
+```
+[change] → localStorage updated immediately
+         → 3s debounce resets
+         → [3 seconds of no activity]
+         → POST /api/workspaces/:id/sync-canvas
+         → On success: localStorage cache cleared
+         → On failure: cache kept, retries next change
+```
+
+### Edge Type Normalization
+
+PostgreSQL stores `edge.animated` as `INTEGER` (0 or 1). React Flow uses JavaScript booleans. Before every sync, edges are normalized in `use-canvas.ts`:
+
+```typescript
+const normalizedEdges = edges.map(edge => ({
+    ...edge,
+    animated: edge.animated ? 1 : 0
+}));
+```
+
+React Flow state still uses booleans internally — the normalization only happens at the API boundary.
+
+> For a full deep-dive, see **[docs/PERSISTENCE.md](./PERSISTENCE.md)**.
+
+---
+
 ## Database Sync Strategy
 
 This is where things get interesting. Every time a user moves a node, the entire canvas state needs to be saved. The naive approach would destroy performance. Here's what we built instead.
@@ -197,6 +260,23 @@ The implementation lives in `server/modules/canvas/storage.ts` in the `CanvasDat
 
 ---
 
+## Canvas Templates
+
+Meshwork Studio ships with 4 pre-built architecture templates that populate a new workspace with a realistic, pre-wired diagram.
+
+**File:** `client/src/features/workspace/utils/templates.ts`
+
+| Template | Description |
+|----------|-------------|
+| `ecommerce` | Standard e-commerce stack: CDN, load balancer, app servers, database cluster, cache |
+| `ai-platform` | AI/ML platform: model servers, vector database, API gateway, training pipeline |
+| `enterprise-k8s` | Kubernetes-based microservices: namespaces, deployments, services, ingress |
+| `fintech-saas` | Financial SaaS: multi-region setup with compliance zones, audit logging, encryption |
+
+Each template is a function that returns a `{ nodes, edges }` object with pre-positioned, pre-connected components. Templates use the same node types from `nodeTypes.ts` and are loaded directly into the React Flow state when a user selects one from the workspace new-diagram dialog.
+
+---
+
 ## Data Flow
 
 Here's the complete journey of a node being dragged on the canvas:
@@ -242,7 +322,9 @@ User drags node ──► React Flow fires onNodeDragStop
 | `client/src/features/workspace/utils/containment.ts` | Spatial containment math |
 | `client/src/features/workspace/utils/dimensions.ts` | Node size definitions (60+ types) |
 | `client/src/features/workspace/utils/nodeTypes.ts` | Node component registry |
-| `client/src/hooks/use-canvas.ts` | React Query hook for canvas CRUD |
+| `client/src/features/workspace/utils/templates.ts` | 4 built-in architecture templates |
+| `client/src/lib/canvas-cache.ts` | localStorage persistence utilities |
+| `client/src/hooks/use-canvas.ts` | React Query hook + debounced sync + normalization |
 | `server/modules/canvas/storage.ts` | Upsert sync + database operations |
 | `server/modules/canvas/routes.ts` | Canvas API endpoints |
 | `shared/schema.ts` | Drizzle ORM schema (nodes & edges tables) |
