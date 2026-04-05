@@ -1,0 +1,32 @@
+// Type imports removed to avoid Vitest Node environment plugin issues
+
+export const CANVAS_CACHE_PREFIX = "meshwork-canvas-cache-";
+
+export interface CanvasCache {
+    nodes: any[];
+    edges: any[];
+    timestamp: number;
+}
+
+export function saveCanvasToLocalCache(workspaceId: number, nodes: any[], edges: any[]) {
+    try {
+        const cache: CanvasCache = { nodes, edges, timestamp: Date.now() };
+        localStorage.setItem(`${CANVAS_CACHE_PREFIX}${workspaceId}`, JSON.stringify(cache));
+    } catch (e) {
+        console.warn("Failed to save canvas to local cache", e);
+    }
+}
+
+export function getCanvasFromLocalCache(workspaceId: number): CanvasCache | null {
+    try {
+        const item = localStorage.getItem(`${CANVAS_CACHE_PREFIX}${workspaceId}`);
+        return item ? JSON.parse(item) : null;
+    } catch (e) {
+        console.warn("Failed to read canvas from local cache", e);
+        return null;
+    }
+}
+
+export function clearCanvasLocalCache(workspaceId: number) {
+    localStorage.removeItem(`${CANVAS_CACHE_PREFIX}${workspaceId}`);
+}

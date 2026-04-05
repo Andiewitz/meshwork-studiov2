@@ -22,7 +22,7 @@ import {
 } from '@xyflow/react';
 
 import '@xyflow/react/dist/style.css';
-import { useCanvas } from '@/hooks/use-canvas';
+import { useCanvas, saveCanvasToLocalCache, getCanvasFromLocalCache } from '@/hooks/use-canvas';
 import { useWorkspace, useDeleteWorkspace } from '@/hooks/use-workspaces';
 import { useParams, Link, useLocation } from 'wouter';
 import {
@@ -82,7 +82,10 @@ import {
     Spline,
     ArrowUpRight,
     Milestone,
-    ArrowRight
+    ArrowRight,
+    CheckCircle2,
+    CloudUpload,
+    AlertCircle
 } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { useAuth } from '@/hooks/use-auth';
@@ -142,6 +145,11 @@ function WorkspaceView() {
     const history = useRef<{ nodes: Node[]; edges: Edge[] }[]>([]);
     const redoStack = useRef<{ nodes: Node[]; edges: Edge[] }[]>([]);
     const lastLoadedId = useRef<number | null>(null);
+
+    type SaveStatus = 'saved' | 'saving' | 'unsaved' | 'offline_saved';
+    const [saveStatus, setSaveStatus] = useState<SaveStatus>('saved');
+    const saveTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+    const isInitialLoad = useRef(true);
 
     const takeSnapshot = useCallback(() => {
         history.current.push({ nodes: JSON.parse(JSON.stringify(nodes)), edges: JSON.parse(JSON.stringify(edges)) });
@@ -212,11 +220,59 @@ function WorkspaceView() {
 
     useEffect(() => {
         if (canvasData && lastLoadedId.current !== workspaceId) {
-            setNodes(canvasData.nodes || []);
-            setEdges(canvasData.edges || []);
+            const localCache = getCanvasFromLocalCache(workspaceId);
+            
+            if (localCache && localCache.nodes && localCache.edges) {
+                setNodes(localCache.nodes);
+                setEdges(localCache.edges);
+                setSaveStatus('offline_saved');
+                toast({
+                    title: "Restored Unsaved Changes",
+                    description: "We found unsaved changes locally and restored them. They will sync automatically soon."
+                });
+            } else {
+                setNodes(canvasData.nodes || []);
+                setEdges(canvasData.edges || []);
+            }
             lastLoadedId.current = workspaceId;
+            
+            setTimeout(() => {
+                isInitialLoad.current = false;
+            }, 500);
         }
-    }, [canvasData, workspaceId, setNodes, setEdges]);
+    }, [canvasData, workspaceId, setNodes, setEdges, toast]);
+
+    useEffect(() => {
+        if (isInitialLoad.current) return;
+        
+        saveCanvasToLocalCache(workspaceId, nodes, edges);
+        setSaveStatus('unsaved');
+
+        if (saveTimeoutRef.current) {
+            clearTimeout(saveTimeoutRef.current);
+        }
+
+        saveTimeoutRef.current = setTimeout(() => {
+            setSaveStatus('saving');
+            sync({ nodes, edges }, {
+                onSuccess: () => {
+                    setSaveStatus('saved');
+                },
+                onError: (err: any) => {
+                    setSaveStatus('offline_saved');
+                    toast({
+                        title: "Offline Save",
+                        description: "Could not reach the server. Changes saved locally.",
+                        variant: "destructive",
+                    });
+                }
+            });
+        }, 3000);
+
+        return () => {
+            if (saveTimeoutRef.current) clearTimeout(saveTimeoutRef.current);
+        };
+    }, [nodes, edges, workspaceId, sync, toast]);
 
     useEffect(() => {
         setEdges((eds) =>
@@ -343,14 +399,18 @@ function WorkspaceView() {
     }, [drawingMode, screenToFlowPosition, addNode]);
 
     const handleSave = () => {
+        if (saveTimeoutRef.current) clearTimeout(saveTimeoutRef.current);
+        setSaveStatus('saving');
         sync({ nodes, edges }, {
             onSuccess: () => {
+                setSaveStatus('saved');
                 toast({
                     title: "Workspace changes saved",
                     description: "Your architecture has been successfully synchronized.",
                 });
             },
             onError: (err: any) => {
+                setSaveStatus('offline_saved');
                 toast({
                     title: "Failed to save changes",
                     description: err.message || "An error occurred while saving. Please try again.",
@@ -593,9 +653,28 @@ function WorkspaceView() {
                 </div>
 
                 <div className="flex items-center gap-3">
-                    <button onClick={handleSave} disabled={isSyncing} className="flex items-center justify-center w-8 h-8 rounded-md border transition-all border-white/10 hover:bg-white/5 hover:border-[#FF5A36]/50 text-white/80 hover:text-[#FF5A36]" title="Save Project (Ctrl+S)">
-                        {isSyncing ? <Loader2 className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />}
-                    </button>
+                    <div className="flex items-center justify-center mr-2">
+                        {saveStatus === 'saved' && (
+                            <span className="flex items-center gap-1.5 text-[10px] text-white/50 tracking-widest uppercase">
+                                <CheckCircle2 className="w-3.5 h-3.5 text-green-500/80" /> Saved
+                            </span>
+                        )}
+                        {saveStatus === 'saving' && (
+                            <span className="flex items-center gap-1.5 text-[10px] text-white/70 tracking-widest uppercase cursor-pointer" title="Auto-saving...">
+                                <CloudUpload className="w-3.5 h-3.5 text-blue-400 animate-pulse" /> Saving...
+                            </span>
+                        )}
+                        {saveStatus === 'unsaved' && (
+                            <span className="flex items-center gap-1.5 text-[10px] text-white/50 tracking-widest uppercase cursor-pointer hover:text-white transition-colors" onClick={handleSave} title="Pending auto-save. Click to force save.">
+                                <Circle className="w-3.5 h-3.5 text-white/30" /> Modified
+                            </span>
+                        )}
+                        {saveStatus === 'offline_saved' && (
+                            <span className="flex items-center gap-1.5 text-[10px] text-yellow-500/80 tracking-widest uppercase cursor-pointer hover:text-yellow-400" onClick={handleSave} title="Saved locally. Failed to reach server. Click to retry.">
+                                <AlertCircle className="w-3.5 h-3.5" /> Offline
+                            </span>
+                        )}
+                    </div>
 
                     <button
                         onClick={() => {

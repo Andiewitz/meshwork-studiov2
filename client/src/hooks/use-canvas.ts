@@ -3,6 +3,9 @@ import { api, buildUrl } from "@shared/routes";
 import { apiRequest } from "../lib/queryClient";
 import type { Node, Edge } from "@xyflow/react";
 
+export * from "../lib/canvas-cache";
+import { clearCanvasLocalCache } from "../lib/canvas-cache";
+
 export function useCanvas(workspaceId: number) {
     const queryClient = useQueryClient();
     const url = buildUrl(api.workspaces.getCanvas.path, { id: workspaceId });
@@ -22,12 +25,14 @@ export function useCanvas(workspaceId: number) {
             return res.json();
         },
         onSuccess: () => {
+            clearCanvasLocalCache(workspaceId);
             queryClient.invalidateQueries({ queryKey: [url] });
         },
     });
 
     return {
         ...query,
+        syncAsync: syncMutation.mutateAsync,
         sync: syncMutation.mutate,
         isSyncing: syncMutation.isPending,
     };
