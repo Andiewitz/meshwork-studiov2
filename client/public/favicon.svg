@@ -1,4 +1,26 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32">
-  <rect width="32" height="32" fill="#1a1a1a" stroke="#1a1a1a" stroke-width="2"/>
-  <text x="16" y="23" font-family="Georgia, serif" font-size="20" font-weight="bold" fill="white" text-anchor="middle">M</text>
+  <defs>
+    <linearGradient id="bg" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#0f0f14"/>
+      <stop offset="100%" style="stop-color:#1a1a2e"/>
+    </linearGradient>
+    <linearGradient id="accent" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#6366f1"/>
+      <stop offset="100%" style="stop-color:#818cf8"/>
+    </linearGradient>
+    <linearGradient id="line" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#6366f1;stop-opacity:0.8"/>
+      <stop offset="100%" style="stop-color:#818cf8;stop-opacity:0.4"/>
+    </linearGradient>
+  </defs>
+  <!-- Background with rounded corners -->
+  <rect width="32" height="32" rx="7" fill="url(#bg)"/>
+  <!-- Connecting lines (edges) -->
+  <line x1="9" y1="9" x2="23" y2="9" stroke="url(#line)" stroke-width="1.5" stroke-linecap="round"/>
+  <line x1="9" y1="9" x2="16" y2="23" stroke="url(#line)" stroke-width="1.5" stroke-linecap="round"/>
+  <line x1="23" y1="9" x2="16" y2="23" stroke="url(#line)" stroke-width="1.5" stroke-linecap="round"/>
+  <!-- Nodes -->
+  <circle cx="9" cy="9" r="3" fill="url(#accent)"/>
+  <circle cx="23" cy="9" r="3" fill="url(#accent)" fill-opacity="0.7"/>
+  <circle cx="16" cy="23" r="3" fill="url(#accent)" fill-opacity="0.85"/>
 </svg>
