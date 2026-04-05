@@ -24,6 +24,9 @@ declare module "http" {
   }
 }
 
+// CORS / CSP need frontendUrl — declare it first
+const frontendUrl = process.env.FRONTEND_URL || (process.env.NODE_ENV === "production" ? "" : "http://localhost:5173");
+
 // SECURITY: Add security headers with CSP for external resources
 const cspConfig = {
   directives: {
@@ -54,7 +57,6 @@ if (process.env.NODE_ENV === "production") {
 }
 
 // CORS configuration (for all environments)
-const frontendUrl = process.env.FRONTEND_URL || (process.env.NODE_ENV === "production" ? "" : "http://localhost:5173");
 if (frontendUrl) {
   app.use(cors({
     origin: frontendUrl,
