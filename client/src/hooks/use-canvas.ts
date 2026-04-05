@@ -21,7 +21,12 @@ export function useCanvas(workspaceId: number) {
 
     const syncMutation = useMutation({
         mutationFn: async ({ nodes, edges }: { nodes: Node[]; edges: Edge[] }) => {
-            const res = await apiRequest("POST", url, { nodes, edges });
+            // Normalize animated property for Postgres compatibility
+            const normalizedEdges = edges.map(edge => ({
+                ...edge,
+                animated: edge.animated ? 1 : 0
+            }));
+            const res = await apiRequest("POST", url, { nodes, edges: normalizedEdges });
             return res.json();
         },
         onSuccess: () => {
