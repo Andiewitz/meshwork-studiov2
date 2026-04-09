@@ -36,7 +36,7 @@ export default function Login() {
         });
         // Set user data directly to avoid loading screen
         queryClient.setQueryData(["/api/auth/me"], data.user);
-        setLocation("/");
+        setLocation("/home");
       } else {
         toast({
           title: "Login failed",

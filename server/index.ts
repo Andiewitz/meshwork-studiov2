@@ -49,8 +49,8 @@ if (process.env.NODE_ENV === "production") {
     contentSecurityPolicy: {
       directives: {
         ...cspConfig.directives,
-        scriptSrc: ["'self'", "'unsafe-inline'", "localhost", "https://www.google.com", "https://www.gstatic.com"],
-        connectSrc: ["'self'", "localhost:*", "ws://localhost:*", "https://www.google.com", "https://www.gstatic.com"],
+        "script-src": ["'self'", "'unsafe-inline'", "localhost", "https://www.google.com", "https://www.gstatic.com"],
+        "connect-src": ["'self'", "localhost:*", "ws://localhost:*", "https://www.google.com", "https://www.gstatic.com"],
       },
     },
   }));

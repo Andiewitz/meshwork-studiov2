@@ -11,12 +11,14 @@ import { AnimatePresence, motion } from "framer-motion";
 import { cn } from "@/lib/utils";
 import NotFound from "@/pages/not-found";
 import Home from "@/pages/Home";
+import Landing from "@/pages/Landing";
 import Login from "@/pages/auth/Login";
 import Register from "@/pages/auth/Register";
 import Settings from "@/pages/Settings";
 import Workspace from "@/pages/Workspace";
 import Dev from "@/pages/Dev";
 import { DashboardLayout } from "@/components/layout/DashboardLayout";
+import { HelmetProvider } from "react-helmet-async";
 
 function ProtectedRoute({ component: Component }: { component: React.ComponentType }) {
   const { user, isLoading, isRedirecting } = useAuth();
@@ -94,6 +96,27 @@ function Router() {
     return <RedirectingScreen />;
   }
 
+  // Public Landing Page Setup
+  if (location === "/") {
+    if (user) {
+      return <Redirect to="/home" />;
+    }
+    return (
+      <AnimatePresence mode="wait" initial={false}>
+        <motion.div
+          key="landing"
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          exit={{ opacity: 0 }}
+          transition={{ duration: 0.4 }}
+          className="min-h-screen"
+        >
+          <Landing />
+        </motion.div>
+      </AnimatePresence>
+    );
+  }
+
   // Workspace routes - scale animation from card
   if (location.startsWith("/workspace/")) {
     return (
@@ -132,7 +155,7 @@ function Router() {
           transition={{ duration: 0.25, ease: "easeOut" }}
         >
           <Switch location={location}>
-            <Route path="/">
+            <Route path="/home">
               <ProtectedRoute component={Home} />
             </Route>
             <Route path="/workspaces">
@@ -159,16 +182,18 @@ function App() {
   useCsrfTokenInitializer();
 
   return (
-    <QueryClientProvider client={queryClient}>
-      <ThemeProvider>
-        <WouterRouter>
-          <TooltipProvider>
-            <Toaster />
-            <Router />
-          </TooltipProvider>
-        </WouterRouter>
-      </ThemeProvider>
-    </QueryClientProvider>
+    <HelmetProvider>
+      <QueryClientProvider client={queryClient}>
+        <ThemeProvider>
+          <WouterRouter>
+            <TooltipProvider>
+              <Toaster />
+              <Router />
+            </TooltipProvider>
+          </WouterRouter>
+        </ThemeProvider>
+      </QueryClientProvider>
+    </HelmetProvider>
   );
 }
 

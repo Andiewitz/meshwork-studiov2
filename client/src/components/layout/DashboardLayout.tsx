@@ -52,7 +52,7 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
 
   // Navigation items
   const navItems = [
-    { icon: LayoutDashboard, label: "Home", href: "/" },
+    { icon: LayoutDashboard, label: "Home", href: "/home" },
     { icon: FolderOpen, label: "Workspaces", href: "/workspaces" },
     { icon: FileText, label: "Dev Logs", href: "/dev" },
     { icon: Settings, label: "Settings", href: "/settings" },
