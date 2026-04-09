@@ -125,51 +125,178 @@ export default function Landing() {
           </motion.div>
         </main>
 
-        {/* Features Section */}
-        <section id="features" className="w-full bg-foreground text-background py-24 relative z-10 border-t-2 border-foreground">
+        {/* Visual Showcase (Fake UI Window) */}
+        <section className="w-full bg-primary border-t-2 border-b-2 border-foreground py-20 px-4 relative z-10">
+          <div className="max-w-5xl mx-auto">
+             <div className="w-full bg-background border-4 border-foreground neo-shadow-lg aspect-[16/9] flex flex-col overflow-hidden">
+               {/* Window Header */}
+               <div className="h-12 border-b-4 border-foreground bg-card flex items-center px-4 gap-2 shrink-0">
+                  <div className="w-4 h-4 rounded-full border-2 border-foreground bg-primary"></div>
+                  <div className="w-4 h-4 rounded-full border-2 border-foreground bg-yellow-400"></div>
+                  <div className="w-4 h-4 rounded-full border-2 border-foreground bg-green-500"></div>
+               </div>
+               {/* Window Body (Fake Canvas) */}
+               <div className="flex-1 relative overflow-hidden bg-[radial-gradient(#1A1A1A_1px,transparent_1px)] [background-size:24px_24px] dark:bg-[radial-gradient(#CECECB_1px,transparent_1px)] opacity-90">
+                  <motion.div 
+                    initial={{ x: 50, y: 50, opacity: 0 }}
+                    whileInView={{ x: '10%', y: '15%', opacity: 1 }}
+                    transition={{ duration: 0.6, type: "spring", bounce: 0.4 }}
+                    viewport={{ once: true }}
+                    className="absolute bg-card border-4 border-foreground p-3 md:p-4 neo-shadow flex items-center gap-4 z-10"
+                  >
+                     <div className="w-10 h-10 md:w-12 md:h-12 bg-primary/20 flex items-center justify-center border-2 border-primary">
+                       <Cloud className="text-primary w-5 h-5 md:w-6 md:h-6" />
+                     </div>
+                     <div>
+                       <div className="font-bold uppercase tracking-tight text-sm md:text-base">API Gateway</div>
+                       <div className="text-[10px] md:text-xs font-mono text-muted-foreground w-full truncate">k8s-ingress-01</div>
+                     </div>
+                  </motion.div>
+
+                  {/* Connecting Line (Fake) */}
+                  <svg className="absolute w-full h-full inset-0 pointer-events-none" style={{ zIndex: 0 }}>
+                     <motion.path 
+                       initial={{ pathLength: 0 }}
+                       whileInView={{ pathLength: 1 }}
+                       transition={{ duration: 1.5, delay: 0.4, ease: "easeOut" }}
+                       viewport={{ once: true }}
+                       d="M 150 120 C 300 120, 300 280, 450 280" 
+                       fill="none" 
+                       stroke="currentColor" 
+                       strokeWidth="4" 
+                       strokeDasharray="8 8"
+                       className="text-foreground"
+                     />
+                  </svg>
+
+                  <motion.div 
+                    initial={{ x: 50, y: 200, opacity: 0 }}
+                    whileInView={{ x: '45%', y: '50%', opacity: 1 }}
+                    transition={{ duration: 0.6, delay: 0.2, type: "spring", bounce: 0.4 }}
+                    viewport={{ once: true }}
+                    className="absolute bg-card border-4 border-foreground p-3 md:p-4 neo-shadow flex items-center gap-4 z-10"
+                  >
+                     <div className="w-10 h-10 md:w-12 md:h-12 bg-blue-500/20 flex items-center justify-center border-2 border-blue-500">
+                       <HardDrive className="text-blue-500 w-5 h-5 md:w-6 md:h-6" />
+                     </div>
+                     <div>
+                       <div className="font-bold uppercase tracking-tight text-sm md:text-base">Postgres DB</div>
+                       <div className="text-[10px] md:text-xs font-mono text-muted-foreground w-full truncate">db-main-cluster</div>
+                     </div>
+                  </motion.div>
+
+                  {/* Settings Panel mockup */}
+                  <motion.div 
+                    initial={{ x: '100%', opacity: 0 }}
+                    whileInView={{ x: 0, opacity: 1 }}
+                    transition={{ duration: 0.5, delay: 0.6 }}
+                    viewport={{ once: true }}
+                    className="hidden md:flex absolute top-0 bottom-0 right-0 w-64 bg-card border-l-4 border-foreground p-6 flex-col gap-6"
+                  >
+                     <div className="h-4 w-1/2 bg-foreground/20"></div>
+                     <div className="h-10 w-full border-2 border-foreground bg-background"></div>
+                     <div className="h-10 w-full border-2 border-foreground bg-background"></div>
+                     <div className="h-10 w-full border-2 border-foreground bg-background"></div>
+                     <div className="h-32 w-full border-2 border-primary bg-primary/5 mt-auto"></div>
+                  </motion.div>
+               </div>
+             </div>
+          </div>
+        </section>
+
+        {/* Features Section (Bigger, Bolder) */}
+        <section id="features" className="w-full bg-background py-32 relative z-10">
            <div className="max-w-6xl mx-auto px-6">
-             <h2 className="text-4xl md:text-5xl font-black uppercase tracking-tighter mb-16 text-center">
-               Why Meshwork?
-             </h2>
+             <div className="flex flex-col items-center text-center mb-20">
+               <div className="inline-block border-2 border-foreground bg-primary/10 px-4 py-1 font-bold text-primary text-sm uppercase tracking-widest mb-6">
+                 Core Architecture
+               </div>
+               <h2 className="text-5xl md:text-7xl font-black uppercase tracking-tighter max-w-4xl leading-none">
+                 Built <span className="text-primary">different</span> from the ground up.
+               </h2>
+             </div>
              
-             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 text-foreground">
-                <FeatureCard 
-                  icon={<HardDrive className="w-8 h-8"/>}
-                  title="Offline-First"
-                  description="Changes save instantly to localStorage. Never lose your diagrams to network drops."
+             <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 md:gap-12">
+                <FeatureBlock 
+                  number="01"
+                  icon={<HardDrive className="w-10 h-10 md:w-12 md:h-12"/>}
+                  title="Local-First By Default"
+                  description="Your entire canvas state saves instantly to browser local storage. Never lose your hard work to a sudden network drop or server timeout."
                 />
-                <FeatureCard 
-                  icon={<Cloud className="w-8 h-8"/>}
-                  title="Auto-Sync"
-                  description="Debounced Postgres syncing ensures your cloud diagrams are always safely backed up."
+                <FeatureBlock 
+                  number="02"
+                  icon={<Cloud className="w-10 h-10 md:w-12 md:h-12"/>}
+                  title="Debounced Cloud Sync"
+                  description="When you are online, changes are smoothly synced to a Postgres backend via a debounced queue. Your diagrams are securely persisted without flooding the API."
                 />
-                <FeatureCard 
-                  icon={<Workflow className="w-8 h-8"/>}
-                  title="Smart Routing"
-                  description="Edges automatically find the cleanest paths. Layout auto-arranges complex meshes."
+                <FeatureBlock 
+                  number="03"
+                  icon={<FileCode2 className="w-10 h-10 md:w-12 md:h-12"/>}
+                  title="Infrastructure Templates"
+                  description="Don't start from scratch. Boot up complex pre-built setups like E-Commerce Microservices, AI Pipelines, or K8s clusters in a single click."
                 />
-                <FeatureCard 
-                  icon={<FileCode2 className="w-8 h-8"/>}
-                  title="Pre-built Templates"
-                  description="Start with standard E-commerce, AI, Fintech, or K8s architectures out of the box."
+                <FeatureBlock 
+                  number="04"
+                  icon={<Workflow className="w-10 h-10 md:w-12 md:h-12"/>}
+                  title="Smart Orthogonal Routing"
+                  description="Edges automatically find the cleanest, most readable paths between nodes. Our layout engine auto-arranges complex meshes for maximum clarity."
                 />
              </div>
            </div>
         </section>
 
+        {/* Final CTA */}
+        <section className="w-full bg-card py-32 border-t-4 border-b-4 border-foreground relative z-10 flex flex-col items-center justify-center text-center px-6">
+           <h2 className="text-6xl md:text-8xl lg:text-9xl font-black uppercase tracking-tighter mb-4">
+             Stop Drawing.
+           </h2>
+           <h2 className="text-6xl md:text-8xl lg:text-9xl font-black uppercase tracking-tighter text-primary mb-12">
+             Start Building.
+           </h2>
+           <Link href="/auth/register">
+             <button className="accent-btn py-5 px-10 text-xl md:text-2xl w-full sm:w-auto neo-shadow-lg hover:translate-x-[4px] hover:translate-y-[4px]">
+               Get Meshwork Studio Free
+             </button>
+           </Link>
+           <p className="mt-8 font-mono text-xs md:text-sm text-muted-foreground uppercase tracking-widest">
+             No credit card required • Instant access
+           </p>
+        </section>
+
         {/* Footer */}
-        <footer className="w-full border-t-2 border-foreground bg-card py-12 px-6 relative z-10">
-          <div className="max-w-6xl mx-auto flex flex-col md:flex-row justify-between items-center gap-6">
-             <div className="flex items-center gap-2">
-                 <div className="w-8 h-8 border-2 border-foreground flex items-center justify-center">
-                   <div className="w-4 h-4 bg-primary rounded-none"></div>
+        <footer className="w-full bg-foreground text-background py-16 px-6 relative z-10 overflow-hidden">
+          <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 text-[30vw] font-black tracking-tighter opacity-[0.02] text-background pointer-events-none select-none uppercase whitespace-nowrap">
+            V 1.0
+          </div>
+          <div className="max-w-6xl mx-auto flex flex-col md:flex-row justify-between items-start gap-12 relative z-20">
+             <div className="flex flex-col gap-4">
+                 <div className="flex items-center gap-3">
+                   <div className="w-10 h-10 border-2 border-background flex items-center justify-center">
+                     <div className="w-4 h-4 bg-primary rounded-none"></div>
+                   </div>
+                   <span className="font-black uppercase tracking-tighter text-2xl">Meshwork Studio</span>
                  </div>
-                 <span className="font-black uppercase tracking-tighter text-lg">Meshwork Studio</span>
+                 <p className="text-muted text-sm font-medium max-w-xs mt-2">
+                   The open-source, local-first canvas for visualizing cloud infrastructure.
+                 </p>
              </div>
              
-             <div className="text-sm font-bold uppercase tracking-wider text-muted-foreground">
-               &copy; {new Date().getFullYear()} Meshwork. All rights reserved.
+             <div className="flex gap-16">
+               <div className="flex flex-col gap-4 text-sm font-bold uppercase tracking-widest">
+                 <div className="text-muted mb-2">Product</div>
+                 <Link href="/#features" className="hover:text-primary transition-colors">Features</Link>
+                 <Link href="/auth/login" className="hover:text-primary transition-colors">Sign In</Link>
+               </div>
+               <div className="flex flex-col gap-4 text-sm font-bold uppercase tracking-widest">
+                 <div className="text-muted mb-2">Legal</div>
+                 <span className="hover:text-primary transition-colors cursor-pointer">Privacy</span>
+                 <span className="hover:text-primary transition-colors cursor-pointer">Terms</span>
+               </div>
              </div>
+          </div>
+          <div className="max-w-6xl mx-auto mt-16 pt-8 border-t border-background/20 text-[10px] md:text-xs font-bold uppercase tracking-widest text-muted relative z-20 flex flex-col md:flex-row justify-between gap-4">
+            <span>&copy; {new Date().getFullYear()} Meshwork.</span>
+            <span>All systems nominal. {process.env.NODE_ENV === "production" ? "PROD" : "DEV"}_ENCLAVE</span>
           </div>
         </footer>
       </div>
@@ -177,16 +304,21 @@ export default function Landing() {
   );
 }
 
-function FeatureCard({ title, description, icon }: { title: string; description: string; icon: React.ReactNode }) {
+function FeatureBlock({ title, description, icon, number }: { title: string; description: string; icon: React.ReactNode; number: string }) {
   return (
-    <div className="neo-card flex flex-col items-start gap-4 hover:-translate-y-2 transition-transform duration-300">
-      <div className="p-3 bg-primary/10 text-primary border-2 border-foreground">
+    <div className="relative border-4 border-foreground bg-card p-8 md:p-12 neo-shadow group hover:-translate-y-2 transition-all duration-300 flex flex-col gap-6 overflow-hidden">
+      <div className="absolute top-0 right-0 -mr-4 -mt-4 font-black text-8xl text-foreground/[0.04] dark:text-foreground/[0.08] group-hover:text-primary/10 transition-colors pointer-events-none select-none">
+        {number}
+      </div>
+      <div className="relative z-10 w-16 h-16 md:w-20 md:h-20 bg-foreground text-background flex items-center justify-center border-4 border-foreground group-hover:bg-primary transition-colors">
         {icon}
       </div>
-      <h3 className="text-xl font-black uppercase tracking-tight">{title}</h3>
-      <p className="text-muted-foreground font-medium leading-relaxed">
-        {description}
-      </p>
+      <div className="relative z-10 space-y-4">
+        <h3 className="text-2xl md:text-3xl font-black uppercase tracking-tight leading-none">{title}</h3>
+        <p className="text-muted-foreground font-medium text-base md:text-lg leading-relaxed">
+          {description}
+        </p>
+      </div>
     </div>
   );
 }
