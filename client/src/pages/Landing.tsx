@@ -29,7 +29,7 @@ export default function Landing() {
   return (
     <>
       <Helmet>
-        <title>Meshwork Studio | Neo-Brutalist Cloud Architecture Design</title>
+        <title>Meshwork Studio</title>
         <meta
           name="description"
           content="Design, visualize, and auto-sync your cloud architecture with Meshwork Studio. Fast, local-first, and beautifully brutal."
