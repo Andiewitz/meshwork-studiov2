@@ -102,7 +102,7 @@ function Router() {
       return <Redirect to="/home" />;
     }
     return (
-      <AnimatePresence mode="wait" initial={false}>
+      <AnimatePresence mode="wait">
         <motion.div
           key="landing"
           initial={{ opacity: 0 }}
