@@ -86,7 +86,17 @@ export default function Landing() {
             </defs>
             <rect x="0" y="0" width="100" height="100" fill="url(#waves-landing)" transform="rotate(-15 50 50)" />
           </svg>
-          <div className="meshwork-bg-text font-black select-none pointer-events-none">MESHWORK</div>
+          <motion.div 
+            style={{ x: "-40%", y: "-30%", rotate: "-15deg" }}
+            animate={{ 
+              x: ["-40%", "-35%", "-40%"],
+              y: ["-30%", "-32%", "-30%"]
+            }}
+            transition={{ duration: 15, repeat: Infinity, ease: "easeInOut" }}
+            className="meshwork-bg-text font-black select-none pointer-events-none text-[60vw]"
+          >
+            MESHWORK
+          </motion.div>
         </div>
 
         <MotionConfig reducedMotion="never">
@@ -243,27 +253,48 @@ export default function Landing() {
                     ))}
                   </div>
 
+                  {/* API Gateway — Neon Frame, No Card Background */}
                   <motion.div
                     style={{ left: "10%", top: "18%" }}
                     className="absolute z-10"
-                    animate={{ y: [0, -8, 0] }}
-                    transition={{ duration: 4, repeat: Infinity, ease: "easeInOut" }}
+                    animate={{ y: [0, -12, 0] }}
+                    transition={{ duration: 4.5, repeat: Infinity, ease: "easeInOut" }}
                   >
                     <motion.div
                       drag dragConstraints={{ left: -20, right: 20, top: -20, bottom: 20 }} dragElastic={0.2}
-                      whileHover={{ scale: 1.05, cursor: "grab", boxShadow: "0 20px 40px rgba(0,0,0,0.6)" }} whileTap={{ cursor: "grabbing", scale: 0.95 }}
-                      initial={{ opacity: 0, scale: 0.6, y: 30 }}
-                      whileInView={{ opacity: 1, scale: 1, y: 0 }}
-                      transition={{ duration: 0.7, delay: 0.3, type: "spring", bounce: 0.4 }}
+                      whileHover={{ scale: 1.1, cursor: "grab" }} whileTap={{ cursor: "grabbing" }}
+                      initial={{ opacity: 0, scale: 0.8 }}
+                      whileInView={{ opacity: 1, scale: 1 }}
+                      transition={{ duration: 0.8, delay: 0.3, type: "spring" }}
                       viewport={{ once: true }}
-                      className="bg-[#1a1a1a] border border-white/15 p-2.5 md:p-3 shadow-[0_8px_30px_rgba(0,0,0,0.4)] flex items-center gap-3"
+                      className="px-4 py-3 border-2 border-primary/60 shadow-[0_0_25px_rgba(255,61,0,0.4)] bg-transparent backdrop-blur-sm flex items-center gap-4"
                     >
-                      <div className="w-8 h-8 md:w-10 md:h-10 bg-primary/15 flex items-center justify-center border border-primary/40"><Cloud className="text-primary w-4 h-4 md:w-5 md:h-5" /></div>
+                      <Cloud className="text-primary w-6 h-6 drop-shadow-[0_0_8px_rgba(255,61,0,0.8)]" />
                       <div>
-                        <div className="font-bold uppercase tracking-tight text-[11px] md:text-sm leading-none text-white">API Gateway</div>
-                        <div className="text-[9px] md:text-[10px] font-mono text-white/40 mt-0.5">k8s-ingress-01</div>
+                        <div className="font-black uppercase tracking-widest text-[12px] text-white">API Gateway</div>
+                        <div className="text-[10px] font-mono text-primary/70 font-bold tracking-tight">K8S-INGRESS-01</div>
                       </div>
-                      <motion.div className="w-2 h-2 bg-green-500 ml-1" animate={{ scale: [1, 1.4, 1], opacity: [1, 0.5, 1] }} transition={{ duration: 2, repeat: Infinity }} />
+                    </motion.div>
+                  </motion.div>
+
+                  {/* Postgres — Neon Frame */}
+                  <motion.div
+                    style={{ left: "32%", top: "52%" }}
+                    className="absolute z-10"
+                    animate={{ y: [0, -8, 0] }}
+                    transition={{ duration: 5, repeat: Infinity, ease: "easeInOut", delay: 0.5 }}
+                  >
+                    <motion.div 
+                      drag dragConstraints={{ left: -20, right: 20, top: -20, bottom: 20 }} dragElastic={0.2}
+                      whileHover={{ scale: 1.1, cursor: "grab" }}
+                      initial={{ opacity: 0, scale: 0.8 }} whileInView={{ opacity: 1, scale: 1 }} transition={{ duration: 0.8, delay: 0.6, type: "spring" }} viewport={{ once: true }} 
+                      className="px-4 py-3 border-2 border-blue-500/60 shadow-[0_0_25px_rgba(59,130,246,0.4)] bg-transparent backdrop-blur-sm flex items-center gap-4"
+                    >
+                      <HardDrive className="text-blue-500 w-6 h-6 drop-shadow-[0_0_8px_rgba(59,130,246,0.8)]" />
+                      <div>
+                        <div className="font-black uppercase tracking-widest text-[12px] text-white">Postgres DB</div>
+                        <div className="text-[10px] font-mono text-blue-400/70 font-bold tracking-tight">RDS-PROD-MAIN</div>
+                      </div>
                     </motion.div>
                   </motion.div>
 
@@ -293,23 +324,24 @@ export default function Landing() {
                     </motion.div>
                   </motion.div>
 
-                  {/* Redis — with float and drag */}
+                  {/* Redis — Neon Frame */}
                   <motion.div
-                    style={{ left: "42%", top: "65%" }}
+                    style={{ left: "48%", top: "68%" }}
                     className="absolute z-10"
                     animate={{ y: [0, -10, 0] }}
-                    transition={{ duration: 5, repeat: Infinity, ease: "easeInOut", delay: 1 }}
+                    transition={{ duration: 5.5, repeat: Infinity, ease: "easeInOut", delay: 1 }}
                   >
                     <motion.div 
                       drag dragConstraints={{ left: -20, right: 20, top: -20, bottom: 20 }} dragElastic={0.2}
-                      whileHover={{ scale: 1.05, cursor: "grab", boxShadow: "0 20px 40px rgba(0,0,0,0.6)" }} whileTap={{ cursor: "grabbing", scale: 0.95 }}
-                      initial={{ opacity: 0, scale: 0.6, y: 30 }} whileInView={{ opacity: 1, scale: 1, y: 0 }} transition={{ duration: 0.7, delay: 0.9, type: "spring", bounce: 0.4 }} viewport={{ once: true }} className="bg-[#1a1a1a] border border-white/15 p-2.5 md:p-3 shadow-[0_8px_30px_rgba(0,0,0,0.4)] flex items-center gap-3">
-                      <div className="w-8 h-8 md:w-10 md:h-10 bg-emerald-500/15 flex items-center justify-center border border-emerald-500/40"><Layers className="text-emerald-500 w-4 h-4 md:w-5 md:h-5" /></div>
+                      whileHover={{ scale: 1.1, cursor: "grab" }}
+                      initial={{ opacity: 0, scale: 0.8 }} whileInView={{ opacity: 1, scale: 1 }} transition={{ duration: 0.8, delay: 0.9, type: "spring" }} viewport={{ once: true }} 
+                      className="px-4 py-3 border-2 border-emerald-500/60 shadow-[0_0_25px_rgba(16,185,129,0.4)] bg-transparent backdrop-blur-sm flex items-center gap-4"
+                    >
+                      <Layers className="text-emerald-500 w-6 h-6 drop-shadow-[0_0_8px_rgba(16,185,129,0.8)]" />
                       <div>
-                        <div className="font-bold uppercase tracking-tight text-[11px] md:text-sm leading-none text-white">Redis Cache</div>
-                        <div className="text-[9px] md:text-[10px] font-mono text-white/40 mt-0.5">cache-prod-01</div>
+                        <div className="font-black uppercase tracking-widest text-[12px] text-white">Redis Cache</div>
+                        <div className="text-[10px] font-mono text-emerald-400/70 font-bold tracking-tight">CACHE-PRIMARY-01</div>
                       </div>
-                      <motion.div className="w-2 h-2 bg-yellow-400 ml-1" animate={{ scale: [1, 1.4, 1], opacity: [1, 0.5, 1] }} transition={{ duration: 2, repeat: Infinity, delay: 0.6 }} />
                     </motion.div>
                   </motion.div>
 
@@ -567,64 +599,70 @@ export default function Landing() {
           </div>
         </section>
 
-        {/* ═══ HOW IT WORKS — Timeline ═══ */}
-        <section id="how-it-works" className="w-full py-24 md:py-32 px-6 relative z-10">
-          <div className="max-w-5xl mx-auto">
-            <motion.div
-              initial={{ opacity: 0, y: 50 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              transition={{ duration: 1.0, ease: [0.25, 0.1, 0.25, 1] }}
-              viewport={{ once: true, amount: 0.1 }}
-              className="text-center mb-20 md:mb-28"
-            >
-              <span className="inline-block border border-white/15 bg-white/5 px-4 py-1 font-mono text-[11px] uppercase tracking-widest text-white/50 mb-6">
-                Workflow
-              </span>
-              <h2 className="text-5xl md:text-7xl font-black uppercase tracking-tighter leading-none text-white">
-                Three steps.<br />
-                <span className="text-primary">Zero friction.</span>
-              </h2>
-            </motion.div>
-
-            <div className="relative">
-              <motion.div
-                initial={{ scaleX: 0 }}
-                whileInView={{ scaleX: 1 }}
-                transition={{ duration: 1.8, ease: [0.25, 0.1, 0.25, 1] }}
-                viewport={{ once: true }}
-                className="hidden md:block absolute top-[36px] left-[16.7%] right-[16.7%] border-t border-dashed border-white/15 origin-left z-0"
-              />
-
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-16 md:gap-8 relative z-10">
+        {/* ═══ HOW IT WORKS — Sticky Vertical Scroll ═══ */}
+        <section id="how-it-works" className="w-full relative z-10 py-32 px-6">
+          <div className="max-w-7xl mx-auto flex flex-col md:flex-row gap-20">
+            {/* Left: Sticky Text */}
+            <div className="md:w-1/2 relative">
+              <div className="sticky top-32 space-y-32 py-20 pb-64">
                 {[
-                  { number: "01", title: "Map", desc: "Drop real infrastructure components — not clip art. K8s pods, RDS instances, Lambda functions, all first-class.", icon: <MousePointerClick className="w-5 h-5" /> },
-                  { number: "02", title: "Wire", desc: "Define relationships and data flows. Edges auto-route, dependencies surface instantly, no manual alignment.", icon: <GitBranch className="w-5 h-5" /> },
-                  { number: "03", title: "Share", desc: "Your team sees the architecture the moment you save. New hire on day one? They get it in minutes.", icon: <Zap className="w-5 h-5" /> },
-                ].map((step, i) => (
-                  <motion.div
-                    key={step.number}
-                    initial={{ opacity: 0, y: 60 }}
-                    whileInView={{ opacity: 1, y: 0 }}
-                    whileHover={{ y: -15, scale: 1.05 }}
-                    transition={{ delay: 0.3 + i * 0.25, duration: 0.8, ease: [0.25, 0.1, 0.25, 1] }}
-                    viewport={{ once: true }}
-                    className="text-center p-6 rounded-2xl hover:bg-white/[0.02] border border-transparent hover:border-white/5 transition-colors cursor-default"
+                  { i: "01", title: "Scale Your Vision", desc: "Drag enterprise-grade components onto an infinite whiteboard. We don't do boxes. We do architecture.", icon: <MousePointerClick /> },
+                  { i: "02", title: "Map the Flow", desc: "Watch data paths dynamically route around obstacles. Dependencies are seen, not guessed.", icon: <GitBranch /> },
+                  { i: "03", title: "Ship the Specs", desc: "Instantly sync visuals to deployment config. Turn your drawings into documentation that actually works.", icon: <Zap /> },
+                ].map((step) => (
+                  <motion.div 
+                    key={step.i}
+                    initial={{ opacity: 0.1, x: -20 }}
+                    whileInView={{ opacity: 1, x: 0 }}
+                    viewport={{ amount: 0.8 }}
+                    transition={{ duration: 0.8 }}
+                    className="group"
                   >
-                    <div className="flex items-center justify-center gap-3 mb-6">
-                      <span className="text-5xl md:text-6xl font-black text-primary leading-none">{step.number}</span>
-                      <div className="w-10 h-10 bg-white text-black flex items-center justify-center">{step.icon}</div>
+                    <div className="flex items-center gap-4 mb-4">
+                      <span className="text-8xl font-black text-primary/10 group-hover:text-primary/100 transition-colors duration-500 leading-none">{step.i}</span>
+                      <div className="h-0.5 w-12 bg-white/10 group-hover:w-24 group-hover:bg-primary transition-all duration-700" />
                     </div>
-                    <h3 className="text-2xl md:text-3xl font-black uppercase tracking-tight mb-3 text-white">{step.title}</h3>
-                    <p className="text-white/40 text-sm md:text-base leading-relaxed max-w-xs mx-auto">{step.desc}</p>
-                    <motion.div
-                      initial={{ scaleX: 0 }}
-                      whileInView={{ scaleX: 1 }}
-                      transition={{ delay: 0.7 + i * 0.25, duration: 0.5 }}
-                      viewport={{ once: true }}
-                      className="h-1 w-16 bg-primary mx-auto mt-6 origin-left"
-                    />
+                    <h3 className="text-4xl md:text-6xl font-black uppercase tracking-tighter text-white mb-6 leading-none">{step.title}</h3>
+                    <p className="text-white/40 text-lg md:text-xl font-medium max-w-sm group-hover:text-white/70 transition-colors">{step.desc}</p>
                   </motion.div>
                 ))}
+              </div>
+            </div>
+
+            {/* Right: Dynamic Visual Side (Sticky) */}
+            <div className="md:w-1/2 relative hidden md:block">
+              <div className="sticky top-0 h-screen flex items-center justify-center">
+                <div className="relative w-full aspect-square border border-white/5 bg-white/[0.01] overflow-hidden">
+                  {/* Morphing Background Visual */}
+                  <div className="absolute inset-0 flex items-center justify-center">
+                     <motion.div 
+                       animate={{ 
+                         rotate: [0, 90, 180, 270, 360],
+                         scale: [1, 1.2, 0.9, 1.1, 1]
+                       }}
+                       transition={{ duration: 20, repeat: Infinity, ease: "linear" }}
+                       className="w-3/4 h-3/4 border-[0.5px] border-primary/20 rounded-full blur-[2px]" 
+                     />
+                  </div>
+                  
+                  {/* Abstract Line Engine */}
+                  <svg className="absolute inset-0 w-full h-full p-20" viewBox="0 0 400 400">
+                    <motion.path 
+                      d="M 50 200 Q 200 50 350 200 T 50 200" 
+                      fill="none" stroke="#FF3D00" strokeWidth="0.5" opacity="0.1" 
+                      animate={{ d: ["M 50 200 Q 200 50 350 200 T 50 200", "M 50 100 Q 200 350 350 100 T 50 100", "M 50 200 Q 200 50 350 200 T 50 200"] }}
+                      transition={{ duration: 10, repeat: Infinity, ease: "easeInOut" }}
+                    />
+                    <motion.path 
+                      d="M 100 100 L 300 300 M 100 300 L 300 100" 
+                      stroke="white" strokeWidth="0.5" opacity="0.05"
+                      animate={{ rotate: 360 }}
+                      transition={{ duration: 60, repeat: Infinity, ease: "linear" }}
+                    />
+                  </svg>
+                  
+                  {/* Floating Content — Content changes based on scroll? Not yet, just vibes */}
+                </div>
               </div>
             </div>
           </div>
