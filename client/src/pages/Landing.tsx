@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from "react";
-import { motion, useScroll, useTransform } from "framer-motion";
+import { motion, useScroll, useTransform, useSpring, MotionConfig } from "framer-motion";
 import { Link } from "wouter";
 import { Helmet } from "react-helmet-async";
 import {
@@ -8,15 +8,15 @@ import {
 } from "lucide-react";
 
 // ─── Animation Presets ─────────────────────────────────────────
-const containerVariants = {
+const landingContainer = {
   hidden: { opacity: 0 },
   visible: {
     opacity: 1,
-    transition: { staggerChildren: 0.12 },
+    transition: { staggerChildren: 0.12, delayChildren: 0.1 },
   },
 };
 
-const itemVariants = {
+const landingItem = {
   hidden: { opacity: 0, y: 30 },
   visible: {
     opacity: 1,
@@ -41,7 +41,14 @@ export default function Landing() {
     target: showcaseRef,
     offset: ["start end", "end start"],
   });
-  const showcaseY = useTransform(showcaseScroll, [0, 1], [120, -120]);
+  const showcaseY = useTransform(showcaseScroll, [0, 1], [100, -100]);
+  
+  const { scrollYProgress } = useScroll();
+  const scaleX = useSpring(scrollYProgress, {
+    stiffness: 100,
+    damping: 30,
+    restDelta: 0.001
+  });
 
   const ctaRef = useRef<HTMLElement>(null);
   const { scrollYProgress: ctaScroll } = useScroll({
@@ -82,86 +89,94 @@ export default function Landing() {
           <div className="meshwork-bg-text font-black select-none pointer-events-none">MESHWORK</div>
         </div>
 
-        {/* ═══ NAVBAR ═══ */}
-        <nav
-          className={`fixed top-0 left-0 right-0 z-50 transition-all duration-500 ${
-            scrolled
-              ? "bg-[#0e0e0e]/95 backdrop-blur-xl border-b border-white/10 shadow-[0_4px_30px_rgba(0,0,0,0.4)]"
-              : "bg-transparent border-b border-transparent"
-          }`}
-        >
-          <div className="max-w-7xl mx-auto px-6 h-16 flex items-center justify-between">
-            <Link href="/" className="flex items-center gap-3 group">
-              <div className="w-9 h-9 border-2 border-white/20 bg-[#1a1a1a] flex items-center justify-center transition-all group-hover:border-primary group-hover:shadow-[0_0_20px_rgba(255,61,0,0.3)]">
-                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32" className="w-full h-full">
-                  <rect width="32" height="32" fill="#1A1A1A"/>
-                  <rect x="0" y="0" width="32" height="32" fill="none" stroke="#FF3D00" strokeWidth="2.5"/>
-                  <line x1="8" y1="8" x2="24" y2="8" stroke="white" strokeWidth="2" strokeLinecap="square"/>
-                  <line x1="8" y1="8" x2="16" y2="24" stroke="white" strokeWidth="2" strokeLinecap="square"/>
-                  <line x1="24" y1="8" x2="16" y2="24" stroke="white" strokeWidth="2" strokeLinecap="square"/>
-                  <rect x="4" y="4" width="8" height="8" fill="#FF3D00"/>
-                  <rect x="20" y="4" width="8" height="8" fill="white"/>
-                  <rect x="12" y="20" width="8" height="8" fill="white"/>
-                </svg>
-              </div>
-              <span className="text-lg font-black tracking-tighter uppercase hidden sm:block text-white">Meshwork</span>
-            </Link>
-            <div className="hidden md:flex items-center gap-8">
-              <a href="#features" className="text-sm font-bold uppercase tracking-wider text-white/50 hover:text-primary transition-colors">Features</a>
-              <a href="#how-it-works" className="text-sm font-bold uppercase tracking-wider text-white/50 hover:text-primary transition-colors">How It Works</a>
-            </div>
-            <div className="flex items-center gap-3">
-              <Link href="/auth/login">
-                <button className="font-bold uppercase text-sm text-white/60 hover:text-primary transition-colors tracking-wider px-3 py-2">Log In</button>
-              </Link>
-              <Link href="/auth/register">
-                <button className="bg-primary text-white border-2 border-white/10 py-2 px-5 text-sm font-bold uppercase tracking-wider shadow-[0_0_20px_rgba(255,61,0,0.2)] hover:shadow-[0_0_30px_rgba(255,61,0,0.4)] hover:brightness-110 transition-all">
-                  Get Started
-                </button>
-              </Link>
-            </div>
-          </div>
-        </nav>
-
-        {/* ═══ HERO — Preserved ═══ */}
-        <main className="flex-grow flex flex-col items-center justify-center p-6 relative z-10 pt-24 pb-32">
+        <MotionConfig reducedMotion="never">
           <motion.div
-            className="max-w-4xl w-full text-center space-y-8"
-            variants={containerVariants}
-            initial="hidden"
-            animate="visible"
+            className="fixed top-0 left-0 right-0 h-1 bg-primary z-[60] origin-left"
+            style={{ scaleX }}
+          />
+
+          {/* ═══ NAVBAR ═══ */}
+          <nav
+            className={`fixed top-0 left-0 right-0 z-50 transition-all duration-500 ${
+              scrolled
+                ? "bg-[#0e0e0e]/95 backdrop-blur-xl border-b border-white/10 shadow-[0_4px_30px_rgba(0,0,0,0.4)]"
+                : "bg-transparent border-b border-transparent"
+            }`}
           >
-            <motion.div variants={itemVariants} className="inline-block border-2 border-foreground bg-primary/10 px-4 py-1 font-bold text-primary font-mono text-sm uppercase tracking-widest mb-4">
-              v1.0 is Live
-            </motion.div>
-            <motion.h1 variants={itemVariants} className="text-6xl md:text-8xl font-black uppercase tracking-tighter leading-none">
-              Design Cloud <br/>
-              <motion.span 
-                animate={{ backgroundPosition: ["0% 50%", "100% 50%", "0% 50%"] }}
-                transition={{ duration: 5, ease: "linear", repeat: Infinity }}
-                className="text-transparent bg-clip-text bg-gradient-to-r from-primary via-orange-400 to-primary bg-[length:200%_auto] drop-shadow-[4px_4px_0_rgba(26,26,26,1)]"
-              >
-                Architecture.
-              </motion.span>
-              <br/>Faster.
-            </motion.h1>
-            <motion.p variants={itemVariants} className="text-xl md:text-2xl font-medium text-foreground/80 max-w-2xl mx-auto tracking-tight">
-              A local-first, blazing fast visual tool to map out your infrastructure. No more bloated legacy diagramming software.
-            </motion.p>
-            <motion.div variants={itemVariants} className="flex flex-col sm:flex-row items-center justify-center gap-4 pt-8">
-              <Link href="/auth/register">
-                <button className="accent-btn py-4 px-8 text-lg w-full sm:w-auto text-center neo-shadow hover:translate-x-[4px] hover:translate-y-[4px]">
-                  Start Building Free
-                </button>
+            {/* ... nav content ... */}
+            <div className="max-w-7xl mx-auto px-6 h-16 flex items-center justify-between">
+              <Link href="/" className="flex items-center gap-3 group">
+                <div className="w-9 h-9 border-2 border-white/20 bg-[#1a1a1a] flex items-center justify-center transition-all group-hover:border-primary group-hover:shadow-[0_0_20px_rgba(255,61,0,0.3)]">
+                  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32" className="w-full h-full">
+                    <rect width="32" height="32" fill="#1A1A1A"/>
+                    <rect x="0" y="0" width="32" height="32" fill="none" stroke="#FF3D00" strokeWidth="2.5"/>
+                    <line x1="8" y1="8" x2="24" y2="8" stroke="white" strokeWidth="2" strokeLinecap="square"/>
+                    <line x1="8" y1="8" x2="16" y2="24" stroke="white" strokeWidth="2" strokeLinecap="square"/>
+                    <line x1="24" y1="8" x2="16" y2="24" stroke="white" strokeWidth="2" strokeLinecap="square"/>
+                    <rect x="4" y="4" width="8" height="8" fill="#FF3D00"/>
+                    <rect x="20" y="4" width="8" height="8" fill="white"/>
+                    <rect x="12" y="20" width="8" height="8" fill="white"/>
+                  </svg>
+                </div>
+                <span className="text-lg font-black tracking-tighter uppercase hidden sm:block text-white">Meshwork</span>
               </Link>
-              <Link href="/#features">
-                <button className="bg-card text-foreground neo-border py-4 px-8 font-bold uppercase tracking-wider neo-shadow hover:translate-x-[4px] hover:translate-y-[4px] transition-all text-lg w-full sm:w-auto text-center">
-                  See Features
-                </button>
-              </Link>
+              <div className="hidden md:flex items-center gap-8">
+                <a href="#features" className="text-sm font-bold uppercase tracking-wider text-white/50 hover:text-primary transition-colors">Features</a>
+                <a href="#how-it-works" className="text-sm font-bold uppercase tracking-wider text-white/50 hover:text-primary transition-colors">How It Works</a>
+              </div>
+              <div className="flex items-center gap-3">
+                <Link href="/auth/login">
+                  <button className="font-bold uppercase text-sm text-white/60 hover:text-primary transition-colors tracking-wider px-3 py-2">Log In</button>
+                </Link>
+                <Link href="/auth/register">
+                  <button className="bg-primary text-white border-2 border-white/10 py-2 px-5 text-sm font-bold uppercase tracking-wider shadow-[0_0_20px_rgba(255,61,0,0.2)] hover:shadow-[0_0_30px_rgba(255,61,0,0.4)] hover:brightness-110 transition-all">
+                    Get Started
+                  </button>
+                </Link>
+              </div>
+            </div>
+          </nav>
+
+          {/* ═══ HERO — Preserved ═══ */}
+          <main className="flex-grow flex flex-col items-center justify-center p-6 relative z-10 pt-24 pb-32">
+            <motion.div
+              className="max-w-4xl w-full text-center space-y-8"
+              variants={landingContainer}
+              initial="hidden"
+              animate="visible"
+            >
+              <motion.div variants={landingItem} className="inline-block border-2 border-foreground bg-primary/10 px-4 py-1 font-bold text-primary font-mono text-sm uppercase tracking-widest mb-4">
+                v1.0 is Live
+              </motion.div>
+              <motion.h1 variants={landingItem} className="text-6xl md:text-8xl font-black uppercase tracking-tighter leading-none">
+                Design Cloud <br/>
+                <motion.span 
+                  animate={{ backgroundPosition: ["0% 50%", "100% 50%", "0% 50%"] }}
+                  transition={{ duration: 5, ease: "linear", repeat: Infinity }}
+                  className="text-transparent bg-clip-text bg-gradient-to-r from-primary via-orange-400 to-primary bg-[length:200%_auto] drop-shadow-[4px_4px_0_rgba(26,26,26,1)]"
+                >
+                  Architecture.
+                </motion.span>
+                <br/>Faster.
+              </motion.h1>
+              <motion.p variants={landingItem} className="text-xl md:text-2xl font-medium text-foreground/80 max-w-2xl mx-auto tracking-tight">
+                A local-first, blazing fast visual tool to map out your infrastructure. No more bloated legacy diagramming software.
+              </motion.p>
+              <motion.div variants={landingItem} className="flex flex-col sm:flex-row items-center justify-center gap-4 pt-8">
+                <Link href="/auth/register">
+                  <button className="accent-btn py-4 px-8 text-lg w-full sm:w-auto text-center neo-shadow hover:translate-x-[4px] hover:translate-y-[4px]">
+                    Start Building Free
+                  </button>
+                </Link>
+                <Link href="/#features">
+                  <button className="bg-card text-foreground neo-border py-4 px-8 font-bold uppercase tracking-wider neo-shadow hover:translate-x-[4px] hover:translate-y-[4px] transition-all text-lg w-full sm:w-auto text-center">
+                    See Features
+                  </button>
+                </Link>
+              </motion.div>
             </motion.div>
-          </motion.div>
-        </main>
+          </main>
+        </MotionConfig>
 
         {/* ═══ MARQUEE ═══ */}
         <div className="w-full bg-primary py-4 relative z-10 overflow-hidden">
