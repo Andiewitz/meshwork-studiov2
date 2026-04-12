@@ -81,7 +81,7 @@
 
 @layer base {
   html {
-    scroll-behavior: smooth;
+    scroll-behavior: auto; /* Changed to auto so Lenis can handle smoothing */
   }
 
   body {

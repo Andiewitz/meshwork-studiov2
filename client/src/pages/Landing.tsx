@@ -1,4 +1,5 @@
 import { useState, useEffect, useRef } from "react";
+import Lenis from "lenis";
 import { motion, useScroll, useTransform, useSpring, MotionConfig } from "framer-motion";
 import { Link } from "wouter";
 import { Helmet } from "react-helmet-async";
@@ -33,7 +34,24 @@ export default function Landing() {
   useEffect(() => {
     const onScroll = () => setScrolled(window.scrollY > 20);
     window.addEventListener("scroll", onScroll, { passive: true });
-    return () => window.removeEventListener("scroll", onScroll);
+    
+    // Initialize Lenis for premium smooth mouse scrolling
+    const lenis = new Lenis({
+      lerp: 0.08, // Very buttery smooth
+      wheelMultiplier: 1.2,
+    });
+
+    function raf(time: number) {
+      lenis.raf(time);
+      requestAnimationFrame(raf);
+    }
+
+    requestAnimationFrame(raf);
+
+    return () => {
+      window.removeEventListener("scroll", onScroll);
+      lenis.destroy();
+    };
   }, []);
 
   // ─── Parallax ──────────────────────────────────────────────
