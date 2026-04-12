@@ -2,6 +2,7 @@ import { useState, useEffect, useRef } from "react";
 import { motion, useScroll, useTransform, useSpring, MotionConfig } from "framer-motion";
 import { Link } from "wouter";
 import { Helmet } from "react-helmet-async";
+import { MeshworkLogo } from "@/components/MeshworkLogo";
 import {
   HardDrive, Cloud, FileCode2, Workflow,
   Zap, Layers, MousePointerClick, GitBranch,
@@ -58,9 +59,9 @@ export default function Landing() {
   const ctaWatermarkY = useTransform(ctaScroll, [0, 1], [160, -160]);
 
   const marqueeWords = [
-    "LOCAL-FIRST", "OPEN SOURCE", "BLAZING FAST",
+    "OPEN SOURCE", "BLAZING FAST",
     "REAL-TIME SYNC", "DRAG & DROP", "AUTO-LAYOUT",
-    "KUBERNETES READY", "INFRASTRUCTURE AS CODE",
+    "KUBERNETES READY", "INFRASTRUCTURE AS CODE", "TEAM COLLABORATION",
   ];
 
   return (
@@ -116,19 +117,10 @@ export default function Landing() {
             {/* ... nav content ... */}
             <div className="max-w-7xl mx-auto px-6 h-16 flex items-center justify-between">
               <Link href="/" className="flex items-center gap-3 group">
-                <div className="w-9 h-9 border-2 border-white/20 bg-[#1a1a1a] flex items-center justify-center transition-all group-hover:border-primary group-hover:shadow-[0_0_20px_rgba(255,61,0,0.3)]">
-                  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32" className="w-full h-full">
-                    <rect width="32" height="32" fill="#1A1A1A"/>
-                    <rect x="0" y="0" width="32" height="32" fill="none" stroke="#FF3D00" strokeWidth="2.5"/>
-                    <line x1="8" y1="8" x2="24" y2="8" stroke="white" strokeWidth="2" strokeLinecap="square"/>
-                    <line x1="8" y1="8" x2="16" y2="24" stroke="white" strokeWidth="2" strokeLinecap="square"/>
-                    <line x1="24" y1="8" x2="16" y2="24" stroke="white" strokeWidth="2" strokeLinecap="square"/>
-                    <rect x="4" y="4" width="8" height="8" fill="#FF3D00"/>
-                    <rect x="20" y="4" width="8" height="8" fill="white"/>
-                    <rect x="12" y="20" width="8" height="8" fill="white"/>
-                  </svg>
+                <div className="w-9 h-9 flex items-center justify-center transition-all group-hover:drop-shadow-[0_0_12px_rgba(255,61,0,0.5)]">
+                  <MeshworkLogo />
                 </div>
-                <span className="text-lg font-black tracking-tighter uppercase hidden sm:block text-white">Meshwork</span>
+                <span className="text-lg font-black tracking-tighter uppercase hidden sm:block text-white">Meshwork Studio</span>
               </Link>
               <div className="hidden md:flex items-center gap-8">
                 <a href="#features" className="text-sm font-bold uppercase tracking-wider text-white/50 hover:text-primary transition-colors">Features</a>
@@ -147,42 +139,77 @@ export default function Landing() {
             </div>
           </nav>
 
-          {/* ═══ HERO — Preserved ═══ */}
-          <main className="flex-grow flex flex-col items-center justify-center p-6 relative z-10 pt-24 pb-32">
+          {/* ═══ HERO — Redesigned (Figma-inspired Window + 3D Background) ═══ */}
+          {/* ═══ HERO — Immersive Background, No Boxes ═══ */}
+          <main className="min-h-screen flex flex-col items-center justify-center p-6 relative z-10 overflow-hidden pt-32 pb-40">
+            
+            {/* Massive Background Mesh */}
+            <div className="absolute inset-0 z-0 pointer-events-none select-none flex items-center justify-center opacity-30">
+              {/* Radial mask to ensure text readability */}
+              <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,transparent_0%,#09090b_75%)] z-10" />
+              
+              <motion.svg 
+                viewBox="0 0 1000 1000" 
+                className="w-[200vw] h-[200vw] md:w-[120vw] md:h-[120vw] text-primary/20 absolute"
+                animate={{ rotate: 360 }}
+                transition={{ duration: 250, repeat: Infinity, ease: "linear" }}
+              >
+                <pattern id="grid" width="40" height="40" patternUnits="userSpaceOnUse">
+                  <path d="M 40 0 L 0 0 0 40" fill="none" stroke="currentColor" strokeWidth="0.5" />
+                </pattern>
+                <rect width="1000" height="1000" fill="url(#grid)" />
+                
+                {/* Abstract Data lines */}
+                <motion.path d="M 100 900 Q 500 500 900 100" fill="none" stroke="#FF3D00" strokeWidth="2" strokeDasharray="10 10" animate={{ strokeDashoffset: [0, -100] }} transition={{ duration: 5, repeat: Infinity, ease: "linear" }} />
+                <motion.path d="M 0 500 Q 500 100 1000 500" fill="none" stroke="#FF3D00" strokeWidth="1.5" opacity="0.6" strokeDasharray="5 5" animate={{ strokeDashoffset: [0, 50] }} transition={{ duration: 4, repeat: Infinity, ease: "linear" }} />
+                <motion.path d="M 200 0 Q 800 500 200 1000" fill="none" stroke="currentColor" strokeWidth="1" opacity="0.8" />
+                
+                {/* Floating Node rings (hardcoded to avoid hydration mismatch) */}
+                {[
+                  [100, 200, 15], [300, 800, 25], [700, 150, 10], [800, 800, 30], 
+                  [500, 400, 20], [200, 600, 12], [900, 300, 18], [400, 100, 22], 
+                  [600, 900, 16], [150, 450, 28]
+                ].map(([cx, cy, r], i) => (
+                  <circle key={i} cx={cx} cy={cy} r={r} fill="none" stroke="currentColor" strokeWidth="1.5" />
+                ))}
+              </motion.svg>
+            </div>
+
+            {/* Typography & CTA (Unboxed) */}
             <motion.div
-              className="max-w-4xl w-full text-center space-y-8"
+              className="max-w-5xl w-full text-center space-y-6 relative z-20"
               variants={landingContainer}
               initial="hidden"
               animate="visible"
             >
-              <motion.div variants={landingItem} className="inline-block border-2 border-foreground bg-primary/10 px-4 py-1 font-bold text-primary font-mono text-sm uppercase tracking-widest mb-4">
-                v1.0 is Live
+              <motion.div variants={landingItem} className="inline-block border-2 border-primary/40 bg-primary/10 px-6 py-1.5 font-bold text-primary font-mono text-sm uppercase tracking-widest shadow-[0_0_30px_rgba(255,61,0,0.15)] mb-4">
+                Meshwork Studio
               </motion.div>
-              <motion.h1 variants={landingItem} className="text-6xl md:text-8xl font-black uppercase tracking-tighter leading-none">
+              <motion.h1 variants={landingItem} className="text-6xl md:text-8xl lg:text-[120px] font-black uppercase tracking-tighter leading-[0.85]">
                 Design Cloud <br/>
                 <motion.span 
                   animate={{ backgroundPosition: ["0% 50%", "100% 50%", "0% 50%"] }}
                   transition={{ duration: 5, ease: "linear", repeat: Infinity }}
-                  className="text-transparent bg-clip-text bg-gradient-to-r from-primary via-orange-400 to-primary bg-[length:200%_auto] drop-shadow-[4px_4px_0_rgba(26,26,26,1)]"
+                  className="text-transparent bg-clip-text bg-gradient-to-r from-primary via-orange-400 to-primary bg-[length:200%_auto] block mt-2"
                 >
-                  Architecture.
+                  Architecture
                 </motion.span>
-                <br/>Faster.
               </motion.h1>
-              <motion.p variants={landingItem} className="text-xl md:text-2xl font-medium text-foreground/80 max-w-2xl mx-auto tracking-tight">
-                A local-first, blazing fast visual tool to map out your infrastructure. No more bloated legacy diagramming software.
+              <motion.p variants={landingItem} className="text-xl md:text-3xl font-medium text-white/50 max-w-3xl mx-auto tracking-tight leading-snug mt-12 pb-4">
+                The visual workspace for mapping, connecting, and sharing your cloud infrastructure. Built for engineering teams who think in systems.
               </motion.p>
-              <motion.div variants={landingItem} className="flex flex-col sm:flex-row items-center justify-center gap-4 pt-8">
+              
+              <motion.div variants={landingItem} className="flex flex-col sm:flex-row items-center justify-center gap-8 pt-8">
                 <Link href="/auth/register">
-                  <button className="accent-btn py-4 px-8 text-lg w-full sm:w-auto text-center neo-shadow hover:translate-x-[4px] hover:translate-y-[4px]">
+                  <button className="accent-btn py-5 px-10 text-lg md:text-xl font-bold w-full sm:w-auto text-center neo-shadow hover:translate-x-[4px] hover:translate-y-[4px]">
                     Start Building Free
                   </button>
                 </Link>
-                <Link href="/#features">
-                  <button className="bg-card text-foreground neo-border py-4 px-8 font-bold uppercase tracking-wider neo-shadow hover:translate-x-[4px] hover:translate-y-[4px] transition-all text-lg w-full sm:w-auto text-center">
-                    See Features
+                <a href="#features">
+                  <button className="bg-transparent text-white border-b-2 border-primary/40 pb-2 px-2 font-bold uppercase tracking-widest hover:border-primary hover:text-primary transition-colors text-sm md:text-base w-full sm:w-auto text-center">
+                    Discover Features
                   </button>
-                </Link>
+                </a>
               </motion.div>
             </motion.div>
           </main>
@@ -751,7 +778,7 @@ export default function Landing() {
                   <span className="font-black uppercase tracking-tighter text-xl text-white">Meshwork Studio</span>
                 </div>
                 <p className="text-white/35 text-sm font-medium leading-relaxed">
-                  The open-source, local-first canvas for visualizing cloud infrastructure. Fast, opinionated, and built for engineers.
+                  The visual workspace for mapping, connecting, and sharing your cloud infrastructure. Built for engineers who think in systems.
                 </p>
                 <div className="flex flex-wrap gap-1.5 mt-2">
                   {["React", "TypeScript", "PostgreSQL", "Node.js"].map((tech) => (
