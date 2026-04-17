@@ -34,9 +34,9 @@ const itemVariants = {
 };
 
 const INITIAL_NOTIFICATIONS = [
-  { id: 1, title: "System Update", desc: "Meshwork Studio Beta v0.9 is live.", time: "2h ago", unread: true },
-  { id: 2, title: "New Comment", desc: "Alex left a comment on 'Project Alpha'.", time: "5h ago", unread: true },
-  { id: 3, title: "Welcome", desc: "Thanks for joining the Meshwork Beta!", time: "1d ago", unread: false },
+  { id: 1, title: "System Update", desc: "Meshwork Studio Beta v0.9 is live.", time: "2h ago" },
+  { id: 2, title: "New Comment", desc: "Alex left a comment on 'Project Alpha'.", time: "5h ago" },
+  { id: 3, title: "Welcome", desc: "Thanks for joining the Meshwork Beta!", time: "1d ago" },
 ];
 
 export function DashboardLayout({ children }: { children: ReactNode }) {
@@ -50,7 +50,16 @@ export function DashboardLayout({ children }: { children: ReactNode }) {
   const isTeam = location === "/team";
 
   // Notification State
-  const [notifications, setNotifications] = useState(INITIAL_NOTIFICATIONS);
+  const [readNotifications, setReadNotifications] = useState<number[]>(() => {
+    const stored = typeof window !== 'undefined' ? localStorage.getItem('meshwork_notifications_read_ids') : null;
+    return stored ? JSON.parse(stored) : [3]; // Default welcoming one is read
+  });
+
+  const notifications = INITIAL_NOTIFICATIONS.map(n => ({
+    ...n,
+    unread: !readNotifications.includes(n.id)
+  }));
+  
   const [isNotifying, setIsNotifying] = useState(false);
   const [hasNotified, setHasNotified] = useState(false);
   const [isNotificationsOpen, setIsNotificationsOpen] = useState(false);
@@ -62,11 +71,18 @@ export function DashboardLayout({ children }: { children: ReactNode }) {
   const hasUnread = notifications.some(n => n.unread);
 
   const markAllRead = () => {
-    setNotifications(prev => prev.map(n => ({ ...n, unread: false })));
+    const allIds = INITIAL_NOTIFICATIONS.map(n => n.id);
+    setReadNotifications(allIds);
+    localStorage.setItem('meshwork_notifications_read_ids', JSON.stringify(allIds));
   };
 
   const markOneRead = (id: number) => {
-    setNotifications(prev => prev.map(n => n.id === id ? { ...n, unread: false } : n));
+    setReadNotifications(prev => {
+      if (prev.includes(id)) return prev;
+      const next = [...prev, id];
+      localStorage.setItem('meshwork_notifications_read_ids', JSON.stringify(next));
+      return next;
+    });
   };
 
   // Global event listener for triggered notifications from nested pages

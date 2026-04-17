@@ -22,7 +22,9 @@ const fadeUpVariants = {
 
 export default function Team() {
   const [isNotifying, setIsNotifying] = useState(false);
-  const [hasNotified, setHasNotified] = useState(false);
+  const [hasNotified, setHasNotified] = useState(() => {
+    return localStorage.getItem('meshwork_team_notified') === 'true';
+  });
 
   const handleNotifyClick = () => {
     if (isNotifying || hasNotified) return;
@@ -34,6 +36,7 @@ export default function Team() {
     setTimeout(() => {
       setIsNotifying(false);
       setHasNotified(true);
+      localStorage.setItem('meshwork_team_notified', 'true');
     }, 1000);
   };
 
