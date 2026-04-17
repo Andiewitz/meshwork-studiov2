@@ -21,10 +21,10 @@ export function useWorkspaces() {
       // Local Dev Mock - Supply stunning dummy projects to test the new UI
       if (import.meta.env.DEV) {
         return [
-          { id: 1, title: "Vertex_Engine_V4", type: "canvas", data: {}, icon: "box", isPublic: false, userId: 1, createdAt: new Date() },
-          { id: 2, title: "Neural_Mesh_Identity", type: "system", data: {}, icon: "globe", isPublic: false, userId: 1, createdAt: new Date(Date.now() - 14400000) },
-          { id: 3, title: "Quantum_Core_Alpha", type: "canvas", data: {}, icon: "server", isPublic: false, userId: 1, createdAt: new Date(Date.now() - 86400000) },
-          { id: 4, title: "Stellar_Gateway_UI", type: "canvas", data: {}, icon: "cpu", isPublic: false, userId: 1, createdAt: new Date(Date.now() - 172800000) },
+          { id: 1, title: "Vertex_Engine_V4", type: "canvas", data: {}, icon: "box", isFavorite: true, isPublic: false, userId: 1, createdAt: new Date() },
+          { id: 2, title: "Neural_Mesh_Identity", type: "system", data: {}, icon: "globe", isFavorite: false, isPublic: false, userId: 1, createdAt: new Date(Date.now() - 14400000) },
+          { id: 3, title: "Quantum_Core_Alpha", type: "canvas", data: {}, icon: "server", isFavorite: true, isPublic: false, userId: 1, createdAt: new Date(Date.now() - 86400000) },
+          { id: 4, title: "Stellar_Gateway_UI", type: "canvas", data: {}, icon: "cpu", isFavorite: false, isPublic: false, userId: 1, createdAt: new Date(Date.now() - 172800000) },
         ] as any[];
       }
 
@@ -90,6 +90,15 @@ export function useUpdateWorkspace() {
 
   return useMutation({
     mutationFn: async ({ id, ...updates }: { id: number } & UpdateWorkspaceRequest) => {
+      // Dev mode: optimistic update on mock data, skip server call
+      if (import.meta.env.DEV) {
+        queryClient.setQueryData([api.workspaces.list.path], (old: any[]) => {
+          if (!old) return old;
+          return old.map((ws: any) => ws.id === id ? { ...ws, ...updates } : ws);
+        });
+        return { id, ...updates } as any;
+      }
+
       const url = buildUrl(api.workspaces.update.path, { id });
       const res = await secureFetch(getApiUrl(url), {
         method: api.workspaces.update.method,
@@ -102,7 +111,9 @@ export function useUpdateWorkspace() {
       return api.workspaces.update.responses[200].parse(await res.json());
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: [api.workspaces.list.path] });
+      if (!import.meta.env.DEV) {
+        queryClient.invalidateQueries({ queryKey: [api.workspaces.list.path] });
+      }
     },
   });
 }

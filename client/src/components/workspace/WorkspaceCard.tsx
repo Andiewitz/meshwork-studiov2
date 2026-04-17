@@ -2,11 +2,12 @@ import { Workspace } from "@shared/schema";
 import { formatDistanceToNow } from "date-fns";
 import { motion } from "framer-motion";
 import {
-  MoreHorizontal,
+  MoreVertical,
   Pencil,
   Trash,
   ExternalLink,
   Copy,
+  Star,
   Box,
   LayoutGrid,
   Server,
@@ -33,8 +34,6 @@ import {
 import {
   ContextMenu,
   ContextMenuContent,
-  ContextMenuItem,
-  ContextMenuSeparator,
   ContextMenuTrigger,
 } from "@/components/ui/context-menu";
 import { useLocation } from "wouter";
@@ -91,7 +90,6 @@ export function WorkspaceCard({
   const duplicateWorkspace = useDuplicateWorkspace();
 
   const [isRenaming, setIsRenaming] = useState(false);
-  const [isIconPickerOpen, setIsIconPickerOpen] = useState(false);
   const [title, setTitle] = useState(workspace.title);
   const inputRef = useRef<HTMLInputElement>(null);
 
@@ -126,11 +124,17 @@ export function WorkspaceCard({
     }
   };
 
+  const handleToggleFavorite = async (e: React.MouseEvent) => {
+    e.stopPropagation();
+    try {
+      await updateWorkspace.mutateAsync({ id: workspace.id, isFavorite: !workspace.isFavorite });
+    } catch {
+      toast({ title: "Error", description: "Failed to update favorite.", variant: "destructive" });
+    }
+  };
+
   const Icon = getWorkspaceIcon(workspace.icon || undefined);
   const updatedText = formatDistanceToNow(new Date(workspace.createdAt || new Date()), { addSuffix: true });
-  
-  // Dummy status for aesthetic mapping representing local type
-  const status = workspace.type === "canvas" ? "Live" : "Idle";
 
   const MenuItems = () => (
     <>
@@ -170,30 +174,33 @@ export function WorkspaceCard({
             <div className="absolute inset-0 bg-primary/5 rounded-lg pointer-events-none z-10 border border-primary/30" />
           )}
 
-          {/* Thumbnail Image Placeholder */}
+          {/* Thumbnail */}
           <div className={cn(
             "overflow-hidden rounded-sm relative shrink-0 technical-gradient",
             viewMode === "grid" ? "aspect-video mb-4 w-full" : "w-32 aspect-video"
           )}>
-            {/* Minimalist Grid Pattern Fallback */}
              <div className="absolute inset-0 bg-[radial-gradient(circle_at_1px_1px,var(--color-outline-variant)_1px,transparent_0)] [background-size:20px_20px] opacity-20" />
              <div className="absolute inset-0 flex items-center justify-center">
                <Icon className="w-10 h-10 text-outline group-hover:text-primary transition-colors duration-500 group-hover:scale-110" />
              </div>
 
-             <div className="absolute top-4 right-4">
-               <span className={cn(
-                 "text-[10px] font-headline font-bold px-3 py-1 rounded-full backdrop-blur-md border tracking-widest uppercase",
-                 status === 'Live' ? 'bg-primary/10 text-primary border-primary/20' : 'bg-surface-container-highest/80 text-outline border-outline-variant/20'
-               )}>
-                 {status}
-               </span>
-             </div>
+             {/* Favorite star — top right of thumbnail */}
+             <button
+               onClick={handleToggleFavorite}
+               className={cn(
+                 "absolute top-3 right-3 w-7 h-7 flex items-center justify-center rounded-full transition-all duration-200 z-20",
+                 workspace.isFavorite
+                   ? "text-primary"
+                   : "text-white/20 opacity-0 group-hover:opacity-100 hover:text-white/60"
+               )}
+             >
+               <Star className={cn("w-4 h-4", workspace.isFavorite && "fill-current")} />
+             </button>
           </div>
 
           <div className={cn(
             "flex-1 flex",
-            viewMode === "grid" ? "px-5 pb-6 flex-col justify-between" : "items-center justify-between pr-4"
+            viewMode === "grid" ? "px-5 pb-5 flex-col justify-between" : "items-center justify-between pr-4"
           )}>
             <div>
               {isRenaming ? (
@@ -207,12 +214,12 @@ export function WorkspaceCard({
                      if (e.key === 'Escape') { setIsRenaming(false); setTitle(workspace.title); }
                    }}
                    onClick={(e) => e.stopPropagation()}
-                   className="bg-transparent font-headline font-semibold text-white border-b border-primary outline-none py-0 w-full mb-4"
+                   className="bg-transparent font-headline font-semibold text-white border-b border-primary outline-none py-0 w-full mb-3"
                  />
                ) : (
                  <h4 className={cn(
                    "font-headline font-semibold text-white group-hover:text-primary transition-colors",
-                   viewMode === "grid" ? "text-lg mb-4" : "text-lg mb-1"
+                   viewMode === "grid" ? "text-lg mb-3" : "text-lg mb-1"
                  )}>
                    {workspace.title || "Untitled"}
                  </h4>
@@ -230,22 +237,18 @@ export function WorkspaceCard({
                 <span className="text-[10px] text-outline font-label tracking-tight uppercase truncate mr-4">Last edited {updatedText}</span>
               )}
               
-              <div className="flex gap-2 items-center">
-                 <span className={`w-1.5 h-1.5 rounded-full ${status === 'Live' ? 'bg-primary/40' : 'bg-outline-variant'}`}></span>
-                 
-                 {/* Kebab menu wrapper to intercept click properly without triggering navigation */}
-                 <div onClick={e => e.stopPropagation()}>
-                   <DropdownMenu>
-                     <DropdownMenuTrigger asChild>
-                       <button className="w-6 h-6 rounded flex items-center justify-center text-outline hover:text-white hover:bg-surface-container-high transition-colors -mr-2">
-                         <span className="w-1.5 h-1.5 rounded-full bg-outline-variant group-hover:bg-outline" /> {/* Dummy third dot */}
-                       </button>
-                     </DropdownMenuTrigger>
-                     <DropdownMenuContent align="end" className="bg-surface-container-highest border border-outline-variant/20 rounded-xl shadow-2xl overflow-hidden p-1 min-w-[160px] z-50">
-                       <MenuItems />
-                     </DropdownMenuContent>
-                   </DropdownMenu>
-                 </div>
+              {/* 3-dot vertical menu */}
+              <div onClick={e => e.stopPropagation()}>
+                <DropdownMenu>
+                  <DropdownMenuTrigger asChild>
+                    <button className="w-7 h-7 rounded-md flex items-center justify-center text-[#555] hover:text-white hover:bg-white/5 transition-all opacity-0 group-hover:opacity-100 cursor-figma-pointer">
+                      <MoreVertical className="w-4 h-4" />
+                    </button>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent align="end" className="bg-surface-container-highest border border-outline-variant/20 rounded-xl shadow-2xl overflow-hidden p-1 min-w-[160px] z-50">
+                    <MenuItems />
+                  </DropdownMenuContent>
+                </DropdownMenu>
               </div>
             </div>
           </div>
@@ -253,7 +256,6 @@ export function WorkspaceCard({
       </ContextMenuTrigger>
       
       <ContextMenuContent className="bg-surface-container-highest border border-outline-variant/20 rounded-xl shadow-2xl p-1 min-w-[160px]">
-        <DropdownMenuItem asChild /> {/* Just to silence TS if using custom ContextMenuItems, but using standard wrapper is fine */}
         <MenuItems />
       </ContextMenuContent>
     </ContextMenu>

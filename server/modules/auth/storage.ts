@@ -34,6 +34,7 @@ class AuthStorage implements IAuthStorage {
     } catch (err) {
       console.error("[AuthStorage] DB Upsert failed:", err);
       throw err;
+    }
   }
 
   async updateUser(id: string, data: Partial<User>): Promise<User> {

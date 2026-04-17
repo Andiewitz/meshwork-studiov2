@@ -61,6 +61,7 @@ export const workspaces = pgTable("workspaces", {
   title: text("title").notNull(),
   type: text("type").notNull().default("system"), // system, architecture, app, presentation
   icon: text("icon").default("box"), // icon identifier for the workspace
+  isFavorite: boolean("is_favorite").default(false),
   userId: text("user_id"), // Decoupled from users table for multi-db support
   collectionId: integer("collection_id").references(() => collections.id),
   createdAt: timestamp("created_at").defaultNow(),
