@@ -31,7 +31,7 @@ const itemVariants = {
   visible: { opacity: 1, x: 0 },
 };
 
-const MOCK_NOTIFICATIONS = [
+const INITIAL_NOTIFICATIONS = [
   { id: 1, title: "System Update", desc: "Meshwork Studio Beta v0.9 is live.", time: "2h ago", unread: true },
   { id: 2, title: "New Comment", desc: "Alex left a comment on 'Project Alpha'.", time: "5h ago", unread: true },
   { id: 3, title: "Welcome", desc: "Thanks for joining the Meshwork Beta!", time: "1d ago", unread: false },
@@ -47,7 +47,8 @@ export function DashboardLayout({ children }: { children: ReactNode }) {
   const isDocs = location === "/docs" || location === "/dev";
   const isTeam = location === "/team";
 
-  // Notification Animation State
+  // Notification State
+  const [notifications, setNotifications] = useState(INITIAL_NOTIFICATIONS);
   const [isNotifying, setIsNotifying] = useState(false);
   const [hasNotified, setHasNotified] = useState(false);
   const [isNotificationsOpen, setIsNotificationsOpen] = useState(false);
@@ -55,6 +56,16 @@ export function DashboardLayout({ children }: { children: ReactNode }) {
   const [flyTarget, setFlyTarget] = useState({ x: 0, y: 0 });
   const [isRinging, setIsRinging] = useState(false);
   const bellRef = useRef<HTMLButtonElement>(null);
+
+  const hasUnread = notifications.some(n => n.unread);
+
+  const markAllRead = () => {
+    setNotifications(prev => prev.map(n => ({ ...n, unread: false })));
+  };
+
+  const markOneRead = (id: number) => {
+    setNotifications(prev => prev.map(n => n.id === id ? { ...n, unread: false } : n));
+  };
 
   // Global event listener for triggered notifications from nested pages
   useEffect(() => {
@@ -177,7 +188,9 @@ export function DashboardLayout({ children }: { children: ReactNode }) {
                 className={`relative flex items-center justify-center w-8 h-8 transition-colors duration-300 cursor-figma-pointer ${isRinging || isNotificationsOpen ? 'text-primary' : 'text-[#E5E2E1] hover:text-white'}`}
               >
                 <Bell className="w-5 h-5" />
-                <div className="absolute top-1.5 right-1.5 w-2 h-2 bg-primary rounded-full border border-black"></div>
+                {hasUnread && (
+                  <div className="absolute top-1.5 right-1.5 w-2 h-2 bg-primary rounded-full border border-black"></div>
+                )}
               </motion.button>
 
               <AnimatePresence>
@@ -191,12 +204,16 @@ export function DashboardLayout({ children }: { children: ReactNode }) {
                   >
                     <div className="p-4 border-b border-outline-variant/20 flex justify-between items-center">
                       <h3 className="text-white font-headline font-bold">Notifications</h3>
-                      <button className="text-xs text-primary hover:text-white transition-colors cursor-figma-pointer">Mark all as read</button>
+                      <button onClick={markAllRead} className="text-xs text-primary hover:text-white transition-colors cursor-figma-pointer">Mark all as read</button>
                     </div>
                     <div className="max-h-[300px] overflow-y-auto hide-scrollbar">
-                      {MOCK_NOTIFICATIONS.map(notif => (
-                        <div key={notif.id} className={`p-4 border-b border-outline-variant/10 hover:bg-surface-container-highest transition-colors cursor-figma-pointer flex gap-3 ${notif.unread ? 'bg-primary/5' : ''}`}>
-                          <div className={`w-2 h-2 mt-1.5 rounded-full shrink-0 ${notif.unread ? 'bg-primary' : 'bg-transparent'}`} />
+                      {notifications.map(notif => (
+                        <div 
+                          key={notif.id} 
+                          onClick={() => markOneRead(notif.id)}
+                          className={`p-4 border-b border-outline-variant/10 hover:bg-surface-container-highest transition-colors cursor-figma-pointer flex gap-3 ${notif.unread ? 'bg-primary/5' : ''}`}
+                        >
+                          <div className={`w-2 h-2 mt-1.5 rounded-full shrink-0 transition-colors duration-300 ${notif.unread ? 'bg-primary' : 'bg-transparent'}`} />
                           <div>
                             <h4 className="text-sm font-bold text-white mb-0.5">{notif.title}</h4>
                             <p className="text-xs text-outline mb-1">{notif.desc}</p>

@@ -1,4 +1,4 @@
-import { useState, useMemo } from "react";
+import { useState, useMemo, useRef, useEffect, useCallback } from "react";
 import { Link, useLocation } from "wouter";
 import { useWorkspaces, useDeleteWorkspace } from "@/hooks/use-workspaces";
 import { useAuth } from "@/hooks/use-auth";
@@ -41,6 +41,19 @@ export default function Home() {
   const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid');
   const [isMultiSelectMode, setIsMultiSelectMode] = useState(false);
   const [selectedIds, setSelectedIds] = useState<Set<number>>(new Set());
+  const searchInputRef = useRef<HTMLInputElement>(null);
+
+  // ⌘K / Ctrl+K shortcut to focus the search bar
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if ((e.metaKey || e.ctrlKey) && e.key === 'k') {
+        e.preventDefault();
+        searchInputRef.current?.focus();
+      }
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, []);
 
   const isWorkspacesPage = location === "/workspaces";
 
@@ -109,11 +122,12 @@ export default function Home() {
                     <Search className="w-5 h-5 text-outline/50" />
                   </div>
                   <input
+                    ref={searchInputRef}
                     value={searchTerm}
                     onChange={(e) => setSearchTerm(e.target.value)}
                     onFocus={() => setIsSearchFocused(true)}
                     onBlur={() => setTimeout(() => setIsSearchFocused(false), 200)}
-                    className={`w-full bg-surface-container-low/30 border py-4 pl-12 pr-16 text-base font-body text-on-surface placeholder:text-outline/50 focus:outline-none transition-all duration-300 backdrop-blur-md ${isSearchFocused ? 'border-[#FF5500]/50 rounded-t-xl rounded-b-none bg-surface-container-low/80' : 'border-outline-variant/20 rounded-lg'}`}
+                    className={`w-full border py-4 pl-12 pr-16 text-base font-body text-on-surface placeholder:text-outline/50 focus:outline-none transition-all duration-300 backdrop-blur-md ${isSearchFocused ? 'bg-surface-container-low/80 border-[#FF5500]/50 rounded-t-xl rounded-b-none' : 'bg-surface-container/60 border-outline-variant/20 rounded-lg'}`}
                     placeholder="Search blueprints, assets, or run a command..."
                     type="text"
                   />
