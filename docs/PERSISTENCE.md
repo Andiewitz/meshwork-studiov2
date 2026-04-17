@@ -10,8 +10,9 @@
 4. [Database Sync Layer](#database-sync-layer)
 5. [Save Status Indicators](#save-status-indicators)
 6. [Edge Normalization Fix](#edge-normalization-fix)
-7. [Testing](#testing)
-8. [Key Files](#key-files)
+7. [Database Schema Migrations](#database-schema-migrations)
+8. [Testing](#testing)
+9. [Key Files](#key-files)
 
 ---
 

@@ -50,9 +50,10 @@ export function DashboardLayout({ children }: { children: ReactNode }) {
   const isTeam = location === "/team";
 
   // Notification State
+  const readIds = (user?.readNotificationIds as number[]) || [];
   const notifications = INITIAL_NOTIFICATIONS.map(n => ({
     ...n,
-    unread: !user?.readNotificationIds?.includes(n.id)
+    unread: !readIds.includes(n.id)
   }));
   
   const [isNotifying, setIsNotifying] = useState(false);
@@ -71,8 +72,9 @@ export function DashboardLayout({ children }: { children: ReactNode }) {
   };
 
   const markOneRead = (id: number) => {
-    if (user?.readNotificationIds?.includes(id)) return;
-    const next = [...(user?.readNotificationIds || []), id];
+    const readIds = (user?.readNotificationIds as number[]) || [];
+    if (readIds.includes(id)) return;
+    const next = [...readIds, id];
     updatePreferences({ readNotificationIds: next });
   };
 
