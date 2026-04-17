@@ -2,393 +2,277 @@ import { useState, useMemo } from "react";
 import { Link, useLocation } from "wouter";
 import { useWorkspaces, useDeleteWorkspace } from "@/hooks/use-workspaces";
 import { useAuth } from "@/hooks/use-auth";
-import { FeaturedCard } from "@/components/workspace/FeaturedCard";
 import { WorkspaceCard } from "@/components/workspace/WorkspaceCard";
 import { CreateWorkspaceDialog } from "@/components/workspace/CreateWorkspaceDialog";
-import { Button } from "@/components/ui/button";
-import { ArrowRight, Loader2, Search, Box, Trash2, X } from "lucide-react";
-import { useToast } from "@/hooks/use-toast";
+import { Search, LayoutGrid, List, Clock, Package, Terminal, Users, ArrowRight } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { motion, AnimatePresence } from "framer-motion";
 import { LineSyncLoader } from "@/components/ui/loading-screen";
+
+const containerVariants = {
+  hidden: { opacity: 0 },
+  visible: {
+    opacity: 1,
+    transition: { staggerChildren: 0.1, delayChildren: 0.1 },
+  },
+  exit: {
+    opacity: 0,
+    transition: { staggerChildren: 0.05, staggerDirection: -1 }
+  }
+};
+
+const fadeUpVariants = {
+  hidden: { opacity: 0, y: 20 },
+  visible: { opacity: 1, y: 0, transition: { duration: 0.4, ease: "easeOut" } },
+  exit: { opacity: 0, y: -20, transition: { duration: 0.2, ease: "easeIn" } }
+};
 
 export default function Home() {
   const [location, setLocation] = useLocation();
   const { user, isLoading: isAuthLoading } = useAuth();
   const { data: workspaces, isLoading: isWorkspacesLoading } = useWorkspaces();
   const deleteWorkspace = useDeleteWorkspace();
-  const { toast } = useToast();
+
   const [isCreateOpen, setIsCreateOpen] = useState(false);
   const [searchTerm, setSearchTerm] = useState("");
-  const [sortBy, setSortBy] = useState<"recent" | "name">("recent");
-  const [selectedIds, setSelectedIds] = useState<Set<number>>(new Set());
+  const [isSearchFocused, setIsSearchFocused] = useState(false);
+  
+  // Settings specific to Workspaces Archive page
+  const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid');
   const [isMultiSelectMode, setIsMultiSelectMode] = useState(false);
-  const [deletingIds, setDeletingIds] = useState<Set<number>>(new Set());
+  const [selectedIds, setSelectedIds] = useState<Set<number>>(new Set());
 
   const isWorkspacesPage = location === "/workspaces";
 
   const handleDelete = (id: number) => {
-    // Add to deleting set for animation
-    setDeletingIds(prev => new Set(prev).add(id));
-    // Small delay to let animation play before actual delete
-    setTimeout(() => {
-      deleteWorkspace.mutate(id, {
-        onSuccess: () => {
-          toast({
-            title: "Deleted",
-            description: "Workspace has been removed.",
-          });
-          setSelectedIds(prev => {
-            const next = new Set(prev);
-            next.delete(id);
-            return next;
-          });
-          setDeletingIds(prev => {
-            const next = new Set(prev);
-            next.delete(id);
-            return next;
-          });
-        },
-      });
-    }, 300);
-  };
-
-  const handleToggleSelection = (id: number) => {
-    setSelectedIds(prev => {
-      const next = new Set(prev);
-      if (next.has(id)) {
+    deleteWorkspace.mutate(id);
+    if (selectedIds.has(id)) {
+      setSelectedIds(prev => {
+        const next = new Set(prev);
         next.delete(id);
-      } else {
-        next.add(id);
-      }
-      return next;
-    });
-  };
-
-  const handleSelectAll = () => {
-    if (filteredWorkspaces.length === selectedIds.size) {
-      setSelectedIds(new Set());
-    } else {
-      setSelectedIds(new Set(filteredWorkspaces.map(w => w.id)));
-    }
-  };
-
-  const handleBulkDelete = () => {
-    const ids = Array.from(selectedIds);
-    let completed = 0;
-    ids.forEach(id => {
-      deleteWorkspace.mutate(id, {
-        onSuccess: () => {
-          completed++;
-          if (completed === ids.length) {
-            toast({
-              title: "Deleted",
-              description: `${completed} workspaces removed.`,
-            });
-            setSelectedIds(new Set());
-            setIsMultiSelectMode(false);
-          }
-        },
+        return next;
       });
-    });
+    }
   };
 
   const filteredWorkspaces = useMemo(() => {
     if (!workspaces) return [];
-
     let result = workspaces.filter(ws =>
       ws.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
       ws.type.toLowerCase().includes(searchTerm.toLowerCase())
     );
-
-    if (sortBy === "name") {
-      result = [...result].sort((a, b) => a.title.localeCompare(b.title));
-    } else {
-      result = [...result].sort((a, b) => b.id - a.id);
-    }
-
-    if (!isWorkspacesPage) {
-      return result.slice(0, 5);
-    }
+    result = [...result].sort((a, b) => b.id - a.id);
     return result;
-  }, [workspaces, searchTerm, sortBy, isWorkspacesPage]);
+  }, [workspaces, searchTerm]);
 
-  // Must be ABOVE early returns — hooks cannot be called conditionally
-  const mostRecent = useMemo(() => {
-    if (!workspaces) return null;
-    return [...workspaces].sort((a, b) => b.id - a.id)[0];
-  }, [workspaces]);
+  // Derived arrays based on page config
+  const displayWorkspaces = isWorkspacesPage ? filteredWorkspaces : filteredWorkspaces.slice(0, 4);
 
-  // Get time-based greeting
+  // Time-based greeting logic
   const getGreeting = () => {
     const hour = new Date().getHours();
     if (hour < 12) return "Good Morning";
     if (hour < 18) return "Good Afternoon";
     return "Good Evening";
   };
-
-  const greeting = getGreeting();
   const userName = user?.firstName || user?.email?.split('@')[0] || "Architect";
 
   if (isAuthLoading || isWorkspacesLoading) {
-    return <LineSyncLoader message="Loading workspaces" />;
+    return <LineSyncLoader message="Loading blueprints" />;
   }
 
   return (
-    <div className="flex flex-col gap-8 max-w-6xl mx-auto min-h-[calc(100vh-4rem)] relative">
-      {/* Home page background - fixed to cover full viewport */}
-      <div className="fixed inset-0 -z-10 overflow-hidden pointer-events-none">
-        <div className="absolute inset-0 bg-[radial-gradient(circle_at_1px_1px,currentColor_1px,transparent_0)] [background-size:24px_24px] opacity-[0.03]" />
-        <div className="absolute top-0 right-0 w-[600px] h-[600px] bg-gradient-radial from-primary/5 via-transparent to-transparent rounded-full blur-3xl" />
-        <div className="absolute bottom-0 left-0 w-[400px] h-[400px] bg-gradient-radial from-accent/5 via-transparent to-transparent rounded-full blur-3xl" />
-      </div>
-      {/* Decorative curved lines */}
-      <div className="absolute top-20 left-0 w-32 h-32 pointer-events-none opacity-10">
-        <svg viewBox="0 0 100 100" className="w-full h-full stroke-foreground fill-none">
-          <path d="M 10,50 Q 50,10 90,50 T 170,50" strokeWidth="2" />
-          <path d="M 10,60 Q 50,20 90,60" strokeWidth="1" />
-        </svg>
-      </div>
-      
-      {/* Header Section */}
-      <div className="flex flex-col gap-6 reveal-on-scroll">
-        <div className="flex flex-col gap-2">
-          <h1 className="text-4xl md:text-5xl font-display font-bold tracking-tight text-foreground leading-[1.1]">
-            {isWorkspacesPage ? "All Projects" : <>{greeting}, {userName}.</>}
-          </h1>
-          <p className="text-base font-sans text-muted-foreground max-w-md leading-relaxed">
-            {isWorkspacesPage ? "A complete blueprint of your infrastructure." : "Let's architect something extraordinary today."}
-          </p>
-        </div>
-        
-        {/* Action Buttons */}
-        {!isWorkspacesPage && (
-          <div className="flex items-center gap-3">
-            <Button
-              onClick={() => setIsCreateOpen(true)}
-              className="accent-btn h-10 px-5 text-sm font-medium"
+    <>
+      <div className="w-full max-w-[1400px] mx-auto pb-20">
+        <AnimatePresence mode="wait">
+          {!isWorkspacesPage ? (
+            // ==========================================
+            // OVERVIEW PAGE (HERO + RECENT)
+            // ==========================================
+            <motion.div
+              key="overview"
+              initial="hidden"
+              animate="visible"
+              exit="exit"
+              variants={containerVariants}
+              className="w-full"
             >
-              New workspace
-            </Button>
-            <Button
-              variant="outline"
-              className="h-10 px-5 text-sm font-medium"
-            >
-              Import
-            </Button>
-            <Link href="/workspaces">
-              <Button variant="ghost" className="text-foreground font-medium text-sm gap-2 hover:bg-transparent group h-10">
-                View all
-                <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
-              </Button>
-            </Link>
-          </div>
-        )}
-      </div>
-
-      {/* Main Content Grid - Adjusted for bigger left column */}
-      <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 flex-1">
-        {/* Left Column - Featured/Actions - Now takes more space */}
-        {!isWorkspacesPage && (
-          <div className="lg:col-span-6 space-y-6 reveal-on-scroll delay-100 relative">
-            {/* Curved decorative line */}
-            <div className="absolute -left-4 top-1/2 -translate-y-1/2 w-8 h-64 pointer-events-none hidden lg:block">
-              <svg viewBox="0 0 40 200" className="w-full h-full stroke-foreground fill-none opacity-20">
-                <path d="M 35,0 Q 5,100 35,200" strokeWidth="3" />
-                <path d="M 38,20 Q 15,100 38,180" strokeWidth="1" />
-              </svg>
-            </div>
-            
-            {mostRecent ? (
-              <div className="h-full min-h-[400px]">
-                <FeaturedCard
-                  workspace={mostRecent}
-                  onContinue={() => setLocation(`/workspace/${mostRecent.id}`)}
-                  onDelete={handleDelete}
-                />
-              </div>
-            ) : (
-              <div className="bg-foreground text-background rounded-2xl p-10 flex flex-col gap-5 items-center text-center justify-center min-h-[400px] relative overflow-hidden">
-                <div className="w-16 h-16 rounded-xl bg-background/20 flex items-center justify-center">
-                  <Box className="w-8 h-8" />
-                </div>
-                <div>
-                  <h3 className="text-2xl font-display font-semibold tracking-tight">
-                    Start Your First Project
-                  </h3>
-                  <p className="text-background/70 font-sans text-sm mt-2">
-                    Create a workspace to begin architecting
-                  </p>
-                </div>
-                <Button 
-                  onClick={() => setIsCreateOpen(true)} 
-                  className="bg-primary text-primary-foreground hover:bg-primary/90 h-12 px-8 text-sm font-medium rounded-lg"
-                >
-                  Create Workspace
-                </Button>
+              {/* Hero Section */}
+              <motion.section variants={fadeUpVariants} className="flex flex-col items-center text-center mt-16 md:mt-24 mb-32">
+                <h2 className="text-4xl md:text-6xl lg:text-7xl font-extrabold font-headline tracking-tighter text-white mb-12">
+                  {getGreeting()}, {userName}.
+                </h2>
                 
-                {/* Curved accent lines inside card */}
-                <svg className="absolute bottom-0 right-0 w-48 h-32 stroke-background/10 fill-none pointer-events-none" viewBox="0 0 200 130">
-                  <path d="M 0,130 Q 100,50 200,80" strokeWidth="4" />
-                  <path d="M 20,130 Q 110,70 200,100" strokeWidth="2" />
-                </svg>
-              </div>
-            )}
-          </div>
-        )}
-
-        {/* Right Column - Workspace List */}
-        <div className={cn("space-y-4", isWorkspacesPage ? "lg:col-span-12" : "lg:col-span-6")}>
-          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-4 border-b border-border">
-            <div className="flex items-center gap-4">
-              <h2 className="text-lg font-display font-semibold tracking-tight">
-                {isWorkspacesPage ? "My projects" : "Recent"}
-              </h2>
-              {!isWorkspacesPage && (
-                <span className="text-sm font-sans text-muted-foreground">
-                  {filteredWorkspaces.length} workspaces
-                </span>
-              )}
-            </div>
-
-            <div className="flex items-center gap-3">
-              {/* Search */}
-              <div className="relative w-44">
-                <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                <input
-                  type="text"
-                  placeholder="Search..."
-                  value={searchTerm}
-                  onChange={(e) => setSearchTerm(e.target.value)}
-                  className="w-full h-9 pl-9 pr-3 bg-card border rounded-lg focus:outline-none focus:ring-2 focus:ring-ring font-sans text-sm"
-                />
-              </div>
-
-              {/* Multi-select toggle */}
-              {isWorkspacesPage && (
-                <>
-                  {!isMultiSelectMode ? (
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={() => setIsMultiSelectMode(true)}
-                      className="font-label font-medium text-xs h-9"
-                    >
-                      Select
-                    </Button>
-                  ) : (
-                    <div className="flex items-center gap-2">
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        onClick={handleSelectAll}
-                        className="font-label font-medium text-xs h-9"
-                      >
-                        {selectedIds.size === filteredWorkspaces.length ? "Deselect" : "Select all"}
-                      </Button>
-                      {selectedIds.size > 0 && (
-                        <Button
-                          variant="destructive"
-                          size="sm"
-                          onClick={handleBulkDelete}
-                          className="font-label font-medium text-xs h-9 gap-1"
-                        >
-                          <Trash2 className="w-3 h-3" />
-                          {selectedIds.size}
-                        </Button>
-                      )}
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        onClick={() => {
-                          setIsMultiSelectMode(false);
-                          setSelectedIds(new Set());
-                        }}
-                        className="h-9 px-2"
-                      >
-                        <X className="w-4 h-4" />
-                      </Button>
-                    </div>
-                  )}
-                </>
-              )}
-
-              {/* Sort dropdown */}
-              {isWorkspacesPage && (
-                <select
-                  value={sortBy}
-                  onChange={(e) => setSortBy(e.target.value as any)}
-                  className="bg-transparent font-sans font-medium text-sm focus:outline-none cursor-pointer hover:bg-muted px-3 py-2 rounded-lg border h-9"
-                >
-                  <option value="recent">Recent</option>
-                  <option value="name">Name</option>
-                </select>
-              )}
-            </div>
-          </div>
-
-          <div className="grid grid-cols-1 gap-3">
-            <AnimatePresence mode="popLayout">
-              {filteredWorkspaces.map((workspace, index) => (
-                <motion.div
-                  key={workspace.id}
-                  layout
-                  initial={{ opacity: 0, y: 20 }}
-                  animate={{ 
-                    opacity: deletingIds.has(workspace.id) ? 0 : 1, 
-                    y: 0,
-                    scale: deletingIds.has(workspace.id) ? 0.95 : 1,
-                    x: deletingIds.has(workspace.id) ? -20 : 0
-                  }}
-                  exit={{ opacity: 0, scale: 0.9, x: -50 }}
-                  transition={{ 
-                    duration: 0.3, 
-                    delay: index * 0.03,
-                    ease: [0.25, 0.1, 0.25, 1] 
-                  }}
-                >
-                  <WorkspaceCard
-                    workspace={workspace}
-                    onDelete={handleDelete}
-                    isSelected={selectedIds.has(workspace.id)}
-                    onToggleSelect={handleToggleSelection}
-                    isMultiSelectMode={isMultiSelectMode}
-                    isDeleting={deletingIds.has(workspace.id)}
+                {/* Command Bar */}
+                <div className="w-full max-w-2xl relative group z-30">
+                  <div className="absolute inset-y-0 left-4 flex items-center pointer-events-none">
+                    <Search className="w-5 h-5 text-outline/50" />
+                  </div>
+                  <input
+                    value={searchTerm}
+                    onChange={(e) => setSearchTerm(e.target.value)}
+                    onFocus={() => setIsSearchFocused(true)}
+                    onBlur={() => setTimeout(() => setIsSearchFocused(false), 200)}
+                    className={`w-full bg-surface-container-low/30 border py-4 pl-12 pr-16 text-base font-body text-on-surface placeholder:text-outline/50 focus:outline-none transition-all duration-300 backdrop-blur-md ${isSearchFocused ? 'border-[#FF5500]/50 rounded-t-xl rounded-b-none bg-surface-container-low/80 shadow-[0_4px_30px_rgba(255,85,0,0.15)]' : 'border-outline-variant/20 rounded-lg hover:border-outline-variant'}`}
+                    placeholder="Search blueprints, assets, or run a command..."
+                    type="text"
                   />
-                </motion.div>
-              ))}
-            </AnimatePresence>
-            {!filteredWorkspaces.length && (
-              <div className="brutal-card border-dashed border-2 border-foreground/30 flex flex-col items-center justify-center gap-4 py-16 px-8 bg-card/50">
-                <div className="w-16 h-16 border-2 border-foreground/20 flex items-center justify-center">
-                  <Search className="w-8 h-8 text-foreground/30" />
+                  <div className="absolute inset-y-0 right-4 flex items-center gap-2">
+                    <kbd className="px-2 py-1 bg-surface-container-high text-[10px] text-outline border border-outline-variant/30 rounded font-body">⌘ K</kbd>
+                  </div>
+
+                  {/* Search Dropdown - Aesthetic Mapping */}
+                  <AnimatePresence>
+                    {isSearchFocused && !searchTerm && (
+                      <motion.div
+                        initial={{ opacity: 0, y: -10 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        exit={{ opacity: 0, y: -10 }}
+                        transition={{ duration: 0.2 }}
+                        className="absolute top-full left-0 right-0 bg-[#0A0A0A]/95 backdrop-blur-xl border border-t-0 border-[#FF5500]/50 rounded-b-xl overflow-hidden shadow-[0_20px_40px_rgba(0,0,0,0.6)] text-left"
+                      >
+                        <div className="p-2 border-b border-outline-variant/10">
+                          <div className="px-3 py-2 text-[10px] font-headline font-bold text-outline tracking-widest uppercase">Commands</div>
+                          <div onClick={() => setIsCreateOpen(true)} className="flex items-center gap-3 px-3 py-2.5 rounded-lg hover:bg-surface-container-high cursor-figma-pointer group transition-colors">
+                            <Terminal className="w-4 h-4 text-outline group-hover:text-white transition-colors" />
+                            <span className="text-sm text-[#E5E2E1] group-hover:text-white transition-colors">Create new workspace</span>
+                            <kbd className="ml-auto px-2 py-1 bg-surface-container-highest text-[10px] text-outline rounded font-body opacity-0 group-hover:opacity-100 transition-opacity">↵</kbd>
+                          </div>
+                          <Link href="/team">
+                            <div className="flex items-center gap-3 px-3 py-2.5 rounded-lg hover:bg-surface-container-high cursor-figma-pointer group transition-colors">
+                              <Users className="w-4 h-4 text-outline group-hover:text-white transition-colors" />
+                              <span className="text-sm text-[#E5E2E1] group-hover:text-white transition-colors">Invite team member</span>
+                            </div>
+                          </Link>
+                        </div>
+                      </motion.div>
+                    )}
+                  </AnimatePresence>
                 </div>
-                <div className="text-center">
-                  <p className="font-black text-lg uppercase tracking-widest text-foreground">
-                    {searchTerm ? "No Matches Found" : "Start Your First Project"}
-                  </p>
-                  <p className="text-muted-foreground/60 font-bold text-xs uppercase tracking-widest mt-2">
-                    {searchTerm ? "Try a different search term" : "Create a workspace to get started"}
-                  </p>
-                </div>
-                {!searchTerm && (
-                  <Button 
-                    onClick={() => setIsCreateOpen(true)} 
-                    className="accent-btn h-12 px-8 text-sm mt-2"
+
+                {/* Primary Action */}
+                <div className="mt-12">
+                  <motion.button
+                    onClick={() => setIsCreateOpen(true)}
+                    whileHover={{ scale: 1.02 }}
+                    whileTap={{ scale: 0.95 }}
+                    className="bg-[#FF6B35] text-[#4A1200] font-headline font-bold px-10 py-4 rounded transition-shadow duration-300 shadow-[0_0_30px_rgba(255,107,53,0.3)] hover:shadow-[0_0_40px_rgba(255,107,53,0.5)] cursor-figma-pointer"
                   >
-                    CREATE WORKSPACE
-                  </Button>
-                )}
+                    NEW WORKSPACE
+                  </motion.button>
+                </div>
+              </motion.section>
+
+              {/* Dashboard Content */}
+              <div className="w-full max-w-5xl mx-auto">
+                <motion.section variants={containerVariants} className="w-full">
+                  <motion.div variants={fadeUpVariants} className="flex items-center justify-between mb-10">
+                    <h3 className="text-xs font-bold font-headline tracking-[0.2em] uppercase text-outline">Recent Projects</h3>
+                    <Link href="/workspaces">
+                      <span className="text-[10px] font-headline tracking-widest text-primary hover:underline underline-offset-4 uppercase cursor-figma-pointer">View Archive</span>
+                    </Link>
+                  </motion.div>
+                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-10">
+                    {displayWorkspaces.map(workspace => (
+                      <WorkspaceCard
+                        key={workspace.id}
+                        workspace={workspace}
+                        onDelete={handleDelete}
+                        viewMode="grid"
+                      />
+                    ))}
+                  </div>
+                  {displayWorkspaces.length === 0 && !searchTerm && (
+                    <motion.div variants={fadeUpVariants} className="bg-surface-container-low border border-dashed border-outline-variant/30 rounded-xl p-16 flex flex-col items-center justify-center text-center">
+                      <Package className="w-12 h-12 text-outline/30 mb-4" />
+                      <p className="text-outline font-headline">No recent projects found.</p>
+                      <button onClick={() => setIsCreateOpen(true)} className="text-primary hover:text-white mt-2 font-headline font-bold text-sm transition-colors cursor-figma-pointer">Create your first</button>
+                    </motion.div>
+                  )}
+                </motion.section>
               </div>
-            )}
-          </div>
-        </div>
+            </motion.div>
+          ) : (
+            // ==========================================
+            // WORKSPACES PAGE (ARCHIVE)
+            // ==========================================
+            <motion.div
+              key="projects"
+              initial="hidden"
+              animate="visible"
+              exit="exit"
+              variants={containerVariants}
+              className="w-full max-w-5xl mx-auto"
+            >
+              <motion.div variants={fadeUpVariants} className="flex items-center justify-between mb-10">
+                <h2 className="text-2xl font-extrabold tracking-tighter text-white font-headline uppercase">All Projects</h2>
+                <div className="flex items-center gap-4">
+                  {/* Local mini search for workspace tab */}
+                  <div className="relative group">
+                    <Search className="absolute inset-y-0 left-2 my-auto w-4 h-4 text-outline group-focus-within:text-primary transition-colors" />
+                    <input
+                      value={searchTerm}
+                      onChange={(e) => setSearchTerm(e.target.value)}
+                      type="text"
+                      placeholder="Filter..."
+                      className="bg-surface-container-low border border-outline-variant/20 rounded pl-8 pr-3 py-1.5 text-sm outline-none focus:border-primary/50 text-white transition-colors cursor-figma"
+                    />
+                  </div>
+                  <div className="flex items-center gap-1 bg-surface-container-low p-1 rounded-lg border border-outline-variant/10">
+                    <button onClick={() => setViewMode('grid')} className={`p-1.5 rounded cursor-figma-pointer transition-colors ${viewMode === 'grid' ? 'bg-surface-container-high text-white shadow-sm' : 'text-[#777575] hover:text-white'}`}><LayoutGrid className="w-4 h-4" /></button>
+                    <button onClick={() => setViewMode('list')} className={`p-1.5 rounded cursor-figma-pointer transition-colors ${viewMode === 'list' ? 'bg-surface-container-high text-white shadow-sm' : 'text-[#777575] hover:text-white'}`}><List className="w-4 h-4" /></button>
+                  </div>
+                </div>
+              </motion.div>
+              
+              <AnimatePresence mode="popLayout">
+                {viewMode === 'grid' ? (
+                  <motion.div
+                    key="grid"
+                    initial="hidden"
+                    animate="visible"
+                    exit="exit"
+                    variants={containerVariants}
+                    className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-10"
+                  >
+                    {displayWorkspaces.map(workspace => (
+                      <WorkspaceCard
+                        key={workspace.id}
+                        workspace={workspace}
+                        onDelete={handleDelete}
+                        viewMode="grid"
+                      />
+                    ))}
+                  </motion.div>
+                ) : (
+                  <motion.div
+                    key="list"
+                    initial="hidden"
+                    animate="visible"
+                    exit="exit"
+                    variants={containerVariants}
+                    className="flex flex-col gap-4"
+                  >
+                    {displayWorkspaces.map(workspace => (
+                      <WorkspaceCard
+                        key={workspace.id}
+                        workspace={workspace}
+                        onDelete={handleDelete}
+                        viewMode="list"
+                      />
+                    ))}
+                  </motion.div>
+                )}
+              </AnimatePresence>
+            </motion.div>
+          )}
+        </AnimatePresence>
       </div>
 
       <CreateWorkspaceDialog
         open={isCreateOpen}
         onOpenChange={setIsCreateOpen}
       />
-    </div>
+    </>
   );
 }

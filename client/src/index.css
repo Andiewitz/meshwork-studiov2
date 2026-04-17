@@ -22,6 +22,20 @@
   --popover: 0 0% 100%;
   --popover-foreground: 0 0% 10%;
 
+  /* Redesign Theme Variable Definitions */
+  --color-surface: #0e0e0e;
+  --color-on-surface: #ffffff;
+  --color-surface-container-lowest: #000000;
+  --color-surface-container-low: #131313;
+  --color-surface-container: #1a1919;
+  --color-surface-container-high: #201f1f;
+  --color-surface-container-highest: #262626;
+  --color-outline: #777575;
+  --color-outline-variant: #494847;
+  
+  --font-headline: 'Inter', sans-serif;
+  --font-body: 'DM Sans', sans-serif;
+
   /* Primary (Accent) - #FF3D00 */
   --primary: 14 100% 50%;
   --primary-foreground: 0 0% 100%;
@@ -77,6 +91,46 @@
   --border: 30 10% 80%;           /* #CECECB */
   --input: 0 0% 14%;
   --ring: 14 100% 50%;
+}
+
+@layer utilities {
+  .technical-gradient {
+    background: radial-gradient(circle at 50% -20%, #262626 0%, #0e0e0e 70%);
+  }
+  .glass-header {
+    background: rgba(14, 14, 14, 0.6);
+    backdrop-filter: blur(24px);
+  }
+  .hide-scrollbar::-webkit-scrollbar { display: none; }
+  .hide-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+  
+  .cursor-figma {
+    cursor: url("data:image/svg+xml,%3Csvg width='22' height='22' viewBox='0 0 22 22' fill='none' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M4.83333 1.83333L4.83333 16.5L8.5 12.8333L12.1667 20.1667L14.9167 18.3333L11.25 11L16.75 11L4.83333 1.83333Z' fill='black' stroke='white' stroke-width='1.5' stroke-linejoin='round'/%3E%3C/svg%3E") 4 2, auto !important;
+  }
+  .cursor-figma-pointer {
+    cursor: url("data:image/svg+xml,%3Csvg width='24' height='24' viewBox='0 0 24 24' fill='none' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M9.5 10.5V2.5C9.5 1.67157 10.1716 1 11 1C11.8284 1 12.5 1.67157 12.5 2.5V10.5H13V5.5C13 4.67157 13.6716 4 14.5 4C15.3284 4 16 4.67157 16 5.5V10.5H16.5V6.5C16.5 5.67157 17.1716 5 18 5C18.8284 5 19.5 5.67157 19.5 6.5V10.5H20V8.5C20 7.67157 20.6716 7 21.5 7C22.3284 7 23 7.67157 23 8.5V15.5C23 19.0899 20.0899 22 16.5 22H13.5C11.7761 22 10.123 21.3155 8.90381 20.0962L3.62132 14.8137C3.03553 14.2279 3.03553 13.2782 3.62132 12.6924C4.20711 12.1066 5.15685 12.1066 5.74264 12.6924L9.5 16.4497V10.5Z' fill='black' stroke='white' stroke-width='1.5' stroke-linejoin='round'/%3E%3C/svg%3E") 10 2, pointer !important;
+  }
+}
+
+/* Custom Scrollbar from Redesign */
+::-webkit-scrollbar {
+  width: 10px;
+  height: 10px;
+}
+::-webkit-scrollbar-track {
+  background: var(--color-surface);
+}
+::-webkit-scrollbar-thumb {
+  background: var(--color-outline-variant);
+  border-radius: 5px;
+  border: 2px solid var(--color-surface);
+}
+::-webkit-scrollbar-thumb:hover {
+  background: var(--color-outline);
+}
+html {
+  scrollbar-color: var(--color-outline-variant) var(--color-surface);
+  scrollbar-width: thin;
 }
 
 @layer base {

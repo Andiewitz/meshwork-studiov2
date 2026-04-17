@@ -18,6 +18,16 @@ export function useWorkspaces() {
   return useQuery({
     queryKey: [api.workspaces.list.path],
     queryFn: async () => {
+      // Local Dev Mock - Supply stunning dummy projects to test the new UI
+      if (import.meta.env.DEV) {
+        return [
+          { id: 1, title: "Vertex_Engine_V4", type: "canvas", data: {}, icon: "box", isPublic: false, userId: 1, createdAt: new Date() },
+          { id: 2, title: "Neural_Mesh_Identity", type: "system", data: {}, icon: "globe", isPublic: false, userId: 1, createdAt: new Date(Date.now() - 14400000) },
+          { id: 3, title: "Quantum_Core_Alpha", type: "canvas", data: {}, icon: "server", isPublic: false, userId: 1, createdAt: new Date(Date.now() - 86400000) },
+          { id: 4, title: "Stellar_Gateway_UI", type: "canvas", data: {}, icon: "cpu", isPublic: false, userId: 1, createdAt: new Date(Date.now() - 172800000) },
+        ] as any[];
+      }
+
       const res = await fetch(getApiUrl(api.workspaces.list.path), { credentials: "include" });
       if (!res.ok) {
         const errorText = await res.text().catch(() => "Unknown error");

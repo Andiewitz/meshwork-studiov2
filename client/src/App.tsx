@@ -17,6 +17,8 @@ import Register from "@/pages/auth/Register";
 import Settings from "@/pages/Settings";
 import Workspace from "@/pages/Workspace";
 import Dev from "@/pages/Dev";
+import Docs from "@/pages/Docs"; // Redesign route
+import Team from "@/pages/Team"; // Redesign route
 import { DashboardLayout } from "@/components/layout/DashboardLayout";
 import { HelmetProvider } from "react-helmet-async";
 
@@ -163,6 +165,12 @@ function Router() {
             </Route>
             <Route path="/settings">
               <ProtectedRoute component={Settings} />
+            </Route>
+            <Route path="/docs">
+              <ProtectedRoute component={Docs} />
+            </Route>
+            <Route path="/team">
+              <ProtectedRoute component={Team} />
             </Route>
             <Route path="/dev">
               <ProtectedRoute component={Dev} />

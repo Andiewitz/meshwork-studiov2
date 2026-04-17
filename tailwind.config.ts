@@ -59,6 +59,16 @@ export default {
           "4": "hsl(var(--chart-4) / <alpha-value>)",
           "5": "hsl(var(--chart-5) / <alpha-value>)",
         },
+        // Redesign Theme Tokens
+        surface: "var(--color-surface)",
+        "on-surface": "var(--color-on-surface)",
+        "surface-container-lowest": "var(--color-surface-container-lowest)",
+        "surface-container-low": "var(--color-surface-container-low)",
+        "surface-container": "var(--color-surface-container)",
+        "surface-container-high": "var(--color-surface-container-high)",
+        "surface-container-highest": "var(--color-surface-container-highest)",
+        outline: "var(--color-outline)",
+        "outline-variant": "var(--color-outline-variant)",
         sidebar: {
           ring: "hsl(var(--sidebar-ring) / <alpha-value>)",
           DEFAULT: "hsl(var(--sidebar) / <alpha-value>)",
@@ -87,6 +97,8 @@ export default {
         display: ["var(--font-display)"],
         label: ["var(--font-label)"],
         mono: ["var(--font-mono)"],
+        headline: ["var(--font-headline)"],
+        body: ["var(--font-body)"],
       },
       keyframes: {
         "accordion-down": {

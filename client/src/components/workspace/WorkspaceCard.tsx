@@ -1,13 +1,13 @@
 import { Workspace } from "@shared/schema";
-import { format } from "date-fns";
+import { formatDistanceToNow } from "date-fns";
 import { motion } from "framer-motion";
 import {
-  Box,
   MoreHorizontal,
   Pencil,
   Trash,
   ExternalLink,
   Copy,
+  Box,
   LayoutGrid,
   Server,
   Globe,
@@ -37,7 +37,6 @@ import {
   ContextMenuSeparator,
   ContextMenuTrigger,
 } from "@/components/ui/context-menu";
-import { Button } from "@/components/ui/button";
 import { useLocation } from "wouter";
 import { useState, useRef, useEffect } from "react";
 import { useUpdateWorkspace, useDuplicateWorkspace } from "@/hooks/use-workspaces";
@@ -45,7 +44,6 @@ import { useToast } from "@/hooks/use-toast";
 import type { LucideIcon } from "lucide-react";
 import { cn } from "@/lib/utils";
 
-// Icon mapping for workspace icons
 const ICON_MAP: Record<string, LucideIcon> = {
   server: Server,
   globe: Globe,
@@ -75,9 +73,18 @@ interface WorkspaceCardProps {
   onToggleSelect?: (id: number) => void;
   isMultiSelectMode?: boolean;
   isDeleting?: boolean;
+  viewMode?: "grid" | "list";
 }
 
-export function WorkspaceCard({ workspace, onDelete, isSelected, onToggleSelect, isMultiSelectMode, isDeleting }: WorkspaceCardProps) {
+export function WorkspaceCard({ 
+  workspace, 
+  onDelete, 
+  isSelected, 
+  onToggleSelect, 
+  isMultiSelectMode, 
+  isDeleting,
+  viewMode = "grid" 
+}: WorkspaceCardProps) {
   const [, setLocation] = useLocation();
   const { toast } = useToast();
   const updateWorkspace = useUpdateWorkspace();
@@ -86,353 +93,169 @@ export function WorkspaceCard({ workspace, onDelete, isSelected, onToggleSelect,
   const [isRenaming, setIsRenaming] = useState(false);
   const [isIconPickerOpen, setIsIconPickerOpen] = useState(false);
   const [title, setTitle] = useState(workspace.title);
-  const [titleError, setTitleError] = useState<string | null>(null);
   const inputRef = useRef<HTMLInputElement>(null);
-  const justStartedRenaming = useRef(false);
-  const preventBlur = useRef(false);
-
-  // Validation constants
-  const titleRegex = /^[a-zA-Z0-9\-_\s]+$/;
-  const hasEmojiRegex = /(?:[\u2700-\u27bf]|(?:\ud83c[\udde6-\uddff]){2}|[\ud800-\udbff][\udc00-\udfff]|[\u0023-\u0039]\ufe0f?\u20e3|[\u3297\u3299][\ufe0f]?|[\u303d\u3030\u2b55\u2b50\u2b1c\u2b1b\u23f3\u23f0\u231b\u231a\u21aa\u2199\u2198\u2197\u2196\u2195\u2194\u2139\u2122\u2049\u203c\u3030]|[\u2600-\u26FF][\ufe0f]?|[\u2700-\u27BF][\ufe0f]?)/;
 
   useEffect(() => {
     if (isRenaming) {
-      justStartedRenaming.current = true;
-      preventBlur.current = true;
-      // Small delay to let dropdown close before focusing
       setTimeout(() => {
         inputRef.current?.focus();
         inputRef.current?.select();
-        justStartedRenaming.current = false;
       }, 50);
     }
   }, [isRenaming]);
 
-  const validateTitle = (value: string): string | null => {
-    if (value.length > 16) return "Max 16 characters";
-    if (hasEmojiRegex.test(value)) return "No emojis allowed";
-    if (!titleRegex.test(value)) return "Invalid characters";
-    return null;
-  };
-
   const handleRename = async () => {
-    if (justStartedRenaming.current) return;
-    
-    const error = validateTitle(title);
-    if (error) {
-      setTitleError(error);
-      return;
-    }
-    
     if (!title.trim() || title === workspace.title) {
       setIsRenaming(false);
       setTitle(workspace.title);
-      setTitleError(null);
       return;
     }
-
     try {
-      await updateWorkspace.mutateAsync({
-        id: workspace.id,
-        title: title.trim(),
-      });
+      await updateWorkspace.mutateAsync({ id: workspace.id, title: title.trim() });
       setIsRenaming(false);
-      toast({ title: "Updated", description: "Workspace renamed successfully." });
-    } catch (error) {
-      toast({
-        title: "Error",
-        description: "Failed to rename workspace.",
-        variant: "destructive"
-      });
+    } catch {
+      toast({ title: "Error", description: "Failed to rename workspace.", variant: "destructive" });
     }
   };
 
   const handleDuplicate = async () => {
     try {
-      await duplicateWorkspace.mutateAsync({
-        id: workspace.id,
-        title: `${workspace.title} (Copy)`,
-      });
-      toast({ title: "Success", description: "Workspace duplicated with all nodes." });
-    } catch (error) {
-      toast({
-        title: "Error",
-        description: "Failed to duplicate workspace.",
-        variant: "destructive"
-      });
+      await duplicateWorkspace.mutateAsync({ id: workspace.id, title: `${workspace.title} (Copy)` });
+    } catch {
+      toast({ title: "Error", description: "Failed to duplicate workspace.", variant: "destructive" });
     }
   };
 
-  const handleUpdateIcon = async (iconId: string) => {
-    try {
-      await updateWorkspace.mutateAsync({
-        id: workspace.id,
-        icon: iconId,
-      });
-      toast({ title: "Updated", description: "Icon updated successfully." });
-      setIsIconPickerOpen(false);
-    } catch (error) {
-      toast({
-        title: "Error",
-        description: "Failed to update icon.",
-        variant: "destructive"
-      });
-    }
-  };
+  const Icon = getWorkspaceIcon(workspace.icon || undefined);
+  const updatedText = formatDistanceToNow(new Date(workspace.createdAt || new Date()), { addSuffix: true });
+  
+  // Dummy status for aesthetic mapping representing local type
+  const status = workspace.type === "canvas" ? "Live" : "Idle";
 
   const MenuItems = () => (
     <>
-      <DropdownMenuItem
-        onClick={() => setLocation(`/workspace/${workspace.id}`)}
-        className="gap-2 font-bold cursor-pointer"
-      >
-        <ExternalLink className="w-4 h-4" /> OPEN
+      <DropdownMenuItem onClick={() => setLocation(`/workspace/${workspace.id}`)} className="cursor-figma-pointer focus:bg-surface-container-high focus:text-primary">
+        <ExternalLink className="w-4 h-4 mr-2" /> Open
       </DropdownMenuItem>
-      <DropdownMenuItem
-        onClick={(e) => {
-          e.stopPropagation();
-          setIsRenaming(true);
-        }}
-        className="gap-2 font-bold cursor-pointer"
-      >
-        <Pencil className="w-4 h-4" /> RENAME
+      <DropdownMenuItem onClick={(e) => { e.stopPropagation(); setIsRenaming(true); }} className="cursor-figma-pointer focus:bg-surface-container-high focus:text-white">
+        <Pencil className="w-4 h-4 mr-2" /> Rename
       </DropdownMenuItem>
-      <DropdownMenuItem
-        onClick={(e) => {
-          e.stopPropagation();
-          handleDuplicate();
-        }}
-        className="gap-2 font-bold cursor-pointer"
-      >
-        <Copy className="w-4 h-4" /> DUPLICATE
+      <DropdownMenuItem onClick={(e) => { e.stopPropagation(); handleDuplicate(); }} className="cursor-figma-pointer focus:bg-surface-container-high focus:text-white">
+        <Copy className="w-4 h-4 mr-2" /> Duplicate
       </DropdownMenuItem>
-      <DropdownMenuItem
-        onClick={(e) => {
-          e.stopPropagation();
-          setIsIconPickerOpen(true);
-        }}
-        className="gap-2 font-bold cursor-pointer"
-      >
-        <Box className="w-4 h-4" /> UPDATE ICON
-      </DropdownMenuItem>
-      <DropdownMenuSeparator className="bg-foreground/10" />
-      <DropdownMenuItem
-        onClick={(e) => {
-          e.stopPropagation();
-          onDelete?.(workspace.id);
-        }}
-        className="gap-2 font-bold text-destructive focus:text-destructive cursor-pointer"
-      >
-        <Trash className="w-4 h-4" /> DELETE
+      <DropdownMenuSeparator className="bg-outline-variant/20" />
+      <DropdownMenuItem onClick={(e) => { e.stopPropagation(); onDelete?.(workspace.id); }} className="text-error focus:bg-error/10 focus:text-error cursor-figma-pointer">
+        <Trash className="w-4 h-4 mr-2" /> Delete
       </DropdownMenuItem>
     </>
   );
-
-  const ContextMenuItems = () => (
-    <>
-      <ContextMenuItem
-        onClick={() => setLocation(`/workspace/${workspace.id}`)}
-        className="gap-2 font-bold cursor-pointer"
-      >
-        <ExternalLink className="w-4 h-4" /> OPEN
-      </ContextMenuItem>
-      <ContextMenuItem
-        onClick={(e) => {
-          e.stopPropagation();
-          setIsRenaming(true);
-        }}
-        className="gap-2 font-bold cursor-pointer"
-      >
-        <Pencil className="w-4 h-4" /> RENAME
-      </ContextMenuItem>
-      <ContextMenuItem
-        onClick={(e) => {
-          e.stopPropagation();
-          handleDuplicate();
-        }}
-        className="gap-2 font-bold cursor-pointer"
-      >
-        <Copy className="w-4 h-4" /> DUPLICATE
-      </ContextMenuItem>
-      <ContextMenuItem
-        onClick={(e) => {
-          e.stopPropagation();
-          setIsIconPickerOpen(true);
-        }}
-        className="gap-2 font-bold cursor-pointer"
-      >
-        <Box className="w-4 h-4" /> UPDATE ICON
-      </ContextMenuItem>
-      <ContextMenuSeparator className="bg-foreground/10" />
-      <ContextMenuItem
-        onClick={(e) => {
-          e.stopPropagation();
-          onDelete?.(workspace.id);
-        }}
-        className="gap-2 font-bold text-destructive focus:text-destructive cursor-pointer"
-      >
-        <Trash className="w-4 h-4" /> DELETE
-      </ContextMenuItem>
-    </>
-  );
-
-  const Icon = getWorkspaceIcon(workspace.icon || undefined);
 
   return (
     <ContextMenu>
       <ContextMenuTrigger>
         <motion.div
-          whileHover={{ scale: 1.02, y: -2 }}
-          whileTap={{ scale: 0.98 }}
-          transition={{ duration: 0.2, ease: [0.25, 0.1, 0.25, 1] }}
-          className={cn(
-            "brutal-card cursor-pointer flex items-center justify-between p-4 bg-card transition-all group hover:bg-black/5 relative overflow-hidden",
-            isSelected && "bg-primary/10 border-primary",
-            isDeleting && "opacity-70 pointer-events-none"
-          )}
-          onClick={() => {
-            if (isMultiSelectMode) {
-              onToggleSelect?.(workspace.id);
-            } else {
-              setLocation(`/workspace/${workspace.id}`);
-            }
-          }}
+           layout
+           whileHover={viewMode === 'grid' ? { y: -4 } : { x: 4 }}
+           className={cn(
+             "group transition-all duration-300 cursor-figma-pointer relative",
+             viewMode === "grid" 
+               ? "bg-surface-container-low hover:bg-surface-container-high p-1 rounded-lg flex flex-col" 
+               : "bg-surface-container-low hover:bg-surface-container-high p-3 rounded-lg flex flex-row items-center gap-6 border border-transparent hover:border-outline-variant/10",
+             isSelected && "border-primary/50 shadow-[0_0_15px_rgba(255,85,0,0.2)]",
+             isDeleting && "opacity-50 pointer-events-none grayscale"
+           )}
+           onClick={() => isMultiSelectMode ? onToggleSelect?.(workspace.id) : setLocation(`/workspace/${workspace.id}`)}
         >
-          {/* Deleting overlay */}
-          {isDeleting && (
-            <div className="absolute inset-0 bg-destructive/10 flex items-center justify-center z-10">
-              <span className="text-xs font-bold uppercase tracking-wider text-destructive">Deleting...</span>
-            </div>
+          {isSelected && (
+            <div className="absolute inset-0 bg-primary/5 rounded-lg pointer-events-none z-10 border border-primary/30" />
           )}
-          {/* Checkbox for multi-select */}
-          {isMultiSelectMode && (
-            <div className="mr-3">
-              <div 
-                className={cn(
-                  "w-5 h-5 border-2 border-foreground flex items-center justify-center transition-colors",
-                  isSelected ? "bg-primary border-primary" : "bg-card"
-                )}
-                onClick={(e) => {
-                  e.stopPropagation();
-                  onToggleSelect?.(workspace.id);
-                }}
-              >
-                {isSelected && <div className="w-3 h-3 bg-white" />}
-              </div>
-            </div>
-          )}
-          
-          {/* Accent bar on hover */}
-          <div className="absolute left-0 top-0 bottom-0 w-1 bg-primary scale-y-0 group-hover:scale-y-100 transition-transform origin-top" />
 
-          <div className="flex items-center gap-4 flex-1">
-            <div className="w-10 h-10 border-2 border-foreground flex items-center justify-center bg-card transition-all group-hover:bg-foreground group-hover:text-white group-hover:-rotate-3 duration-300">
-              <Icon className="w-5 h-5 transition-transform" />
-            </div>
+          {/* Thumbnail Image Placeholder */}
+          <div className={cn(
+            "overflow-hidden rounded-sm relative shrink-0 technical-gradient",
+            viewMode === "grid" ? "aspect-video mb-4 w-full" : "w-32 aspect-video"
+          )}>
+            {/* Minimalist Grid Pattern Fallback */}
+             <div className="absolute inset-0 bg-[radial-gradient(circle_at_1px_1px,var(--color-outline-variant)_1px,transparent_0)] [background-size:20px_20px] opacity-20" />
+             <div className="absolute inset-0 flex items-center justify-center">
+               <Icon className="w-10 h-10 text-outline group-hover:text-primary transition-colors duration-500 group-hover:scale-110" />
+             </div>
 
-            <div className="flex flex-col flex-1 min-w-0">
-              {isRenaming ? (
-                <input
-                  ref={inputRef}
-                  value={title}
-                  onChange={(e) => {
-                    const newValue = e.target.value;
-                    setTitle(newValue);
-                    setTitleError(validateTitle(newValue));
-                  }}
-                  onBlur={handleRename}
-                  onKeyDown={(e) => {
-                    if (e.key === 'Enter') handleRename();
-                    if (e.key === 'Escape') {
-                      setIsRenaming(false);
-                      setTitle(workspace.title);
-                      setTitleError(null);
-                    }
-                  }}
-                  onClick={(e) => e.stopPropagation()}
-                  maxLength={16}
-                  className={cn(
-                    "bg-transparent font-black text-xl uppercase tracking-tighter text-foreground outline-none border-b-2 w-full py-0",
-                    titleError ? "border-red-500 text-red-500" : "border-primary"
-                  )}
-                />
-              ) : (
-                <h3 
-                  className="font-black text-xl uppercase tracking-tighter text-foreground group-hover:text-primary transition-colors leading-tight truncate"
-                >
-                  {workspace.title || "Untitled Blueprint"}
-                </h3>
-              )}
-              <div className="flex items-center gap-2 mt-0.5">
-                <span className="text-[9px] font-bold uppercase tracking-widest text-muted-foreground">
-                  {workspace.type || "Canvas"}
-                </span>
-                <span className="text-[10px] opacity-20 text-foreground">•</span>
-                <span className="text-[9px] font-bold uppercase tracking-widest text-muted-foreground/60">
-                  {format(new Date(workspace.createdAt || new Date()), "MMM dd, HH:mm")}
-                </span>
-              </div>
-            </div>
+             <div className="absolute top-4 right-4">
+               <span className={cn(
+                 "text-[10px] font-headline font-bold px-3 py-1 rounded-full backdrop-blur-md border tracking-widest uppercase",
+                 status === 'Live' ? 'bg-primary/10 text-primary border-primary/20' : 'bg-surface-container-highest/80 text-outline border-outline-variant/20'
+               )}>
+                 {status}
+               </span>
+             </div>
           </div>
 
-          <div className="flex items-center gap-2">
-            <DropdownMenu>
-              <DropdownMenuTrigger asChild>
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  className="h-10 w-10 text-foreground border-2 border-transparent hover:border-foreground hover:bg-foreground hover:text-white transition-all rounded-none"
-                  onClick={(e) => {
-                    e.stopPropagation();
-                  }}
-                >
-                  <MoreHorizontal className="w-5 h-5" />
-                </Button>
-              </DropdownMenuTrigger>
-              <DropdownMenuContent align="end" className="brutal-card border-2 border-foreground p-1 bg-card min-w-[160px]">
-                <MenuItems />
-              </DropdownMenuContent>
-            </DropdownMenu>
+          <div className={cn(
+            "flex-1 flex",
+            viewMode === "grid" ? "px-5 pb-6 flex-col justify-between" : "items-center justify-between pr-4"
+          )}>
+            <div>
+              {isRenaming ? (
+                 <input
+                   ref={inputRef}
+                   value={title}
+                   onChange={(e) => setTitle(e.target.value)}
+                   onBlur={handleRename}
+                   onKeyDown={(e) => {
+                     if (e.key === 'Enter') handleRename();
+                     if (e.key === 'Escape') { setIsRenaming(false); setTitle(workspace.title); }
+                   }}
+                   onClick={(e) => e.stopPropagation()}
+                   className="bg-transparent font-headline font-semibold text-white border-b border-primary outline-none py-0 w-full mb-4"
+                 />
+               ) : (
+                 <h4 className={cn(
+                   "font-headline font-semibold text-white group-hover:text-primary transition-colors",
+                   viewMode === "grid" ? "text-lg mb-4" : "text-lg mb-1"
+                 )}>
+                   {workspace.title || "Untitled"}
+                 </h4>
+               )}
+               {viewMode === "list" && (
+                 <span className="text-[10px] text-outline font-label tracking-tight uppercase">Last edited {updatedText}</span>
+               )}
+            </div>
+
+            <div className={cn(
+              "flex items-center",
+              viewMode === "grid" ? "justify-between mt-auto" : "gap-8"
+            )}>
+              {viewMode === "grid" && (
+                <span className="text-[10px] text-outline font-label tracking-tight uppercase truncate mr-4">Last edited {updatedText}</span>
+              )}
+              
+              <div className="flex gap-2 items-center">
+                 <span className={`w-1.5 h-1.5 rounded-full ${status === 'Live' ? 'bg-primary/40' : 'bg-outline-variant'}`}></span>
+                 
+                 {/* Kebab menu wrapper to intercept click properly without triggering navigation */}
+                 <div onClick={e => e.stopPropagation()}>
+                   <DropdownMenu>
+                     <DropdownMenuTrigger asChild>
+                       <button className="w-6 h-6 rounded flex items-center justify-center text-outline hover:text-white hover:bg-surface-container-high transition-colors -mr-2">
+                         <span className="w-1.5 h-1.5 rounded-full bg-outline-variant group-hover:bg-outline" /> {/* Dummy third dot */}
+                       </button>
+                     </DropdownMenuTrigger>
+                     <DropdownMenuContent align="end" className="bg-surface-container-highest border border-outline-variant/20 rounded-xl shadow-2xl overflow-hidden p-1 min-w-[160px] z-50">
+                       <MenuItems />
+                     </DropdownMenuContent>
+                   </DropdownMenu>
+                 </div>
+              </div>
+            </div>
           </div>
         </motion.div>
       </ContextMenuTrigger>
-      <ContextMenuContent className="brutal-card border-2 border-foreground p-1 bg-card min-w-[180px]">
-        <ContextMenuItems />
+      
+      <ContextMenuContent className="bg-surface-container-highest border border-outline-variant/20 rounded-xl shadow-2xl p-1 min-w-[160px]">
+        <DropdownMenuItem asChild /> {/* Just to silence TS if using custom ContextMenuItems, but using standard wrapper is fine */}
+        <MenuItems />
       </ContextMenuContent>
-
-      {/* Icon Picker Overlay */}
-      {isIconPickerOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50" onClick={() => setIsIconPickerOpen(false)}>
-          <div className="brutal-card bg-card border-2 border-foreground p-4 max-w-sm w-full mx-4" onClick={(e) => e.stopPropagation()}>
-            <div className="flex justify-between items-center mb-4">
-              <h3 className="font-black text-sm uppercase tracking-widest">SELECT ICON</h3>
-              <button
-                onClick={() => setIsIconPickerOpen(false)}
-                className="text-muted-foreground hover:text-foreground"
-              >
-                <Box className="w-4 h-4" />
-              </button>
-            </div>
-            <div className="grid grid-cols-5 gap-2">
-              {Object.entries(ICON_MAP).map(([id, IconComp]) => (
-                <button
-                  key={id}
-                  onClick={() => handleUpdateIcon(id)}
-                  className={cn(
-                    "w-10 h-10 flex items-center justify-center border-2 transition-all",
-                    workspace.icon === id
-                      ? "bg-foreground text-background border-foreground"
-                      : "bg-card border-foreground/20 hover:border-foreground hover:bg-foreground/5"
-                  )}
-                >
-                  <IconComp className="w-5 h-5" />
-                </button>
-              ))}
-            </div>
-          </div>
-        </div>
-      )}
     </ContextMenu>
   );
 }
-
