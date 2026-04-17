@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { useLocation } from "wouter";
+import { Link, useLocation } from "wouter";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
@@ -50,63 +50,7 @@ const PROJECT_ICONS = [
   { id: "grid", Icon: LayoutGrid },
 ];
 
-// ── Template options (mirrors Workspace.tsx templates) ──────────────────────
-const TEMPLATES = [
-  {
-    id: "blank",
-    label: "Start Blank",
-    icon: LayoutGrid,
-    description: "Empty canvas, build from scratch",
-    tag: "BLANK",
-    accent: "bg-foreground",
-    type: "system",
-  },
-  {
-    id: "template:ecommerce",
-    label: "E-Commerce",
-    icon: ShoppingCart,
-    description: "Microservices, payments, inventory",
-    tag: "RETAIL",
-    accent: "bg-orange-500",
-    type: "template:ecommerce",
-  },
-  {
-    id: "template:ai-platform",
-    label: "AI / ML Platform",
-    icon: Activity,
-    description: "Data ingestion, training, inference",
-    tag: "AI",
-    accent: "bg-violet-600",
-    type: "template:ai-platform",
-  },
-  {
-    id: "template:enterprise-k8s",
-    label: "Enterprise K8s",
-    icon: Layers,
-    description: "Clusters, namespaces, deployments",
-    tag: "K8S",
-    accent: "bg-sky-500",
-    type: "template:enterprise-k8s",
-  },
-  {
-    id: "template:fintech-saas",
-    label: "FinTech SaaS",
-    icon: CreditCard,
-    description: "Payments, compliance, multi-tenant",
-    tag: "FINTECH",
-    accent: "bg-emerald-600",
-    type: "template:fintech-saas",
-  },
-  {
-    id: "template:realtime",
-    label: "Realtime System",
-    icon: Wifi,
-    description: "WebSockets, pub/sub, event streams",
-    tag: "LIVE",
-    accent: "bg-rose-500",
-    type: "realtime",
-  },
-];
+
 
 export function CreateWorkspaceDialog({ open, onOpenChange }: CreateWorkspaceDialogProps) {
   const [, setLocation] = useLocation();
@@ -114,7 +58,6 @@ export function CreateWorkspaceDialog({ open, onOpenChange }: CreateWorkspaceDia
   const { toast } = useToast();
   const createWorkspace = useCreateWorkspace();
 
-  const [selectedTemplate, setSelectedTemplate] = useState("blank");
   const [selectedIcon, setSelectedIcon] = useState("server");
 
   const form = useForm<FormValues>({
@@ -124,19 +67,17 @@ export function CreateWorkspaceDialog({ open, onOpenChange }: CreateWorkspaceDia
 
   const handleClose = () => {
     form.reset();
-    setSelectedTemplate("blank");
     setSelectedIcon("server");
     onOpenChange(false);
   };
 
   const onSubmit = (values: FormValues) => {
     if (!user) return;
-    const template = TEMPLATES.find(t => t.id === selectedTemplate);
 
     createWorkspace.mutate(
       { 
         ...values, 
-        type: template?.type ?? "system", 
+        type: "system", 
         userId: user.id,
         icon: selectedIcon,
       },
@@ -166,7 +107,7 @@ export function CreateWorkspaceDialog({ open, onOpenChange }: CreateWorkspaceDia
   return (
     <Dialog open={open} onOpenChange={handleClose}>
       <DialogContent
-        className="p-0 gap-0 max-w-2xl w-full overflow-hidden bg-surface-container-lowest border border-[#494847]/30 shadow-[0_40px_60px_rgba(0,0,0,0.8)] rounded-xl tracking-tight text-white font-body"
+        className="p-0 gap-0 max-w-lg w-full overflow-hidden bg-surface-container-lowest border border-[#494847]/30 shadow-[0_40px_60px_rgba(0,0,0,0.8)] rounded-xl tracking-tight text-white font-body"
         onPointerDownOutside={(e) => e.preventDefault()}
         onInteractOutside={(e) => e.preventDefault()}
       >
@@ -183,15 +124,10 @@ export function CreateWorkspaceDialog({ open, onOpenChange }: CreateWorkspaceDia
               <p className="text-xs text-outline tracking-wider uppercase font-headline font-semibold">Meshwork Engine</p>
             </div>
           </div>
-          <button
-            onClick={handleClose}
-            className="relative z-10 w-8 h-8 flex items-center justify-center text-outline hover:text-white rounded bg-surface-container-low hover:bg-[#494847]/20 border border-transparent hover:border-[#494847]/40 transition-all cursor-figma-pointer"
-          >
-            <X className="w-4 h-4" />
-          </button>
+          </div>
         </div>
 
-        <div className="p-8 flex flex-col gap-8 bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-surface-container-low/20 via-surface-container-lowest to-surface-container-lowest">
+        <div className="p-6 flex flex-col gap-6 bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-surface-container-low/20 via-surface-container-lowest to-surface-container-lowest">
 
           {/* ── Project name + icon picker ───────────────────────────────── */}
           <div className="flex flex-col gap-3">
@@ -240,49 +176,16 @@ export function CreateWorkspaceDialog({ open, onOpenChange }: CreateWorkspaceDia
             </div>
           </div>
 
-          {/* ── Template selection ───────────────────────────────────────── */}
-          <div className="flex flex-col gap-3 pt-2">
+          {/* ── Template Shortcut ───────────────────────────────────────── */}
+          <div className="flex flex-col gap-2 pt-2">
             <label className="text-[10px] font-headline font-bold uppercase tracking-[0.2em] text-outline">
               Base Architecture
             </label>
-            <div className="grid grid-cols-2 gap-4">
-              {TEMPLATES.map((tpl) => {
-                const Icon = tpl.icon;
-                const isSelected = selectedTemplate === tpl.id;
-                return (
-                  <button
-                    key={tpl.id}
-                    type="button"
-                    onClick={() => setSelectedTemplate(tpl.id)}
-                    className={cn(
-                      "relative flex flex-col items-start gap-4 p-5 rounded-xl text-left transition-all duration-300 cursor-figma-pointer overflow-hidden group",
-                      isSelected
-                        ? "bg-surface-container-high border-2 border-primary/50 shadow-[0_0_20px_rgba(255,85,0,0.1)]"
-                        : "bg-surface-container-low border-2 border-transparent hover:border-[#494847]/30 hover:bg-surface-container"
-                    )}
-                  >
-                    <div className="flex items-center gap-3 relative z-10 w-full">
-                      <div className={cn(
-                        "p-2 rounded-lg transition-colors duration-300",
-                        isSelected ? "bg-primary text-[#0A0A0A]" : "bg-surface-container-high text-outline group-hover:text-white"
-                      )}>
-                        <Icon className="w-5 h-5 shrink-0" />
-                      </div>
-                      <div className="flex flex-col flex-1 min-w-0">
-                        <span className="font-headline font-bold text-sm tracking-wide text-white truncate w-full">
-                          {tpl.label}
-                        </span>
-                        <span className={cn(
-                          "text-[10px] font-label font-bold uppercase tracking-widest mt-1",
-                          isSelected ? "text-primary" : "text-outline group-hover:text-outline"
-                        )}>
-                          {tpl.tag}
-                        </span>
-                      </div>
-                    </div>
-                  </button>
-                );
-              })}
+            <div className="flex items-center justify-between p-4 rounded-xl bg-surface-container-low border border-dashed border-[#494847]/40">
+              <span className="text-sm font-headline text-outline italic">Start with blank canvas...</span>
+              <Link href="/templates" onClick={() => onOpenChange(false)}>
+                <span className="text-[10px] font-headline font-bold text-primary tracking-widest uppercase hover:underline cursor-figma-pointer">See Templates</span>
+              </Link>
             </div>
           </div>
 

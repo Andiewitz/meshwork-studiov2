@@ -19,6 +19,7 @@ import Workspace from "@/pages/Workspace";
 import Dev from "@/pages/Dev";
 import Docs from "@/pages/Docs"; // Redesign route
 import Team from "@/pages/Team"; // Redesign route
+import Templates from "@/pages/Templates"; // Redesign route
 import { DashboardLayout } from "@/components/layout/DashboardLayout";
 import { HelmetProvider } from "react-helmet-async";
 
@@ -174,6 +175,9 @@ function Router() {
             </Route>
             <Route path="/dev">
               <ProtectedRoute component={Dev} />
+            </Route>
+            <Route path="/templates">
+              <ProtectedRoute component={Templates} />
             </Route>
             <Route>
               <NotFound />
