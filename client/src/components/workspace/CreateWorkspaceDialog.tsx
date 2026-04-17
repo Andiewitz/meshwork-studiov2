@@ -124,7 +124,6 @@ export function CreateWorkspaceDialog({ open, onOpenChange }: CreateWorkspaceDia
               <p className="text-xs text-outline tracking-wider uppercase font-headline font-semibold">Meshwork Engine</p>
             </div>
           </div>
-          </div>
         </div>
 
         <div className="p-6 flex flex-col gap-6 bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-surface-container-low/20 via-surface-container-lowest to-surface-container-lowest">
