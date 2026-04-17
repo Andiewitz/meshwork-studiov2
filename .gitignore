@@ -10,7 +10,7 @@ server/public
 .env.local
 .env.*.local
 .env.production.local
-backup/
+backups/
 
 # IDE & Editor
 .DS_Store

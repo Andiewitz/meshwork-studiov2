@@ -28,6 +28,8 @@ async function createTables() {
                 profile_image_url VARCHAR,
                 password_hash VARCHAR,
                 auth_provider VARCHAR NOT NULL DEFAULT 'email',
+                has_notified_team BOOLEAN DEFAULT false,
+                read_notification_ids JSONB DEFAULT '[]'::jsonb,
                 created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
                 updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
             );
@@ -65,4 +67,20 @@ async function createTables() {
     }
 }
 
-createTables();
+// Safe column migrations — ADD COLUMN IF NOT EXISTS is idempotent, never drops data
+async function runMigrations() {
+    if (!connectionString) return;
+
+    try {
+        // v1.1: Add notification preference columns to users
+        await pool.query(`
+            ALTER TABLE users ADD COLUMN IF NOT EXISTS has_notified_team BOOLEAN DEFAULT false;
+            ALTER TABLE users ADD COLUMN IF NOT EXISTS read_notification_ids JSONB DEFAULT '[]'::jsonb;
+        `);
+        console.log("[AuthDB] Migrations verified (notification preferences)");
+    } catch (err) {
+        console.error("[AuthDB] Migration failed:", err);
+    }
+}
+
+createTables().then(() => runMigrations());

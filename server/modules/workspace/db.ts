@@ -38,6 +38,7 @@ async function createTables() {
                 title TEXT NOT NULL,
                 type TEXT NOT NULL DEFAULT 'system',
                 icon TEXT DEFAULT 'box',
+                is_favorite BOOLEAN DEFAULT false,
                 user_id TEXT,
                 collection_id INTEGER REFERENCES collections(id) ON DELETE SET NULL,
                 created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
@@ -50,4 +51,19 @@ async function createTables() {
     }
 }
 
-createTables();
+// Safe column migrations — ADD COLUMN IF NOT EXISTS is idempotent, never drops data
+async function runMigrations() {
+    if (!connectionString) return;
+
+    try {
+        // v1.1: Add is_favorite to workspaces
+        await pool.query(`
+            ALTER TABLE workspaces ADD COLUMN IF NOT EXISTS is_favorite BOOLEAN DEFAULT false;
+        `);
+        console.log("[WorkspaceDB] Migrations verified (is_favorite)");
+    } catch (err) {
+        console.error("[WorkspaceDB] Migration failed:", err);
+    }
+}
+
+createTables().then(() => runMigrations());
