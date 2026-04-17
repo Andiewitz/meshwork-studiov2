@@ -113,7 +113,7 @@ export default function Home() {
                     onChange={(e) => setSearchTerm(e.target.value)}
                     onFocus={() => setIsSearchFocused(true)}
                     onBlur={() => setTimeout(() => setIsSearchFocused(false), 200)}
-                    className={`w-full bg-surface-container-low/30 border py-4 pl-12 pr-16 text-base font-body text-on-surface placeholder:text-outline/50 focus:outline-none transition-all duration-300 backdrop-blur-md ${isSearchFocused ? 'border-[#FF5500]/50 rounded-t-xl rounded-b-none bg-surface-container-low/80 shadow-[0_4px_30px_rgba(255,85,0,0.15)]' : 'border-outline-variant/20 rounded-lg hover:border-outline-variant'}`}
+                    className={`w-full bg-surface-container-low/30 border py-4 pl-12 pr-16 text-base font-body text-on-surface placeholder:text-outline/50 focus:outline-none transition-all duration-300 backdrop-blur-md ${isSearchFocused ? 'border-[#FF5500]/50 rounded-t-xl rounded-b-none bg-surface-container-low/80' : 'border-outline-variant/20 rounded-lg'}`}
                     placeholder="Search blueprints, assets, or run a command..."
                     type="text"
                   />
@@ -123,7 +123,7 @@ export default function Home() {
 
                   {/* Search Dropdown - Aesthetic Mapping */}
                   <AnimatePresence>
-                    {isSearchFocused && !searchTerm && (
+                    {isSearchFocused && (
                       <motion.div
                         initial={{ opacity: 0, y: -10 }}
                         animate={{ opacity: 1, y: 0 }}
@@ -131,7 +131,26 @@ export default function Home() {
                         transition={{ duration: 0.2 }}
                         className="absolute top-full left-0 right-0 bg-[#0A0A0A]/95 backdrop-blur-xl border border-t-0 border-[#FF5500]/50 rounded-b-xl overflow-hidden shadow-[0_20px_40px_rgba(0,0,0,0.6)] text-left"
                       >
-                        <div className="p-2 border-b border-outline-variant/10">
+                        {/* Dynamic Projects Suggestion */}
+                        {filteredWorkspaces.length > 0 && (
+                          <div className="p-2 border-b border-outline-variant/10">
+                            <div className="px-3 py-2 text-[10px] font-headline font-bold text-outline tracking-widest uppercase">Projects {searchTerm ? 'Matching Search' : 'Recent'}</div>
+                            {filteredWorkspaces.slice(0, 5).map(ws => (
+                              <Link key={ws.id} href={`/workspace/${ws.id}`}>
+                                <div className="flex items-center gap-3 px-3 py-2.5 rounded-lg hover:bg-surface-container-high cursor-figma-pointer group transition-colors">
+                                  <Package className="w-4 h-4 text-outline group-hover:text-white transition-colors" />
+                                  <div className="flex flex-col">
+                                    <span className="text-sm text-[#E5E2E1] group-hover:text-white transition-colors leading-tight">{ws.title}</span>
+                                    <span className="text-[10px] text-outline tracking-wider group-hover:text-primary transition-colors uppercase mt-0.5">ID: #{ws.id}</span>
+                                  </div>
+                                  <ArrowRight className="w-4 h-4 ml-auto text-outline opacity-0 group-hover:opacity-100 transition-opacity" />
+                                </div>
+                              </Link>
+                            ))}
+                          </div>
+                        )}
+
+                        <div className="p-2">
                           <div className="px-3 py-2 text-[10px] font-headline font-bold text-outline tracking-widest uppercase">Commands</div>
                           <div onClick={() => setIsCreateOpen(true)} className="flex items-center gap-3 px-3 py-2.5 rounded-lg hover:bg-surface-container-high cursor-figma-pointer group transition-colors">
                             <Terminal className="w-4 h-4 text-outline group-hover:text-white transition-colors" />
