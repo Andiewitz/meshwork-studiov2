@@ -24,6 +24,9 @@ export const users = pgTable("users", {
   // New auth fields
   passwordHash: varchar("password_hash"), // For email/password users
   authProvider: varchar("auth_provider").notNull().default("email"), // "email" | "google"
+  // Persistence fields
+  hasNotifiedTeam: boolean("has_notified_team").default(false),
+  readNotificationIds: jsonb("read_notification_ids").default(sql`'[]'::jsonb`),
   createdAt: timestamp("created_at").defaultNow(),
   updatedAt: timestamp("updated_at").defaultNow(),
 });

@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { motion } from "framer-motion";
 import { Check } from "lucide-react";
+import { useAuth } from "@/hooks/use-auth";
 
 const containerVariants = {
   hidden: { opacity: 0 },
@@ -21,10 +22,9 @@ const fadeUpVariants = {
 };
 
 export default function Team() {
+  const { user, updatePreferences } = useAuth();
   const [isNotifying, setIsNotifying] = useState(false);
-  const [hasNotified, setHasNotified] = useState(() => {
-    return localStorage.getItem('meshwork_team_notified') === 'true';
-  });
+  const hasNotified = !!user?.hasNotifiedTeam;
 
   const handleNotifyClick = () => {
     if (isNotifying || hasNotified) return;
@@ -35,8 +35,7 @@ export default function Team() {
     
     setTimeout(() => {
       setIsNotifying(false);
-      setHasNotified(true);
-      localStorage.setItem('meshwork_team_notified', 'true');
+      updatePreferences({ hasNotifiedTeam: true });
     }, 1000);
   };
 

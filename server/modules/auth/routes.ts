@@ -138,6 +138,8 @@ export function registerAuthRoutes(app: Express): void {
             lastName: users.lastName,
             profileImageUrl: users.profileImageUrl,
             authProvider: users.authProvider,
+            hasNotifiedTeam: users.hasNotifiedTeam,
+            readNotificationIds: users.readNotificationIds,
             createdAt: users.createdAt,
           })
           .from(users)
@@ -153,6 +155,8 @@ export function registerAuthRoutes(app: Express): void {
           lastName: req.user.lastName,
           profileImageUrl: req.user.profileImageUrl,
           authProvider: req.user.authProvider,
+          hasNotifiedTeam: req.user.hasNotifiedTeam || false,
+          readNotificationIds: req.user.readNotificationIds || [],
           createdAt: req.user.createdAt || new Date(),
         };
       }
@@ -165,6 +169,37 @@ export function registerAuthRoutes(app: Express): void {
     } catch (error) {
       console.error("[Auth] Error fetching user:", error);
       res.status(500).json({ message: "Failed to fetch user profile - please try again" });
+    }
+  });
+
+  // Update user preferences (notifications, team notified, etc)
+  app.patch("/api/user/preferences", isAuthenticated, async (req: any, res: Response) => {
+    try {
+      const userId = req.user.id;
+      const { hasNotifiedTeam, readNotificationIds } = req.body;
+
+      const updateData: any = {};
+      if (typeof hasNotifiedTeam === 'boolean') updateData.hasNotifiedTeam = hasNotifiedTeam;
+      if (Array.isArray(readNotificationIds)) updateData.readNotificationIds = readNotificationIds;
+
+      if (Object.keys(updateData).length === 0) {
+        return res.status(400).json({ message: "No preferences to update" });
+      }
+
+      const [updatedUser] = await db
+        .update(users)
+        .set(updateData)
+        .where(eq(users.id, userId))
+        .returning({
+          id: users.id,
+          hasNotifiedTeam: users.hasNotifiedTeam,
+          readNotificationIds: users.readNotificationIds,
+        });
+
+      res.json(updatedUser);
+    } catch (error) {
+      console.error("[Auth] Error updating preferences:", error);
+      res.status(500).json({ message: "Failed to update preferences" });
     }
   });
 

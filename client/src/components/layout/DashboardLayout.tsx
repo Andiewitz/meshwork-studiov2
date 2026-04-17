@@ -40,7 +40,7 @@ const INITIAL_NOTIFICATIONS = [
 ];
 
 export function DashboardLayout({ children }: { children: ReactNode }) {
-  const { user, logout } = useAuth();
+  const { user, logout, updatePreferences } = useAuth();
   const [location] = useLocation();
 
   // Route matches
@@ -50,14 +50,9 @@ export function DashboardLayout({ children }: { children: ReactNode }) {
   const isTeam = location === "/team";
 
   // Notification State
-  const [readNotifications, setReadNotifications] = useState<number[]>(() => {
-    const stored = typeof window !== 'undefined' ? localStorage.getItem('meshwork_notifications_read_ids') : null;
-    return stored ? JSON.parse(stored) : [3]; // Default welcoming one is read
-  });
-
   const notifications = INITIAL_NOTIFICATIONS.map(n => ({
     ...n,
-    unread: !readNotifications.includes(n.id)
+    unread: !user?.readNotificationIds?.includes(n.id)
   }));
   
   const [isNotifying, setIsNotifying] = useState(false);
@@ -72,23 +67,19 @@ export function DashboardLayout({ children }: { children: ReactNode }) {
 
   const markAllRead = () => {
     const allIds = INITIAL_NOTIFICATIONS.map(n => n.id);
-    setReadNotifications(allIds);
-    localStorage.setItem('meshwork_notifications_read_ids', JSON.stringify(allIds));
+    updatePreferences({ readNotificationIds: allIds });
   };
 
   const markOneRead = (id: number) => {
-    setReadNotifications(prev => {
-      if (prev.includes(id)) return prev;
-      const next = [...prev, id];
-      localStorage.setItem('meshwork_notifications_read_ids', JSON.stringify(next));
-      return next;
-    });
+    if (user?.readNotificationIds?.includes(id)) return;
+    const next = [...(user?.readNotificationIds || []), id];
+    updatePreferences({ readNotificationIds: next });
   };
 
   // Global event listener for triggered notifications from nested pages
   useEffect(() => {
     const handleFlyNotification = (e: any) => {
-      if (isNotifying || hasNotified) return;
+      if (isNotifying || user?.hasNotifiedTeam) return;
       
       // We simulate click start from center screen
       setFlyStart({ x: window.innerWidth / 2, y: window.innerHeight / 2 });

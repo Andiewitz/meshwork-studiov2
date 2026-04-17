@@ -20,6 +20,8 @@ async function fetchUser(): Promise<User | null> {
       firstName: "Andrei",
       profileImageUrl: "https://lh3.googleusercontent.com/aida-public/AB6AXuC-JTdi7K7guBlCoOvJJUVsjo1JHj0Ok51Bw9bfewYZRrdCNKm96Vq8Esf03yMGfFjz-Nx1o88diz_-CgrcFlaEuF133QGW6enP8CTOPkZJl0ySRO6ZMe-AtabFmhTdW3EhkAYHkBTt7E6x4Inv5fP6wfSJwJOdn4hFT-PbOCoTdUy5TodHgkAX8Y2V5W259KvjJ4pWnlGmcbEbhGUHJAAa1jiqDuRbbhBIC38ALVGuHswMP4FGj74VLcVH-mj5E5IbO9VuDZn8Vzhf",
       password: "mock",
+      hasNotifiedTeam: false,
+      readNotificationIds: [],
       createdAt: new Date(),
     } as User;
   }
@@ -81,12 +83,35 @@ export function useAuth() {
     },
   });
 
+  const updatePreferencesMutation = useMutation({
+    mutationFn: async (data: { hasNotifiedTeam?: boolean; readNotificationIds?: number[] }) => {
+      const response = await secureFetch(getApiUrl("/api/user/preferences"), {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(data),
+      });
+      if (!response.ok) {
+        const text = await response.text();
+        throw new Error(`Update preferences failed: ${text}`);
+      }
+      return response.json();
+    },
+    onSuccess: (updatedData) => {
+      queryClient.setQueryData(["/api/auth/me"], (oldUser: any) => {
+        if (!oldUser) return null;
+        return { ...oldUser, ...updatedData };
+      });
+    },
+  });
+
   return {
     user,
     isLoading: isLoading || isRedirecting,
     isAuthenticated: !!user,
     logout: logoutMutation.mutate,
     isLoggingOut: logoutMutation.isPending,
+    updatePreferences: updatePreferencesMutation.mutateAsync,
+    isUpdatingPreferences: updatePreferencesMutation.isPending,
     isRedirecting,
   };
 }

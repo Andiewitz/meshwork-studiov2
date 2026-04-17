@@ -6,6 +6,7 @@ import { eq } from "drizzle-orm";
 export interface IAuthStorage {
   getUser(id: string): Promise<User | undefined>;
   upsertUser(user: UpsertUser): Promise<User>;
+  updateUser(id: string, data: Partial<User>): Promise<User>;
 }
 
 class AuthStorage implements IAuthStorage {
@@ -33,7 +34,16 @@ class AuthStorage implements IAuthStorage {
     } catch (err) {
       console.error("[AuthStorage] DB Upsert failed:", err);
       throw err;
-    }
+  }
+
+  async updateUser(id: string, data: Partial<User>): Promise<User> {
+    const [user] = await db
+      .update(users)
+      .set({ ...data, updatedAt: new Date() })
+      .where(eq(users.id, id))
+      .returning();
+    if (!user) throw new Error("User not found");
+    return user;
   }
 }
 
@@ -63,6 +73,13 @@ class MemAuthStorage implements IAuthStorage {
 
     this.users.set(userData.id!, user);
     return user;
+  }
+  async updateUser(id: string, data: Partial<User>): Promise<User> {
+    const existing = this.users.get(id);
+    if (!existing) throw new Error("User not found");
+    const updated = { ...existing, ...data, updatedAt: new Date() };
+    this.users.set(id, updated);
+    return updated;
   }
 }
 
