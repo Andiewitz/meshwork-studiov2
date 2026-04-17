@@ -190,7 +190,7 @@ export function WorkspaceCard({
                className={cn(
                  "absolute top-3 right-3 w-7 h-7 flex items-center justify-center rounded-full transition-all duration-200 z-20",
                  workspace.isFavorite
-                   ? "text-primary"
+                   ? "text-yellow-400 drop-shadow-[0_0_8px_rgba(250,204,21,0.4)]"
                    : "text-white/20 opacity-0 group-hover:opacity-100 hover:text-white/60"
                )}
              >

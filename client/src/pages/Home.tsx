@@ -74,7 +74,16 @@ export default function Home() {
       ws.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
       ws.type.toLowerCase().includes(searchTerm.toLowerCase())
     );
-    result = [...result].sort((a, b) => b.id - a.id);
+    
+    // Sort logic: Favorites first, then by descending creation date/ID
+    result = [...result].sort((a, b) => {
+      // Primary sort: isFavorite
+      if (a.isFavorite && !b.isFavorite) return -1;
+      if (!a.isFavorite && b.isFavorite) return 1;
+      
+      // Secondary sort: id/date (descending)
+      return b.id - a.id;
+    });
     return result;
   }, [workspaces, searchTerm]);
 
@@ -127,7 +136,7 @@ export default function Home() {
                     onChange={(e) => setSearchTerm(e.target.value)}
                     onFocus={() => setIsSearchFocused(true)}
                     onBlur={() => setTimeout(() => setIsSearchFocused(false), 200)}
-                    className={`w-full border py-4 pl-12 pr-16 text-base font-body text-on-surface placeholder:text-outline/50 focus:outline-none transition-all duration-300 backdrop-blur-md ${isSearchFocused ? 'bg-surface-container-low/80 border-[#FF5500]/50 rounded-t-xl rounded-b-none' : 'bg-surface-container/60 border-outline-variant/20 rounded-lg'}`}
+                    className={`w-full border py-4 pl-12 pr-16 text-base font-body text-white placeholder:text-outline/40 focus:outline-none transition-all duration-300 backdrop-blur-md ${isSearchFocused ? 'bg-[#0A0A0A] border-primary/40 rounded-t-xl rounded-b-none' : 'bg-[#161616] border-[#2A2A2A] rounded-lg'}`}
                     placeholder="Search blueprints, assets, or run a command..."
                     type="text"
                   />
@@ -151,13 +160,13 @@ export default function Home() {
                             <div className="px-3 py-2 text-[10px] font-headline font-bold text-outline tracking-widest uppercase">Projects {searchTerm ? 'Matching Search' : 'Recent'}</div>
                             {filteredWorkspaces.slice(0, 5).map(ws => (
                               <Link key={ws.id} href={`/workspace/${ws.id}`}>
-                                <div className="flex items-center gap-3 px-3 py-2.5 rounded-lg hover:bg-surface-container-high cursor-figma-pointer group transition-colors">
-                                  <Package className="w-4 h-4 text-outline group-hover:text-white transition-colors" />
+                                <div className="flex items-center gap-3 px-3 py-2.5 rounded-lg hover:bg-surface-container-high cursor-figma-pointer transition-colors group/item">
+                                  <Package className="w-4 h-4 text-outline group-hover/item:text-white transition-colors" />
                                   <div className="flex flex-col">
-                                    <span className="text-sm text-[#E5E2E1] group-hover:text-white transition-colors leading-tight">{ws.title}</span>
-                                    <span className="text-[10px] text-outline tracking-wider group-hover:text-primary transition-colors uppercase mt-0.5">ID: #{ws.id}</span>
+                                    <span className="text-sm text-[#E5E2E1] group-hover/item:text-white transition-colors leading-tight">{ws.title}</span>
+                                    <span className="text-[10px] text-outline tracking-wider group-hover/item:text-primary transition-colors uppercase mt-0.5">ID: #{ws.id}</span>
                                   </div>
-                                  <ArrowRight className="w-4 h-4 ml-auto text-outline opacity-0 group-hover:opacity-100 transition-opacity" />
+                                  <ArrowRight className="w-4 h-4 ml-auto text-outline opacity-0 group-hover/item:opacity-100 transition-opacity" />
                                 </div>
                               </Link>
                             ))}
@@ -166,15 +175,15 @@ export default function Home() {
 
                         <div className="p-2">
                           <div className="px-3 py-2 text-[10px] font-headline font-bold text-outline tracking-widest uppercase">Commands</div>
-                          <div onClick={() => setIsCreateOpen(true)} className="flex items-center gap-3 px-3 py-2.5 rounded-lg hover:bg-surface-container-high cursor-figma-pointer group transition-colors">
-                            <Terminal className="w-4 h-4 text-outline group-hover:text-white transition-colors" />
-                            <span className="text-sm text-[#E5E2E1] group-hover:text-white transition-colors">Create new workspace</span>
-                            <kbd className="ml-auto px-2 py-1 bg-surface-container-highest text-[10px] text-outline rounded font-body opacity-0 group-hover:opacity-100 transition-opacity">↵</kbd>
+                          <div onClick={() => setIsCreateOpen(true)} className="flex items-center gap-3 px-3 py-2.5 rounded-lg hover:bg-surface-container-high cursor-figma-pointer transition-colors group/item">
+                            <Terminal className="w-4 h-4 text-outline group-hover/item:text-white transition-colors" />
+                            <span className="text-sm text-[#E5E2E1] group-hover/item:text-white transition-colors">Create new workspace</span>
+                            <kbd className="ml-auto px-2 py-1 bg-surface-container-highest text-[10px] text-outline rounded font-body opacity-0 group-hover/item:opacity-100 transition-opacity">↵</kbd>
                           </div>
                           <Link href="/team">
-                            <div className="flex items-center gap-3 px-3 py-2.5 rounded-lg hover:bg-surface-container-high cursor-figma-pointer group transition-colors">
-                              <Users className="w-4 h-4 text-outline group-hover:text-white transition-colors" />
-                              <span className="text-sm text-[#E5E2E1] group-hover:text-white transition-colors">Invite team member</span>
+                            <div className="flex items-center gap-3 px-3 py-2.5 rounded-lg hover:bg-surface-container-high cursor-figma-pointer transition-colors group/item">
+                              <Users className="w-4 h-4 text-outline group-hover/item:text-white transition-colors" />
+                              <span className="text-sm text-[#E5E2E1] group-hover/item:text-white transition-colors">Invite team member</span>
                             </div>
                           </Link>
                         </div>
