@@ -16,7 +16,8 @@
     "test:run": "vitest run",
     "test:coverage": "vitest run --coverage",
     "test:auth": "vitest tests/unit/auth tests/integration/auth",
-    "test:lockout": "vitest tests/unit/auth/lockout.test.ts tests/integration/auth/lockout-routes.test.ts"
+    "test:lockout": "vitest tests/unit/auth/lockout.test.ts tests/integration/auth/lockout-routes.test.ts",
+    "test:e2e": "playwright test"
   },
   "dependencies": {
     "@hookform/resolvers": "^3.10.0",

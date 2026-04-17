@@ -134,5 +134,30 @@ describe('Workspace Routes Integration Tests (IDOR & Zod)', () => {
       expect(res.body.title).toBe("New Title");
       expect(mockUpdateWorkspace).toHaveBeenCalledWith(1, { title: "New Title" });
     });
+
+    it('should successfully toggle favorite status if user is owner', async () => {
+      mockGetWorkspace.mockResolvedValue({
+        id: 1,
+        title: "My Workspace",
+        userId: "user_A",
+        isFavorite: false
+      });
+
+      mockUpdateWorkspace.mockResolvedValue({
+        id: 1,
+        title: "My Workspace",
+        userId: "user_A",
+        isFavorite: true
+      });
+
+      const res = await request(app)
+        .put('/api/workspaces/1')
+        .set('x-test-user-id', 'user_A')
+        .send({ isFavorite: true });
+
+      expect(res.status).toBe(200);
+      expect(res.body.isFavorite).toBe(true);
+      expect(mockUpdateWorkspace).toHaveBeenCalledWith(1, { isFavorite: true });
+    });
   });
 });
