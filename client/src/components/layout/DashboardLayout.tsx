@@ -15,6 +15,8 @@ import {
 } from "lucide-react";
 import { useAuth } from "@/hooks/use-auth";
 import { MeshworkLogo } from "@/components/MeshworkLogo";
+import Lenis from "lenis";
+import "lenis/dist/lenis.css";
 
 // -- Animation Variants --
 const sidebarVariants = {
@@ -98,6 +100,27 @@ export function DashboardLayout({ children }: { children: ReactNode }) {
     window.addEventListener('trigger-fly-notification', handleFlyNotification);
     return () => window.removeEventListener('trigger-fly-notification', handleFlyNotification);
   }, [isNotifying, hasNotified]);
+
+  // Apply smooth scroll to Dashboard
+  useEffect(() => {
+    const lenis = new Lenis({
+      duration: 1.2,
+      easing: (t) => Math.min(1, 1.001 - Math.pow(2, -10 * t)),
+      orientation: "vertical",
+      gestureOrientation: "vertical",
+      smoothWheel: true,
+      wheelMultiplier: 1,
+      touchMultiplier: 2,
+    });
+
+    function raf(time: number) {
+      lenis.raf(time);
+      requestAnimationFrame(raf);
+    }
+    requestAnimationFrame(raf);
+
+    return () => lenis.destroy();
+  }, []);
 
   return (
     <div className="bg-surface text-on-surface font-body selection:bg-primary/30 selection:text-primary min-h-screen antialiased flex cursor-figma">
@@ -258,7 +281,7 @@ export function DashboardLayout({ children }: { children: ReactNode }) {
       </AnimatePresence>
 
       {/* Main Content Render Context */}
-      <main className="pl-20 pt-16 min-h-screen technical-gradient w-full overflow-hidden">
+      <main className="pl-20 pt-16 min-h-screen technical-gradient w-full">
         <div className="w-full h-full p-12">
           {children}
         </div>
