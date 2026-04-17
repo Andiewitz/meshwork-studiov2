@@ -49,7 +49,7 @@ export default function Team() {
       <motion.div variants={fadeUpVariants} className="relative w-full max-w-md aspect-video mb-8">
         <div className="absolute inset-0 bg-[#FF5500]/10 blur-[80px] rounded-full pointer-events-none"></div>
         <img
-          src="https://images.blush.design/b6742e11ca2a99437f098e4a931acca0?w=920&auto=compress&cs=srgb"
+          src="/assets/b6742e11ca2a99437f098e4a931acca0.png"
           alt="Team Collaboration Coming Soon"
           className="relative z-10 w-full h-full object-contain drop-shadow-2xl"
           referrerPolicy="no-referrer"
