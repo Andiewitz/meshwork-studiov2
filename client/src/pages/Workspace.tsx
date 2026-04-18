@@ -674,6 +674,7 @@ function WorkspaceView() {
                                 colorMode="dark"
                                 connectionMode={ConnectionMode.Loose}
                                 panOnScroll={true}
+                                panOnScrollSpeed={2}
                             >
                                 <Controls position="bottom-left" className="!bg-white/[0.08] !backdrop-blur-3xl !border-white/[0.15] !text-white/50 !shadow-[0_8px_32px_rgba(0,0,0,0.5)] !rounded-lg overflow-hidden !m-6 [&_button]:!bg-transparent [&_button]:!border-white/[0.1] [&_button]:hover:!bg-white/10 [&_button_svg]:!fill-white/70" />
                                 <MiniMap position="bottom-left" className="!bg-white/[0.08] !backdrop-blur-3xl !border-white/[0.15] !shadow-[0_8px_32px_rgba(0,0,0,0.5)] !rounded-xl !ml-6 !mb-20 overflow-hidden [&_.react-flow__minimap-mask]:!fill-white/80" />
