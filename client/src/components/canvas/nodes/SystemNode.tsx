@@ -152,7 +152,7 @@ export function SystemNode({ data, selected, type, width, height }: NodeProps) {
             <div className="relative w-6 h-6 group">
                 <div className={`
                     absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-3 h-3 rounded-full transition-all border-2
-                    ${selected ? 'bg-black border-black ring-4 ring-black/5' : 'bg-white border-black/40 group-hover:border-black'}
+                    ${selected ? 'bg-white border-white ring-4 ring-white/10' : 'bg-white/60 border-white/40 group-hover:border-white'}
                 `} />
                 <Handle type="source" position={Position.Top} style={{ top: '50%', left: '50%', transform: 'translate(-50%, -50%)' }} className="!opacity-0 !w-full !h-full !border-0" />
             </div>
@@ -160,8 +160,13 @@ export function SystemNode({ data, selected, type, width, height }: NodeProps) {
         );
     }
 
-    // Shared handle style — sharp square handles that match the resize edges
-    const handleCls = "!w-2 !h-2 !rounded-none !border-2 !border-blue-500 !bg-white !opacity-0 group-hover:!opacity-100 !transition-opacity !shadow-sm";
+    // Shared handle style — small rounded dots that appear on hover
+    const handleCls = "!w-2 !h-2 !rounded-full !border-2 !border-blue-400 !bg-white !opacity-0 group-hover:!opacity-100 !transition-opacity !shadow-sm";
+
+    // Selection ring style
+    const selectionRing = selected 
+        ? 'ring-2 ring-blue-500/40 shadow-[0_0_20px_rgba(59,130,246,0.15)]' 
+        : '';
 
     return (
         <>
@@ -169,13 +174,13 @@ export function SystemNode({ data, selected, type, width, height }: NodeProps) {
                 minWidth={24}
                 minHeight={24}
                 isVisible={selected}
-                lineClassName={isNote ? "!border-yellow-500" : "!border-blue-500"}
+                lineClassName={isNote ? "!border-yellow-500/50" : "!border-blue-500/50"}
                 lineStyle={{ padding: 6 }}
-                handleClassName="!h-3 !w-3 !bg-white !border-2 !border-blue-500 !rounded-none !shadow-md"
+                handleClassName="!h-2.5 !w-2.5 !bg-white !border-2 !border-blue-500 !rounded-full !shadow-md"
                 handleStyle={{ margin: -6 }}
             />
             <div className="group w-full h-full relative">
-                {/* Connection Handles — sharp squares */}
+                {/* Connection Handles — small rounded dots */}
                 <Handle type="source" position={Position.Top} id="top" className={handleCls} />
                 <Handle type="source" position={Position.Bottom} id="bottom" className={handleCls} />
                 <Handle type="source" position={Position.Left} id="left" className={handleCls} />
@@ -185,8 +190,8 @@ export function SystemNode({ data, selected, type, width, height }: NodeProps) {
                 {type === 'annotation' ? (
                     <div
                         className={`
-                            relative w-full h-full flex flex-col p-2
-                            ${selected ? 'border-2 border-blue-500/30 bg-blue-500/5' : 'border-2 border-transparent group-hover:border-white/10'}
+                            relative w-full h-full flex flex-col p-3 rounded-lg
+                            ${selected ? 'ring-2 ring-blue-500/30 bg-blue-500/5' : 'border border-transparent group-hover:border-white/10'}
                             transition-all cursor-text
                         `}
                     >
@@ -202,9 +207,11 @@ export function SystemNode({ data, selected, type, width, height }: NodeProps) {
                 ) : isNote ? (
                     <div
                         className={`
-                            relative p-4 border-2 overflow-hidden w-full h-full flex flex-col
-                            bg-gradient-to-br from-[#FFF9C4] to-[#FFF176] border-yellow-400/50
-                            ${selected ? 'shadow-[6px_6px_0px_rgba(0,0,0,0.12)]' : 'group-hover:shadow-[3px_3px_0px_rgba(0,0,0,0.06)]'}
+                            relative p-4 overflow-hidden w-full h-full flex flex-col rounded-xl
+                            bg-gradient-to-br from-[#FFF9C4] to-[#FFF176] border border-yellow-400/30
+                            shadow-lg shadow-black/20
+                            ${selected ? 'ring-2 ring-yellow-400/50 shadow-[0_0_20px_rgba(250,204,21,0.15)]' : 'group-hover:shadow-xl group-hover:shadow-black/30'}
+                            transition-shadow
                         `}
                     >
                         <p
@@ -222,20 +229,21 @@ export function SystemNode({ data, selected, type, width, height }: NodeProps) {
                 ) : isInfrastructure ? (
                     <div
                         className={`
-                            relative border-2 border-dashed overflow-hidden w-full h-full flex flex-col
-                            ${selected ? 'shadow-[6px_6px_0px_rgba(0,0,0,0.06)]' : ''}
+                            relative border border-dashed overflow-hidden w-full h-full flex flex-col rounded-2xl
+                            bg-white/[0.02]
+                            ${selected ? 'ring-2 ring-blue-500/30 shadow-[0_0_30px_rgba(59,130,246,0.1)]' : ''}
+                            transition-all
                         `}
                         style={{
-                            backgroundColor: `${finalColor}08`,
-                            borderColor: `${finalColor}40`,
+                            borderColor: `${finalColor}30`,
                         }}
                     >
-                        {/* Zone label — relative, inside the container */}
-                        <div className="flex items-center gap-2 px-3 py-1.5 self-start" style={{ padding: `${zoneLabelSize / 2}px` }}>
+                        {/* Zone label — pill badge */}
+                        <div className="flex items-center gap-2 p-2 self-start">
                             <div
-                                className="px-2 py-0.5 font-black uppercase tracking-[0.15em] text-white flex items-center gap-2"
+                                className="px-3 py-1 rounded-full font-black uppercase tracking-[0.15em] text-white flex items-center gap-2"
                                 style={{
-                                    backgroundColor: finalColor,
+                                    backgroundColor: `${finalColor}CC`,
                                     fontSize: `${zoneLabelSize}px`
                                 }}
                             >
@@ -255,14 +263,16 @@ export function SystemNode({ data, selected, type, width, height }: NodeProps) {
                 ) : isK8sNamespace ? (
                     <div
                         className={`
-                            relative border-2 border-dashed overflow-hidden w-full h-full flex flex-col
-                            ${selected ? 'bg-[#326CE5]/10 border-[#326CE5]/60 shadow-[6px_6px_0px_rgba(50,108,229,0.08)]' : 'bg-[#326CE5]/5 border-[#326CE5]/40 hover:bg-[#326CE5]/8'}
+                            relative border border-dashed overflow-hidden w-full h-full flex flex-col rounded-2xl
+                            bg-[#326CE5]/[0.03] border-[#326CE5]/20
+                            ${selected ? 'ring-2 ring-[#326CE5]/40 shadow-[0_0_30px_rgba(50,108,229,0.1)]' : 'hover:bg-[#326CE5]/[0.05]'}
+                            transition-all
                         `}
                     >
-                        {/* Namespace label — relative, inside the container */}
-                        <div className="flex items-center gap-2 px-3 py-1.5 self-start" style={{ padding: `${zoneLabelSize / 2}px` }}>
+                        {/* Namespace label — pill badge */}
+                        <div className="flex items-center gap-2 p-2 self-start">
                             <div
-                                className="px-2 py-0.5 bg-[#326CE5] font-black uppercase tracking-[0.15em] text-white flex items-center gap-1.5"
+                                className="px-3 py-1 rounded-full bg-[#326CE5]/80 font-black uppercase tracking-[0.15em] text-white flex items-center gap-1.5"
                                 style={{ fontSize: `${zoneLabelSize}px` }}
                             >
                                 <SiKubernetes
@@ -278,30 +288,38 @@ export function SystemNode({ data, selected, type, width, height }: NodeProps) {
                 ) : isKubernetes ? (
                     <div
                         className={`
-                            relative p-3 border-2 overflow-hidden w-full h-full flex items-center gap-3
-                            ${selected ? 'shadow-[6px_6px_0px_rgba(50,108,229,0.15)]' : 'group-hover:shadow-[3px_3px_0px_rgba(50,108,229,0.08)]'}
-                            transition-shadow
+                            relative p-3 overflow-hidden w-full h-full flex items-center gap-3 rounded-xl
+                            bg-[#1A1A1A]/90 backdrop-blur-sm border border-white/[0.06]
+                            shadow-lg shadow-black/25
+                            ${selectionRing}
+                            ${!selected ? 'group-hover:shadow-xl group-hover:shadow-black/30 group-hover:border-white/[0.1]' : ''}
+                            transition-all
                         `}
-                        style={{
-                            backgroundColor: finalColor,
-                            borderColor: finalBorder,
-                        }}
                     >
-                        {/* K8s helm watermark */}
-                        <K8sLogo
-                            className="absolute right-2 bottom-2 w-8 h-8 object-contain opacity-[0.06] pointer-events-none text-white"
+                        {/* Brand accent stripe */}
+                        <div 
+                            className="absolute left-0 top-2 bottom-2 w-[3px] rounded-full"
+                            style={{ backgroundColor: finalColor }}
                         />
 
-                        {/* Logo container — sharp square */}
-                        <div className="relative w-10 h-10 bg-white/15 flex items-center justify-center flex-shrink-0">
-                            {brand.Icon && typeof brand.Icon !== 'string' && <brand.Icon size={20} className="text-white" />}
+                        {/* K8s helm watermark */}
+                        <K8sLogo
+                            className="absolute right-2 bottom-2 w-8 h-8 object-contain opacity-[0.04] pointer-events-none text-white"
+                        />
+
+                        {/* Logo container — rounded square with brand tint */}
+                        <div 
+                            className="relative w-9 h-9 rounded-lg flex items-center justify-center flex-shrink-0 ml-1"
+                            style={{ backgroundColor: `${finalColor}20` }}
+                        >
+                            {brand.Icon && typeof brand.Icon !== 'string' && <brand.Icon size={18} className="text-white/90" />}
                             {K8sResourceIcon && (
-                                <div className="absolute -bottom-1 -right-1 w-4 h-4 bg-white/20 flex items-center justify-center">
+                                <div className="absolute -bottom-1 -right-1 w-4 h-4 bg-white/10 rounded-sm flex items-center justify-center">
                                     {K8sResourceIcon}
                                 </div>
                             )}
                             {k8sStatus && (
-                                <div className={`absolute -top-1 -right-1 w-2.5 h-2.5 rounded-full border-2 border-white/80
+                                <div className={`absolute -top-1 -right-1 w-2.5 h-2.5 rounded-full border-2 border-[#1A1A1A]
                                     ${k8sStatus === 'healthy' ? 'bg-green-400' : k8sStatus === 'error' ? 'bg-red-400' : 'bg-gray-400'}
                                 `}>
                                     <div className="k8s-status-pulse" />
@@ -310,35 +328,35 @@ export function SystemNode({ data, selected, type, width, height }: NodeProps) {
                         </div>
 
                         <div className="flex flex-col min-w-0 flex-1">
-                            <span className="text-[12px] font-bold truncate leading-tight text-white">
+                            <span className="text-[12px] font-semibold truncate leading-tight text-white/90">
                                 {data.label as string}
                             </span>
-                            <span className="text-[8px] uppercase tracking-[0.15em] font-black mt-0.5 text-white/50">
+                            <span className="text-[9px] uppercase tracking-[0.12em] font-bold mt-0.5 text-white/30">
                                 {brand.label}
                             </span>
                             <div className="flex gap-1 mt-1.5 flex-wrap">
                                 {Boolean(data.replicas) && (
-                                    <span className="text-[7px] px-1.5 py-0.5 bg-white/10 text-white/80 font-bold uppercase">
+                                    <span className="text-[7px] px-1.5 py-0.5 bg-white/[0.06] rounded-md text-white/60 font-medium">
                                         {String(data.replicas)} replicas
                                     </span>
                                 )}
                                 {Boolean(data.image) && (
-                                    <span className="text-[7px] px-1.5 py-0.5 bg-white/10 text-white/80 font-mono truncate max-w-[100px]">
+                                    <span className="text-[7px] px-1.5 py-0.5 bg-white/[0.06] rounded-md text-white/60 font-mono truncate max-w-[100px]">
                                         {String(data.image)}
                                     </span>
                                 )}
                                 {Boolean(data.serviceType) && (
-                                    <span className="text-[7px] px-1.5 py-0.5 bg-white/10 text-white/80 font-bold uppercase">
+                                    <span className="text-[7px] px-1.5 py-0.5 bg-white/[0.06] rounded-md text-white/60 font-medium">
                                         {String(data.serviceType)}
                                     </span>
                                 )}
                                 {Boolean(data.schedule) && (
-                                    <span className="text-[7px] px-1.5 py-0.5 bg-white/10 text-white/80 font-mono">
+                                    <span className="text-[7px] px-1.5 py-0.5 bg-white/[0.06] rounded-md text-white/60 font-mono">
                                         {String(data.schedule)}
                                     </span>
                                 )}
                                 {Boolean(data.storageSize) && (
-                                    <span className="text-[7px] px-1.5 py-0.5 bg-white/10 text-white/80 font-bold">
+                                    <span className="text-[7px] px-1.5 py-0.5 bg-white/[0.06] rounded-md text-white/60 font-medium">
                                         {String(data.storageSize)}
                                     </span>
                                 )}
@@ -350,43 +368,50 @@ export function SystemNode({ data, selected, type, width, height }: NodeProps) {
                 ) : (
                     <div
                         className={`
-                            relative p-3 border-2 overflow-hidden w-full h-full
+                            relative p-3 overflow-hidden w-full h-full rounded-xl
+                            bg-[#1A1A1A]/90 backdrop-blur-sm border border-white/[0.06]
+                            shadow-lg shadow-black/25
                             ${isData ? 'flex flex-col items-center text-center' : 'flex items-center gap-3'}
-                            ${selected ? 'shadow-[6px_6px_0px_rgba(0,0,0,0.12)]' : 'group-hover:shadow-[3px_3px_0px_rgba(0,0,0,0.06)]'}
-                            transition-shadow
+                            ${selectionRing}
+                            ${!selected ? 'group-hover:shadow-xl group-hover:shadow-black/30 group-hover:border-white/[0.1]' : ''}
+                            transition-all
                         `}
-                        style={{
-                            backgroundColor: finalColor,
-                            borderColor: finalBorder,
-                        }}
                     >
-                        {/* Logo container — sharp square */}
+                        {/* Brand accent stripe */}
+                        <div 
+                            className="absolute left-0 top-2 bottom-2 w-[3px] rounded-full"
+                            style={{ backgroundColor: finalColor }}
+                        />
+
+                        {/* Logo container — rounded square with brand color tint */}
                         <div className={`
-                            relative bg-white/15 flex items-center justify-center flex-shrink-0
-                            ${isData ? 'w-12 h-12 mb-1' : 'w-10 h-10'}
-                        `}>
+                            relative rounded-lg flex items-center justify-center flex-shrink-0
+                            ${isData ? 'w-11 h-11 mb-1' : 'w-9 h-9 ml-1'}
+                        `}
+                            style={{ backgroundColor: `${finalColor}20` }}
+                        >
                             {brand.Icon ? (
                                 typeof brand.Icon === 'string' ? (
                                     <img
                                         src={brand.Icon}
-                                        className={`object-contain ${isData ? 'w-6 h-6' : 'w-5 h-5'}`}
+                                        className={`object-contain ${isData ? 'w-5 h-5' : 'w-4.5 h-4.5'}`}
                                         alt=""
                                     />
                                 ) : (
-                                    <brand.Icon size={isData ? 24 : 20} className="text-white" />
+                                    <brand.Icon size={isData ? 22 : 18} className="text-white/90" />
                                 )
                             ) : type === 'user' ? (
-                                <UserIcon size={isData ? 24 : 18} strokeWidth={2} className="text-white" />
+                                <UserIcon size={isData ? 22 : 16} strokeWidth={2} className="text-white/90" />
                             ) : (
-                                <div className="w-5 h-5 bg-white/30" />
+                                <div className="w-4 h-4 bg-white/20 rounded" />
                             )}
                         </div>
 
                         <div className="flex flex-col min-w-0">
-                            <span className="text-[12px] font-bold truncate leading-tight text-white">
+                            <span className="text-[12px] font-semibold truncate leading-tight text-white/90">
                                 {data.label as string}
                             </span>
-                            <span className="text-[8px] uppercase tracking-[0.15em] font-black mt-0.5 text-white/50">
+                            <span className="text-[9px] uppercase tracking-[0.12em] font-bold mt-0.5 text-white/30">
                                 {brand.label}
                             </span>
                         </div>
@@ -394,11 +419,11 @@ export function SystemNode({ data, selected, type, width, height }: NodeProps) {
                         {/* Sub-Collections for Data nodes */}
                         {isData && Array.isArray(data.collections) && data.collections.length > 0 && (
                             <div className="mt-2 w-full space-y-1 flex-grow overflow-hidden">
-                                <div className="text-[7px] uppercase tracking-[0.15em] font-black text-white/25 mb-1">Collections</div>
+                                <div className="text-[7px] uppercase tracking-[0.15em] font-bold text-white/20 mb-1">Collections</div>
                                 <div className="flex flex-col gap-0.5 overflow-y-auto max-h-[200px] pr-1 scrollbar-hide">
                                     {(data.collections as any[]).map((coll, i) => (
-                                        <div key={i} className="px-2 py-1 bg-white/10 border border-white/5 text-[9px] font-medium text-white truncate flex items-center gap-1.5 shrink-0">
-                                            <div className="w-1 h-1 bg-white/40" />
+                                        <div key={i} className="px-2 py-1 bg-white/[0.06] rounded-md text-[9px] font-medium text-white/60 truncate flex items-center gap-1.5 shrink-0">
+                                            <div className="w-1 h-1 rounded-full bg-white/30" />
                                             {String(coll)}
                                         </div>
                                     ))}

@@ -240,6 +240,38 @@ html {
   z-index: 10;
 }
 
+/* ── Canvas Entry Animations ── */
+@keyframes grid-fade-in {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes node-enter {
+  from { 
+    opacity: 0; 
+    transform: translateY(8px); 
+  }
+  to { 
+    opacity: 1; 
+    transform: translateY(0); 
+  }
+}
+
+.react-flow__background {
+  animation: grid-fade-in 0.8s ease-out 0.1s both;
+}
+
+.react-flow__node {
+  animation: node-enter 0.4s ease-out 0.3s both;
+}
+
+/* Selection box styling */
+.react-flow__selection {
+  background: rgba(59, 130, 246, 0.08) !important;
+  border: 1px solid rgba(59, 130, 246, 0.3) !important;
+  border-radius: 8px !important;
+}
+
 /* Kubernetes Status Animations */
 @keyframes k8s-pulse {
   0% {

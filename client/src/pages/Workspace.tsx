@@ -643,9 +643,9 @@ function WorkspaceView() {
     return (
         <div className="h-screen w-screen overflow-hidden font-sans text-sm selection:bg-white/10 bg-[#0A0A0A] text-white">
                 <motion.main
-                    initial={{ opacity: 0, scale: 0.98 }}
-                    animate={{ opacity: 1, scale: 1 }}
-                    transition={{ duration: 0.5, ease: [0.16, 1, 0.3, 1] }}
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    transition={{ duration: 0.6, ease: [0.16, 1, 0.3, 1] }}
                     className="h-full w-full relative transition-colors duration-300 bg-[#0A0A0A]"
                             data-cursor={drawingMode}
                         >
@@ -684,14 +684,17 @@ function WorkspaceView() {
                                 selectionMode={SelectionMode.Partial}
                             >
                                 <Controls position="bottom-left" className="!bg-[#1E1E1E]/95 !backdrop-blur-xl !border-white/[0.05] !text-white/50 !shadow-2xl !rounded-full overflow-hidden !m-6 [&_button]:!bg-transparent [&_button]:!border-white/[0.05] [&_button]:hover:!bg-white/10 [&_button_svg]:!fill-white/70" />
-                                <MiniMap position="bottom-left" className="!bg-[#1E1E1E]/95 !backdrop-blur-xl !border-white/[0.05] !shadow-2xl !rounded-2xl !ml-6 !mb-20 overflow-hidden [&_.react-flow__minimap-mask]:!fill-white/80" />
+                                <MiniMap position="bottom-right" className="!bg-[#1E1E1E]/95 !backdrop-blur-xl !border-white/[0.05] !shadow-2xl !rounded-2xl !mr-6 !mb-6 overflow-hidden [&_.react-flow__minimap-mask]:!fill-white/80" />
                                 <Background variant={'dots' as any} gap={20} size={1.5} color="#333333" />
 
 
 
                                 {menu && (
-                                    <div
+                                    <motion.div
                                         ref={menuRef}
+                                        initial={{ opacity: 0, scale: 0.95, filter: 'blur(4px)' }}
+                                        animate={{ opacity: 1, scale: 1, filter: 'blur(0px)' }}
+                                        transition={{ type: 'spring', damping: 20, stiffness: 300 }}
                                         style={{ top: menu.top, left: menu.left }}
                                         className="fixed rounded-2xl py-1 z-[100] min-w-[160px] bg-[#1E1E1E]/95 backdrop-blur-xl border border-white/[0.05] shadow-2xl"
                                         onClick={() => setMenu(null)}
@@ -850,11 +853,14 @@ function WorkspaceView() {
                                                 })}
                                             </div>
                                         )}
-                                    </div>
+                                    </motion.div>
                                 )}
 
                                 {layerMenu && (
-                                    <div
+                                    <motion.div
+                                        initial={{ opacity: 0, scale: 0.95, filter: 'blur(4px)' }}
+                                        animate={{ opacity: 1, scale: 1, filter: 'blur(0px)' }}
+                                        transition={{ type: 'spring', damping: 20, stiffness: 300 }}
                                         style={{ top: layerMenu.top, left: layerMenu.left }}
                                         className="fixed rounded-2xl py-1 z-[200] min-w-[180px] bg-[#1E1E1E]/95 backdrop-blur-xl border border-white/[0.05] shadow-2xl"
                                         onClick={() => setLayerMenu(null)}
@@ -895,164 +901,180 @@ function WorkspaceView() {
                                             <Trash2 className="w-3.5 h-3.5" />
                                             Delete Component
                                         </button>
-                                    </div>
+                                    </motion.div>
                                 )}
 
                                 {/* ── Floating top-left: back + title + save ── */}
-                                <Panel position="top-left" className="ml-6 mt-6 flex items-center gap-2 z-50">
-                                    <Link href="/" className="w-10 h-10 flex items-center justify-center rounded-full bg-[#1E1E1E]/95 backdrop-blur-xl border border-white/[0.05] shadow-2xl text-white/50 hover:text-white hover:bg-[#2A2A2A] transition-all">
-                                        <ChevronLeft className="w-4 h-4 ml-[-2px]" />
-                                    </Link>
-                                    <div className="flex items-center gap-3 px-4 py-2.5 h-10 rounded-full bg-[#1E1E1E]/95 backdrop-blur-xl border border-white/[0.05] shadow-2xl">
-                                        <Box className="w-4 h-4 text-white/50" />
-                                        <span className="font-sans font-bold text-[13px] uppercase tracking-widest text-white/70">{workspace?.title || 'Untitled'}</span>
-                                        <div className="w-px h-3.5 bg-white/10 mx-1" />
-                                        {saveStatus === 'saved' && <CheckCircle2 className="w-3.5 h-3.5 text-green-500/60" />}
-                                        {saveStatus === 'saving' && <CloudUpload className="w-3.5 h-3.5 text-blue-400 animate-pulse" />}
-                                        {saveStatus === 'unsaved' && <Circle className="w-3.5 h-3.5 text-white/20 cursor-pointer hover:text-white/50 transition-colors" onClick={handleSave} />}
-                                        {saveStatus === 'offline_saved' && <AlertCircle className="w-3.5 h-3.5 text-yellow-500/70 cursor-pointer" onClick={handleSave} />}
-                                    </div>
+                                <Panel position="top-left" className="ml-6 mt-6 z-50">
+                                    <motion.div 
+                                        initial={{ opacity: 0, y: -20, filter: 'blur(10px)' }}
+                                        animate={{ opacity: 1, y: 0, filter: 'blur(0px)' }}
+                                        transition={{ duration: 0.6, ease: [0.16, 1, 0.3, 1], delay: 0.1 }}
+                                        className="flex items-center gap-2"
+                                    >
+                                        <Link href="/" className="w-10 h-10 flex items-center justify-center rounded-full bg-[#1E1E1E]/95 backdrop-blur-xl border border-white/[0.05] shadow-2xl text-white/50 hover:text-white hover:bg-[#2A2A2A] transition-all">
+                                            <ChevronLeft className="w-4 h-4 ml-[-2px]" />
+                                        </Link>
+                                        <div className="flex items-center gap-3 px-4 py-2.5 h-10 rounded-full bg-[#1E1E1E]/95 backdrop-blur-xl border border-white/[0.05] shadow-2xl">
+                                            <Box className="w-4 h-4 text-white/50" />
+                                            <span className="font-sans font-bold text-[13px] uppercase tracking-widest text-white/70">{workspace?.title || 'Untitled'}</span>
+                                            <div className="w-px h-3.5 bg-white/10 mx-1" />
+                                            {saveStatus === 'saved' && <CheckCircle2 className="w-3.5 h-3.5 text-green-500/60" />}
+                                            {saveStatus === 'saving' && <CloudUpload className="w-3.5 h-3.5 text-blue-400 animate-pulse" />}
+                                            {saveStatus === 'unsaved' && <Circle className="w-3.5 h-3.5 text-white/20 cursor-pointer hover:text-white/50 transition-colors" onClick={handleSave} />}
+                                            {saveStatus === 'offline_saved' && <AlertCircle className="w-3.5 h-3.5 text-yellow-500/70 cursor-pointer" onClick={handleSave} />}
+                                        </div>
+                                    </motion.div>
                                 </Panel>
 
                                 {/* ── Floating top-right: delete + avatar ── */}
-                                <Panel position="top-right" className="mr-6 mt-6 flex items-center gap-2 z-50">
-                                    <button
-                                        onClick={() => {
-                                            if (confirm("Are you sure you want to delete this entire project? This action cannot be undone.")) {
-                                                deleteWorkspace.mutate(workspaceId, {
-                                                    onSuccess: () => {
-                                                        toast({ title: "Project Deleted", description: "Architecture removed from catalog." });
-                                                        setLocation("/");
-                                                    }
-                                                });
-                                            }
-                                        }}
-                                        className="w-10 h-10 flex items-center justify-center rounded-full bg-[#1E1E1E]/95 backdrop-blur-xl border border-white/[0.05] shadow-2xl text-red-400/80 hover:text-red-400 hover:bg-red-500/20 transition-all cursor-pointer pointer-events-auto"
-                                        title="Delete Project"
+                                <Panel position="top-right" className="mr-6 mt-6 z-50">
+                                    <motion.div 
+                                        initial={{ opacity: 0, y: -20, filter: 'blur(10px)' }}
+                                        animate={{ opacity: 1, y: 0, filter: 'blur(0px)' }}
+                                        transition={{ duration: 0.6, ease: [0.16, 1, 0.3, 1], delay: 0.15 }}
+                                        className="flex items-center gap-2"
                                     >
-                                        <Trash2 className="w-4 h-4" />
-                                    </button>
-                                    <Avatar className="w-10 h-10 ring-1 ring-white/5 shadow-2xl pointer-events-auto cursor-pointer">
-                                        <AvatarImage src={user?.profileImageUrl || undefined} />
-                                        <AvatarFallback className="bg-[#1E1E1E]/95 backdrop-blur-xl text-white/70 text-[11px] font-bold">{user?.firstName?.[0] || 'U'}</AvatarFallback>
-                                    </Avatar>
+                                        <button
+                                            onClick={() => {
+                                                if (confirm("Are you sure you want to delete this entire project? This action cannot be undone.")) {
+                                                    deleteWorkspace.mutate(workspaceId, {
+                                                        onSuccess: () => {
+                                                            toast({ title: "Project Deleted", description: "Architecture removed from catalog." });
+                                                            setLocation("/");
+                                                        }
+                                                    });
+                                                }
+                                            }}
+                                            className="w-10 h-10 flex items-center justify-center rounded-full bg-[#1E1E1E]/95 backdrop-blur-xl border border-white/[0.05] shadow-2xl text-red-400/80 hover:text-red-400 hover:bg-red-500/20 transition-all cursor-pointer pointer-events-auto"
+                                            title="Delete Project"
+                                        >
+                                            <Trash2 className="w-4 h-4" />
+                                        </button>
+                                        <Avatar className="w-10 h-10 ring-1 ring-white/5 shadow-2xl pointer-events-auto cursor-pointer">
+                                            <AvatarImage src={user?.profileImageUrl || undefined} />
+                                            <AvatarFallback className="bg-[#1E1E1E]/95 backdrop-blur-xl text-white/70 text-[11px] font-bold">{user?.firstName?.[0] || 'U'}</AvatarFallback>
+                                        </Avatar>
+                                    </motion.div>
                                 </Panel>
 
                                 {/* ── Right-side vertical toolbar (Stitch-style) ── */}
-                                <Panel position="top-right" className="mr-6 mt-40 flex flex-col items-center rounded-full p-1.5 gap-1.5 z-50 bg-[#1E1E1E]/95 backdrop-blur-xl border border-white/[0.05] shadow-[0_8px_32px_rgba(0,0,0,0.6)]">
-                                    <button
-                                        onClick={() => {
-                                            setDrawingMode('select');
-                                            fitView({ duration: 800 });
-                                        }}
-                                        className={`w-9 h-9 flex items-center justify-center rounded-full transition-all ${drawingMode === 'select' ? 'bg-white text-black shadow-lg scale-105' : 'text-white/40 hover:text-white hover:bg-[#2A2A2A]'}`}
-                                        title="Selection Tool"
+                                <Panel position="top-right" className="mr-6 mt-40 z-50">
+                                    <motion.div 
+                                        initial={{ opacity: 0, x: 20, filter: 'blur(10px)' }}
+                                        animate={{ opacity: 1, x: 0, filter: 'blur(0px)' }}
+                                        transition={{ duration: 0.6, ease: [0.16, 1, 0.3, 1], delay: 0.2 }}
+                                        className="flex flex-col items-center rounded-full p-1.5 gap-1.5 bg-[#1E1E1E]/95 backdrop-blur-xl border border-white/[0.05] shadow-[0_8px_32px_rgba(0,0,0,0.6)]"
                                     >
-                                        <MousePointer2 className="w-4 h-4" />
-                                    </button>
-                                    <button
-                                        onClick={() => setDrawingMode(drawingMode === 'infrastructure' ? 'select' : 'infrastructure')}
-                                        className={`w-9 h-9 flex items-center justify-center rounded-full transition-all ${drawingMode === 'infrastructure' ? 'bg-white text-black shadow-lg scale-105' : 'text-white/40 hover:text-white hover:bg-[#2A2A2A]'}`}
-                                        title="Infrastructure Tool (Click map to place VPC)"
-                                    >
-                                        <Square className="w-4 h-4" />
-                                    </button>
-                                    <button
-                                        onClick={() => setDrawingMode(drawingMode === 'annotation' ? 'select' : 'annotation')}
-                                        className={`w-9 h-9 flex items-center justify-center rounded-full transition-all ${drawingMode === 'annotation' ? 'bg-white text-black shadow-lg scale-105' : 'text-white/40 hover:text-white hover:bg-[#2A2A2A]'}`}
-                                        title="Annotation Tool (Click map to place)"
-                                    >
-                                        <Pencil className="w-4 h-4" />
-                                    </button>
-                                    <div className="w-6 h-[1px] my-0.5 bg-white/10" />
-                                    <Popover>
-                                        <PopoverTrigger asChild>
-                                            <button className="w-9 h-9 flex items-center justify-center rounded-full transition-all text-white/40 hover:text-white hover:bg-[#2A2A2A]" title="Connection Settings">
-                                                <Spline className="w-4 h-4" />
-                                            </button>
-                                        </PopoverTrigger>
-                                        <PopoverContent className="w-64 p-3 bg-[#1E1E1E]/95 backdrop-blur-xl border border-white/[0.05] rounded-2xl shadow-2xl z-[150] space-y-4" side="left" align="start" sideOffset={16}>
-                                            {/* Style & Arrow */}
-                                            <div className="space-y-2">
-                                                <div className="text-[10px] uppercase font-bold tracking-widest text-white/40 px-1">Line Style</div>
-                                                <div className="grid grid-cols-3 gap-1">
-                                                    {[
-                                                        { id: 'solid', label: 'Normal', icon: Minus, hasArrow: false },
-                                                        { id: 'dashed', label: 'Broken', icon: Minus, hasArrow: false },
-                                                        { id: 'arrow', label: 'Arrow', icon: ArrowRight, hasArrow: true }
-                                                    ].map(style => {
-                                                        const isSelected = (edgeStyle === (style.id === 'dashed' ? 'dashed' : 'solid')) && (hasArrow === style.hasArrow);
-                                                        return (
-                                                            <button
-                                                                key={style.id}
-                                                                onClick={() => {
-                                                                    const newStyle = style.id === 'dashed' ? 'dashed' : 'solid';
-                                                                    const newArrow = style.hasArrow;
-                                                                    setEdgeStyle(newStyle as any);
-                                                                    setHasArrow(newArrow);
-                                                                    setEdges(eds => eds.map(e => {
-                                                                        if (!e.selected) return e;
-                                                                        const s: any = { ...e.style, strokeDasharray: undefined };
-                                                                        if (newStyle === 'dashed') s.strokeDasharray = '5 5';
-                                                                        let m: any = undefined;
-                                                                        if (newArrow) m = { type: 'arrowclosed' as const, color: '#555' };
-                                                                        return { ...e, style: s, markerEnd: m };
-                                                                    }));
-                                                                }}
-                                                                className={`flex flex-col items-center justify-center gap-1.5 h-16 rounded-lg border transition-all ${isSelected ? 'bg-white text-black border-white shadow-md' : 'bg-transparent text-white/60 border-white/5 hover:bg-white/5 hover:border-white/10'}`}
-                                                            >
-                                                                {style.id === 'dashed' ? (
-                                                                    <div className="w-4 h-0 border-b-2 border-dashed border-current my-2" />
-                                                                ) : (
+                                        <button
+                                            onClick={() => {
+                                                setDrawingMode('select');
+                                                fitView({ duration: 800 });
+                                            }}
+                                            className={`w-9 h-9 flex items-center justify-center rounded-full transition-all ${drawingMode === 'select' ? 'bg-white text-black shadow-lg scale-105' : 'text-white/40 hover:text-white hover:bg-[#2A2A2A]'}`}
+                                            title="Selection Tool"
+                                        >
+                                            <MousePointer2 className="w-4 h-4" />
+                                        </button>
+                                        <button
+                                            onClick={() => setDrawingMode(drawingMode === 'infrastructure' ? 'select' : 'infrastructure')}
+                                            className={`w-9 h-9 flex items-center justify-center rounded-full transition-all ${drawingMode === 'infrastructure' ? 'bg-white text-black shadow-lg scale-105' : 'text-white/40 hover:text-white hover:bg-[#2A2A2A]'}`}
+                                            title="Infrastructure Tool (Click map to place VPC)"
+                                        >
+                                            <Square className="w-4 h-4" />
+                                        </button>
+                                        <button
+                                            onClick={() => setDrawingMode(drawingMode === 'annotation' ? 'select' : 'annotation')}
+                                            className={`w-9 h-9 flex items-center justify-center rounded-full transition-all ${drawingMode === 'annotation' ? 'bg-white text-black shadow-lg scale-105' : 'text-white/40 hover:text-white hover:bg-[#2A2A2A]'}`}
+                                            title="Annotation Tool (Click map to place)"
+                                        >
+                                            <Pencil className="w-4 h-4" />
+                                        </button>
+                                        <div className="w-6 h-[1px] my-0.5 bg-white/10" />
+                                        <Popover>
+                                            <PopoverTrigger asChild>
+                                                <button className="w-9 h-9 flex items-center justify-center rounded-full transition-all text-white/40 hover:text-white hover:bg-[#2A2A2A]" title="Connection Settings">
+                                                    <Spline className="w-4 h-4" />
+                                                </button>
+                                            </PopoverTrigger>
+                                            <PopoverContent className="w-64 p-3 bg-[#1E1E1E]/95 backdrop-blur-xl border border-white/[0.05] rounded-2xl shadow-2xl z-[150] space-y-4" side="left" align="start" sideOffset={16}>
+                                                {/* Style & Arrow */}
+                                                <div className="space-y-2">
+                                                    <div className="text-[10px] uppercase font-bold tracking-widest text-white/40 px-1">Line Style</div>
+                                                    <div className="grid grid-cols-3 gap-1">
+                                                        {[
+                                                            { id: 'solid', label: 'Normal', icon: Minus, hasArrow: false },
+                                                            { id: 'dashed', label: 'Broken', icon: Minus, hasArrow: false },
+                                                            { id: 'arrow', label: 'Arrow', icon: ArrowRight, hasArrow: true }
+                                                        ].map(style => {
+                                                            const isSelected = (edgeStyle === (style.id === 'dashed' ? 'dashed' : 'solid')) && (hasArrow === style.hasArrow);
+                                                            return (
+                                                                <button
+                                                                    key={style.id}
+                                                                    onClick={() => {
+                                                                        const newStyle = style.id === 'dashed' ? 'dashed' : 'solid';
+                                                                        const newArrow = style.hasArrow;
+                                                                        setEdgeStyle(newStyle as any);
+                                                                        setHasArrow(newArrow);
+                                                                        setEdges(eds => eds.map(e => {
+                                                                            if (!e.selected) return e;
+                                                                            const s: any = { ...e.style, strokeDasharray: undefined };
+                                                                            if (newStyle === 'dashed') s.strokeDasharray = '5 5';
+                                                                            let m: any = undefined;
+                                                                            if (newArrow) m = { type: 'arrowclosed' as const, color: '#555' };
+                                                                            return { ...e, style: s, markerEnd: m };
+                                                                        }));
+                                                                    }}
+                                                                    className={`flex flex-col items-center justify-center gap-1.5 p-2 rounded-xl border transition-all ${isSelected ? 'bg-white/10 border-white/20 text-white' : 'border-transparent text-white/40 hover:bg-white/5 hover:text-white/80'}`}
+                                                                >
                                                                     <style.icon className="w-4 h-4" />
-                                                                )}
-                                                                <span className="text-[10px] font-bold">{style.label}</span>
+                                                                    <span className="text-[10px]">{style.label}</span>
+                                                                </button>
+                                                            );
+                                                        })}
+                                                    </div>
+                                                </div>
+                                                {/* Shape */}
+                                                <div className="space-y-2">
+                                                    <div className="text-[10px] uppercase font-bold tracking-widest text-white/40 px-1">Line Shape</div>
+                                                    <div className="grid grid-cols-3 gap-1">
+                                                        {[
+                                                            { id: 'straight', label: 'Diagonal', icon: Minus, rotate: true },
+                                                            { id: 'default', label: 'Curved', icon: Spline },
+                                                            { id: 'step', label: 'Orthogonal', icon: Milestone }
+                                                        ].map((tool) => (
+                                                            <button
+                                                                key={tool.id}
+                                                                onClick={() => {
+                                                                    setEdgeType(tool.id as any);
+                                                                    setEdges(eds => eds.map(e => e.selected ? { ...e, type: tool.id } : e));
+                                                                }}
+                                                                className={`flex flex-col items-center justify-center gap-1.5 h-16 rounded-lg border transition-all ${edgeType === tool.id ? 'bg-white text-black border-white shadow-md' : 'bg-transparent text-white/60 border-white/5 hover:bg-white/5 hover:border-white/10'}`}
+                                                            >
+                                                                <tool.icon className={`w-4 h-4 ${tool.rotate ? 'rotate-45' : ''}`} />
+                                                                <span className="text-[10px] font-bold">{tool.label}</span>
                                                             </button>
-                                                        );
-                                                    })}
+                                                        ))}
+                                                    </div>
                                                 </div>
-                                            </div>
-
-                                            {/* Shape */}
-                                            <div className="space-y-2">
-                                                <div className="text-[10px] uppercase font-bold tracking-widest text-white/40 px-1">Line Shape</div>
-                                                <div className="grid grid-cols-3 gap-1">
-                                                    {[
-                                                        { id: 'straight', label: 'Diagonal', icon: Minus, rotate: true },
-                                                        { id: 'default', label: 'Curved', icon: Spline },
-                                                        { id: 'step', label: 'Orthogonal', icon: Milestone }
-                                                    ].map((tool) => (
-                                                        <button
-                                                            key={tool.id}
-                                                            onClick={() => {
-                                                                setEdgeType(tool.id as any);
-                                                                setEdges(eds => eds.map(e => e.selected ? { ...e, type: tool.id } : e));
-                                                            }}
-                                                            className={`flex flex-col items-center justify-center gap-1.5 h-16 rounded-lg border transition-all ${edgeType === tool.id ? 'bg-white text-black border-white shadow-md' : 'bg-transparent text-white/60 border-white/5 hover:bg-white/5 hover:border-white/10'}`}
-                                                        >
-                                                            <tool.icon className={`w-4 h-4 ${tool.rotate ? 'rotate-45' : ''}`} />
-                                                            <span className="text-[10px] font-bold">{tool.label}</span>
-                                                        </button>
-                                                    ))}
-                                                </div>
-                                            </div>
-                                        </PopoverContent>
-                                    </Popover>
-                                    <button
-                                        onClick={() => fitView({ duration: 800 })}
-                                        className="p-2.5 rounded-xl transition-all text-white/40 hover:text-white hover:bg-white/5"
-                                        title="Fit View"
-                                    >
-                                        <Maximize className="w-4 h-4" />
-                                    </button>
-                                    <div className="w-5 h-px my-0.5 bg-white/10" />
-                                    <button
-                                        onClick={() => setIsSimulating(!isSimulating)}
-                                        className={`p-2.5 rounded-xl transition-all ${isSimulating ? 'bg-green-500 text-white shadow-[0_0_15px_rgba(22,163,74,0.4)]' : 'text-white/40 hover:text-white hover:bg-white/5'}`}
-                                        title={isSimulating ? 'Stop Simulation' : 'Simulate'}
-                                    >
-                                        <Play className={`w-4 h-4 ${isSimulating ? 'fill-white' : ''}`} />
-                                    </button>
+                                            </PopoverContent>
+                                        </Popover>
+                                        <button
+                                            onClick={() => fitView({ duration: 800 })}
+                                            className="p-2.5 rounded-xl transition-all text-white/40 hover:text-white hover:bg-white/5"
+                                            title="Fit View"
+                                        >
+                                            <Maximize className="w-4 h-4" />
+                                        </button>
+                                        <div className="w-5 h-px my-0.5 bg-white/10" />
+                                        <button
+                                            onClick={() => setIsSimulating(!isSimulating)}
+                                            className={`p-2.5 rounded-xl transition-all ${isSimulating ? 'bg-green-500 text-white shadow-[0_0_15px_rgba(22,163,74,0.4)]' : 'text-white/40 hover:text-white hover:bg-white/5'}`}
+                                            title={isSimulating ? 'Stop Simulation' : 'Simulate'}
+                                        >
+                                            <Play className={`w-4 h-4 ${isSimulating ? 'fill-white' : ''}`} />
+                                        </button>
+                                    </motion.div>
                                 </Panel>
                             </ReactFlow>
                 </motion.main>
