@@ -676,9 +676,9 @@ function WorkspaceView() {
                                 panOnScroll={true}
                                 panOnScrollSpeed={2}
                             >
-                                <Controls position="bottom-left" className="!bg-white/[0.1] !backdrop-blur-md !backdrop-saturate-150 !border-white/[0.2] !text-white/50 !shadow-2xl !rounded-lg overflow-hidden !m-6 [&_button]:!bg-transparent [&_button]:!border-white/[0.1] [&_button]:hover:!bg-white/20 [&_button_svg]:!fill-white/70" />
-                                <MiniMap position="bottom-left" className="!bg-white/[0.1] !backdrop-blur-md !backdrop-saturate-150 !border-white/[0.2] !shadow-2xl !rounded-xl !ml-6 !mb-20 overflow-hidden [&_.react-flow__minimap-mask]:!fill-white/80" />
-                                <Background variant={'lines' as any} gap={24} size={1} color="#1A1A1A" />
+                                <Controls position="bottom-left" className="!bg-[#1E1E1E]/95 !backdrop-blur-xl !border-white/[0.05] !text-white/50 !shadow-2xl !rounded-full overflow-hidden !m-6 [&_button]:!bg-transparent [&_button]:!border-white/[0.05] [&_button]:hover:!bg-white/10 [&_button_svg]:!fill-white/70" />
+                                <MiniMap position="bottom-left" className="!bg-[#1E1E1E]/95 !backdrop-blur-xl !border-white/[0.05] !shadow-2xl !rounded-2xl !ml-6 !mb-20 overflow-hidden [&_.react-flow__minimap-mask]:!fill-white/80" />
+                                <Background variant={'dots' as any} gap={20} size={1.5} color="#333333" />
 
 
 
@@ -686,7 +686,7 @@ function WorkspaceView() {
                                     <div
                                         ref={menuRef}
                                         style={{ top: menu.top, left: menu.left }}
-                                        className="fixed rounded-xl py-1 z-[100] min-w-[160px] bg-white/[0.1] backdrop-blur-md backdrop-saturate-150 border border-white/[0.2] shadow-2xl"
+                                        className="fixed rounded-2xl py-1 z-[100] min-w-[160px] bg-[#1E1E1E]/95 backdrop-blur-xl border border-white/[0.05] shadow-2xl"
                                         onClick={() => setMenu(null)}
                                     >
                                         {menu.type === 'node' ? (
@@ -849,7 +849,7 @@ function WorkspaceView() {
                                 {layerMenu && (
                                     <div
                                         style={{ top: layerMenu.top, left: layerMenu.left }}
-                                        className="fixed rounded-xl py-1 z-[200] min-w-[180px] bg-white/[0.1] backdrop-blur-md backdrop-saturate-150 border border-white/[0.2] shadow-2xl"
+                                        className="fixed rounded-2xl py-1 z-[200] min-w-[180px] bg-[#1E1E1E]/95 backdrop-blur-xl border border-white/[0.05] shadow-2xl"
                                         onClick={() => setLayerMenu(null)}
                                     >
                                         <button
@@ -892,11 +892,11 @@ function WorkspaceView() {
                                 )}
 
                                 {/* ── Floating top-left: back + title + save ── */}
-                                <Panel position="top-left" className="ml-6 mt-6 flex items-center gap-3 z-50">
-                                    <Link href="/" className="p-2.5 rounded-xl bg-white/[0.1] backdrop-blur-md backdrop-saturate-150 border border-white/[0.2] shadow-2xl text-white/50 hover:text-white hover:bg-white/[0.15] transition-all">
-                                        <ChevronLeft className="w-4 h-4" />
+                                <Panel position="top-left" className="ml-6 mt-6 flex items-center gap-2 z-50">
+                                    <Link href="/" className="w-10 h-10 flex items-center justify-center rounded-full bg-[#1E1E1E]/95 backdrop-blur-xl border border-white/[0.05] shadow-2xl text-white/50 hover:text-white hover:bg-[#2A2A2A] transition-all">
+                                        <ChevronLeft className="w-4 h-4 ml-[-2px]" />
                                     </Link>
-                                    <div className="flex items-center gap-3 px-4 py-2 rounded-xl bg-white/[0.1] backdrop-blur-md backdrop-saturate-150 border border-white/[0.2] shadow-2xl">
+                                    <div className="flex items-center gap-3 px-4 py-2.5 h-10 rounded-full bg-[#1E1E1E]/95 backdrop-blur-xl border border-white/[0.05] shadow-2xl">
                                         <Box className="w-4 h-4 text-white/50" />
                                         <span className="font-sans font-bold text-[13px] uppercase tracking-widest text-white/70">{workspace?.title || 'Untitled'}</span>
                                         <div className="w-px h-3.5 bg-white/10 mx-1" />
@@ -908,7 +908,7 @@ function WorkspaceView() {
                                 </Panel>
 
                                 {/* ── Floating top-right: delete + avatar ── */}
-                                <Panel position="top-right" className="mr-6 mt-6 flex items-center gap-3 z-50">
+                                <Panel position="top-right" className="mr-6 mt-6 flex items-center gap-2 z-50">
                                     <button
                                         onClick={() => {
                                             if (confirm("Are you sure you want to delete this entire project? This action cannot be undone.")) {
@@ -920,51 +920,51 @@ function WorkspaceView() {
                                                 });
                                             }
                                         }}
-                                        className="p-2.5 rounded-xl bg-white/[0.1] backdrop-blur-md backdrop-saturate-150 border border-white/[0.2] shadow-2xl text-red-400/80 hover:text-red-400 hover:bg-red-500/20 transition-all cursor-pointer pointer-events-auto"
+                                        className="w-10 h-10 flex items-center justify-center rounded-full bg-[#1E1E1E]/95 backdrop-blur-xl border border-white/[0.05] shadow-2xl text-red-400/80 hover:text-red-400 hover:bg-red-500/20 transition-all cursor-pointer pointer-events-auto"
                                         title="Delete Project"
                                     >
                                         <Trash2 className="w-4 h-4" />
                                     </button>
-                                    <Avatar className="w-9 h-9 ring-1 ring-white/[0.2] shadow-2xl pointer-events-auto cursor-pointer">
+                                    <Avatar className="w-10 h-10 ring-1 ring-white/5 shadow-2xl pointer-events-auto cursor-pointer">
                                         <AvatarImage src={user?.profileImageUrl || undefined} />
-                                        <AvatarFallback className="bg-white/10 backdrop-blur-md text-white/70 text-[11px] font-bold">{user?.firstName?.[0] || 'U'}</AvatarFallback>
+                                        <AvatarFallback className="bg-[#1E1E1E]/95 backdrop-blur-xl text-white/70 text-[11px] font-bold">{user?.firstName?.[0] || 'U'}</AvatarFallback>
                                     </Avatar>
                                 </Panel>
 
                                 {/* ── Right-side vertical toolbar (Stitch-style) ── */}
-                                <Panel position="top-right" className="mr-6 mt-40 flex flex-col items-center rounded-2xl p-2 gap-1.5 z-50 bg-white/[0.1] backdrop-blur-md backdrop-saturate-150 border border-white/[0.2] shadow-2xl">
+                                <Panel position="top-right" className="mr-6 mt-40 flex flex-col items-center rounded-full p-1.5 gap-1.5 z-50 bg-[#1E1E1E]/95 backdrop-blur-xl border border-white/[0.05] shadow-[0_8px_32px_rgba(0,0,0,0.6)]">
                                     <button
                                         onClick={() => {
                                             setDrawingMode('select');
                                             fitView({ duration: 800 });
                                         }}
-                                        className={`p-2.5 rounded-xl transition-all ${drawingMode === 'select' ? 'bg-white text-black shadow-lg' : 'text-white/40 hover:text-white hover:bg-white/5'}`}
+                                        className={`w-9 h-9 flex items-center justify-center rounded-full transition-all ${drawingMode === 'select' ? 'bg-white text-black shadow-lg scale-105' : 'text-white/40 hover:text-white hover:bg-[#2A2A2A]'}`}
                                         title="Selection Tool"
                                     >
                                         <MousePointer2 className="w-4 h-4" />
                                     </button>
                                     <button
                                         onClick={() => setDrawingMode(drawingMode === 'infrastructure' ? 'select' : 'infrastructure')}
-                                        className={`p-2.5 rounded-xl transition-all ${drawingMode === 'infrastructure' ? 'bg-white text-black shadow-lg' : 'text-white/40 hover:text-white hover:bg-white/5'}`}
+                                        className={`w-9 h-9 flex items-center justify-center rounded-full transition-all ${drawingMode === 'infrastructure' ? 'bg-white text-black shadow-lg scale-105' : 'text-white/40 hover:text-white hover:bg-[#2A2A2A]'}`}
                                         title="Infrastructure Tool (Click map to place VPC)"
                                     >
                                         <Square className="w-4 h-4" />
                                     </button>
                                     <button
                                         onClick={() => setDrawingMode(drawingMode === 'annotation' ? 'select' : 'annotation')}
-                                        className={`p-2.5 rounded-xl transition-all ${drawingMode === 'annotation' ? 'bg-white text-black shadow-lg' : 'text-white/40 hover:text-white hover:bg-white/5'}`}
+                                        className={`w-9 h-9 flex items-center justify-center rounded-full transition-all ${drawingMode === 'annotation' ? 'bg-white text-black shadow-lg scale-105' : 'text-white/40 hover:text-white hover:bg-[#2A2A2A]'}`}
                                         title="Annotation Tool (Click map to place)"
                                     >
                                         <Pencil className="w-4 h-4" />
                                     </button>
-                                    <div className="w-5 h-px my-0.5 bg-white/10" />
+                                    <div className="w-6 h-[1px] my-0.5 bg-white/10" />
                                     <Popover>
                                         <PopoverTrigger asChild>
-                                            <button className="p-2.5 rounded-xl transition-all text-white/40 hover:text-white hover:bg-white/5" title="Connection Settings">
+                                            <button className="w-9 h-9 flex items-center justify-center rounded-full transition-all text-white/40 hover:text-white hover:bg-[#2A2A2A]" title="Connection Settings">
                                                 <Spline className="w-4 h-4" />
                                             </button>
                                         </PopoverTrigger>
-                                        <PopoverContent className="w-64 p-3 bg-white/[0.1] backdrop-blur-md backdrop-saturate-150 border border-white/[0.2] rounded-xl shadow-2xl z-[150] space-y-4" side="left" align="start" sideOffset={16}>
+                                        <PopoverContent className="w-64 p-3 bg-[#1E1E1E]/95 backdrop-blur-xl border border-white/[0.05] rounded-2xl shadow-2xl z-[150] space-y-4" side="left" align="start" sideOffset={16}>
                                             {/* Style & Arrow */}
                                             <div className="space-y-2">
                                                 <div className="text-[10px] uppercase font-bold tracking-widest text-white/40 px-1">Line Style</div>
