@@ -186,12 +186,12 @@ export function SystemNode({ data, selected, type, width, height }: NodeProps) {
                     <div
                         className={`
                             relative w-full h-full flex flex-col p-2
-                            ${selected ? 'border-2 border-blue-500/30 bg-blue-500/5' : 'border-2 border-transparent group-hover:border-black/5'}
+                            ${selected ? 'border-2 border-blue-500/30 bg-blue-500/5' : 'border-2 border-transparent group-hover:border-white/10'}
                             transition-all cursor-text
                         `}
                     >
                         <p
-                            className="leading-tight font-medium whitespace-pre-wrap break-all w-full max-w-full text-black/80 font-sans"
+                            className="leading-tight font-medium whitespace-pre-wrap break-all w-full max-w-full text-white/80 font-sans"
                             style={{ fontSize: `${Math.max(14, Math.floor((width || 160) / 10))}px` }}
                         >
                             {(data.label as string) || 'Annotation'}
