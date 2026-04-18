@@ -143,6 +143,19 @@ html {
     font-family: var(--font-sans);
   }
 
+  /* ── GLOBAL FIGMA CURSOR ENFORCEMENT ── */
+  *, body, html {
+    cursor: url("data:image/svg+xml,%3Csvg width='22' height='22' viewBox='0 0 22 22' fill='none' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M4.83333 1.83333L4.83333 16.5L8.5 12.8333L12.1667 20.1667L14.9167 18.3333L11.25 11L16.75 11L4.83333 1.83333Z' fill='black' stroke='white' stroke-width='1.5' stroke-linejoin='round'/%3E%3C/svg%3E") 4 2, auto !important;
+  }
+
+  a, button, [role="button"], label, select, input[type="button"], input[type="submit"], input[type="reset"], .cursor-pointer, [style*="cursor: pointer"] {
+    cursor: url("data:image/svg+xml,%3Csvg width='24' height='24' viewBox='0 0 24 24' fill='none' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M9.5 10.5V2.5C9.5 1.67157 10.1716 1 11 1C11.8284 1 12.5 1.67157 12.5 2.5V10.5H13V5.5C13 4.67157 13.6716 4 14.5 4C15.3284 4 16 4.67157 16 5.5V10.5H16.5V6.5C16.5 5.67157 17.1716 5 18 5C18.8284 5 19.5 5.67157 19.5 6.5V10.5H20V8.5C20 7.67157 20.6716 7 21.5 7C22.3284 7 23 7.67157 23 8.5V15.5C23 19.0899 20.0899 22 16.5 22H13.5C11.7761 22 10.123 21.3155 8.90381 20.0962L3.62132 14.8137C3.03553 14.2279 3.03553 13.2782 3.62132 12.6924C4.20711 12.1066 5.15685 12.1066 5.74264 12.6924L9.5 16.4497V10.5Z' fill='black' stroke='white' stroke-width='1.5' stroke-linejoin='round'/%3E%3C/svg%3E") 10 2, pointer !important;
+  }
+
+  p, h1, h2, h3, h4, h5, h6, span, input[type="text"], input[type="password"], input[type="email"], input[type="number"], textarea, [contenteditable="true"] {
+    cursor: text !important;
+  }
+
   h1,
   h2,
   h3,
@@ -262,14 +275,7 @@ html {
   overflow: visible !important;
 }
 
-/* Custom Cursors Library */
-[data-cursor="select"] .react-flow__pane,
-[data-cursor="select"] .react-flow__node,
-[data-cursor="select"] .react-flow__node *,
-[data-cursor="select"] .react-flow__handle,
-[data-cursor="select"] .react-flow__edge {
-  cursor: url("data:image/svg+xml,%3Csvg width='22' height='22' viewBox='0 0 22 22' fill='none' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M4.83333 1.83333L4.83333 16.5L8.5 12.8333L12.1667 20.1667L14.9167 18.3333L11.25 11L16.75 11L4.83333 1.83333Z' fill='black' stroke='white' stroke-width='1.5' stroke-linejoin='round'/%3E%3C/svg%3E") 4 2, auto !important;
-}
+/* Tool specific cursors (override global pointer for crosshairs) */
 
 [data-cursor="annotation"] .react-flow__pane,
 [data-cursor="annotation"] .react-flow__node,
