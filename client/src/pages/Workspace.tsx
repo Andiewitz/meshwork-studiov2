@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useState, useRef } from 'react';
+import { motion } from 'framer-motion';
 import {
     ResizableHandle,
     ResizablePanel,
@@ -641,7 +642,10 @@ function WorkspaceView() {
 
     return (
         <div className="h-screen w-screen overflow-hidden font-sans text-sm selection:bg-white/10 bg-[#0A0A0A] text-white">
-                <main
+                <motion.main
+                    initial={{ opacity: 0, scale: 0.98 }}
+                    animate={{ opacity: 1, scale: 1 }}
+                    transition={{ duration: 0.5, ease: [0.16, 1, 0.3, 1] }}
                     className="h-full w-full relative transition-colors duration-300 bg-[#0A0A0A]"
                             data-cursor={drawingMode}
                         >
@@ -675,7 +679,6 @@ function WorkspaceView() {
                                 colorMode="dark"
                                 connectionMode={ConnectionMode.Loose}
                                 panOnScroll={true}
-                                panOnScrollSpeed={2}
                                 panOnDrag={drawingMode === 'select' ? [1, 2] : true}
                                 selectionOnDrag={drawingMode === 'select'}
                                 selectionMode={SelectionMode.Partial}
@@ -1052,7 +1055,7 @@ function WorkspaceView() {
                                     </button>
                                 </Panel>
                             </ReactFlow>
-                </main>
+                </motion.main>
         </div>
     );
 }
