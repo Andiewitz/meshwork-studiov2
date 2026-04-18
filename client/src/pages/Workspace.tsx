@@ -639,71 +639,7 @@ function WorkspaceView() {
     }
 
     return (
-        <div className="h-screen w-screen overflow-hidden flex flex-col font-sans text-sm selection:bg-white/10 bg-[#0A0A0A] text-white">
-            <header className="h-12 border-b flex items-center justify-between px-3 shrink-0 z-50 border-white/5 bg-[#121212] text-white">
-                <div className="flex items-center gap-4">
-                    <Link href="/" className="p-1.5 rounded-md transition-colors text-white/50 hover:text-white hover:bg-white/5">
-                        <ChevronLeft className="w-5 h-5" />
-                    </Link>
-                    <div className="h-4 w-px mx-1 bg-white/10" />
-                    <div className="flex items-center gap-2">
-                        <Box className="w-5 h-5 text-white" />
-                        <span className="font-sans font-black text-lg uppercase tracking-widest text-white/90">{workspace?.title || 'Untitled Project'}</span>
-                    </div>
-                </div>
-
-                <div className="flex items-center gap-3">
-                    <div className="flex items-center justify-center mr-2">
-                        {saveStatus === 'saved' && (
-                            <span className="flex items-center gap-1.5 text-[10px] text-white/50 tracking-widest uppercase">
-                                <CheckCircle2 className="w-3.5 h-3.5 text-green-500/80" /> Saved
-                            </span>
-                        )}
-                        {saveStatus === 'saving' && (
-                            <span className="flex items-center gap-1.5 text-[10px] text-white/70 tracking-widest uppercase cursor-pointer" title="Auto-saving...">
-                                <CloudUpload className="w-3.5 h-3.5 text-blue-400 animate-pulse" /> Saving...
-                            </span>
-                        )}
-                        {saveStatus === 'unsaved' && (
-                            <span className="flex items-center gap-1.5 text-[10px] text-white/50 tracking-widest uppercase cursor-pointer hover:text-white transition-colors" onClick={handleSave} title="Pending auto-save. Click to force save.">
-                                <Circle className="w-3.5 h-3.5 text-white/30" /> Modified
-                            </span>
-                        )}
-                        {saveStatus === 'offline_saved' && (
-                            <span className="flex items-center gap-1.5 text-[10px] text-yellow-500/80 tracking-widest uppercase cursor-pointer hover:text-yellow-400" onClick={handleSave} title="Saved locally. Failed to reach server. Click to retry.">
-                                <AlertCircle className="w-3.5 h-3.5" /> Offline
-                            </span>
-                        )}
-                    </div>
-
-                    <button
-                        onClick={() => {
-                            if (confirm("Are you sure you want to delete this entire project? This action cannot be undone.")) {
-                                deleteWorkspace.mutate(workspaceId, {
-                                    onSuccess: () => {
-                                        toast({ title: "Project Deleted", description: "Architecture removed from catalog." });
-                                        setLocation("/");
-                                    }
-                                });
-                            }
-                        }}
-                        className="flex items-center justify-center w-8 h-8 rounded-md border transition-all border-red-500/20 hover:bg-red-500/10 text-red-400"
-                        title="Delete Project"
-                    >
-                        <Trash2 className="w-4 h-4" />
-                    </button>
-
-                    <div className="h-4 w-px mx-1 bg-white/10" />
-                    <Avatar className="w-7 h-7 ring-1 ring-white/10">
-                        <AvatarImage src={user?.profileImageUrl || undefined} />
-                        <AvatarFallback className="bg-white/5 text-white/50 text-[10px] font-bold">{user?.firstName?.[0] || 'U'}</AvatarFallback>
-                    </Avatar>
-                </div>
-            </header>
-
-            <div className="flex-1 overflow-hidden relative">
-                {/* Full-bleed canvas — no sidebars */}
-
+        <div className="h-screen w-screen overflow-hidden font-sans text-sm selection:bg-white/10 bg-[#0A0A0A] text-white">
                 <main
                     className="h-full w-full relative transition-colors duration-300 bg-[#0A0A0A]"
                             data-cursor={drawingMode}
@@ -738,8 +674,8 @@ function WorkspaceView() {
                                 colorMode="dark"
                                 connectionMode={ConnectionMode.Loose}
                             >
-                                <Controls position="bottom-left" className="!bg-[#1A1A1A] !border-white/10 !text-white/50 !shadow-2xl !rounded-lg overflow-hidden !m-6 [&_button]:!bg-[#1A1A1A] [&_button]:!border-white/10 [&_button]:hover:!bg-white/10 [&_button_svg]:!fill-white/50" />
-                                <MiniMap position="bottom-left" className="!bg-[#1A1A1A] !border-white/10 !shadow-2xl !rounded-xl !ml-6 !mb-20 overflow-hidden [&_.react-flow__minimap-mask]:!fill-white/80" />
+                                <Controls position="bottom-left" className="!bg-white/[0.04] !backdrop-blur-2xl !border-white/[0.08] !text-white/50 !shadow-[0_8px_32px_rgba(0,0,0,0.4)] !rounded-lg overflow-hidden !m-6 [&_button]:!bg-transparent [&_button]:!border-white/[0.08] [&_button]:hover:!bg-white/10 [&_button_svg]:!fill-white/50" />
+                                <MiniMap position="bottom-left" className="!bg-white/[0.04] !backdrop-blur-2xl !border-white/[0.08] !shadow-[0_8px_32px_rgba(0,0,0,0.4)] !rounded-xl !ml-6 !mb-20 overflow-hidden [&_.react-flow__minimap-mask]:!fill-white/80" />
                                 <Background variant={'lines' as any} gap={24} size={1} color="#1A1A1A" />
 
 
@@ -748,7 +684,7 @@ function WorkspaceView() {
                                     <div
                                         ref={menuRef}
                                         style={{ top: menu.top, left: menu.left }}
-                                        className="fixed border rounded-lg shadow-2xl py-1 z-[100] min-w-[160px] bg-[#1A1A1A] border-white/10"
+                                        className="fixed rounded-xl py-1 z-[100] min-w-[160px] bg-white/[0.06] backdrop-blur-2xl border border-white/[0.08] shadow-[0_8px_32px_rgba(0,0,0,0.4)]"
                                         onClick={() => setMenu(null)}
                                     >
                                         {menu.type === 'node' ? (
@@ -911,7 +847,7 @@ function WorkspaceView() {
                                 {layerMenu && (
                                     <div
                                         style={{ top: layerMenu.top, left: layerMenu.left }}
-                                        className="fixed border rounded-lg shadow-2xl py-1 z-[200] min-w-[180px] bg-[#1a1a1a] border-white/10"
+                                        className="fixed rounded-xl py-1 z-[200] min-w-[180px] bg-white/[0.06] backdrop-blur-2xl border border-white/[0.08] shadow-[0_8px_32px_rgba(0,0,0,0.4)]"
                                         onClick={() => setLayerMenu(null)}
                                     >
                                         <button
@@ -953,8 +889,48 @@ function WorkspaceView() {
                                     </div>
                                 )}
 
+                                {/* ── Floating top-left: back + title + save ── */}
+                                <Panel position="top-left" className="ml-4 mt-4 flex items-center gap-3 z-50">
+                                    <Link href="/" className="p-2 rounded-xl bg-white/5 backdrop-blur-xl border border-white/10 text-white/50 hover:text-white hover:bg-white/10 transition-all">
+                                        <ChevronLeft className="w-4 h-4" />
+                                    </Link>
+                                    <div className="flex items-center gap-2.5 px-3 py-1.5 rounded-xl bg-white/5 backdrop-blur-xl border border-white/10">
+                                        <Box className="w-4 h-4 text-white/50" />
+                                        <span className="font-sans font-bold text-[13px] uppercase tracking-widest text-white/70">{workspace?.title || 'Untitled'}</span>
+                                        <div className="w-px h-3.5 bg-white/10 mx-1" />
+                                        {saveStatus === 'saved' && <CheckCircle2 className="w-3.5 h-3.5 text-green-500/60" />}
+                                        {saveStatus === 'saving' && <CloudUpload className="w-3.5 h-3.5 text-blue-400 animate-pulse" />}
+                                        {saveStatus === 'unsaved' && <Circle className="w-3.5 h-3.5 text-white/20 cursor-pointer hover:text-white/50 transition-colors" onClick={handleSave} />}
+                                        {saveStatus === 'offline_saved' && <AlertCircle className="w-3.5 h-3.5 text-yellow-500/70 cursor-pointer" onClick={handleSave} />}
+                                    </div>
+                                </Panel>
+
+                                {/* ── Floating top-right: delete + avatar ── */}
+                                <Panel position="top-right" className="mr-4 mt-4 flex items-center gap-2 z-50">
+                                    <button
+                                        onClick={() => {
+                                            if (confirm("Are you sure you want to delete this entire project? This action cannot be undone.")) {
+                                                deleteWorkspace.mutate(workspaceId, {
+                                                    onSuccess: () => {
+                                                        toast({ title: "Project Deleted", description: "Architecture removed from catalog." });
+                                                        setLocation("/");
+                                                    }
+                                                });
+                                            }
+                                        }}
+                                        className="p-2 rounded-xl bg-white/5 backdrop-blur-xl border border-white/10 text-red-400/60 hover:text-red-400 hover:bg-red-500/10 transition-all"
+                                        title="Delete Project"
+                                    >
+                                        <Trash2 className="w-4 h-4" />
+                                    </button>
+                                    <Avatar className="w-8 h-8 ring-1 ring-white/10">
+                                        <AvatarImage src={user?.profileImageUrl || undefined} />
+                                        <AvatarFallback className="bg-white/5 backdrop-blur-xl text-white/50 text-[10px] font-bold">{user?.firstName?.[0] || 'U'}</AvatarFallback>
+                                    </Avatar>
+                                </Panel>
+
                                 {/* ── Right-side vertical toolbar (Stitch-style) ── */}
-                                <Panel position="top-right" className="mr-3 mt-3 flex flex-col items-center border rounded-2xl shadow-2xl p-1.5 gap-1 z-50 bg-[#1A1A1A]/90 backdrop-blur-xl border-white/10">
+                                <Panel position="top-right" className="mr-4 mt-20 flex flex-col items-center rounded-2xl p-1.5 gap-1 z-50 bg-white/[0.04] backdrop-blur-2xl border border-white/[0.08] shadow-[0_8px_32px_rgba(0,0,0,0.4)]">
                                     <button
                                         onClick={() => {
                                             setDrawingMode('select');
@@ -986,7 +962,7 @@ function WorkspaceView() {
                                                 <Spline className="w-4 h-4" />
                                             </button>
                                         </PopoverTrigger>
-                                        <PopoverContent className="w-64 p-3 bg-[#1A1A1A] border border-white/10 rounded-xl shadow-2xl z-[150] space-y-4" side="left" align="start" sideOffset={12}>
+                                        <PopoverContent className="w-64 p-3 bg-white/[0.04] backdrop-blur-2xl border border-white/[0.08] rounded-xl shadow-[0_8px_32px_rgba(0,0,0,0.4)] z-[150] space-y-4" side="left" align="start" sideOffset={12}>
                                             {/* Style & Arrow */}
                                             <div className="space-y-2">
                                                 <div className="text-[10px] uppercase font-bold tracking-widest text-white/40 px-1">Line Style</div>
@@ -1071,7 +1047,6 @@ function WorkspaceView() {
                                 </Panel>
                             </ReactFlow>
                 </main>
-            </div>
         </div>
     );
 }
