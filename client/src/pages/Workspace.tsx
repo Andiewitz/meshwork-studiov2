@@ -18,6 +18,7 @@ import {
     Panel,
     useReactFlow,
     ConnectionMode,
+    SelectionMode,
     ReactFlowProvider,
 } from '@xyflow/react';
 
@@ -675,6 +676,9 @@ function WorkspaceView() {
                                 connectionMode={ConnectionMode.Loose}
                                 panOnScroll={true}
                                 panOnScrollSpeed={2}
+                                panOnDrag={drawingMode === 'select' ? [1, 2] : true}
+                                selectionOnDrag={drawingMode === 'select'}
+                                selectionMode={SelectionMode.Partial}
                             >
                                 <Controls position="bottom-left" className="!bg-[#1E1E1E]/95 !backdrop-blur-xl !border-white/[0.05] !text-white/50 !shadow-2xl !rounded-full overflow-hidden !m-6 [&_button]:!bg-transparent [&_button]:!border-white/[0.05] [&_button]:hover:!bg-white/10 [&_button_svg]:!fill-white/70" />
                                 <MiniMap position="bottom-left" className="!bg-[#1E1E1E]/95 !backdrop-blur-xl !border-white/[0.05] !shadow-2xl !rounded-2xl !ml-6 !mb-20 overflow-hidden [&_.react-flow__minimap-mask]:!fill-white/80" />
