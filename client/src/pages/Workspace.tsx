@@ -740,17 +740,21 @@ function WorkspaceView() {
                                 <Controls position="bottom-left" className="!bg-[#1E1E1E]/95 !backdrop-blur-xl !border-white/[0.05] !text-white/50 !shadow-2xl !rounded-full overflow-hidden !m-6 [&_button]:!bg-transparent [&_button]:!border-white/[0.05] [&_button]:hover:!bg-white/10 [&_button_svg]:!fill-white/70" />
                                 <MiniMap position="bottom-right" className="!bg-[#1E1E1E]/95 !backdrop-blur-xl !border-white/[0.05] !shadow-2xl !rounded-2xl !mr-6 !mb-6 overflow-hidden [&_.react-flow__minimap-mask]:!fill-white/80" />
                                 <Background variant={'dots' as any} gap={20} size={1.5} color="#333333" />
-                                <Background 
-                                    variant={'dots' as any} 
-                                    gap={20} 
-                                    size={1.5} 
-                                    color="#FFFFFF" 
-                                    className="opacity-40 pointer-events-none"
+                                <div 
+                                    className="absolute inset-0 pointer-events-none z-[0]"
                                     style={{
-                                        maskImage: 'radial-gradient(350px circle at var(--mouse-x, -1000px) var(--mouse-y, -1000px), black 0%, transparent 100%)',
-                                        WebkitMaskImage: 'radial-gradient(350px circle at var(--mouse-x, -1000px) var(--mouse-y, -1000px), black 0%, transparent 100%)'
+                                        WebkitMaskImage: 'radial-gradient(circle at var(--mouse-x, -1000px) var(--mouse-y, -1000px), black 0px, transparent 350px)',
+                                        maskImage: 'radial-gradient(circle at var(--mouse-x, -1000px) var(--mouse-y, -1000px), black 0px, transparent 350px)',
                                     } as any}
-                                />
+                                >
+                                    <Background 
+                                        variant={'dots' as any} 
+                                        gap={20} 
+                                        size={1.5} 
+                                        color="#FFFFFF" 
+                                        className="opacity-50"
+                                    />
+                                </div>
 
 
 
