@@ -335,7 +335,13 @@ html {
   cursor: auto !important;
 }
 
-.react-flow__pane:active {
+[data-cursor="pan"] .react-flow__pane,
+[data-cursor="pan"] .react-flow__node {
+  cursor: grab !important;
+}
+
+[data-cursor="pan"] .react-flow__pane:active,
+[data-cursor="pan"] .react-flow__node:active {
   cursor: grabbing !important;
 }
 

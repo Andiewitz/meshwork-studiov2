@@ -89,7 +89,8 @@ import {
     CloudUpload,
     AlertCircle,
     Package,
-    GripVertical
+    GripVertical,
+    Hand
 } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { useAuth } from '@/hooks/use-auth';
@@ -135,7 +136,7 @@ function WorkspaceView() {
     const [edgeType, setEdgeType] = useState<'step' | 'straight' | 'smoothstep' | 'default'>('step');
     const [edgeStyle, setEdgeStyle] = useState<'solid' | 'dashed' | 'dotted'>('solid');
     const [hasArrow, setHasArrow] = useState(false);
-    const [drawingMode, setDrawingMode] = useState<'select' | 'annotation' | 'infrastructure'>('select');
+    const [drawingMode, setDrawingMode] = useState<'select' | 'pan' | 'annotation' | 'infrastructure'>('select');
     const [libraryOpen, setLibraryOpen] = useState(false);
     const [librarySearch, setLibrarySearch] = useState('');
     const { fitView } = useReactFlow();
@@ -652,6 +653,7 @@ function WorkspaceView() {
                     transition={{ duration: 0.6, ease: [0.16, 1, 0.3, 1] }}
                     className="h-full w-full relative transition-colors duration-300 bg-[#0A0A0A]"
                             data-cursor={drawingMode}
+                            style={{ cursor: drawingMode === 'pan' ? 'grab' : undefined }}
                         >
                             <ReactFlow
                                 nodes={nodes}
@@ -683,7 +685,7 @@ function WorkspaceView() {
                                 colorMode="dark"
                                 connectionMode={ConnectionMode.Loose}
                                 panOnScroll={true}
-                                panOnDrag={drawingMode === 'select' ? [1, 2] : true}
+                                panOnDrag={drawingMode === 'pan' ? true : [1, 2]}
                                 selectionOnDrag={drawingMode === 'select'}
                                 selectionMode={SelectionMode.Partial}
                             >
@@ -1045,12 +1047,20 @@ function WorkspaceView() {
                                         <button
                                             onClick={() => {
                                                 setDrawingMode('select');
-                                                fitView({ duration: 800 });
                                             }}
                                             className={`w-9 h-9 flex items-center justify-center rounded-full transition-all ${drawingMode === 'select' ? 'bg-white text-black shadow-lg scale-105' : 'text-white/40 hover:text-white hover:bg-[#2A2A2A]'}`}
                                             title="Selection Tool"
                                         >
                                             <MousePointer2 className="w-4 h-4" />
+                                        </button>
+                                        <button
+                                            onClick={() => {
+                                                setDrawingMode('pan');
+                                            }}
+                                            className={`w-9 h-9 flex items-center justify-center rounded-full transition-all ${drawingMode === 'pan' ? 'bg-white text-black shadow-lg scale-105' : 'text-white/40 hover:text-white hover:bg-[#2A2A2A]'}`}
+                                            title="Hand / Pan Tool"
+                                        >
+                                            <Hand className="w-4 h-4" />
                                         </button>
                                         <button
                                             onClick={() => setDrawingMode(drawingMode === 'infrastructure' ? 'select' : 'infrastructure')}
