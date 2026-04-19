@@ -442,6 +442,20 @@ function WorkspaceView() {
         [setMenu]
     );
 
+    const onSelectionContextMenu = useCallback(
+        (event: React.MouseEvent, nodesList: Node[]) => {
+            event.preventDefault();
+            if (nodesList.length === 0) return;
+            setMenu({
+                id: 'selection',
+                top: event.clientY,
+                left: event.clientX,
+                type: 'node', // Reuses the node menu but enables multi-select features organically
+            });
+        },
+        [setMenu]
+    );
+
     const onEdgeContextMenu = useCallback(
         (event: React.MouseEvent, edge: Edge) => {
             event.preventDefault();
@@ -579,6 +593,30 @@ function WorkspaceView() {
         takeSnapshot();
     }, [takeSnapshot]);
 
+    const duplicateSelection = useCallback(
+        (ids: string[]) => {
+            if (ids.length === 0) return;
+            takeSnapshot();
+            const newNodes: Node[] = [];
+            ids.forEach(id => {
+                const node = nodes.find(n => n.id === id);
+                if (node) {
+                    newNodes.push({
+                        ...node,
+                        id: `${node.id}-copy-${Date.now()}-${Math.floor(Math.random() * 1000)}`,
+                        position: { x: node.position.x + 20, y: node.position.y + 20 },
+                        selected: true,
+                    });
+                }
+            });
+            setNodes((nds) => [
+                ...nds.map(n => ({ ...n, selected: false })),
+                ...newNodes
+            ]);
+        },
+        [nodes, setNodes, takeSnapshot]
+    );
+
     const onNodeDragStop = useCallback((_: any, node: Node) => {
         const { parentId, localPosition } = calculateContainment(node, nodes);
 
@@ -666,6 +704,7 @@ function WorkspaceView() {
                                 onNodeDragStart={onNodeDragStart}
                                 onNodeDragStop={onNodeDragStop}
                                 onNodeContextMenu={onNodeContextMenu}
+                                onSelectionContextMenu={onSelectionContextMenu}
                                 onEdgeContextMenu={onEdgeContextMenu}
                                 onPaneContextMenu={onPaneContextMenu as any}
                                 onNodesDelete={() => takeSnapshot()}
@@ -705,25 +744,31 @@ function WorkspaceView() {
                                         className="fixed rounded-2xl py-1 z-[100] min-w-[160px] bg-[#1E1E1E]/95 backdrop-blur-xl border border-white/[0.05] shadow-2xl"
                                         onClick={() => setMenu(null)}
                                     >
-                                        {menu.type === 'node' ? (
-                                            <>
+                                        {menu.type === 'node' ? (() => {
+                                            const selectedNodes = nodes.filter(n => n.selected || n.id === menu.id);
+                                            const isMultiSelect = selectedNodes.length > 1;
+
+                                            return (
+                                              <>
                                                 <button
-                                                    onClick={() => duplicateNode(menu.id)}
+                                                    onClick={() => isMultiSelect ? duplicateSelection(selectedNodes.map(n => n.id)) : duplicateNode(menu.id)}
                                                     className="w-full flex items-center gap-2 px-3 py-2 text-[12px] transition-colors hover:bg-white/5 text-white/70 hover:text-white"
                                                 >
                                                     <Copy className="w-3.5 h-3.5" />
-                                                    Duplicate
+                                                    Duplicate {isMultiSelect ? 'Selection' : ''}
                                                 </button>
-                                                <button
-                                                    onClick={() => {
-                                                        setSelectedNodeId(menu.id);
-                                                        setActiveTab('properties');
-                                                    }}
-                                                    className="w-full flex items-center gap-2 px-3 py-2 text-[12px] transition-colors hover:bg-white/5 text-white/70 hover:text-white"
-                                                >
-                                                    <Edit2 className="w-3.5 h-3.5" />
-                                                    Edit Properties
-                                                </button>
+                                                {!isMultiSelect && (
+                                                    <button
+                                                        onClick={() => {
+                                                            setSelectedNodeId(menu.id);
+                                                            setActiveTab('properties');
+                                                        }}
+                                                        className="w-full flex items-center gap-2 px-3 py-2 text-[12px] transition-colors hover:bg-white/5 text-white/70 hover:text-white"
+                                                    >
+                                                        <Edit2 className="w-3.5 h-3.5" />
+                                                        Edit Properties
+                                                    </button>
+                                                )}
                                                 <div className="h-px my-1 bg-white/5" />
                                                 <div className="px-3 py-1 text-[9px] uppercase font-bold text-white/20 tracking-widest">Layout</div>
                                                 <button
@@ -817,7 +862,7 @@ function WorkspaceView() {
                                                 <button
                                                     onClick={() => {
                                                         const selectedIds = nodes.filter(n => n.selected).map(n => n.id);
-                                                        if (!selectedIds.includes(menu.id)) selectedIds.push(menu.id);
+                                                        if (menu.id !== 'selection' && !selectedIds.includes(menu.id)) selectedIds.push(menu.id);
                                                         deleteNodes(selectedIds);
                                                     }}
                                                     className="w-full flex items-center gap-2 px-3 py-2 text-[12px] hover:bg-red-500/10 transition-colors text-red-400 hover:text-red-300"
@@ -826,7 +871,7 @@ function WorkspaceView() {
                                                     Delete {nodes.filter(n => n.selected).length > 1 ? `(${nodes.filter(n => n.selected).length})` : ''}
                                                 </button>
                                             </>
-                                        ) : (
+                                        );})() : (
                                             <div className="max-h-[70vh] overflow-y-auto custom-scrollbar">
                                                 {['Templates', 'Kubernetes', 'Infrastructure', 'Compute', 'Networking', 'Data', 'CI/CD', 'Security', 'Monitoring', 'Analytics', 'External', 'Documentation', 'Utilities'].map(category => {
                                                     const categoryItems = nodeTypesList.filter(n => n.category.toLowerCase() === category.toLowerCase());
