@@ -65,6 +65,7 @@ export const workspaces = pgTable("workspaces", {
   userId: text("user_id"), // Decoupled from users table for multi-db support
   collectionId: integer("collection_id").references(() => collections.id),
   createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
 });
 
 export const nodes = pgTable("nodes", {

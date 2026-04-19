@@ -81,8 +81,10 @@ export default function Home() {
       if (a.isFavorite && !b.isFavorite) return -1;
       if (!a.isFavorite && b.isFavorite) return 1;
       
-      // Secondary sort: id/date (descending)
-      return b.id - a.id;
+      // Secondary sort: updated date / creation date (descending)
+      const dateA = new Date(a.updatedAt || a.createdAt || 0).getTime();
+      const dateB = new Date(b.updatedAt || b.createdAt || 0).getTime();
+      return dateB - dateA;
     });
     return result;
   }, [workspaces, searchTerm]);

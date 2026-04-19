@@ -134,7 +134,8 @@ export function WorkspaceCard({
   };
 
   const Icon = getWorkspaceIcon(workspace.icon || undefined);
-  const updatedText = formatDistanceToNow(new Date(workspace.createdAt || new Date()), { addSuffix: true });
+  const displayDate = workspace.updatedAt ? new Date(workspace.updatedAt) : (workspace.createdAt ? new Date(workspace.createdAt) : new Date());
+  const updatedText = formatDistanceToNow(displayDate, { addSuffix: true });
 
   const MenuItems = () => (
     <>

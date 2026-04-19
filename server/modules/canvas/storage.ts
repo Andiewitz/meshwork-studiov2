@@ -2,6 +2,7 @@ import { db } from "./db";
 import {
     nodes,
     edges,
+    workspaces,
     type Node,
     type Edge,
     type InsertNode,
@@ -89,6 +90,11 @@ export class CanvasDatabaseStorage implements ICanvasStorage {
                         }
                     });
             }
+
+            // 5. Update workspace updated_at timestamp
+            await tx.update(workspaces)
+                .set({ updatedAt: new Date() })
+                .where(eq(workspaces.id, workspaceId));
         });
     }
 

@@ -80,7 +80,7 @@ export class WorkspaceDatabaseStorage implements IWorkspaceStorage {
     }
 
     async updateWorkspace(id: number, updates: Partial<InsertWorkspace>): Promise<Workspace> {
-        const [workspace] = await db.update(workspaces).set(updates).where(eq(workspaces.id, id)).returning();
+        const [workspace] = await db.update(workspaces).set({ ...updates, updatedAt: new Date() }).where(eq(workspaces.id, id)).returning();
         return workspace;
     }
 
