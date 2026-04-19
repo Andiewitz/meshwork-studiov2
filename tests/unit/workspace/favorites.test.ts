@@ -42,7 +42,7 @@ describe('WorkspaceDatabaseStorage (Unit)', () => {
       const result = await storage.updateWorkspace(1, { isFavorite: true });
 
       expect(db.update).toHaveBeenCalled();
-      expect(setMock).toHaveBeenCalledWith({ isFavorite: true });
+      expect(setMock).toHaveBeenCalledWith({ isFavorite: true, updatedAt: expect.any(Date) });
       expect(result).toEqual(mockWorkspace);
       expect(result.isFavorite).toBe(true);
     });
@@ -66,7 +66,7 @@ describe('WorkspaceDatabaseStorage (Unit)', () => {
 
       const result = await storage.updateWorkspace(2, { isFavorite: false });
 
-      expect(setMock).toHaveBeenCalledWith({ isFavorite: false });
+      expect(setMock).toHaveBeenCalledWith({ isFavorite: false, updatedAt: expect.any(Date) });
       expect(result.isFavorite).toBe(false);
     });
 
@@ -89,7 +89,7 @@ describe('WorkspaceDatabaseStorage (Unit)', () => {
 
       const result = await storage.updateWorkspace(3, { title: 'New Name' });
 
-      expect(setMock).toHaveBeenCalledWith({ title: 'New Name' });
+      expect(setMock).toHaveBeenCalledWith({ title: 'New Name', updatedAt: expect.any(Date) });
       expect(result.isFavorite).toBe(true); // preserved
     });
   });
