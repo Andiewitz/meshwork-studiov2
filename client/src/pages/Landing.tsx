@@ -71,7 +71,7 @@ const Home = () => {
                         <div className="w-9 h-9 flex items-center justify-center transition-all group-hover:drop-shadow-[0_0_12px_rgba(255,61,0,0.5)]">
                             <MeshworkLogo />
                         </div>
-                        <span className="text-lg font-black tracking-tighter uppercase hidden sm:block text-white">Meshwork Studio</span>
+                        <span className="text-lg font-serif font-medium tracking-tighter hidden sm:block text-white">Meshwork Studio</span>
                     </Link>
                     <div className="hidden md:flex items-center gap-8">
                         <a href="#features" className="text-sm font-bold uppercase tracking-wider text-white/50 hover:text-primary transition-colors">Features</a>
@@ -100,7 +100,7 @@ const Home = () => {
                     <div className="inline-block border border-primary/40 bg-primary/10 px-6 py-1.5 font-bold text-primary font-mono text-sm uppercase tracking-widest shadow-[0_0_30px_rgba(255,61,0,0.15)] mb-6">
                         Meshwork Studio V1
                     </div>
-                    <h1 className="text-5xl md:text-8xl lg:text-[100px] font-black uppercase tracking-tighter leading-[0.85] text-white mb-8 max-w-5xl mx-auto">
+                    <h1 className="font-serif text-5xl md:text-8xl lg:text-[100px] font-medium leading-[0.85] text-white mb-8 max-w-5xl mx-auto">
                         Design Cloud <br/>
                         <span className="text-transparent bg-clip-text bg-gradient-to-r from-primary via-orange-400 to-primary bg-[length:200%_auto] block mt-2">Architecture</span>
                     </h1>
@@ -189,7 +189,7 @@ const Home = () => {
                                     <div className="inline-block px-3 py-1 rounded border border-primary/20 bg-primary/5 text-[10px] font-mono text-primary uppercase tracking-[0.2em]">
                                         Bird's-eye View
                                     </div>
-                                    <h3 className="text-3xl md:text-5xl font-black uppercase tracking-tighter text-white leading-[0.9]">
+                                    <h3 className="font-serif text-3xl md:text-5xl font-medium text-white leading-[0.9]">
                                         See your entire <br />
                                         stack. At once.
                                     </h3>
@@ -229,7 +229,7 @@ const Home = () => {
                                     <div className="inline-block px-3 py-1 rounded border border-blue-500/20 bg-blue-500/5 text-[10px] font-mono text-blue-500 uppercase tracking-[0.2em]">
                                         Specialized Tooling
                                     </div>
-                                    <h3 className="text-3xl md:text-5xl font-black uppercase tracking-tighter text-white leading-[0.9]">
+                                    <h3 className="font-serif text-3xl md:text-5xl font-medium text-white leading-[0.9]">
                                         Not another <br /> Lucidchart.
                                     </h3>
                                     <p className="text-base text-white/50 leading-relaxed font-medium">
@@ -261,7 +261,7 @@ const Home = () => {
                                     <div className="inline-block px-3 py-1 rounded border border-emerald-500/20 bg-emerald-500/5 text-[10px] font-mono text-emerald-500 uppercase tracking-[0.2em]">
                                         Always Current
                                     </div>
-                                    <h3 className="text-3xl md:text-5xl font-black uppercase tracking-tighter text-white leading-[0.9]">
+                                    <h3 className="font-serif text-3xl md:text-5xl font-medium text-white leading-[0.9]">
                                         Kill stale <br /> Architecture docs.
                                     </h3>
                                     <p className="text-base text-white/50 leading-relaxed font-medium">
@@ -297,7 +297,7 @@ const Home = () => {
                                     <div className="inline-block px-3 py-1 rounded border border-purple-500/20 bg-purple-500/5 text-[10px] font-mono text-purple-500 uppercase tracking-[0.2em]">
                                         Auto-Routing
                                     </div>
-                                    <h3 className="text-3xl md:text-5xl font-black uppercase tracking-tighter text-white leading-[0.9]">
+                                    <h3 className="font-serif text-3xl md:text-5xl font-medium text-white leading-[0.9]">
                                         Layouts that <br /> just work.
                                     </h3>
                                     <p className="text-base text-white/50 leading-relaxed font-medium">
@@ -331,13 +331,70 @@ const Home = () => {
 
             {/* CALL TO ACTION — THE FORGE */}
             <section className="relative min-h-[80vh] flex items-center justify-center mt-24 border-t border-white/5 overflow-hidden">
-                {/* Forge Background Environment */}
-                <div className="absolute inset-0 z-0 bg-[#020202]">
-                    <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_bottom,rgba(255,61,0,0.1)_0%,transparent_60%)]"></div>
-                    <div className="absolute bottom-0 left-0 right-0 h-1/2 bg-gradient-to-t from-black to-transparent z-10"></div>
+                {/* LEFT IRON WALL — Soft Blend to Center */}
+                <div className="absolute left-0 top-0 bottom-0 w-[28%] z-10 pointer-events-none hidden md:block">
+                    <div className="absolute inset-0"
+                        style={{ background: 'linear-gradient(160deg, #111 0%, #0d0d0d 30%, #050505 70%, #000 100%)', zIndex: 1, boxShadow: 'inset -2px 0 10px rgba(0,0,0,0.8)' }}>
+                        <div className="absolute right-0 inset-y-0 w-32 bg-gradient-to-l from-[#060606] via-[#0a0a0a]/80 to-transparent pointer-events-none" />
+                        {[12, 25, 38, 52, 65, 78, 90].map(t => (
+                            <div key={`l1-${t}`} className="absolute left-0 right-0 h-px" style={{ top: `${t}%`, background: 'linear-gradient(to left, transparent, rgba(255,255,255,0.03), transparent)' }} />
+                        ))}
+                        {[15, 30, 45, 60, 75, 88].map(t => (
+                            <div key={`l2-${t}`} className="absolute left-5 w-4 h-4 rounded-full" style={{ top: `${t}%`, background: 'radial-gradient(circle at 35% 35%, #2a2a2a, #0d0d0d)', boxShadow: 'inset 1px 1px 3px #333, inset -1px -1px 3px #000' }} />
+                        ))}
+                    </div>
                 </div>
 
-                <div className="container mx-auto px-4 relative z-10 text-center">
+                {/* RIGHT IRON WALL — Soft Blend to Center */}
+                <div className="absolute right-0 top-0 bottom-0 w-[28%] z-10 pointer-events-none hidden md:block">
+                    <div className="absolute inset-0"
+                        style={{ background: 'linear-gradient(200deg, #111 0%, #0d0d0d 30%, #050505 70%, #000 100%)', zIndex: 1, boxShadow: 'inset 2px 0 10px rgba(0,0,0,0.8)' }}>
+                        <div className="absolute left-0 inset-y-0 w-32 bg-gradient-to-r from-[#060606] via-[#0a0a0a]/80 to-transparent pointer-events-none" />
+                        {[12, 25, 38, 52, 65, 78, 90].map(t => (
+                            <div key={`r1-${t}`} className="absolute left-0 right-0 h-px" style={{ top: `${t}%`, background: 'linear-gradient(to right, transparent, rgba(255,255,255,0.03), transparent)' }} />
+                        ))}
+                        {[15, 30, 45, 60, 75, 88].map(t => (
+                            <div key={`r2-${t}`} className="absolute right-5 w-4 h-4 rounded-full" style={{ top: `${t}%`, background: 'radial-gradient(circle at 35% 35%, #2a2a2a, #0d0d0d)', boxShadow: 'inset 1px 1px 3px #333, inset -1px -1px 3px #000' }} />
+                        ))}
+                    </div>
+                </div>
+
+                {/* Fire layers */}
+                <div className="absolute inset-0 overflow-hidden z-0 bg-[#020202]">
+                    <div className="absolute bottom-0 left-0 right-0 h-[70%]" style={{ background: 'radial-gradient(ellipse at 50% 100%, rgba(160,25,0,0.95) 0%, rgba(100,15,0,0.7) 40%, transparent 75%)' }} />
+                    <div className="absolute bottom-0 left-0 right-0 h-[55%]" style={{ background: 'radial-gradient(ellipse at 50% 100%, rgba(240,90,0,0.85) 0%, rgba(190,50,0,0.55) 45%, transparent 78%)' }} />
+                    <div className="absolute bottom-0 left-0 right-0 h-[38%]" style={{ background: 'radial-gradient(ellipse at 50% 100%, rgba(255,190,0,0.75) 0%, rgba(245,140,0,0.5) 40%, transparent 72%)' }} />
+                    <div className="absolute bottom-0 left-[25%] right-[25%] h-[18%]" style={{ background: 'radial-gradient(ellipse at 50% 100%, rgba(255,255,220,0.95) 0%, rgba(255,210,60,0.5) 50%, transparent 100%)' }} />
+
+                    {[
+                        { left: '5%', w: '15%', delay: 0, dur: 2.0 },
+                        { left: '24%', w: '19%', delay: 0.4, dur: 1.8 },
+                        { left: '45%', w: '18%', delay: 0.2, dur: 2.3 },
+                        { left: '64%', w: '17%', delay: 0.7, dur: 1.9 },
+                        { left: '82%', w: '14%', delay: 0.1, dur: 2.2 },
+                    ].map((f, i) => (
+                        <motion.div key={`fire-${i}`} className="absolute bottom-0 rounded-t-full"
+                            style={{ left: f.left, width: f.w, background: `linear-gradient(to top, rgba(255,${120 + i * 25},0,0.95), rgba(255,80,0,0.4), transparent)`, transformOrigin: 'bottom center', willChange: 'transform' }}
+                            animate={{ height: ['28%', '52%', '33%', '58%', '30%'], scaleX: [1, 0.82, 1.12, 0.88, 1], x: [0, (i % 2 === 0 ? 6 : -6), 0, (i % 2 === 0 ? -4 : 4), 0] }}
+                            transition={{ duration: f.dur, delay: f.delay, repeat: Infinity, ease: 'easeInOut' }}
+                        />
+                    ))}
+
+                    {[
+                        { left: '15%', delay: 0, dur: 2.8 },
+                        { left: '38%', delay: 0.6, dur: 3.2 },
+                        { left: '60%', delay: 0.2, dur: 2.5 },
+                        { left: '82%', delay: 1.0, dur: 3.0 },
+                    ].map((e, i) => (
+                        <motion.div key={`spark-${i}`} className="absolute w-2 h-2 rounded-full pointer-events-none"
+                            style={{ left: e.left, bottom: '28%', background: 'rgba(255,170,40,0.95)', boxShadow: '0 0 8px rgba(255,140,0,0.9)', willChange: 'transform, opacity' }}
+                            animate={{ y: [0, -320], x: [0, (i % 2 === 0 ? 30 : -30)], opacity: [1, 0.9, 0], scale: [1, 0.6, 0] }}
+                            transition={{ duration: e.dur, delay: e.delay, repeat: Infinity, ease: 'easeOut' }}
+                        />
+                    ))}
+                </div>
+
+                <div className="container mx-auto px-4 relative z-20 text-center">
                     <motion.div
                         initial={{ opacity: 0, y: 50, scale: 0.95 }}
                         whileInView={{ opacity: 1, y: 0, scale: 1 }}
@@ -365,7 +422,7 @@ const Home = () => {
                             </div>
                         </motion.div>
 
-                        <h2 className="text-6xl md:text-8xl lg:text-[110px] font-black tracking-tighter text-white uppercase leading-[0.85] mb-8">
+                        <h2 className="font-serif text-5xl md:text-8xl lg:text-[100px] font-medium tracking-tighter text-white leading-[0.85] mb-8" style={{ textShadow: '0 0 60px rgba(245,140,0,0.5), 0 0 120px rgba(245,100,0,0.2)' }}>
                             <span className="block opacity-60">Stop Drawing.</span>
                             <span className="block text-primary drop-shadow-[0_0_80px_rgba(255,61,0,0.4)]">Start Building.</span>
                         </h2>
@@ -395,7 +452,7 @@ const Home = () => {
                         <div className="flex flex-col gap-4 max-w-sm">
                             <div className="flex items-center gap-3">
                                 <div className="w-9 h-9 flex items-center justify-center"><MeshworkLogo /></div>
-                                <span className="font-black uppercase tracking-tighter text-xl text-white">Meshwork Studio</span>
+                                <span className="font-serif font-medium text-xl text-white tracking-tighter">Meshwork Studio</span>
                             </div>
                             <p className="text-white/30 text-sm font-medium leading-relaxed">
                                 The visual workspace for mapping, connecting, and sharing your cloud infrastructure. Built explicitly for engineers who think in systems.
