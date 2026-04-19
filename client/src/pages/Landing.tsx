@@ -55,7 +55,7 @@ const Home = () => {
             <div className="absolute inset-0 overflow-hidden pointer-events-none -z-10 bg-[#0A0A0A]">
                 <div className="absolute top-[5%] left-[-10%] w-[700px] h-[700px] rounded-full" style={{ background: 'radial-gradient(circle, rgba(255,61,0,0.07) 0%, transparent 70%)' }} />
                 <div className="absolute top-[-5%] right-[-5%] w-[600px] h-[600px] rounded-full" style={{ background: 'radial-gradient(circle, rgba(255,100,0,0.05) 0%, transparent 70%)' }} />
-                <div className="absolute bottom-[20%] left-[20%] w-[800px] h-[500px] rounded-full" style={{ background: 'radial-gradient(circle, rgba(200,40,0,0.03) 0%, transparent 70%)' }} />
+                <div className="absolute bottom-[20%] left-[20%] w-[800px] h-[500px] rounded-full" style={{ background: 'radial-gradient(circle, rgba(255,61,0,0.03) 0%, transparent 70%)' }} />
             </div>
 
             {/* NAVBAR */}
@@ -144,8 +144,8 @@ const Home = () => {
                     <div className="absolute inset-0 opacity-20 transition-opacity duration-1000">
                         {[
                             { left: '10%', top: '20%', size: '600px', color: 'rgba(255, 61, 0, 0.15)', dur: 25 },
-                            { left: '60%', top: '10%', size: '800px', color: 'rgba(255, 100, 0, 0.1)', dur: 35 },
-                            { left: '20%', top: '50%', size: '700px', color: 'rgba(200, 40, 0, 0.12)', dur: 30 },
+                            { left: '60%', top: '10%', size: '800px', color: 'rgba(255, 61, 0, 0.12)', dur: 35 },
+                            { left: '20%', top: '50%', size: '700px', color: 'rgba(255, 61, 0, 0.15)', dur: 30 },
                             { left: '70%', top: '60%', size: '600px', color: 'rgba(255, 61, 0, 0.08)', dur: 40 }
                         ].map((lava, i) => (
                             <motion.div
@@ -361,10 +361,10 @@ const Home = () => {
 
                 {/* Fire layers */}
                 <div className="absolute inset-0 overflow-hidden z-0 bg-[#020202]">
-                    <div className="absolute bottom-0 left-0 right-0 h-[70%]" style={{ background: 'radial-gradient(ellipse at 50% 100%, rgba(160,25,0,0.95) 0%, rgba(100,15,0,0.7) 40%, transparent 75%)' }} />
-                    <div className="absolute bottom-0 left-0 right-0 h-[55%]" style={{ background: 'radial-gradient(ellipse at 50% 100%, rgba(240,90,0,0.85) 0%, rgba(190,50,0,0.55) 45%, transparent 78%)' }} />
-                    <div className="absolute bottom-0 left-0 right-0 h-[38%]" style={{ background: 'radial-gradient(ellipse at 50% 100%, rgba(255,190,0,0.75) 0%, rgba(245,140,0,0.5) 40%, transparent 72%)' }} />
-                    <div className="absolute bottom-0 left-[25%] right-[25%] h-[18%]" style={{ background: 'radial-gradient(ellipse at 50% 100%, rgba(255,255,220,0.95) 0%, rgba(255,210,60,0.5) 50%, transparent 100%)' }} />
+                    <div className="absolute bottom-0 left-0 right-0 h-[70%]" style={{ background: 'radial-gradient(ellipse at 50% 100%, rgba(255,61,0,0.6) 0%, rgba(255,61,0,0.3) 40%, transparent 75%)' }} />
+                    <div className="absolute bottom-0 left-0 right-0 h-[55%]" style={{ background: 'radial-gradient(ellipse at 50% 100%, rgba(255,90,0,0.5) 0%, rgba(255,61,0,0.3) 45%, transparent 78%)' }} />
+                    <div className="absolute bottom-0 left-0 right-0 h-[38%]" style={{ background: 'radial-gradient(ellipse at 50% 100%, rgba(255,120,0,0.5) 0%, rgba(255,90,0,0.3) 40%, transparent 72%)' }} />
+                    <div className="absolute bottom-0 left-[25%] right-[25%] h-[18%]" style={{ background: 'radial-gradient(ellipse at 50% 100%, rgba(255,150,0,0.6) 0%, rgba(255,100,0,0.2) 50%, transparent 100%)' }} />
 
                     {[
                         { left: '5%', w: '15%', delay: 0, dur: 2.0 },
@@ -374,7 +374,7 @@ const Home = () => {
                         { left: '82%', w: '14%', delay: 0.1, dur: 2.2 },
                     ].map((f, i) => (
                         <motion.div key={`fire-${i}`} className="absolute bottom-0 rounded-t-full"
-                            style={{ left: f.left, width: f.w, background: `linear-gradient(to top, rgba(255,${120 + i * 25},0,0.95), rgba(255,80,0,0.4), transparent)`, transformOrigin: 'bottom center', willChange: 'transform' }}
+                            style={{ left: f.left, width: f.w, background: `linear-gradient(to top, rgba(255,${80 + i * 15},0,0.8), rgba(255,61,0,0.4), transparent)`, transformOrigin: 'bottom center', willChange: 'transform' }}
                             animate={{ height: ['28%', '52%', '33%', '58%', '30%'], scaleX: [1, 0.82, 1.12, 0.88, 1], x: [0, (i % 2 === 0 ? 6 : -6), 0, (i % 2 === 0 ? -4 : 4), 0] }}
                             transition={{ duration: f.dur, delay: f.delay, repeat: Infinity, ease: 'easeInOut' }}
                         />
@@ -387,7 +387,7 @@ const Home = () => {
                         { left: '82%', delay: 1.0, dur: 3.0 },
                     ].map((e, i) => (
                         <motion.div key={`spark-${i}`} className="absolute w-2 h-2 rounded-full pointer-events-none"
-                            style={{ left: e.left, bottom: '28%', background: 'rgba(255,170,40,0.95)', boxShadow: '0 0 8px rgba(255,140,0,0.9)', willChange: 'transform, opacity' }}
+                            style={{ left: e.left, bottom: '28%', background: 'rgba(255,120,40,0.95)', boxShadow: '0 0 8px rgba(255,61,0,0.9)', willChange: 'transform, opacity' }}
                             animate={{ y: [0, -320], x: [0, (i % 2 === 0 ? 30 : -30)], opacity: [1, 0.9, 0], scale: [1, 0.6, 0] }}
                             transition={{ duration: e.dur, delay: e.delay, repeat: Infinity, ease: 'easeOut' }}
                         />
