@@ -167,6 +167,8 @@ app.use((req, res, next) => {
     log("starting database migrations...");
     try {
       await db.execute(sql`ALTER TABLE workspaces ADD COLUMN IF NOT EXISTS updated_at timestamp DEFAULT CURRENT_TIMESTAMP`);
+      // Targeted hotfix: revert `updated_at` for legacy workspaces corrupted by the above DEFAULT CURRENT_TIMESTAMP
+      await db.execute(sql`UPDATE workspaces SET updated_at = created_at WHERE updated_at > '2026-04-19 07:00:00' AND updated_at < '2026-04-19 08:30:00' AND created_at < '2026-04-19 07:00:00'`);
       log("database migrations applied successfully");
     } catch (dbErr) {
       console.warn("Failed to apply DB migrations, might already exist or DB is unavailable:", dbErr);
