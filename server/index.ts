@@ -1,5 +1,7 @@
 console.log("[Monolith] Starting initialization phase 0...");
 import express, { type Request, Response, NextFunction } from "express";
+import { db } from "./db";
+import { sql } from "drizzle-orm";
 import { registerRoutes } from "./routes";
 import { serveStatic } from "./static";
 import { createServer } from "http";
@@ -162,6 +164,14 @@ app.use((req, res, next) => {
   );
 
   try {
+    log("starting database migrations...");
+    try {
+      await db.execute(sql`ALTER TABLE workspaces ADD COLUMN IF NOT EXISTS updated_at timestamp DEFAULT CURRENT_TIMESTAMP`);
+      log("database migrations applied successfully");
+    } catch (dbErr) {
+      console.warn("Failed to apply DB migrations, might already exist or DB is unavailable:", dbErr);
+    }
+    
     log("starting module initialization...");
     await registerRoutes(httpServer, app);
     log("all modules initialized successfully");
