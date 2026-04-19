@@ -71,7 +71,7 @@ const Home = () => {
                         <div className="w-9 h-9 flex items-center justify-center transition-all group-hover:drop-shadow-[0_0_12px_rgba(255,61,0,0.5)]">
                             <MeshworkLogo />
                         </div>
-                        <span className="text-lg font-serif font-medium tracking-tighter hidden sm:block text-white">Meshwork Studio</span>
+                        <span className="text-lg font-black tracking-tighter uppercase hidden sm:block text-white">Meshwork Studio</span>
                     </Link>
                     <div className="hidden md:flex items-center gap-8">
                         <a href="#features" className="text-sm font-bold uppercase tracking-wider text-white/50 hover:text-primary transition-colors">Features</a>
@@ -452,7 +452,7 @@ const Home = () => {
                         <div className="flex flex-col gap-4 max-w-sm">
                             <div className="flex items-center gap-3">
                                 <div className="w-9 h-9 flex items-center justify-center"><MeshworkLogo /></div>
-                                <span className="font-serif font-medium text-xl text-white tracking-tighter">Meshwork Studio</span>
+                                <span className="font-black uppercase tracking-tighter text-xl text-white">Meshwork Studio</span>
                             </div>
                             <p className="text-white/30 text-sm font-medium leading-relaxed">
                                 The visual workspace for mapping, connecting, and sharing your cloud infrastructure. Built explicitly for engineers who think in systems.
