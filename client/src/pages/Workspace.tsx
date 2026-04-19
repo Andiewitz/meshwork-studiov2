@@ -142,6 +142,14 @@ function WorkspaceView() {
     const { fitView } = useReactFlow();
     const [expandedCategories, setExpandedCategories] = useState<Record<string, boolean>>({});
 
+    const mainRef = useRef<HTMLElement>(null);
+    const handlePointerMove = useCallback((e: React.PointerEvent) => {
+        if (mainRef.current) {
+            mainRef.current.style.setProperty('--mouse-x', `${e.clientX}px`);
+            mainRef.current.style.setProperty('--mouse-y', `${e.clientY}px`);
+        }
+    }, []);
+
     const toggleCategory = (category: string) => {
         setExpandedCategories(prev => ({
             ...prev,
@@ -686,6 +694,8 @@ function WorkspaceView() {
     return (
         <div className="h-screen w-screen overflow-hidden font-sans text-sm selection:bg-white/10 bg-[#0A0A0A] text-white">
                 <motion.main
+                    ref={mainRef as any}
+                    onPointerMove={handlePointerMove}
                     initial={{ opacity: 0 }}
                     animate={{ opacity: 1 }}
                     transition={{ duration: 0.6, ease: [0.16, 1, 0.3, 1] }}
@@ -731,6 +741,17 @@ function WorkspaceView() {
                                 <Controls position="bottom-left" className="!bg-[#1E1E1E]/95 !backdrop-blur-xl !border-white/[0.05] !text-white/50 !shadow-2xl !rounded-full overflow-hidden !m-6 [&_button]:!bg-transparent [&_button]:!border-white/[0.05] [&_button]:hover:!bg-white/10 [&_button_svg]:!fill-white/70" />
                                 <MiniMap position="bottom-right" className="!bg-[#1E1E1E]/95 !backdrop-blur-xl !border-white/[0.05] !shadow-2xl !rounded-2xl !mr-6 !mb-6 overflow-hidden [&_.react-flow__minimap-mask]:!fill-white/80" />
                                 <Background variant={'dots' as any} gap={20} size={1.5} color="#333333" />
+                                <Background 
+                                    variant={'dots' as any} 
+                                    gap={20} 
+                                    size={1.5} 
+                                    color="#FFFFFF" 
+                                    className="opacity-40 pointer-events-none"
+                                    style={{
+                                        maskImage: 'radial-gradient(350px circle at var(--mouse-x, -1000px) var(--mouse-y, -1000px), black 0%, transparent 100%)',
+                                        WebkitMaskImage: 'radial-gradient(350px circle at var(--mouse-x, -1000px) var(--mouse-y, -1000px), black 0%, transparent 100%)'
+                                    } as any}
+                                />
 
 
 
