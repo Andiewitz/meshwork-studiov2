@@ -1,26 +1,12 @@
-import React, { useRef, useEffect } from 'react';
+import React, { useRef } from 'react';
 import { motion, useScroll, useTransform } from 'framer-motion';
 import { ArrowRight, Boxes, BarChart3 } from 'lucide-react';
-import Button from '../components/prometheus/Button';
-import DashboardPreview from '../components/prometheus/DashboardPreview';
-import Lenis from "lenis";
+import Button from '../components/ui/Button';
+import DashboardPreview from '../components/dashboard/DashboardPreview';
 
 const Home = () => {
-    const containerRef = useRef<HTMLDivElement>(null);
+    const containerRef = useRef(null);
     const { scrollYProgress } = useScroll();
-
-    useEffect(() => {
-        const lenis = new Lenis({
-            lerp: 0.08,
-            wheelMultiplier: 1.2,
-        });
-        function raf(time: number) {
-            lenis.raf(time);
-            requestAnimationFrame(raf);
-        }
-        requestAnimationFrame(raf);
-        return () => lenis.destroy();
-    }, []);
 
     const barOpacity = useTransform(scrollYProgress, [0, 0.05], [0, 1]);
 
