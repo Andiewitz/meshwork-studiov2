@@ -142,12 +142,13 @@ function WorkspaceView() {
     const { fitView } = useReactFlow();
     const [expandedCategories, setExpandedCategories] = useState<Record<string, boolean>>({});
 
-    const mainRef = useRef<HTMLElement>(null);
-    const handlePointerMove = useCallback((e: React.PointerEvent) => {
-        if (mainRef.current) {
-            mainRef.current.style.setProperty('--mouse-x', `${e.clientX}px`);
-            mainRef.current.style.setProperty('--mouse-y', `${e.clientY}px`);
-        }
+    useEffect(() => {
+        const updateMousePosition = (ev: PointerEvent) => {
+            document.documentElement.style.setProperty('--mouse-x', `${ev.clientX}px`);
+            document.documentElement.style.setProperty('--mouse-y', `${ev.clientY}px`);
+        };
+        window.addEventListener('pointermove', updateMousePosition);
+        return () => window.removeEventListener('pointermove', updateMousePosition);
     }, []);
 
     const toggleCategory = (category: string) => {
@@ -694,8 +695,6 @@ function WorkspaceView() {
     return (
         <div className="h-screen w-screen overflow-hidden font-sans text-sm selection:bg-white/10 bg-[#0A0A0A] text-white">
                 <motion.main
-                    ref={mainRef as any}
-                    onPointerMove={handlePointerMove}
                     initial={{ opacity: 0 }}
                     animate={{ opacity: 1 }}
                     transition={{ duration: 0.6, ease: [0.16, 1, 0.3, 1] }}
