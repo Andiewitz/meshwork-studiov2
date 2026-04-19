@@ -249,11 +249,9 @@ html {
 @keyframes node-enter {
   from { 
     opacity: 0; 
-    transform: translateY(8px); 
   }
   to { 
     opacity: 1; 
-    transform: translateY(0); 
   }
 }
 
@@ -262,7 +260,7 @@ html {
 }
 
 .react-flow__node {
-  animation: node-enter 0.4s ease-out 0.3s both;
+  animation: node-enter 0.4s ease-out 0.1s both;
 }
 
 /* Selection box styling */
