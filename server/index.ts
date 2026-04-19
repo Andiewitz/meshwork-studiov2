@@ -1,6 +1,6 @@
 console.log("[Monolith] Starting initialization phase 0...");
 import express, { type Request, Response, NextFunction } from "express";
-import { db } from "./db";
+import { db } from "./modules/workspace/db";
 import { sql } from "drizzle-orm";
 import { registerRoutes } from "./routes";
 import { serveStatic } from "./static";
