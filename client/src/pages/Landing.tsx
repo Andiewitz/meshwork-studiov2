@@ -361,10 +361,10 @@ const Home = () => {
 
                 {/* Fire layers */}
                 <div className="absolute inset-0 overflow-hidden z-0 bg-[#020202]">
-                    <div className="absolute bottom-0 left-0 right-0 h-[70%]" style={{ background: 'radial-gradient(ellipse at 50% 100%, rgba(255,61,0,0.6) 0%, rgba(255,61,0,0.3) 40%, transparent 75%)' }} />
-                    <div className="absolute bottom-0 left-0 right-0 h-[55%]" style={{ background: 'radial-gradient(ellipse at 50% 100%, rgba(255,90,0,0.5) 0%, rgba(255,61,0,0.3) 45%, transparent 78%)' }} />
-                    <div className="absolute bottom-0 left-0 right-0 h-[38%]" style={{ background: 'radial-gradient(ellipse at 50% 100%, rgba(255,120,0,0.5) 0%, rgba(255,90,0,0.3) 40%, transparent 72%)' }} />
-                    <div className="absolute bottom-0 left-[25%] right-[25%] h-[18%]" style={{ background: 'radial-gradient(ellipse at 50% 100%, rgba(255,150,0,0.6) 0%, rgba(255,100,0,0.2) 50%, transparent 100%)' }} />
+                    <div className="absolute bottom-0 left-0 right-0 h-[70%]" style={{ background: 'radial-gradient(ellipse at 50% 100%, rgba(204,26,0,0.95) 0%, rgba(153,20,0,0.7) 40%, transparent 75%)' }} />
+                    <div className="absolute bottom-0 left-0 right-0 h-[55%]" style={{ background: 'radial-gradient(ellipse at 50% 100%, rgba(255,61,0,0.85) 0%, rgba(204,26,0,0.55) 45%, transparent 78%)' }} />
+                    <div className="absolute bottom-0 left-0 right-0 h-[38%]" style={{ background: 'radial-gradient(ellipse at 50% 100%, rgba(255,140,0,0.75) 0%, rgba(255,61,0,0.5) 40%, transparent 72%)' }} />
+                    <div className="absolute bottom-0 left-[25%] right-[25%] h-[18%]" style={{ background: 'radial-gradient(ellipse at 50% 100%, rgba(255,215,0,0.95) 0%, rgba(255,140,0,0.5) 50%, transparent 100%)' }} />
 
                     {[
                         { left: '5%', w: '15%', delay: 0, dur: 2.0 },
@@ -433,7 +433,7 @@ const Home = () => {
 
                         <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
                             <Link href="/auth/register">
-                                <Button size="lg" className="w-full sm:w-auto px-10 h-14 bg-white text-black border-none hover:bg-gray-200">
+                                <Button size="lg" className="w-full sm:w-auto px-10 h-14 bg-blue-600 text-white hover:bg-blue-500 border border-blue-500/50 shadow-[0_0_30px_rgba(37,99,235,0.3)]">
                                     Get Meshwork Studio Free
                                 </Button>
                             </Link>
