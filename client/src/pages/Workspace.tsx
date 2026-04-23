@@ -100,16 +100,12 @@ import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { SystemNode } from '@/components/canvas/nodes/SystemNode';
-import {
-    K8sPodIcon, K8sDeployIcon, K8sReplicaSetIcon, K8sStatefulIcon, K8sDaemonIcon,
-    K8sServiceIcon, K8sIngressIcon, K8sConfigMapIcon, K8sSecretIcon, K8sPVCIcon,
-    K8sJobIcon, K8sCronJobIcon, K8sHPAIcon, K8sNamespaceIcon
-} from '@/components/canvas/icons/KubernetesIcons';
 
 import { nodeTypes, nodeTypesList } from '@/features/workspace/utils/nodeTypes';
 import { nodeDimensions } from "@/features/workspace/utils/dimensions";
 import { generateTemplate } from "@/features/workspace/utils/templates";
 import { PropertiesSidebar } from "@/features/workspace/components/PropertiesSidebar";
+import { NodeLibrarySidebar } from "@/features/workspace/components/NodeLibrarySidebar";
 import { calculateContainment, calculateGlobalPosition } from "@/features/workspace/utils/containment";
 
 function WorkspaceView() {
@@ -137,10 +133,7 @@ function WorkspaceView() {
     const [edgeStyle, setEdgeStyle] = useState<'solid' | 'dashed' | 'dotted'>('solid');
     const [hasArrow, setHasArrow] = useState(false);
     const [drawingMode, setDrawingMode] = useState<'select' | 'pan' | 'annotation' | 'infrastructure'>('select');
-    const [libraryOpen, setLibraryOpen] = useState(false);
-    const [librarySearch, setLibrarySearch] = useState('');
     const { fitView } = useReactFlow();
-    const [expandedCategories, setExpandedCategories] = useState<Record<string, boolean>>({});
 
     useEffect(() => {
         const updateMousePosition = (ev: PointerEvent) => {
@@ -150,13 +143,6 @@ function WorkspaceView() {
         window.addEventListener('pointermove', updateMousePosition);
         return () => window.removeEventListener('pointermove', updateMousePosition);
     }, []);
-
-    const toggleCategory = (category: string) => {
-        setExpandedCategories(prev => ({
-            ...prev,
-            [category]: !prev[category]
-        }));
-    };
 
     const history = useRef<{ nodes: Node[]; edges: Edge[] }[]>([]);
     const redoStack = useRef<{ nodes: Node[]; edges: Edge[] }[]>([]);
@@ -693,12 +679,13 @@ function WorkspaceView() {
     }
 
     return (
-        <div className="h-screen w-screen overflow-hidden font-sans text-sm selection:bg-white/10 bg-[#0A0A0A] text-white">
+        <div className="h-screen w-screen overflow-hidden font-sans text-sm selection:bg-white/10 bg-[#0A0A0A] text-white flex">
+                <NodeLibrarySidebar onDragStart={onDragStart} />
                 <motion.main
                     initial={{ opacity: 0 }}
                     animate={{ opacity: 1 }}
                     transition={{ duration: 0.6, ease: [0.16, 1, 0.3, 1] }}
-                    className="h-full w-full relative transition-colors duration-300 bg-[#0A0A0A]"
+                    className="h-full flex-1 relative transition-colors duration-300 bg-[#0A0A0A]"
                             data-cursor={drawingMode}
                             style={{ cursor: drawingMode === 'pan' ? 'grab' : undefined }}
                         >
@@ -979,77 +966,7 @@ function WorkspaceView() {
                                     </motion.div>
                                 )}
 
-                                {/* ── Floating Component Library Panel ── */}
-                                <AnimatePresence>
-                                    {libraryOpen && (
-                                        <Panel position="top-left" className="ml-6 mt-20 z-50">
-                                            <motion.div
-                                                initial={{ opacity: 0, x: -20, filter: 'blur(10px)' }}
-                                                animate={{ opacity: 1, x: 0, filter: 'blur(0px)' }}
-                                                exit={{ opacity: 0, x: -20, filter: 'blur(10px)' }}
-                                                transition={{ duration: 0.3, ease: [0.16, 1, 0.3, 1] }}
-                                                className="w-64 max-h-[calc(100vh-140px)] flex flex-col rounded-2xl bg-[#1E1E1E]/95 backdrop-blur-xl border border-white/[0.05] shadow-[0_8px_32px_rgba(0,0,0,0.6)] overflow-hidden"
-                                            >
-                                                {/* Header */}
-                                                <div className="px-4 pt-4 pb-2">
-                                                    <div className="text-[10px] uppercase font-bold tracking-[0.2em] text-white/30 mb-2">Components</div>
-                                                    <div className="relative">
-                                                        <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-white/30" />
-                                                        <input
-                                                            type="text"
-                                                            placeholder="Search components..."
-                                                            value={librarySearch}
-                                                            onChange={(e) => setLibrarySearch(e.target.value)}
-                                                            className="w-full pl-8 pr-3 py-2 text-[12px] bg-white/[0.05] border border-white/[0.06] rounded-xl text-white/80 placeholder:text-white/20 outline-none focus:border-white/[0.12] transition-colors"
-                                                        />
-                                                    </div>
-                                                </div>
 
-                                                {/* Scrollable categories */}
-                                                <div className="flex-1 overflow-y-auto px-2 pb-3 scrollbar-hide">
-                                                    {['Templates', 'Compute', 'Data', 'Networking', 'CI/CD', 'Security', 'Monitoring', 'Infrastructure', 'Kubernetes', 'External', 'Documentation', 'Utilities'].map(category => {
-                                                        const items = nodeTypesList.filter(n => 
-                                                            n.category.toLowerCase() === category.toLowerCase() &&
-                                                            (librarySearch === '' || n.label.toLowerCase().includes(librarySearch.toLowerCase()) || n.type.toLowerCase().includes(librarySearch.toLowerCase()))
-                                                        );
-                                                        if (items.length === 0) return null;
-
-                                                        const isExpanded = expandedCategories[category] !== false; // default open
-
-                                                        return (
-                                                            <div key={category} className="mb-1">
-                                                                <button
-                                                                    onClick={() => toggleCategory(category)}
-                                                                    className="w-full flex items-center gap-1.5 px-2 py-1.5 text-[9px] uppercase font-bold tracking-[0.15em] text-white/25 hover:text-white/40 transition-colors"
-                                                                >
-                                                                    <ChevronRight className={`w-3 h-3 transition-transform ${isExpanded ? 'rotate-90' : ''}`} />
-                                                                    {category}
-                                                                    <span className="text-white/15 ml-auto">{items.length}</span>
-                                                                </button>
-                                                                {isExpanded && (
-                                                                    <div className="space-y-0.5 mt-0.5">
-                                                                        {items.map((node) => (
-                                                                            <div
-                                                                                key={node.type}
-                                                                                draggable
-                                                                                onDragStart={(e) => onDragStart(e, node.type, node.label)}
-                                                                                className="flex items-center gap-2.5 px-3 py-2 rounded-xl text-[12px] text-white/60 hover:text-white hover:bg-white/[0.05] transition-colors cursor-grab active:cursor-grabbing group"
-                                                                            >
-                                                                                <node.icon className="w-3.5 h-3.5 text-white/30 group-hover:text-white/60 transition-colors flex-shrink-0" />
-                                                                                <span className="truncate flex-1">{node.label}</span>
-                                                                                <GripVertical className="w-3 h-3 text-white/10 group-hover:text-white/25 transition-colors flex-shrink-0" />
-                                                                            </div>
-                                                                        ))}
-                                                                    </div>
-                                                                )}
-                                                            </div>
-                                                        );
-                                                    })}
-                                                </div>
-                                            </motion.div>
-                                        </Panel>
-                                    )}
-                                </AnimatePresence>
 
                                 {/* ── Floating top-left: back + title + save ── */}
                                 <Panel position="top-left" className="ml-6 mt-6 z-50">
@@ -1145,13 +1062,7 @@ function WorkspaceView() {
                                         >
                                             <Pencil className="w-4 h-4" />
                                         </button>
-                                        <button
-                                            onClick={() => setLibraryOpen(!libraryOpen)}
-                                            className={`w-9 h-9 flex items-center justify-center rounded-full transition-all ${libraryOpen ? 'bg-white text-black shadow-lg scale-105' : 'text-white/40 hover:text-white hover:bg-[#2A2A2A]'}`}
-                                            title="Component Library"
-                                        >
-                                            <Package className="w-4 h-4" />
-                                        </button>
+
                                         <div className="w-6 h-[1px] my-0.5 bg-white/10" />
                                         <Popover>
                                             <PopoverTrigger asChild>

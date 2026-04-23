@@ -77,17 +77,14 @@ export const nodeTypes = {
     route53: SystemNode,
     nats: SystemNode,
     socketio: SystemNode,
-    pusher: SystemNode,
     // CI/CD
     github_actions: SystemNode,
     jenkins: SystemNode,
-    circleci: SystemNode,
     gitlab: SystemNode,
     argocd: SystemNode,
     // Security
     vault: SystemNode,
     auth0: SystemNode,
-    okta: SystemNode,
     waf: SystemNode,
     // Monitoring
     prometheus: SystemNode,
@@ -100,67 +97,70 @@ export const nodeTypes = {
     // External
     stripe: SystemNode,
     twilio: SystemNode,
-    sendgrid: SystemNode,
     shopify: SystemNode,
-    paypal: SystemNode,
 };
 
+// ── Favorites: the 6 most commonly used nodes shown as large tiles ──
+export const favoriteNodes = [
+    { type: 'server', label: 'Server', icon: Server },
+    { type: 'database', label: 'Database', icon: Database },
+    { type: 'gateway', label: 'API Gateway', icon: Globe },
+    { type: 'microservice', label: 'Docker', icon: Box },
+    { type: 'cache', label: 'Redis', icon: Zap },
+    { type: 'loadBalancer', label: 'Load Balancer', icon: Cpu },
+];
+
 export const nodeTypesList = [
-    { type: 'server', label: 'Bare Metal Server', icon: Server, category: 'Compute' },
-    { type: 'microservice', label: 'Microservice', icon: Box, category: 'Compute' },
-    { type: 'worker', label: 'Background Worker', icon: Cpu, category: 'Compute' },
-    { type: 'logic', label: 'Lambda/Logic', icon: Zap, category: 'Compute' },
+    // ── Compute ──
+    { type: 'server', label: 'Server', icon: Server, category: 'Compute' },
+    { type: 'microservice', label: 'Docker', icon: Box, category: 'Compute' },
+    { type: 'worker', label: 'Worker', icon: Cpu, category: 'Compute' },
+    { type: 'logic', label: 'Lambda', icon: Zap, category: 'Compute' },
 
-    { type: 'database', label: 'Database (SQL/NoSQL)', icon: Database, category: 'Data' },
-    { type: 'cache', label: 'Redis Cache', icon: Zap, category: 'Data' },
-    { type: 'storage', label: 'Object Storage (S3)', icon: HardDrive, category: 'Data' },
-    { type: 'search', label: 'Search Index', icon: Search, category: 'Data' },
-    { type: 'influxdb', label: 'InfluxDB', icon: BarChart3, category: 'Data' },
-    { type: 'snowflake', label: 'Snowflake', icon: Layers, category: 'Data' },
-    { type: 'clickhouse', label: 'Clickhouse', icon: Database, category: 'Data' },
+    // ── Data & Storage ──
+    { type: 'database', label: 'Database', icon: Database, category: 'Data & Storage' },
+    { type: 'cache', label: 'Redis', icon: Zap, category: 'Data & Storage' },
+    { type: 'storage', label: 'Storage (S3)', icon: HardDrive, category: 'Data & Storage' },
+    { type: 'search', label: 'Elasticsearch', icon: Search, category: 'Data & Storage' },
+    { type: 'influxdb', label: 'InfluxDB', icon: BarChart3, category: 'Data & Storage' },
+    { type: 'snowflake', label: 'Snowflake', icon: Layers, category: 'Data & Storage' },
+    { type: 'clickhouse', label: 'Clickhouse', icon: Database, category: 'Data & Storage' },
 
+    // ── Networking ──
     { type: 'gateway', label: 'API Gateway', icon: Globe, category: 'Networking' },
     { type: 'loadBalancer', label: 'Load Balancer', icon: Cpu, category: 'Networking' },
-    { type: 'cdn', label: 'CDN / Edge', icon: Globe, category: 'Networking' },
-    { type: 'bus', label: 'Event Bus (Kafka)', icon: Share2, category: 'Networking' },
-    { type: 'queue', label: 'Message Queue', icon: MessageSquare, category: 'Networking' },
+    { type: 'cdn', label: 'CDN', icon: Globe, category: 'Networking' },
+    { type: 'bus', label: 'Kafka', icon: Share2, category: 'Networking' },
+    { type: 'queue', label: 'Queue', icon: MessageSquare, category: 'Networking' },
     { type: 'route53', label: 'Route 53', icon: Globe, category: 'Networking' },
     { type: 'nats', label: 'NATS', icon: Activity, category: 'Networking' },
     { type: 'socketio', label: 'Socket.io', icon: MessageCircle, category: 'Networking' },
-    { type: 'pusher', label: 'Pusher', icon: Zap, category: 'Networking' },
 
-    { type: 'github_actions', label: 'GitHub Actions', icon: PlayCircle, category: 'CI/CD' },
-    { type: 'jenkins', label: 'Jenkins', icon: Settings, category: 'CI/CD' },
-    { type: 'circleci', label: 'CircleCI', icon: RotateCw, category: 'CI/CD' },
-    { type: 'gitlab', label: 'GitLab', icon: GitBranch, category: 'CI/CD' },
-    { type: 'argocd', label: 'Argo CD', icon: PlayCircle, category: 'CI/CD' },
+    // ── DevOps ──
+    { type: 'github_actions', label: 'GitHub Actions', icon: PlayCircle, category: 'DevOps' },
+    { type: 'jenkins', label: 'Jenkins', icon: Settings, category: 'DevOps' },
+    { type: 'gitlab', label: 'GitLab CI', icon: GitBranch, category: 'DevOps' },
+    { type: 'argocd', label: 'Argo CD', icon: PlayCircle, category: 'DevOps' },
+    { type: 'vault', label: 'Vault', icon: Lock, category: 'DevOps' },
+    { type: 'auth0', label: 'Auth0', icon: Key, category: 'DevOps' },
+    { type: 'waf', label: 'WAF', icon: Shield, category: 'DevOps' },
+    { type: 'prometheus', label: 'Prometheus', icon: Activity, category: 'DevOps' },
+    { type: 'grafana', label: 'Grafana', icon: BarChart3, category: 'DevOps' },
+    { type: 'datadog', label: 'Datadog', icon: PieChart, category: 'DevOps' },
 
-    { type: 'vault', label: 'HashiCorp Vault', icon: Lock, category: 'Security' },
-    { type: 'auth0', label: 'Auth0', icon: Key, category: 'Security' },
-    { type: 'okta', label: 'Okta', icon: Shield, category: 'Security' },
-    { type: 'waf', label: 'Cloudflare WAF', icon: Shield, category: 'Security' },
+    // ── Zones ──
+    { type: 'vpc', label: 'VPC', icon: Square, category: 'Zones' },
+    { type: 'region', label: 'Region', icon: Globe, category: 'Zones' },
 
-    { type: 'prometheus', label: 'Prometheus', icon: Activity, category: 'Monitoring' },
-    { type: 'grafana', label: 'Grafana', icon: BarChart3, category: 'Monitoring' },
-    { type: 'datadog', label: 'Datadog', icon: PieChart, category: 'Monitoring' },
+    // ── Integrations ──
+    { type: 'user', label: 'User', icon: UserIcon, category: 'Integrations' },
+    { type: 'app', label: 'Client App', icon: Box, category: 'Integrations' },
+    { type: 'api', label: 'External API', icon: Globe, category: 'Integrations' },
+    { type: 'stripe', label: 'Stripe', icon: CreditCard, category: 'Integrations' },
+    { type: 'twilio', label: 'Twilio', icon: MessageCircle, category: 'Integrations' },
+    { type: 'shopify', label: 'Shopify', icon: ShoppingCart, category: 'Integrations' },
 
-    { type: 'vpc', label: 'VPC / Subnet', icon: Square, category: 'Infrastructure' },
-    { type: 'region', label: 'Region / Zone', icon: Globe, category: 'Infrastructure' },
-
-    { type: 'user', label: 'End User', icon: UserIcon, category: 'External' },
-    { type: 'app', label: 'Mobile/Web App', icon: Box, category: 'External' },
-    { type: 'api', label: 'Third Party API', icon: Globe, category: 'External' },
-    { type: 'stripe', label: 'Stripe', icon: CreditCard, category: 'External' },
-    { type: 'twilio', label: 'Twilio', icon: MessageCircle, category: 'External' },
-    { type: 'sendgrid', label: 'SendGrid', icon: MessageCircle, category: 'External' },
-    { type: 'shopify', label: 'Shopify', icon: ShoppingCart, category: 'External' },
-    { type: 'paypal', label: 'PayPal', icon: CreditCard, category: 'External' },
-
-    { type: 'note', label: 'Sticky Note', icon: Type, category: 'Documentation' },
-
-    { type: 'junction', label: 'Junction Point', icon: Circle, category: 'Utilities' },
-
-    // Kubernetes — Workloads
+    // ── Kubernetes ──
     { type: 'k8s-pod', label: 'Pod', icon: K8sPodIcon, category: 'Kubernetes' },
     { type: 'k8s-deployment', label: 'Deployment', icon: K8sDeployIcon, category: 'Kubernetes' },
     { type: 'k8s-replicaset', label: 'ReplicaSet', icon: K8sReplicaSetIcon, category: 'Kubernetes' },
@@ -168,20 +168,17 @@ export const nodeTypesList = [
     { type: 'k8s-daemonset', label: 'DaemonSet', icon: K8sDaemonIcon, category: 'Kubernetes' },
     { type: 'k8s-job', label: 'Job', icon: K8sJobIcon, category: 'Kubernetes' },
     { type: 'k8s-cronjob', label: 'CronJob', icon: K8sCronJobIcon, category: 'Kubernetes' },
-    // Kubernetes — Networking
     { type: 'k8s-service', label: 'Service', icon: K8sServiceIcon, category: 'Kubernetes' },
     { type: 'k8s-ingress', label: 'Ingress', icon: K8sIngressIcon, category: 'Kubernetes' },
-    // Kubernetes — Config & Storage
     { type: 'k8s-configmap', label: 'ConfigMap', icon: K8sConfigMapIcon, category: 'Kubernetes' },
     { type: 'k8s-secret', label: 'Secret', icon: K8sSecretIcon, category: 'Kubernetes' },
-    { type: 'k8s-pvc', label: 'PersistentVolumeClaim', icon: K8sPVCIcon, category: 'Kubernetes' },
-    // Kubernetes — Scaling & Grouping
-    { type: 'k8s-hpa', label: 'HPA (Autoscaler)', icon: K8sHPAIcon, category: 'Kubernetes' },
+    { type: 'k8s-pvc', label: 'PVC', icon: K8sPVCIcon, category: 'Kubernetes' },
+    { type: 'k8s-hpa', label: 'Autoscaler', icon: K8sHPAIcon, category: 'Kubernetes' },
     { type: 'k8s-namespace', label: 'Namespace', icon: K8sNamespaceIcon, category: 'Kubernetes' },
 
-    // Complex Distributed Systems Templates
-    { type: 'template:ecommerce', label: 'E-commerce Microservices', icon: ShoppingCart, category: 'Templates' },
-    { type: 'template:ai-platform', label: 'AI/ML Data Platform', icon: Activity, category: 'Templates' },
-    { type: 'template:enterprise-k8s', label: 'Enterprise K8s Cluster', icon: Layers, category: 'Templates' },
-    { type: 'template:fintech-saas', label: 'FinTech SaaS Stack', icon: CreditCard, category: 'Templates' },
+    // ── Templates ──
+    { type: 'template:ecommerce', label: 'E-commerce', icon: ShoppingCart, category: 'Templates' },
+    { type: 'template:ai-platform', label: 'AI/ML Platform', icon: Activity, category: 'Templates' },
+    { type: 'template:enterprise-k8s', label: 'K8s Cluster', icon: Layers, category: 'Templates' },
+    { type: 'template:fintech-saas', label: 'FinTech SaaS', icon: CreditCard, category: 'Templates' },
 ];
