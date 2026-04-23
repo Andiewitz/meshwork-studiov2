@@ -118,7 +118,7 @@ function WorkspaceView() {
     const isError = isCanvasError || isWorkspaceError;
     const { user } = useAuth();
     const { toast } = useToast();
-    const { screenToFlowPosition } = useReactFlow();
+    const { screenToFlowPosition, fitView, zoomIn, zoomOut } = useReactFlow();
     const [, setLocation] = useLocation();
     const deleteWorkspace = useDeleteWorkspace();
 
@@ -133,7 +133,6 @@ function WorkspaceView() {
     const [edgeStyle, setEdgeStyle] = useState<'solid' | 'dashed' | 'dotted'>('solid');
     const [hasArrow, setHasArrow] = useState(false);
     const [drawingMode, setDrawingMode] = useState<'select' | 'pan' | 'annotation' | 'infrastructure'>('select');
-    const { fitView } = useReactFlow();
 
     useEffect(() => {
         const updateMousePosition = (ev: PointerEvent) => {
@@ -535,10 +534,21 @@ function WorkspaceView() {
                     deleteNode(selectedNodeId);
                 }
             }
-            if ((e.ctrlKey || e.metaKey) && e.key === 's') {
-                e.preventDefault();
-                if (!isSyncing) {
-                    handleSave();
+            if (e.ctrlKey || e.metaKey) {
+                if (e.key === 's') {
+                    e.preventDefault();
+                    if (!isSyncing) {
+                        handleSave();
+                    }
+                } else if (e.key === '=' || e.key === '+') {
+                    e.preventDefault();
+                    zoomIn();
+                } else if (e.key === '-') {
+                    e.preventDefault();
+                    zoomOut();
+                } else if (e.key === '0') {
+                    e.preventDefault();
+                    fitView({ duration: 400 });
                 }
             }
         };
