@@ -1,3 +1,4 @@
+import React from 'react';
 import { SystemNode } from '@/components/canvas/nodes/SystemNode';
 import {
     K8sPodIcon, K8sDeployIcon, K8sReplicaSetIcon, K8sStatefulIcon, K8sDaemonIcon,
@@ -6,102 +7,41 @@ import {
 } from '@/components/canvas/icons/KubernetesIcons';
 
 import {
-    Server,
-    Database,
-    Cpu,
-    Globe,
-    MessageSquare,
-    HardDrive,
-    Zap,
-    Box,
-    Share2,
-    RotateCw,
-    PlayCircle,
-    GitBranch,
-    Settings,
-    Shield,
-    Lock,
-    Key,
-    Activity,
-    BarChart3,
-    PieChart,
-    Square,
-    Type,
-    Circle,
-    CreditCard,
-    MessageCircle,
-    ShoppingCart,
-    Search,
-    User as UserIcon,
-    Layers
+    Server, Database, Cpu, Globe, MessageSquare, HardDrive, Zap, Box, Share2,
+    PlayCircle, GitBranch, Settings, Shield, Lock, Key, Activity, BarChart3,
+    PieChart, Square, Type, Circle, CreditCard, MessageCircle, ShoppingCart,
+    Search, User as UserIcon, Layers
 } from 'lucide-react';
 
+// ── Node types registry for ReactFlow ──
 export const nodeTypes = {
-    server: SystemNode,
-    database: SystemNode,
-    loadBalancer: SystemNode,
-    gateway: SystemNode,
-    queue: SystemNode,
-    storage: SystemNode,
-    logic: SystemNode,
-    cdn: SystemNode,
-    microservice: SystemNode,
-    worker: SystemNode,
-    cache: SystemNode,
-    search: SystemNode,
-    bus: SystemNode,
-    region: SystemNode,
-    vpc: SystemNode,
-    user: SystemNode,
-    app: SystemNode,
-    api: SystemNode,
-    note: SystemNode,
-    annotation: SystemNode,
-    junction: SystemNode,
-    // Kubernetes
-    'k8s-pod': SystemNode,
-    'k8s-deployment': SystemNode,
-    'k8s-replicaset': SystemNode,
-    'k8s-statefulset': SystemNode,
-    'k8s-daemonset': SystemNode,
-    'k8s-service': SystemNode,
-    'k8s-ingress': SystemNode,
-    'k8s-configmap': SystemNode,
-    'k8s-secret': SystemNode,
-    'k8s-pvc': SystemNode,
-    'k8s-job': SystemNode,
-    'k8s-cronjob': SystemNode,
-    'k8s-hpa': SystemNode,
-    'k8s-namespace': SystemNode,
-    // Networking
-    route53: SystemNode,
-    nats: SystemNode,
-    socketio: SystemNode,
-    // CI/CD
-    github_actions: SystemNode,
-    jenkins: SystemNode,
-    gitlab: SystemNode,
-    argocd: SystemNode,
-    // Security
-    vault: SystemNode,
-    auth0: SystemNode,
-    waf: SystemNode,
-    // Monitoring
-    prometheus: SystemNode,
-    grafana: SystemNode,
-    datadog: SystemNode,
-    // Analytics
-    influxdb: SystemNode,
-    snowflake: SystemNode,
-    clickhouse: SystemNode,
-    // External
-    stripe: SystemNode,
-    twilio: SystemNode,
-    shopify: SystemNode,
+    server: SystemNode, database: SystemNode, loadBalancer: SystemNode,
+    gateway: SystemNode, queue: SystemNode, storage: SystemNode,
+    logic: SystemNode, cdn: SystemNode, microservice: SystemNode,
+    worker: SystemNode, cache: SystemNode, search: SystemNode,
+    bus: SystemNode, region: SystemNode, vpc: SystemNode,
+    user: SystemNode, app: SystemNode, api: SystemNode,
+    note: SystemNode, annotation: SystemNode, junction: SystemNode,
+    'k8s-pod': SystemNode, 'k8s-deployment': SystemNode, 'k8s-replicaset': SystemNode,
+    'k8s-statefulset': SystemNode, 'k8s-daemonset': SystemNode, 'k8s-service': SystemNode,
+    'k8s-ingress': SystemNode, 'k8s-configmap': SystemNode, 'k8s-secret': SystemNode,
+    'k8s-pvc': SystemNode, 'k8s-job': SystemNode, 'k8s-cronjob': SystemNode,
+    'k8s-hpa': SystemNode, 'k8s-namespace': SystemNode,
+    route53: SystemNode, nats: SystemNode, socketio: SystemNode,
+    github_actions: SystemNode, jenkins: SystemNode, gitlab: SystemNode, argocd: SystemNode,
+    vault: SystemNode, auth0: SystemNode, waf: SystemNode,
+    prometheus: SystemNode, grafana: SystemNode, datadog: SystemNode,
+    influxdb: SystemNode, snowflake: SystemNode, clickhouse: SystemNode,
+    stripe: SystemNode, twilio: SystemNode, shopify: SystemNode,
 };
 
-// ── Favorites: the 6 most commonly used nodes shown as large tiles ──
-export const favoriteNodes = [
+// ── Expandable node types — these support nested sub-canvases ──
+export const EXPANDABLE_TYPES = new Set([
+    'microservice', 'vpc', 'region', 'k8s-namespace', 'server', 'app'
+]);
+
+// ── Default favorites (used when user has no usage history) ──
+export const DEFAULT_FAVORITES = [
     { type: 'server', label: 'Server', icon: Server },
     { type: 'database', label: 'Database', icon: Database },
     { type: 'gateway', label: 'API Gateway', icon: Globe },
@@ -110,55 +50,48 @@ export const favoriteNodes = [
     { type: 'loadBalancer', label: 'Load Balancer', icon: Cpu },
 ];
 
+// ── All nodes for lookup (used by sidebar, context menu, properties) ──
 export const nodeTypesList = [
-    // ── Compute ──
-    { type: 'server', label: 'Server', icon: Server, category: 'Compute' },
-    { type: 'microservice', label: 'Docker', icon: Box, category: 'Compute' },
-    { type: 'worker', label: 'Worker', icon: Cpu, category: 'Compute' },
-    { type: 'logic', label: 'Lambda', icon: Zap, category: 'Compute' },
+    // ── Core: the 17 nodes that cover 95% of diagrams ──
+    { type: 'server', label: 'Server', icon: Server, category: 'Core' },
+    { type: 'database', label: 'Database', icon: Database, category: 'Core' },
+    { type: 'cache', label: 'Redis', icon: Zap, category: 'Core' },
+    { type: 'gateway', label: 'API Gateway', icon: Globe, category: 'Core' },
+    { type: 'loadBalancer', label: 'Load Balancer', icon: Cpu, category: 'Core' },
+    { type: 'microservice', label: 'Docker', icon: Box, category: 'Core' },
+    { type: 'worker', label: 'Worker', icon: Cpu, category: 'Core' },
+    { type: 'logic', label: 'Lambda', icon: Zap, category: 'Core' },
+    { type: 'queue', label: 'Queue', icon: MessageSquare, category: 'Core' },
+    { type: 'bus', label: 'Kafka', icon: Share2, category: 'Core' },
+    { type: 'storage', label: 'Storage (S3)', icon: HardDrive, category: 'Core' },
+    { type: 'cdn', label: 'CDN', icon: Globe, category: 'Core' },
+    { type: 'vpc', label: 'VPC', icon: Square, category: 'Core' },
+    { type: 'region', label: 'Region', icon: Globe, category: 'Core' },
+    { type: 'user', label: 'User', icon: UserIcon, category: 'Core' },
+    { type: 'app', label: 'Client App', icon: Box, category: 'Core' },
+    { type: 'api', label: 'External API', icon: Globe, category: 'Core' },
 
-    // ── Data & Storage ──
-    { type: 'database', label: 'Database', icon: Database, category: 'Data & Storage' },
-    { type: 'cache', label: 'Redis', icon: Zap, category: 'Data & Storage' },
-    { type: 'storage', label: 'Storage (S3)', icon: HardDrive, category: 'Data & Storage' },
-    { type: 'search', label: 'Elasticsearch', icon: Search, category: 'Data & Storage' },
-    { type: 'influxdb', label: 'InfluxDB', icon: BarChart3, category: 'Data & Storage' },
-    { type: 'snowflake', label: 'Snowflake', icon: Layers, category: 'Data & Storage' },
-    { type: 'clickhouse', label: 'Clickhouse', icon: Database, category: 'Data & Storage' },
-
-    // ── Networking ──
-    { type: 'gateway', label: 'API Gateway', icon: Globe, category: 'Networking' },
-    { type: 'loadBalancer', label: 'Load Balancer', icon: Cpu, category: 'Networking' },
-    { type: 'cdn', label: 'CDN', icon: Globe, category: 'Networking' },
-    { type: 'bus', label: 'Kafka', icon: Share2, category: 'Networking' },
-    { type: 'queue', label: 'Queue', icon: MessageSquare, category: 'Networking' },
-    { type: 'route53', label: 'Route 53', icon: Globe, category: 'Networking' },
-    { type: 'nats', label: 'NATS', icon: Activity, category: 'Networking' },
-    { type: 'socketio', label: 'Socket.io', icon: MessageCircle, category: 'Networking' },
-
-    // ── DevOps ──
-    { type: 'github_actions', label: 'GitHub Actions', icon: PlayCircle, category: 'DevOps' },
-    { type: 'jenkins', label: 'Jenkins', icon: Settings, category: 'DevOps' },
-    { type: 'gitlab', label: 'GitLab CI', icon: GitBranch, category: 'DevOps' },
-    { type: 'argocd', label: 'Argo CD', icon: PlayCircle, category: 'DevOps' },
-    { type: 'vault', label: 'Vault', icon: Lock, category: 'DevOps' },
-    { type: 'auth0', label: 'Auth0', icon: Key, category: 'DevOps' },
-    { type: 'waf', label: 'WAF', icon: Shield, category: 'DevOps' },
-    { type: 'prometheus', label: 'Prometheus', icon: Activity, category: 'DevOps' },
-    { type: 'grafana', label: 'Grafana', icon: BarChart3, category: 'DevOps' },
-    { type: 'datadog', label: 'Datadog', icon: PieChart, category: 'DevOps' },
-
-    // ── Zones ──
-    { type: 'vpc', label: 'VPC', icon: Square, category: 'Zones' },
-    { type: 'region', label: 'Region', icon: Globe, category: 'Zones' },
-
-    // ── Integrations ──
-    { type: 'user', label: 'User', icon: UserIcon, category: 'Integrations' },
-    { type: 'app', label: 'Client App', icon: Box, category: 'Integrations' },
-    { type: 'api', label: 'External API', icon: Globe, category: 'Integrations' },
-    { type: 'stripe', label: 'Stripe', icon: CreditCard, category: 'Integrations' },
-    { type: 'twilio', label: 'Twilio', icon: MessageCircle, category: 'Integrations' },
-    { type: 'shopify', label: 'Shopify', icon: ShoppingCart, category: 'Integrations' },
+    // ── More: vendor-specific, collapsed by default ──
+    { type: 'search', label: 'Elasticsearch', icon: Search, category: 'More' },
+    { type: 'influxdb', label: 'InfluxDB', icon: BarChart3, category: 'More' },
+    { type: 'snowflake', label: 'Snowflake', icon: Layers, category: 'More' },
+    { type: 'clickhouse', label: 'Clickhouse', icon: Database, category: 'More' },
+    { type: 'route53', label: 'Route 53', icon: Globe, category: 'More' },
+    { type: 'nats', label: 'NATS', icon: Activity, category: 'More' },
+    { type: 'socketio', label: 'Socket.io', icon: MessageCircle, category: 'More' },
+    { type: 'github_actions', label: 'GitHub Actions', icon: PlayCircle, category: 'More' },
+    { type: 'jenkins', label: 'Jenkins', icon: Settings, category: 'More' },
+    { type: 'gitlab', label: 'GitLab CI', icon: GitBranch, category: 'More' },
+    { type: 'argocd', label: 'Argo CD', icon: PlayCircle, category: 'More' },
+    { type: 'vault', label: 'Vault', icon: Lock, category: 'More' },
+    { type: 'auth0', label: 'Auth0', icon: Key, category: 'More' },
+    { type: 'waf', label: 'WAF', icon: Shield, category: 'More' },
+    { type: 'prometheus', label: 'Prometheus', icon: Activity, category: 'More' },
+    { type: 'grafana', label: 'Grafana', icon: BarChart3, category: 'More' },
+    { type: 'datadog', label: 'Datadog', icon: PieChart, category: 'More' },
+    { type: 'stripe', label: 'Stripe', icon: CreditCard, category: 'More' },
+    { type: 'twilio', label: 'Twilio', icon: MessageCircle, category: 'More' },
+    { type: 'shopify', label: 'Shopify', icon: ShoppingCart, category: 'More' },
 
     // ── Kubernetes ──
     { type: 'k8s-pod', label: 'Pod', icon: K8sPodIcon, category: 'Kubernetes' },
@@ -182,3 +115,55 @@ export const nodeTypesList = [
     { type: 'template:enterprise-k8s', label: 'K8s Cluster', icon: Layers, category: 'Templates' },
     { type: 'template:fintech-saas', label: 'FinTech SaaS', icon: CreditCard, category: 'Templates' },
 ];
+
+// ── Usage tracking for dynamic favorites ──
+const USAGE_KEY = 'meshwork:node-usage';
+
+export interface NodeUsageStats {
+    counts: Record<string, number>;
+    lastUsed: Record<string, number>;
+}
+
+export function getNodeUsage(): NodeUsageStats {
+    try {
+        const raw = localStorage.getItem(USAGE_KEY);
+        return raw ? JSON.parse(raw) : { counts: {}, lastUsed: {} };
+    } catch {
+        return { counts: {}, lastUsed: {} };
+    }
+}
+
+export function trackNodeUsage(nodeType: string): void {
+    const stats = getNodeUsage();
+    stats.counts[nodeType] = (stats.counts[nodeType] || 0) + 1;
+    stats.lastUsed[nodeType] = Date.now();
+    try {
+        localStorage.setItem(USAGE_KEY, JSON.stringify(stats));
+    } catch { /* localStorage full — ignore */ }
+}
+
+export function getDynamicFavorites(): Array<{ type: string; label: string; icon: React.ComponentType<any> }> {
+    const stats = getNodeUsage();
+    const now = Date.now();
+
+    // Score each node type the user has used
+    const scored = Object.entries(stats.counts).map(([type, count]) => {
+        const hoursSinceUse = (now - (stats.lastUsed[type] || 0)) / (1000 * 60 * 60);
+        const recencyBonus = Math.max(0, 10 - hoursSinceUse);
+        return { type, score: (count * 2) + recencyBonus };
+    });
+
+    scored.sort((a, b) => b.score - a.score);
+    const topTypes = scored.slice(0, 6).map(s => s.type);
+
+    if (topTypes.length < 6) {
+        return DEFAULT_FAVORITES; // Not enough usage data yet
+    }
+
+    return topTypes.map(type => {
+        const info = nodeTypesList.find(n => n.type === type);
+        return info
+            ? { type: info.type, label: info.label, icon: info.icon }
+            : DEFAULT_FAVORITES[0]; // fallback
+    });
+}

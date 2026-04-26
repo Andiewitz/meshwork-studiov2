@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState, useRef } from 'react';
+import React, { useCallback, useEffect, useState, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
     ResizableHandle,
@@ -101,7 +101,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { SystemNode } from '@/components/canvas/nodes/SystemNode';
 
-import { nodeTypes, nodeTypesList, favoriteNodes } from '@/features/workspace/utils/nodeTypes';
+import { nodeTypes, nodeTypesList, DEFAULT_FAVORITES as favoriteNodes, trackNodeUsage, EXPANDABLE_TYPES } from '@/features/workspace/utils/nodeTypes';
 import { nodeDimensions } from "@/features/workspace/utils/dimensions";
 import { generateTemplate } from "@/features/workspace/utils/templates";
 import { PropertiesSidebar } from "@/features/workspace/components/PropertiesSidebar";
@@ -118,7 +118,7 @@ function WorkspaceView() {
     const isError = isCanvasError || isWorkspaceError;
     const { user } = useAuth();
     const { toast } = useToast();
-    const { screenToFlowPosition, fitView, zoomIn, zoomOut } = useReactFlow();
+    const { screenToFlowPosition, fitView, zoomIn, zoomOut, getViewport, setViewport } = useReactFlow();
     const [, setLocation] = useLocation();
     const deleteWorkspace = useDeleteWorkspace();
 
@@ -133,6 +133,59 @@ function WorkspaceView() {
     const [edgeStyle, setEdgeStyle] = useState<'solid' | 'dashed' | 'dotted'>('solid');
     const [hasArrow, setHasArrow] = useState(false);
     const [drawingMode, setDrawingMode] = useState<'select' | 'pan' | 'annotation' | 'infrastructure'>('select');
+
+    // ── Nested canvas navigation stack ──
+    interface CanvasLevel {
+        nodeId: string;
+        label: string;
+        nodes: Node[];
+        edges: Edge[];
+        viewport: { x: number; y: number; zoom: number };
+    }
+    const [canvasStack, setCanvasStack] = useState<CanvasLevel[]>([]);
+    const isNested = canvasStack.length > 0;
+
+    // Navigate back out of a nested canvas
+    const exitToLevel = useCallback((targetIndex: number) => {
+        if (canvasStack.length === 0) return;
+
+        // Save current sub-canvas into the parent node's data
+        const currentLevel = canvasStack[canvasStack.length - 1];
+        let parentNodes = currentLevel.nodes;
+        parentNodes = parentNodes.map(n => {
+            if (n.id === currentLevel.nodeId) {
+                return { ...n, data: { ...n.data, subCanvas: { nodes, edges } } };
+            }
+            return n;
+        });
+
+        // If we're going multiple levels up, cascade the save
+        let restoredNodes = parentNodes;
+        let restoredEdges = currentLevel.edges;
+        let restoredViewport = currentLevel.viewport;
+
+        if (targetIndex < canvasStack.length - 1) {
+            // Walk up the stack and save each level
+            for (let i = canvasStack.length - 2; i >= targetIndex; i--) {
+                const level = canvasStack[i];
+                const nextLevel = canvasStack[i + 1];
+                restoredNodes = level.nodes.map(n => {
+                    if (n.id === level.nodeId && i < canvasStack.length - 1) {
+                        return { ...n, data: { ...n.data, subCanvas: { nodes: restoredNodes, edges: restoredEdges } } };
+                    }
+                    return n;
+                });
+                restoredEdges = level.edges;
+                restoredViewport = level.viewport;
+            }
+        }
+
+        setNodes(restoredNodes);
+        setEdges(restoredEdges);
+        setTimeout(() => setViewport(restoredViewport, { duration: 300 }), 10);
+        setCanvasStack(prev => prev.slice(0, targetIndex));
+        setSelectedNodeId(null);
+    }, [canvasStack, nodes, edges, setNodes, setEdges, setViewport]);
 
     useEffect(() => {
         const updateMousePosition = (ev: PointerEvent) => {
@@ -318,6 +371,7 @@ function WorkspaceView() {
             },
         };
         setNodes((nds) => nds.concat(newNode));
+        trackNodeUsage(type);
         return newNode;
     }, [takeSnapshot, setNodes]);
 
@@ -521,8 +575,21 @@ function WorkspaceView() {
 
     useEffect(() => {
         const handleKeyDown = (e: KeyboardEvent) => {
+            const isEditing = document.activeElement?.tagName === 'INPUT' || document.activeElement?.tagName === 'TEXTAREA';
+
+            // Escape — exit nested canvas or deselect
+            if (e.key === 'Escape') {
+                if (isEditing) return;
+                if (canvasStack.length > 0) {
+                    exitToLevel(canvasStack.length - 1);
+                    return;
+                }
+                setSelectedNodeId(null);
+                return;
+            }
+
             if ((e.key === 'Delete' || e.key === 'Backspace') && selectedNodeId) {
-                if (document.activeElement?.tagName !== 'INPUT' && document.activeElement?.tagName !== 'TEXTAREA') {
+                if (!isEditing) {
                     deleteNode(selectedNodeId);
                 }
             }
@@ -574,6 +641,27 @@ function WorkspaceView() {
     }, []);
 
     const onNodeDoubleClick = useCallback((_: any, node: Node) => {
+        // If expandable, enter nested canvas
+        if (node.type && EXPANDABLE_TYPES.has(node.type)) {
+            const viewport = getViewport();
+            // Save current canvas to stack
+            setCanvasStack(prev => [...prev, {
+                nodeId: node.id,
+                label: (node.data?.label as string) || 'Untitled',
+                nodes: JSON.parse(JSON.stringify(nodes)),
+                edges: JSON.parse(JSON.stringify(edges)),
+                viewport,
+            }]);
+            // Load sub-canvas
+            const subCanvas = (node.data as any)?.subCanvas || { nodes: [], edges: [] };
+            setNodes(subCanvas.nodes || []);
+            setEdges(subCanvas.edges || []);
+            setSelectedNodeId(null);
+            setTimeout(() => fitView({ duration: 400, padding: 0.3 }), 50);
+            return;
+        }
+
+        // Otherwise, edit properties
         if (node.id) {
             setSelectedNodeId(node.id);
             setActiveTab('properties');
@@ -585,7 +673,7 @@ function WorkspaceView() {
                 }
             }, 50);
         }
-    }, []);
+    }, [nodes, edges, setNodes, setEdges, fitView]);
 
 
 
@@ -920,7 +1008,7 @@ function WorkspaceView() {
 
 
 
-                                {/* ── Floating top-left: back + title + save ── */}
+                                {/* ── Floating top-left: back + title + breadcrumbs ── */}
                                 <Panel position="top-left" className="ml-6 mt-6 z-50">
                                     <motion.div 
                                         initial={{ opacity: 0, y: -20, filter: 'blur(10px)' }}
@@ -928,18 +1016,54 @@ function WorkspaceView() {
                                         transition={{ duration: 0.6, ease: [0.16, 1, 0.3, 1], delay: 0.1 }}
                                         className="flex items-center gap-2"
                                     >
-                                        <Link href="/" className="w-10 h-10 flex items-center justify-center rounded-full bg-[#1E1E1E]/95 backdrop-blur-xl border border-white/[0.05] shadow-2xl text-white/50 hover:text-white hover:bg-[#2A2A2A] transition-all">
-                                            <ChevronLeft className="w-4 h-4 ml-[-2px]" />
-                                        </Link>
-                                        <div className="flex items-center gap-3 px-4 py-2.5 h-10 rounded-full bg-[#1E1E1E]/95 backdrop-blur-xl border border-white/[0.05] shadow-2xl">
-                                            <Box className="w-4 h-4 text-white/50" />
-                                            <span className="font-sans font-bold text-[13px] uppercase tracking-widest text-white/70">{workspace?.title || 'Untitled'}</span>
-                                            <div className="w-px h-3.5 bg-white/10 mx-1" />
-                                            {saveStatus === 'saved' && <CheckCircle2 className="w-3.5 h-3.5 text-green-500/60" />}
-                                            {saveStatus === 'saving' && <CloudUpload className="w-3.5 h-3.5 text-blue-400 animate-pulse" />}
-                                            {saveStatus === 'unsaved' && <Circle className="w-3.5 h-3.5 text-white/20 cursor-pointer hover:text-white/50 transition-colors" onClick={handleSave} />}
-                                            {saveStatus === 'offline_saved' && <AlertCircle className="w-3.5 h-3.5 text-yellow-500/70 cursor-pointer" onClick={handleSave} />}
-                                        </div>
+                                        {isNested ? (
+                                            /* ── Breadcrumb navigation when inside a nested canvas ── */
+                                            <div className="flex items-center gap-1 px-2 py-1.5 h-10 rounded-full bg-[#1E1E1E]/95 backdrop-blur-xl border border-white/[0.05] shadow-2xl">
+                                                <button
+                                                    onClick={() => exitToLevel(0)}
+                                                    className="px-2.5 py-1 rounded-full text-[11px] font-bold uppercase tracking-wider text-white/40 hover:text-white hover:bg-white/[0.08] transition-all"
+                                                >
+                                                    {workspace?.title || 'Main'}
+                                                </button>
+                                                {canvasStack.map((level, i) => (
+                                                    <React.Fragment key={level.nodeId}>
+                                                        <ChevronRight className="w-3 h-3 text-white/15 flex-shrink-0" />
+                                                        {i === canvasStack.length - 1 ? (
+                                                            <span className="px-2.5 py-1 rounded-full text-[11px] font-bold uppercase tracking-wider text-white/80 bg-white/[0.06]">
+                                                                {level.label}
+                                                            </span>
+                                                        ) : (
+                                                            <button
+                                                                onClick={() => exitToLevel(i + 1)}
+                                                                className="px-2.5 py-1 rounded-full text-[11px] font-bold uppercase tracking-wider text-white/40 hover:text-white hover:bg-white/[0.08] transition-all"
+                                                            >
+                                                                {level.label}
+                                                            </button>
+                                                        )}
+                                                    </React.Fragment>
+                                                ))}
+                                                <div className="w-px h-3.5 bg-white/10 mx-1" />
+                                                {saveStatus === 'saved' && <CheckCircle2 className="w-3.5 h-3.5 text-green-500/60" />}
+                                                {saveStatus === 'saving' && <CloudUpload className="w-3.5 h-3.5 text-blue-400 animate-pulse" />}
+                                                {saveStatus === 'unsaved' && <Circle className="w-3.5 h-3.5 text-white/20 cursor-pointer hover:text-white/50 transition-colors" onClick={handleSave} />}
+                                            </div>
+                                        ) : (
+                                            /* ── Normal: back + title ── */
+                                            <>
+                                                <Link href="/" className="w-10 h-10 flex items-center justify-center rounded-full bg-[#1E1E1E]/95 backdrop-blur-xl border border-white/[0.05] shadow-2xl text-white/50 hover:text-white hover:bg-[#2A2A2A] transition-all">
+                                                    <ChevronLeft className="w-4 h-4 ml-[-2px]" />
+                                                </Link>
+                                                <div className="flex items-center gap-3 px-4 py-2.5 h-10 rounded-full bg-[#1E1E1E]/95 backdrop-blur-xl border border-white/[0.05] shadow-2xl">
+                                                    <Box className="w-4 h-4 text-white/50" />
+                                                    <span className="font-sans font-bold text-[13px] uppercase tracking-widest text-white/70">{workspace?.title || 'Untitled'}</span>
+                                                    <div className="w-px h-3.5 bg-white/10 mx-1" />
+                                                    {saveStatus === 'saved' && <CheckCircle2 className="w-3.5 h-3.5 text-green-500/60" />}
+                                                    {saveStatus === 'saving' && <CloudUpload className="w-3.5 h-3.5 text-blue-400 animate-pulse" />}
+                                                    {saveStatus === 'unsaved' && <Circle className="w-3.5 h-3.5 text-white/20 cursor-pointer hover:text-white/50 transition-colors" onClick={handleSave} />}
+                                                    {saveStatus === 'offline_saved' && <AlertCircle className="w-3.5 h-3.5 text-yellow-500/70 cursor-pointer" onClick={handleSave} />}
+                                                </div>
+                                            </>
+                                        )}
                                     </motion.div>
                                 </Panel>
 

@@ -1,4 +1,5 @@
 import { Handle, Position, NodeProps, NodeResizer } from '@xyflow/react';
+import { EXPANDABLE_TYPES } from '@/features/workspace/utils/nodeTypes';
 import {
     User as UserIcon,
     Type,
@@ -20,7 +21,8 @@ import {
     Key as LucideKey,
     BarChart3 as LucideBarChart3,
     PieChart as LucidePieChart,
-    Layers as LucideLayers
+    Layers as LucideLayers,
+    Maximize2 as LucideExpand
 } from 'lucide-react';
 import { 
     SiLinux, SiDocker, SiCelery, SiAwslambda, SiPostgresql, SiRedis, SiAmazons3, 
@@ -429,6 +431,18 @@ export function SystemNode({ data, selected, type, width, height }: NodeProps) {
                                         </div>
                                     ))}
                                 </div>
+                            </div>
+                        )}
+
+                        {/* Expandable indicator for nested canvas nodes */}
+                        {EXPANDABLE_TYPES.has(type as string) && (
+                            <div className="absolute bottom-1.5 right-2 flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                                {(data.subCanvas as any)?.nodes?.length > 0 && (
+                                    <span className="text-[8px] font-bold text-white/25">
+                                        {(data.subCanvas as any).nodes.length}
+                                    </span>
+                                )}
+                                <LucideExpand className="w-2.5 h-2.5 text-white/20" />
                             </div>
                         )}
                     </div>
