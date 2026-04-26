@@ -232,34 +232,53 @@ export function SystemNode({ id, data, selected, type, width, height }: NodeProp
                 ) : isInfrastructure ? (
                     <div
                         className={`
-                            relative border border-dashed overflow-hidden w-full h-full flex flex-col rounded-2xl
-                            bg-white/[0.02]
-                            ${selected ? 'ring-2 ring-blue-500/30 shadow-[0_0_30px_rgba(59,130,246,0.1)]' : ''}
+                            relative w-full h-full flex flex-col rounded-xl overflow-hidden
+                            ${selected ? 'ring-1 ring-blue-500/30' : ''}
                             transition-all
                         `}
                         style={{
-                            borderColor: `${finalColor}30`,
+                            border: `1.5px dashed ${finalColor}35`,
+                            background: `${finalColor}08`,
                         }}
                     >
-                        {/* Zone label — pill badge */}
-                        <div className="flex items-center gap-2 p-2 self-start">
-                            <div
-                                className="px-3 py-1 rounded-full font-black uppercase tracking-[0.15em] text-white flex items-center gap-2"
-                                style={{
-                                    backgroundColor: `${finalColor}CC`,
-                                    fontSize: `${zoneLabelSize}px`
-                                }}
+                        {/* Top-left corner label — type + name */}
+                        <div className="flex items-center gap-1.5 px-2.5 pt-2 self-start">
+                            {brand.Icon && (
+                                typeof brand.Icon === 'string'
+                                    ? <img src={brand.Icon} style={{ width: zoneLabelSize + 2, height: zoneLabelSize + 2 }} alt="" className="opacity-60" />
+                                    : <brand.Icon size={zoneLabelSize + 2} style={{ color: finalColor, opacity: 0.7 }} />
+                            )}
+                            <span
+                                className="font-bold uppercase tracking-[0.14em] opacity-60"
+                                style={{ fontSize: `${zoneLabelSize}px`, color: finalColor }}
                             >
-                                {brand.Icon && (
-                                    typeof brand.Icon === 'string' ? (
-                                        <img src={brand.Icon} style={{ width: zoneIconSize, height: zoneIconSize }} alt="" />
-                                    ) : (
-                                        <brand.Icon size={zoneIconSize} className="text-white" />
-                                    )
-                                )}
-                                {brand.label}: {data.label as string}
-                            </div>
+                                {brand.label}
+                            </span>
+                            <span
+                                className="font-normal tracking-normal normal-case opacity-40"
+                                style={{ fontSize: `${zoneLabelSize}px`, color: finalColor }}
+                            >
+                                / {data.label as string}
+                            </span>
                         </div>
+
+                        {/* Expand arrow — bottom left */}
+                        {EXPANDABLE_TYPES.has(type as string) && (
+                            <button
+                                onClick={(e) => { e.stopPropagation(); fireEnterNode(id); }}
+                                className="absolute bottom-1.5 left-2 flex items-center gap-1 px-1.5 py-0.5 rounded hover:bg-white/[0.07] transition-colors group/enter"
+                                title="Open internal workspace"
+                            >
+                                <svg width="7" height="7" viewBox="0 0 8 8" style={{ color: finalColor, opacity: 0.35 }} className="group-hover/enter:opacity-70 transition-opacity">
+                                    <path d="M1 1L7 4L1 7V1Z" fill="currentColor" />
+                                </svg>
+                                {(data.subCanvas as any)?.nodes?.length > 0 && (
+                                    <span className="text-[7px] font-bold opacity-30 group-hover/enter:opacity-60 transition-opacity" style={{ color: finalColor }}>
+                                        {(data.subCanvas as any).nodes.length}
+                                    </span>
+                                )}
+                            </button>
+                        )}
                     </div>
 
                     /* ── K8S NAMESPACE CONTAINER ── */
