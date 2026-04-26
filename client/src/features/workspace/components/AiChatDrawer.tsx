@@ -41,7 +41,8 @@ export function AiChatDrawer() {
     setIsLoading(true);
 
     try {
-      const response = await fetch("/api/ai/chat", {
+      const { secureFetch } = await import("@/lib/secure-fetch");
+      const response = await secureFetch("/api/ai/chat", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
