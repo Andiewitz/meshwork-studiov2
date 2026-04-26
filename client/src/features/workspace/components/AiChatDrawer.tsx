@@ -47,7 +47,7 @@ export function AiChatDrawer() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           provider: "openrouter",
-          model: "meta-llama/llama-3.1-8b-instruct:free", // Smart free model
+          model: "meta-llama/llama-3.3-70b-instruct:free", // Valid free OpenRouter model
           messages: messages.concat(userMsg).map((m) => ({
             role: m.role,
             content: m.content,
