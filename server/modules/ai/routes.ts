@@ -165,21 +165,28 @@ router.post("/chat", isAuthenticated, async (req: Request, res: Response) => {
     }
     
     // Get user's API key for this provider
-    const apiKeyRecord = await getApiKeyWithPlaintext(userId, provider);
+    let apiKey = "";
     
-    if (!apiKeyRecord) {
-      return res.status(404).json({ 
-        error: `No API key found for provider: ${provider}. Please add a key in settings.` 
-      });
+    // For openrouter, we check ENV first as a fallback for this test
+    if (provider === "openrouter" && process.env.OPENROUTER_API_KEY) {
+      apiKey = process.env.OPENROUTER_API_KEY;
+    } else {
+      const apiKeyRecord = await getApiKeyWithPlaintext(userId, provider);
+      
+      if (!apiKeyRecord) {
+        return res.status(404).json({ 
+          error: `No API key found for provider: ${provider}. Please add a key in settings.` 
+        });
+      }
+      
+      if (!apiKeyRecord.isActive) {
+        return res.status(403).json({ 
+          error: `API key for ${provider} is disabled.` 
+        });
+      }
+      
+      apiKey = apiKeyRecord.plaintextKey;
     }
-    
-    if (!apiKeyRecord.isActive) {
-      return res.status(403).json({ 
-        error: `API key for ${provider} is disabled.` 
-      });
-    }
-    
-    const apiKey = apiKeyRecord.plaintextKey;
     
     // Route to appropriate provider
     if (provider === "openai") {
@@ -249,6 +256,38 @@ router.post("/chat", isAuthenticated, async (req: Request, res: Response) => {
         const data = await response.json();
         res.json(data);
       }
+    } else if (provider === "openrouter") {
+      const { createOpenRouterChatCompletion, streamOpenRouterChatCompletion } = await import("./providers/openrouter");
+      
+      if (stream) {
+        res.setHeader("Content-Type", "text/event-stream");
+        res.setHeader("Cache-Control", "no-cache");
+        res.setHeader("Connection", "keep-alive");
+        
+        const stream = streamOpenRouterChatCompletion(apiKey, {
+          model,
+          messages,
+          temperature,
+          maxTokens,
+          stream: true,
+        });
+        
+        for await (const chunk of stream) {
+          res.write(`data: ${JSON.stringify({ content: chunk })}\n\n`);
+        }
+        
+        res.write("data: [DONE]\n\n");
+        res.end();
+      } else {
+        const response = await createOpenRouterChatCompletion(apiKey, {
+          model,
+          messages,
+          temperature,
+          maxTokens,
+          stream: false,
+        });
+        res.json(response);
+      }
     } else {
       return res.status(400).json({ error: `Unsupported provider: ${provider}` });
     }
@@ -267,6 +306,7 @@ router.get("/providers", isAuthenticated, async (_req: Request, res: Response) =
     { id: "openai", name: "OpenAI", models: ["gpt-4", "gpt-4-turbo", "gpt-3.5-turbo"] },
     { id: "anthropic", name: "Anthropic", models: ["claude-3-5-sonnet", "claude-3-opus"] },
     { id: "google", name: "Google AI", models: ["gemini-pro"] },
+    { id: "openrouter", name: "OpenRouter", models: ["meta-llama/llama-3-8b-instruct:free", "google/gemini-2.5-flash:free"] },
   ]);
 });
 

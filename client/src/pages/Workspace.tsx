@@ -106,6 +106,7 @@ import { registerEnterNodeHandler, unregisterEnterNodeHandler } from '@/features
 import { nodeDimensions } from "@/features/workspace/utils/dimensions";
 import { generateTemplate } from "@/features/workspace/utils/templates";
 import { PropertiesSidebar } from "@/features/workspace/components/PropertiesSidebar";
+import { AiChatDrawer } from "@/features/workspace/components/AiChatDrawer";
 import { NodeLibrarySidebar } from "@/features/workspace/components/NodeLibrarySidebar";
 import { calculateContainment, calculateGlobalPosition } from "@/features/workspace/utils/containment";
 
@@ -1267,30 +1268,32 @@ function WorkspaceView() {
                                     </motion.div>
                                 </Panel>
                             </ReactFlow>
-                </motion.main>
+                            
+                            <AiChatDrawer />
+                        </motion.main>
 
-                {/* ── Right-side Properties Panel ── */}
-                <AnimatePresence>
-                    {selectedNode && (
-                        <motion.aside
-                            initial={{ width: 0, opacity: 0 }}
-                            animate={{ width: 280, opacity: 1 }}
-                            exit={{ width: 0, opacity: 0 }}
-                            transition={{ duration: 0.25, ease: [0.16, 1, 0.3, 1] }}
-                            className="h-full bg-[#141414] border-l border-white/[0.06] overflow-hidden flex-shrink-0"
-                        >
-                            <div className="h-full overflow-y-auto scrollbar-hide" style={{ width: 280 }}>
-                                <PropertiesSidebar
-                                    selectedNode={selectedNode}
-                                    updateNodeData={updateNodeData}
-                                    updateNodeStyle={updateNodeStyle}
-                                    deleteNode={onDelete}
-                                    onClose={() => setSelectedNodeId(null)}
-                                />
-                            </div>
-                        </motion.aside>
-                    )}
-                </AnimatePresence>
+                        {/* ── Right-side Properties Panel ── */}
+                        <AnimatePresence>
+                            {selectedNode && (
+                                <motion.aside
+                                    initial={{ width: 0, opacity: 0 }}
+                                    animate={{ width: 280, opacity: 1 }}
+                                    exit={{ width: 0, opacity: 0 }}
+                                    transition={{ duration: 0.25, ease: [0.16, 1, 0.3, 1] }}
+                                    className="h-full bg-[#141414] border-l border-white/[0.06] overflow-hidden flex-shrink-0"
+                                >
+                                    <div className="h-full overflow-y-auto scrollbar-hide" style={{ width: 280 }}>
+                                        <PropertiesSidebar
+                                            selectedNode={selectedNode}
+                                            updateNodeData={updateNodeData}
+                                            updateNodeStyle={updateNodeStyle}
+                                            deleteNode={onDelete}
+                                            onClose={() => setSelectedNodeId(null)}
+                                        />
+                                    </div>
+                                </motion.aside>
+                            )}
+                        </AnimatePresence>
         </div>
     );
 }
