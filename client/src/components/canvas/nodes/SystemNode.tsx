@@ -137,8 +137,9 @@ export function SystemNode({ data, selected, type, width, height }: NodeProps) {
         pending: { color: '#6B7280', borderColor: '#4B5563' },
     };
     const statusBrand = isKubernetes && k8sStatus ? statusOverrides[k8sStatus] : null;
-    const finalColor = statusBrand?.color || brand.color;
-    const finalBorder = statusBrand?.borderColor || brand.borderColor;
+    const userAccent = data.accentColor as string | undefined;
+    const finalColor = userAccent || statusBrand?.color || brand.color;
+    const finalBorder = userAccent || statusBrand?.borderColor || brand.borderColor;
 
     let K8sResourceIcon: React.ReactNode = null;
     if (isKubernetes) {
