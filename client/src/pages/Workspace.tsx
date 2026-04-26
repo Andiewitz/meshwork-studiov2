@@ -102,6 +102,7 @@ import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover
 import { SystemNode } from '@/components/canvas/nodes/SystemNode';
 
 import { nodeTypes, nodeTypesList, DEFAULT_FAVORITES as favoriteNodes, trackNodeUsage, EXPANDABLE_TYPES } from '@/features/workspace/utils/nodeTypes';
+import { registerEnterNodeHandler, unregisterEnterNodeHandler } from '@/features/workspace/utils/canvasEvents';
 import { nodeDimensions } from "@/features/workspace/utils/dimensions";
 import { generateTemplate } from "@/features/workspace/utils/templates";
 import { PropertiesSidebar } from "@/features/workspace/components/PropertiesSidebar";
@@ -144,33 +145,70 @@ function WorkspaceView() {
     }
     const [canvasStack, setCanvasStack] = useState<CanvasLevel[]>([]);
     const isNested = canvasStack.length > 0;
+    const [canvasTransition, setCanvasTransition] = useState<'idle' | 'entering' | 'exiting'>('idle');
 
-    // Navigate back out of a nested canvas
+    // Smooth enter: zoom into node → fade → swap → fade back
+    const enterNode = useCallback((node: Node) => {
+        if (canvasTransition !== 'idle') return;
+        setCanvasTransition('entering');
+
+        const viewport = getViewport();
+        // Save current state
+        setCanvasStack(prev => [...prev, {
+            nodeId: node.id,
+            label: (node.data?.label as string) || 'Untitled',
+            nodes: JSON.parse(JSON.stringify(nodes)),
+            edges: JSON.parse(JSON.stringify(edges)),
+            viewport,
+        }]);
+
+        // Phase 1: zoom into the node (200ms)
+        const nodeW = (node.style?.width as number) || node.measured?.width || 200;
+        const nodeH = (node.style?.height as number) || node.measured?.height || 100;
+        const targetZoom = Math.min(4, window.innerWidth / nodeW, window.innerHeight / nodeH) * 0.6;
+        setViewport({
+            x: -(node.position.x + nodeW / 2) * targetZoom + window.innerWidth / 2,
+            y: -(node.position.y + nodeH / 2) * targetZoom + window.innerHeight / 2,
+            zoom: targetZoom
+        }, { duration: 250 });
+
+        // Phase 2: after zoom, swap content and fade in
+        setTimeout(() => {
+            const subCanvas = (node.data as any)?.subCanvas || { nodes: [], edges: [] };
+            setNodes(subCanvas.nodes || []);
+            setEdges(subCanvas.edges || []);
+            setSelectedNodeId(null);
+            setTimeout(() => {
+                fitView({ duration: 300, padding: 0.2 });
+                setCanvasTransition('idle');
+            }, 50);
+        }, 250);
+    }, [canvasTransition, nodes, edges, setNodes, setEdges, getViewport, setViewport, fitView]);
+
+    // Smooth exit: fade → swap → restore viewport
     const exitToLevel = useCallback((targetIndex: number) => {
-        if (canvasStack.length === 0) return;
+        if (canvasStack.length === 0 || canvasTransition !== 'idle') return;
+        setCanvasTransition('exiting');
 
         // Save current sub-canvas into the parent node's data
         const currentLevel = canvasStack[canvasStack.length - 1];
-        let parentNodes = currentLevel.nodes;
-        parentNodes = parentNodes.map(n => {
+        let parentNodes = currentLevel.nodes.map(n => {
             if (n.id === currentLevel.nodeId) {
                 return { ...n, data: { ...n.data, subCanvas: { nodes, edges } } };
             }
             return n;
         });
 
-        // If we're going multiple levels up, cascade the save
+        // Cascade save if jumping multiple levels
         let restoredNodes = parentNodes;
         let restoredEdges = currentLevel.edges;
         let restoredViewport = currentLevel.viewport;
 
         if (targetIndex < canvasStack.length - 1) {
-            // Walk up the stack and save each level
             for (let i = canvasStack.length - 2; i >= targetIndex; i--) {
                 const level = canvasStack[i];
-                const nextLevel = canvasStack[i + 1];
                 restoredNodes = level.nodes.map(n => {
-                    if (n.id === level.nodeId && i < canvasStack.length - 1) {
+                    if (n.id === level.nodeId) {
                         return { ...n, data: { ...n.data, subCanvas: { nodes: restoredNodes, edges: restoredEdges } } };
                     }
                     return n;
@@ -180,12 +218,18 @@ function WorkspaceView() {
             }
         }
 
-        setNodes(restoredNodes);
-        setEdges(restoredEdges);
-        setTimeout(() => setViewport(restoredViewport, { duration: 300 }), 10);
-        setCanvasStack(prev => prev.slice(0, targetIndex));
-        setSelectedNodeId(null);
-    }, [canvasStack, nodes, edges, setNodes, setEdges, setViewport]);
+        // Phase 1: fade out (200ms via CSS), then swap
+        setTimeout(() => {
+            setNodes(restoredNodes);
+            setEdges(restoredEdges);
+            setCanvasStack(prev => prev.slice(0, targetIndex));
+            setSelectedNodeId(null);
+            setTimeout(() => {
+                setViewport(restoredViewport, { duration: 300 });
+                setCanvasTransition('idle');
+            }, 50);
+        }, 200);
+    }, [canvasStack, canvasTransition, nodes, edges, setNodes, setEdges, setViewport]);
 
     useEffect(() => {
         const updateMousePosition = (ev: PointerEvent) => {
@@ -195,6 +239,15 @@ function WorkspaceView() {
         window.addEventListener('pointermove', updateMousePosition);
         return () => window.removeEventListener('pointermove', updateMousePosition);
     }, []);
+
+    // Register enter-node event bus handler (arrow badge in SystemNode fires this)
+    useEffect(() => {
+        registerEnterNodeHandler((nodeId: string) => {
+            const node = nodes.find(n => n.id === nodeId);
+            if (node) enterNode(node);
+        });
+        return () => unregisterEnterNodeHandler();
+    }, [nodes, enterNode]);
 
     const history = useRef<{ nodes: Node[]; edges: Edge[] }[]>([]);
     const redoStack = useRef<{ nodes: Node[]; edges: Edge[] }[]>([]);
@@ -641,39 +694,15 @@ function WorkspaceView() {
     }, []);
 
     const onNodeDoubleClick = useCallback((_: any, node: Node) => {
-        // If expandable, enter nested canvas
-        if (node.type && EXPANDABLE_TYPES.has(node.type)) {
-            const viewport = getViewport();
-            // Save current canvas to stack
-            setCanvasStack(prev => [...prev, {
-                nodeId: node.id,
-                label: (node.data?.label as string) || 'Untitled',
-                nodes: JSON.parse(JSON.stringify(nodes)),
-                edges: JSON.parse(JSON.stringify(edges)),
-                viewport,
-            }]);
-            // Load sub-canvas
-            const subCanvas = (node.data as any)?.subCanvas || { nodes: [], edges: [] };
-            setNodes(subCanvas.nodes || []);
-            setEdges(subCanvas.edges || []);
-            setSelectedNodeId(null);
-            setTimeout(() => fitView({ duration: 400, padding: 0.3 }), 50);
-            return;
-        }
-
-        // Otherwise, edit properties
-        if (node.id) {
-            setSelectedNodeId(node.id);
-            setActiveTab('properties');
-            setTimeout(() => {
-                const input = document.querySelector('[data-property-input="true"]') as HTMLTextAreaElement | HTMLInputElement;
-                input?.focus();
-                if (input instanceof HTMLTextAreaElement || input instanceof HTMLInputElement) {
-                    input.select();
-                }
-            }, 50);
-        }
-    }, [nodes, edges, setNodes, setEdges, fitView]);
+        // Double-click always opens properties for inline editing
+        setSelectedNodeId(node.id);
+        setActiveTab('properties');
+        setTimeout(() => {
+            const input = document.querySelector('[data-property-input="true"]') as HTMLTextAreaElement | HTMLInputElement;
+            input?.focus();
+            if (input instanceof HTMLTextAreaElement || input instanceof HTMLInputElement) input.select();
+        }, 50);
+    }, []);
 
 
 
@@ -782,6 +811,18 @@ function WorkspaceView() {
                             data-cursor={drawingMode}
                             style={{ cursor: drawingMode === 'pan' ? 'grab' : undefined }}
                         >
+                            {/* ── Canvas transition overlay ── */}
+                            <AnimatePresence>
+                                {canvasTransition !== 'idle' && (
+                                    <motion.div
+                                        initial={{ opacity: 0 }}
+                                        animate={{ opacity: 1 }}
+                                        exit={{ opacity: 0 }}
+                                        transition={{ duration: 0.18, ease: 'easeInOut' }}
+                                        className="absolute inset-0 z-[999] bg-[#0A0A0A] pointer-events-none"
+                                    />
+                                )}
+                            </AnimatePresence>
                             <ReactFlow
                                 nodes={nodes}
                                 edges={edges}

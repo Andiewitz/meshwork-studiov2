@@ -1,5 +1,6 @@
 import { Handle, Position, NodeProps, NodeResizer } from '@xyflow/react';
 import { EXPANDABLE_TYPES } from '@/features/workspace/utils/nodeTypes';
+import { fireEnterNode } from '@/features/workspace/utils/canvasEvents';
 import {
     User as UserIcon,
     Type,
@@ -21,8 +22,7 @@ import {
     Key as LucideKey,
     BarChart3 as LucideBarChart3,
     PieChart as LucidePieChart,
-    Layers as LucideLayers,
-    Maximize2 as LucideExpand
+    Layers as LucideLayers
 } from 'lucide-react';
 import { 
     SiLinux, SiDocker, SiCelery, SiAwslambda, SiPostgresql, SiRedis, SiAmazons3, 
@@ -116,7 +116,7 @@ const providerBrands: Record<string, NodeBrand> = {
     dynamodb: { Icon: SiAmazondynamodb, isReactIcon: true, color: '#4053D6', borderColor: '#3342AB', label: 'DYNAMODB' },
 };
 
-export function SystemNode({ data, selected, type, width, height }: NodeProps) {
+export function SystemNode({ id, data, selected, type, width, height }: NodeProps) {
     const provider = (data.provider as string || '').toLowerCase();
     const isInfrastructure = type === 'vpc' || type === 'region';
     const isNote = type === 'note';
@@ -434,16 +434,25 @@ export function SystemNode({ data, selected, type, width, height }: NodeProps) {
                             </div>
                         )}
 
-                        {/* Expandable indicator for nested canvas nodes */}
+                        {/* Expandable: arrow badge bottom-left — click to enter sub-canvas */}
                         {EXPANDABLE_TYPES.has(type as string) && (
-                            <div className="absolute bottom-1.5 right-2 flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                            <button
+                                onClick={(e) => {
+                                    e.stopPropagation();
+                                    fireEnterNode(id);
+                                }}
+                                className="absolute bottom-1 left-1.5 flex items-center gap-1 px-1 py-0.5 rounded hover:bg-white/[0.08] transition-colors group/enter"
+                                title="Open internal workspace"
+                            >
+                                <svg width="7" height="7" viewBox="0 0 8 8" className="text-white/20 group-hover/enter:text-white/60 transition-colors">
+                                    <path d="M1 1L7 4L1 7V1Z" fill="currentColor" />
+                                </svg>
                                 {(data.subCanvas as any)?.nodes?.length > 0 && (
-                                    <span className="text-[8px] font-bold text-white/25">
+                                    <span className="text-[7px] font-bold text-white/20 group-hover/enter:text-white/50 transition-colors">
                                         {(data.subCanvas as any).nodes.length}
                                     </span>
                                 )}
-                                <LucideExpand className="w-2.5 h-2.5 text-white/20" />
-                            </div>
+                            </button>
                         )}
                     </div>
                 )}
