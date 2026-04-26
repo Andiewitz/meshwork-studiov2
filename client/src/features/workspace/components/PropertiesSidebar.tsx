@@ -3,34 +3,50 @@ import { Node } from '@xyflow/react';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
-import { Trash2, Box } from 'lucide-react';
+import { Trash2, Box, X } from 'lucide-react';
+import { nodeTypesList } from '@/features/workspace/utils/nodeTypes';
 
 interface PropertiesSidebarProps {
     selectedNode: Node | null;
     updateNodeData: (id: string, data: any) => void;
     updateNodeStyle: (id: string, style: any) => void;
     deleteNode: (id: string) => void;
+    onClose?: () => void;
 }
 
 export const PropertiesSidebar: React.FC<PropertiesSidebarProps> = ({
     selectedNode,
     updateNodeData,
     updateNodeStyle,
-    deleteNode
+    deleteNode,
+    onClose
 }) => {
     if (!selectedNode) {
-        return (
-            <div className="h-full flex flex-col items-center justify-center text-center p-4 py-20">
-                <Box className="w-8 h-8 mb-4 text-white/5" />
-                <p className="text-[11px] uppercase tracking-widest font-bold leading-relaxed text-white/20">
-                    Select a node on the canvas to edit its properties
-                </p>
-            </div>
-        );
+        return null;
     }
 
+    const nodeInfo = nodeTypesList.find(n => n.type === selectedNode.type);
+    const NodeIcon = nodeInfo?.icon || Box;
+
     return (
-        <div className="p-4 space-y-6">
+        <div className="p-4 space-y-5">
+            {/* ── Node Type Header ── */}
+            <div className="flex items-center gap-3">
+                <div className="w-9 h-9 rounded-lg bg-white/[0.06] flex items-center justify-center flex-shrink-0">
+                    <NodeIcon className="w-4.5 h-4.5 text-white/60" />
+                </div>
+                <div className="flex-1 min-w-0">
+                    <div className="text-[13px] font-semibold text-white/90 truncate">{(selectedNode.data?.label as string) || 'Untitled'}</div>
+                    <div className="text-[10px] uppercase tracking-[0.1em] font-bold text-white/25">{nodeInfo?.category || 'Node'}</div>
+                </div>
+                {onClose && (
+                    <button onClick={onClose} className="w-7 h-7 flex items-center justify-center rounded-lg text-white/20 hover:text-white/50 hover:bg-white/[0.05] transition-all flex-shrink-0">
+                        <X className="w-3.5 h-3.5" />
+                    </button>
+                )}
+            </div>
+
+            <div className="h-px bg-white/[0.04]" />
             <section className="space-y-4">
                 {selectedNode.type === 'note' ? (
                     <div className="space-y-1.5">
