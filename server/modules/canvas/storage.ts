@@ -72,6 +72,10 @@ export class CanvasDatabaseStorage implements ICanvasStorage {
                             data: sql`EXCLUDED.data`,
                             parentId: sql`EXCLUDED.parent_id`,
                             extent: sql`EXCLUDED.extent`,
+                            style: sql`EXCLUDED.style`,
+                            width: sql`EXCLUDED.width`,
+                            height: sql`EXCLUDED.height`,
+                            measured: sql`EXCLUDED.measured`,
                         }
                     });
             }
@@ -86,6 +90,8 @@ export class CanvasDatabaseStorage implements ICanvasStorage {
                             targetHandle: sql`EXCLUDED.target_handle`,
                             type: sql`EXCLUDED.type`,
                             data: sql`EXCLUDED.data`,
+                            style: sql`EXCLUDED.style`,
+                            markerEnd: sql`EXCLUDED.marker_end`,
                             animated: sql`EXCLUDED.animated`,
                         }
                     });

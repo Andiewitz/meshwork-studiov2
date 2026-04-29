@@ -76,6 +76,10 @@ export const nodes = pgTable("nodes", {
   data: jsonb("data").$type<any>().notNull(),
   parentId: text("parent_id"),
   extent: text("extent"), // 'parent' or undefined
+  style: jsonb("style").$type<any>(),
+  width: integer("width"),
+  height: integer("height"),
+  measured: jsonb("measured").$type<any>(),
 }, (table) => [
   primaryKey({ columns: [table.id, table.workspaceId] }),
   index("IDX_nodes_workspace_id").on(table.workspaceId),
@@ -90,6 +94,8 @@ export const edges = pgTable("edges", {
   targetHandle: text("target_handle"),
   type: text("type"),
   data: jsonb("data").$type<any>(),
+  style: jsonb("style").$type<any>(),
+  markerEnd: jsonb("marker_end").$type<any>(),
   animated: integer("animated").default(0), // 0 or 1
 }, (table) => [
   primaryKey({ columns: [table.id, table.workspaceId] }),
