@@ -350,7 +350,7 @@ export function SystemNode({ id, data, selected, type, width, height }: NodeProp
                         </div>
 
                         <div className="flex flex-col min-w-0 flex-1">
-                            <span className="text-[12px] font-semibold truncate leading-tight text-white/90">
+                            <span className="text-[12px] font-semibold line-clamp-2 break-words whitespace-pre-wrap leading-tight text-white/90">
                                 {data.label as string}
                             </span>
                             <span className="text-[9px] uppercase tracking-[0.12em] font-bold mt-0.5 text-white/30">
@@ -430,7 +430,7 @@ export function SystemNode({ id, data, selected, type, width, height }: NodeProp
                         </div>
 
                         <div className="flex flex-col min-w-0">
-                            <span className="text-[12px] font-semibold truncate leading-tight text-white/90">
+                            <span className="text-[12px] font-semibold line-clamp-2 break-words whitespace-pre-wrap leading-tight text-white/90">
                                 {data.label as string}
                             </span>
                             <span className="text-[9px] uppercase tracking-[0.12em] font-bold mt-0.5 text-white/30">

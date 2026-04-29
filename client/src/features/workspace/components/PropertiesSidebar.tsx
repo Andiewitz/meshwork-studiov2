@@ -83,11 +83,13 @@ export const PropertiesSidebar: React.FC<PropertiesSidebarProps> = ({
                     <div className="space-y-4">
                         <div className="space-y-1.5">
                             <Label className="text-[10px] uppercase tracking-widest font-bold text-white/30">Display Name</Label>
-                            <Input
+                            <Textarea
                                 data-property-input="true"
                                 value={(selectedNode.data?.label as string) || ''}
                                 onChange={(e) => updateNodeData(selectedNode.id, { label: e.target.value })}
-                                className="h-8 rounded-md focus:ring-0 bg-white/5 border-white/10 text-white focus:border-white/20 text-[12px]"
+                                className="min-h-[40px] max-h-[80px] py-1.5 rounded-md focus:ring-0 bg-white/5 border-white/10 text-white focus:border-white/20 text-[12px] scrollbar-thin"
+                                placeholder="Node Name..."
+                                rows={2}
                             />
                         </div>
 
