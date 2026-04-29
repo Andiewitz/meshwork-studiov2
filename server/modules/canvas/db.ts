@@ -82,6 +82,18 @@ async function createTables() {
         `);
         console.log("[CanvasDB] Edges table created/verified");
 
+        // Safe column migrations - ADD COLUMN IF NOT EXISTS is idempotent
+        await pool.query(`
+            ALTER TABLE nodes ADD COLUMN IF NOT EXISTS style JSONB;
+            ALTER TABLE nodes ADD COLUMN IF NOT EXISTS width INTEGER;
+            ALTER TABLE nodes ADD COLUMN IF NOT EXISTS height INTEGER;
+            ALTER TABLE nodes ADD COLUMN IF NOT EXISTS measured JSONB;
+            
+            ALTER TABLE edges ADD COLUMN IF NOT EXISTS style JSONB;
+            ALTER TABLE edges ADD COLUMN IF NOT EXISTS marker_end JSONB;
+        `);
+        console.log("[CanvasDB] Canvas table columns migrated (style, dimensions)");
+
     } catch (err) {
         console.error("[CanvasDB] Failed to create tables:", err);
     }
