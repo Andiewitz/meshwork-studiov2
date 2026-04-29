@@ -56,7 +56,7 @@ describe('AI Chat Route Integration Tests', () => {
         .set('x-test-user-id', '1')
         .send({
           provider: 'openrouter',
-          model: 'meta-llama/llama-3.3-70b-instruct:free',
+          model: 'google/gemma-3-27b-it:free',
           messages: [{ role: 'user', content: 'Hello' }]
         });
 
@@ -79,7 +79,7 @@ describe('AI Chat Route Integration Tests', () => {
         .set('x-test-user-id', '1')
         .send({
           provider: 'openrouter',
-          model: 'meta-llama/llama-3.3-70b-instruct:free',
+          model: 'google/gemma-3-27b-it:free',
           messages: [{ role: 'user', content: 'Say the word "Meshwork"' }],
           stream: false
         });

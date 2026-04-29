@@ -26,6 +26,25 @@ export function AiChatDrawer() {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages, isOpen]);
 
+const SYSTEM_PROMPT = `You are Meshwork AI, an expert cloud architecture assistant. 
+When asked to design or update architecture, you must understand our React Flow JSON schema.
+Node Schema:
+- id: string (unique, e.g., 'api-1')
+- type: string (valid types: 'microservice', 'database', 'cache', 'vpc', 'region', 'loadBalancer', 'auth0', 's3', 'route53', 'waf', 'cdn', 'stripe', 'bus', 'k8s-pod', etc.)
+- position: { x: number, y: number }
+- data: { label: string, category: string, provider?: string }
+- style: { width: number, height: number } (standard sizes: microservice is 168x72, database is 144x120, vpc is 1100x500)
+- parentId?: string (for grouping inside vpc or region)
+
+Edge Schema:
+- id: string
+- source: string (node id)
+- target: string (node id)
+- type: 'step' | 'default' | 'straight' | 'smoothstep'
+- style: { stroke: string, strokeWidth: number, strokeDasharray?: string }
+
+Provide technical, precise answers and return JSON blocks wrapped in \`\`\`json when generating architecture.`;
+
   const handleSubmit = async (e?: React.FormEvent) => {
     e?.preventDefault();
     if (!input.trim() || isLoading) return;
@@ -42,16 +61,23 @@ export function AiChatDrawer() {
 
     try {
       const { secureFetch } = await import("@/lib/secure-fetch");
+      
+      const payloadMessages = [
+        { role: "system", content: SYSTEM_PROMPT },
+        ...messages.filter(m => m.id !== "init"),
+        userMsg
+      ].map((m) => ({
+        role: m.role,
+        content: m.content,
+      }));
+
       const response = await secureFetch("/api/ai/chat", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           provider: "openrouter",
-          model: "meta-llama/llama-3.3-70b-instruct:free", // Valid free OpenRouter model
-          messages: messages.concat(userMsg).map((m) => ({
-            role: m.role,
-            content: m.content,
-          })),
+          model: "google/gemma-3-27b-it:free", // Reliable free model
+          messages: payloadMessages,
           stream: false,
         }),
       });
