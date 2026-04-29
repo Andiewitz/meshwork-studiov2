@@ -20,6 +20,15 @@ export function AiChatDrawer() {
   const [input, setInput] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
+  const textareaRef = useRef<HTMLTextAreaElement>(null);
+
+  const handleInputChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
+    setInput(e.target.value);
+    if (textareaRef.current) {
+      textareaRef.current.style.height = 'auto';
+      textareaRef.current.style.height = `${textareaRef.current.scrollHeight}px`;
+    }
+  };
 
   // Scroll to bottom when messages change
   useEffect(() => {
@@ -57,6 +66,9 @@ Provide technical, precise answers and return JSON blocks wrapped in \`\`\`json 
 
     setMessages((prev) => [...prev, userMsg]);
     setInput("");
+    if (textareaRef.current) {
+      textareaRef.current.style.height = 'auto';
+    }
     setIsLoading(true);
 
     try {
@@ -209,8 +221,9 @@ Provide technical, precise answers and return JSON blocks wrapped in \`\`\`json 
                 className="relative flex items-end gap-2 bg-[#0A0A0A] border border-white/[0.08] rounded-xl focus-within:border-white/20 focus-within:ring-1 focus-within:ring-white/10 transition-all p-1"
               >
                 <textarea
+                  ref={textareaRef}
                   value={input}
-                  onChange={(e) => setInput(e.target.value)}
+                  onChange={handleInputChange}
                   onKeyDown={handleKeyDown}
                   placeholder="Ask AI to design a diagram..."
                   className="flex-1 max-h-32 min-h-[40px] bg-transparent border-0 resize-none outline-none text-white/90 text-[13px] placeholder:text-white/30 px-3 py-2.5 font-body scrollbar-thin"
