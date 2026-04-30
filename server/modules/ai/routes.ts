@@ -291,9 +291,9 @@ router.post("/chat", isAuthenticated, async (req: Request, res: Response) => {
     } else {
       return res.status(400).json({ error: `Unsupported provider: ${provider}` });
     }
-  } catch (error) {
+  } catch (error: any) {
     console.error("[AI] Chat completion failed:", error);
-    res.status(500).json({ error: "Failed to complete chat request" });
+    res.status(500).json({ error: error.message || "Failed to complete chat request" });
   }
 });
 

@@ -1,6 +1,7 @@
 import React, { useState, useRef, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { ChevronUp, ChevronDown, Send, Sparkles, Bot, Loader2 } from "lucide-react";
+import { useReactFlow } from "@xyflow/react";
 
 interface Message {
   id: string;
@@ -21,6 +22,7 @@ export function AiChatDrawer() {
   const [isLoading, setIsLoading] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
+  const { setNodes, setEdges, fitView } = useReactFlow();
 
   const handleInputChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
     setInput(e.target.value);
@@ -95,8 +97,8 @@ Provide technical, precise answers and return JSON blocks wrapped in \`\`\`json 
       });
 
       if (!response.ok) {
-        const err = await response.json();
-        throw new Error(err.error || "Failed to generate response");
+        const err = await response.json().catch(() => ({}));
+        throw new Error(err.error || err.message || `API Error: ${response.status}`);
       }
 
       const data = await response.json();
@@ -110,6 +112,22 @@ Provide technical, precise answers and return JSON blocks wrapped in \`\`\`json 
           content,
         },
       ]);
+
+      // Try to parse architecture JSON from the response and apply it
+      try {
+        const jsonMatch = content.match(/```(?:json)?\n([\s\S]*?)\n```/) || [null, content];
+        const jsonString = jsonMatch[1].trim();
+        if (jsonString.startsWith("{") || jsonString.startsWith("[")) {
+          const parsed = JSON.parse(jsonString);
+          if (parsed.nodes && parsed.edges) {
+            setNodes((prev: any) => [...prev, ...parsed.nodes]);
+            setEdges((prev: any) => [...prev, ...parsed.edges]);
+            setTimeout(() => fitView({ duration: 800, padding: 0.2 }), 100);
+          }
+        }
+      } catch (err) {
+        console.warn("AI response did not contain valid architecture JSON:", err);
+      }
     } catch (error: any) {
       setMessages((prev) => [
         ...prev,
