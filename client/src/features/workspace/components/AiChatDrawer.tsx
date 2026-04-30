@@ -241,7 +241,8 @@ export function AiChatDrawer() {
         body: JSON.stringify({
           provider: "openrouter",
           // NVIDIA Nemotron Ultra — best free instruction-following model
-          model: "nvidia/llama-3.1-nemotron-ultra-253b-v1:free",
+          // Tested working: Nemotron Super 120B (8s) > GPT-OSS 120B (16s) > openrouter/free
+          model: "nvidia/nemotron-3-super-120b-a12b:free",
           messages: payloadMessages,
           stream: false,
         }),
@@ -353,7 +354,7 @@ export function AiChatDrawer() {
                   </div>
                   <div className="flex items-center gap-1.5 mt-0.5">
                     <motion.div className="w-1.5 h-1.5 rounded-full bg-emerald-400" animate={{ opacity: [1, 0.4, 1] }} transition={{ repeat: Infinity, duration: 2 }} />
-                    <span className="text-[10px] text-white/30">NVIDIA Nemotron · Canvas-aware</span>
+                    <span className="text-[10px] text-white/30">NVIDIA Nemotron 120B · Canvas-aware</span>
                   </div>
                 </div>
               </div>
