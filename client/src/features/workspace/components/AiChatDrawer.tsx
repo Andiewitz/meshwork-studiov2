@@ -24,7 +24,7 @@ export function AiChatDrawer() {
   const [isLoading, setIsLoading] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
-  const { setNodes, setEdges, fitView } = useReactFlow();
+  const { setNodes, setEdges, fitView, getNodes, getEdges } = useReactFlow();
 
   const handleInputChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
     setInput(e.target.value);
@@ -78,8 +78,13 @@ Provide technical, precise answers and return JSON blocks wrapped in \`\`\`json 
     try {
       const { secureFetch } = await import("@/lib/secure-fetch");
       
+      // Inject current canvas state so the AI can modify existing architectures
+      const currentNodes = getNodes();
+      const currentEdges = getEdges();
+      const enrichedSystemPrompt = `${SYSTEM_PROMPT}\n\nCURRENT CANVAS STATE:\n\`\`\`json\n${JSON.stringify({ nodes: currentNodes, edges: currentEdges }, null, 2)}\n\`\`\`\n\nWhen asked to modify the diagram, emit the FULL updated JSON array including these existing nodes/edges with your modifications applied.`;
+
       const payloadMessages = [
-        { role: "system", content: SYSTEM_PROMPT },
+        { role: "system", content: enrichedSystemPrompt },
         ...messages.filter(m => m.id !== "init"),
         userMsg
       ].map((m) => ({
