@@ -4,6 +4,152 @@ import { Send, Sparkles, Bot, Loader2, ChevronDown, Wand2, Zap } from "lucide-re
 import { useReactFlow } from "@xyflow/react";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
+import { validateAndRepairCanvas } from "@/lib/ai-canvas-utils";
+
+// ─────────────────────────────────────────────────────────────
+// GROUND TRUTH SYSTEM PROMPT
+// Updated whenever node types or sizes change in dimensions.ts
+// ─────────────────────────────────────────────────────────────
+const SYSTEM_PROMPT = `You are Meshwork AI — an expert cloud architecture co-pilot embedded inside Meshwork Studio, a professional infrastructure diagramming tool.
+
+BEHAVIOR RULES:
+1. Always reply in clear, natural language. Explain what you designed or changed (2-4 sentences) like a senior architect briefing their team.
+2. When generating or modifying a diagram, ALWAYS output the FULL canvas JSON in a single \`\`\`json block AFTER your explanation.
+3. When modifying an existing diagram, emit the COMPLETE updated nodes+edges (not just a diff).
+4. Never show raw IDs, schema fields, or technical boilerplate in your conversational reply.
+5. If the user asks a general question with no diagram change needed, reply normally with no JSON.
+
+═══════════════════════════════════════
+VALID NODE TYPES (use EXACTLY these strings — no variants):
+═══════════════════════════════════════
+Compute:     server | microservice | worker | logic
+Data:        database | cache | storage | search | influxdb | snowflake | clickhouse
+Networking:  gateway | loadBalancer | cdn | bus | queue | route53 | nats | socketio
+Security:    vault | auth0 | waf
+Monitoring:  prometheus | grafana | datadog
+Infra (containers): vpc | region | k8s-namespace
+External:    user | app | api | stripe | twilio | shopify
+CI/CD:       github_actions | jenkins | gitlab | argocd
+K8s:         k8s-pod | k8s-deployment | k8s-replicaset | k8s-statefulset | k8s-daemonset
+             k8s-service | k8s-ingress | k8s-configmap | k8s-secret | k8s-pvc
+             k8s-job | k8s-cronjob | k8s-hpa
+Text/Labels: annotation | note
+
+COMMON ALIASES (always translate these to the correct type):
+  postgresql/postgres/mysql/mongodb → "database"
+  redis → "cache"
+  nginx/alb/elb → "loadBalancer"
+  api-gateway/apigw → "gateway"
+  lambda/function → "logic"
+  kafka → "bus"
+  rabbitmq/sqs → "queue"
+  s3/blob → "storage"
+  cloudfront/fastly → "cdn"
+  react/vue/nextjs → "app"
+
+═══════════════════════════════════════
+EXACT NODE SIZES (use these, do not invent sizes):
+═══════════════════════════════════════
+user: 96×96        | server: 168×96    | microservice: 168×72  | worker: 168×72
+logic: 120×72      | app: 168×72       | api: 168×72
+database: 144×120  | cache: 144×120    | storage: 144×120     | search: 144×120
+gateway: 192×72    | loadBalancer: 192×72 | cdn: 192×72       | bus: 192×72
+queue: 192×72      | route53: 192×72   | nats: 192×72         | socketio: 144×72
+auth0: 168×72      | vault: 168×72     | waf: 168×72
+stripe: 168×72     | twilio: 168×72    | shopify: 168×72
+prometheus: 168×72 | grafana: 168×72   | datadog: 168×72
+github_actions: 168×72 | jenkins: 168×72 | gitlab: 168×72    | argocd: 168×72
+influxdb: 144×120  | snowflake: 144×120 | clickhouse: 144×120
+vpc: 408×312       | region: 600×408   | k8s-namespace: 408×312
+k8s-pod: 144×96    | k8s-deployment: 192×96 | k8s-service: 168×72
+k8s-ingress: 168×72 | k8s-configmap: 168×72 | k8s-secret: 168×72
+k8s-pvc: 168×96   | k8s-job: 144×72   | k8s-cronjob: 168×96 | k8s-hpa: 168×96
+annotation: 160×48 | note: 192×192
+
+═══════════════════════════════════════
+LAYOUT RULES (critical for on-screen placement):
+═══════════════════════════════════════
+- Use left-to-right flow: x increases by ~280px per column
+- Stack vertically: y increases by ~140px per row
+- Default starting position: x=100, y=200
+- Minimum gap between nodes: 40px on all sides
+- VPC/region containers: place at x=50, y=100, children use positions RELATIVE to container top-left
+- Nodes inside vpc/region MUST have "parentId" set to the vpc/region id, and "extent": "parent"
+- k8s-namespace behaves like vpc — children must have parentId set
+- Place user nodes far left (x=100), databases far right
+- Viewport center is provided in context — center your diagram around it
+
+═══════════════════════════════════════
+EDGE TYPES AND STYLES:
+═══════════════════════════════════════
+Edge "type" field:
+  "smoothstep"  — curved, recommended for most connections
+  "step"        — right-angle bends, good for clean diagrams
+  "straight"    — direct line
+  "default"     — bezier curve
+
+Arrow and style options:
+  No arrow (default):    omit markerEnd
+  Arrow at target:       markerEnd: { type: "arrowclosed", color: "#555" }
+  Dashed line:           style.strokeDasharray: "6 4"
+  Dotted line:           style.strokeDasharray: "2 4"
+  Thick line:            style.strokeWidth: 2.5
+  Colored:               style.stroke: "#3B82F6" (use color to indicate data flow type)
+  With label:            label: "REST" or label: "gRPC" etc.
+
+Use colored edges to distinguish traffic types:
+  "#3B82F6" blue  = HTTP/REST
+  "#10B981" green = database queries
+  "#F59E0B" amber = async/queue messages
+  "#A855F7" purple = auth/security flows
+  "#EF4444" red   = error/alert flows
+
+═══════════════════════════════════════
+ANNOTATION USAGE:
+═══════════════════════════════════════
+Use "annotation" nodes to label regions or add notes:
+  { "id": "label-1", "type": "annotation", "position": { "x": 50, "y": 60 },
+    "data": { "label": "⚡ High-throughput path", "category": "Core" },
+    "style": { "width": 160, "height": 48 } }
+
+Use "note" nodes for sticky-note style callouts with longer text.
+
+═══════════════════════════════════════
+REQUIRED JSON OUTPUT FORMAT:
+═══════════════════════════════════════
+\`\`\`json
+{
+  "nodes": [
+    {
+      "id": "unique-string",
+      "type": "exactTypeString",
+      "position": { "x": 100, "y": 200 },
+      "data": { "label": "Display Name", "category": "Core", "provider": "postgresql" },
+      "style": { "width": 144, "height": 120 }
+    }
+  ],
+  "edges": [
+    {
+      "id": "e-1",
+      "source": "node-id",
+      "target": "node-id",
+      "type": "smoothstep",
+      "label": "optional label",
+      "style": { "stroke": "#3B82F6", "strokeWidth": 1.5 },
+      "markerEnd": { "type": "arrowclosed", "color": "#3B82F6" }
+    }
+  ]
+}
+\`\`\`
+
+═══════════════════════════════════════
+EXAMPLE — 3-tier web app:
+═══════════════════════════════════════
+User → CDN → LoadBalancer → API Gateway → [Database, Cache]
+Positions: user(100,200), cdn(380,200), loadBalancer(660,200), gateway(940,200), database(1220,120), cache(1220,340)
+
+EXAMPLE — VPC with services inside:
+VPC at (50,50), size 408×312. Children: microservice at (80,120) parentId="vpc-1", database at (260,120) parentId="vpc-1"`;
 
 interface Message {
   id: string;
@@ -12,26 +158,12 @@ interface Message {
   appliedToCanvas?: boolean;
 }
 
-const SYSTEM_PROMPT = `You are Meshwork AI — the most powerful cloud architecture co-pilot ever built. You are embedded inside Meshwork Studio, a professional diagramming tool for designing cloud infrastructure.
-
-IMPORTANT RULES:
-1. Always respond in natural, clear language first — explain what you are doing or what you added, like a real architect talking to their team.
-2. When you generate or modify architecture, ALWAYS provide a brief explanation of the changes (2-4 sentences) and then output the full architecture JSON in a single \`\`\`json code block.
-3. NEVER show raw backend schema, IDs, or technical boilerplate in your conversational text.
-4. If no diagram change is needed, just answer naturally with no JSON block.
-
-Node Schema (for your reference, never show to user):
-- id: string (unique, e.g., 'api-1')
-- type: string ('microservice' | 'database' | 'cache' | 'vpc' | 'region' | 'loadBalancer' | 'auth0' | 's3' | 'route53' | 'waf' | 'cdn' | 'stripe' | 'bus' | 'k8s-pod')
-- position: { x: number, y: number }
-- data: { label: string, category: string, provider?: string }
-- style: { width: number, height: number }
-- parentId?: string
-
-Edge Schema:
-- id, source, target, type ('step'|'smoothstep'), style: { stroke, strokeWidth }
-
-When modifying the canvas, always emit the COMPLETE updated nodes+edges (not just the diff).`;
+const SUGGESTIONS = [
+  "Design a 3-tier web app",
+  "Add Redis cache + annotate it",
+  "Create a K8s deployment",
+  "Add an arrow label between nodes",
+];
 
 export function AiChatDrawer() {
   const [isOpen, setIsOpen] = useState(false);
@@ -39,15 +171,15 @@ export function AiChatDrawer() {
     {
       id: "init",
       role: "assistant",
-      content: "I'm Meshwork AI. Describe your system and I'll design the architecture — or ask me to modify what's already on the canvas.",
+      content:
+        "I'm Meshwork AI. Describe your system and I'll design it — or ask me to modify what's already on the canvas. I support annotations, colored edges, arrows, and the full node library.",
     },
   ]);
   const [input, setInput] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
-  const chatAreaRef = useRef<HTMLDivElement>(null);
-  const { setNodes, setEdges, fitView, getNodes, getEdges } = useReactFlow();
+  const { setNodes, setEdges, fitView, getNodes, getEdges, getViewport } = useReactFlow();
 
   const handleInputChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
     setInput(e.target.value);
@@ -63,7 +195,6 @@ export function AiChatDrawer() {
     }
   }, [messages, isOpen]);
 
-  // Strip JSON blocks cleanly — returns { display: string, jsonBlock: string | null }
   const parseAIResponse = useCallback((content: string) => {
     const jsonMatch = content.match(/```(?:json)?\n([\s\S]*?)\n```/);
     const display = content.replace(/```(?:json)?\n[\s\S]*?\n```/g, "").trim();
@@ -74,44 +205,43 @@ export function AiChatDrawer() {
     e?.preventDefault();
     if (!input.trim() || isLoading) return;
 
-    const userMsg: Message = {
-      id: Date.now().toString(),
-      role: "user",
-      content: input,
-    };
-
+    const userMsg: Message = { id: Date.now().toString(), role: "user", content: input };
     setMessages((prev) => [...prev, userMsg]);
     setInput("");
-    if (textareaRef.current) {
-      textareaRef.current.style.height = "auto";
-    }
+    if (textareaRef.current) textareaRef.current.style.height = "auto";
     setIsLoading(true);
 
     try {
       const { secureFetch } = await import("@/lib/secure-fetch");
 
-      // Silently inject canvas state into system context
+      // Inject canvas state + viewport position
       const currentNodes = getNodes();
       const currentEdges = getEdges();
-      const hasCanvas = currentNodes.length > 0;
-      const canvasContext = hasCanvas
-        ? `\n\nCURRENT CANVAS STATE (${currentNodes.length} nodes, ${currentEdges.length} edges):\n\`\`\`json\n${JSON.stringify({ nodes: currentNodes, edges: currentEdges }, null, 2)}\n\`\`\`\nWhen modifying, emit the COMPLETE updated nodes+edges replacing the current state.`
-        : `\n\nThe canvas is currently empty.`;
+      const viewport = getViewport();
+      const vw = window.innerWidth;
+      const vh = window.innerHeight;
+      const centerX = Math.round((-viewport.x + vw / 2) / viewport.zoom);
+      const centerY = Math.round((-viewport.y + vh / 2) / viewport.zoom);
 
-      const enrichedSystemPrompt = SYSTEM_PROMPT + canvasContext;
+      const canvasContext = currentNodes.length > 0
+        ? `\n\nCURRENT CANVAS (${currentNodes.length} nodes, ${currentEdges.length} edges):\n\`\`\`json\n${JSON.stringify({ nodes: currentNodes, edges: currentEdges })}\n\`\`\`\nVIEWPORT CENTER: approximately x=${centerX}, y=${centerY}. Place new nodes near this center.\nWhen modifying, emit the COMPLETE updated nodes+edges.`
+        : `\n\nThe canvas is empty. VIEWPORT CENTER: x=${centerX}, y=${centerY}. Start your diagram near this point.`;
+
+      const fullSystemPrompt = SYSTEM_PROMPT + canvasContext;
 
       const payloadMessages = [
-        { role: "system", content: enrichedSystemPrompt },
-        ...messages.filter((m) => m.id !== "init"),
-        userMsg,
-      ].map((m) => ({ role: m.role, content: m.content }));
+        { role: "system", content: fullSystemPrompt },
+        ...messages.filter((m) => m.id !== "init").map((m) => ({ role: m.role, content: m.content })),
+        { role: "user", content: userMsg.content },
+      ];
 
       const response = await secureFetch("/api/ai/chat", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           provider: "openrouter",
-          model: "openrouter/free",
+          // NVIDIA Nemotron Ultra — best free instruction-following model
+          model: "nvidia/llama-3.1-nemotron-ultra-253b-v1:free",
           messages: payloadMessages,
           stream: false,
         }),
@@ -128,18 +258,18 @@ export function AiChatDrawer() {
 
       let appliedToCanvas = false;
 
-      // Silently apply architecture to canvas
       if (jsonBlock) {
         try {
           const parsed = JSON.parse(jsonBlock);
-          if (parsed.nodes && parsed.edges) {
-            setNodes(parsed.nodes); // REPLACE, not append
-            setEdges(parsed.edges);
-            setTimeout(() => fitView({ duration: 800, padding: 0.25 }), 100);
+          const repaired = validateAndRepairCanvas(parsed);
+          if (repaired) {
+            setNodes(repaired.nodes as any);
+            setEdges(repaired.edges as any);
+            setTimeout(() => fitView({ duration: 700, padding: 0.2 }), 100);
             appliedToCanvas = true;
           }
         } catch (err) {
-          console.warn("[MeshworkAI] Could not parse architecture JSON:", err);
+          console.warn("[MeshworkAI] JSON parse failed:", err);
         }
       }
 
@@ -173,45 +303,26 @@ export function AiChatDrawer() {
     }
   };
 
-  const suggestions = [
-    "Design a 3-tier web app",
-    "Add a Redis cache layer",
-    "Add a load balancer",
-  ];
-
   return (
     <div className="fixed bottom-0 left-1/2 -translate-x-1/2 z-50 flex flex-col items-center pointer-events-none">
-      {/* ── Pull Tab ── */}
+      {/* Pull Tab */}
       <motion.button
         onClick={() => setIsOpen(!isOpen)}
         className="pointer-events-auto flex items-center gap-2 px-4 h-8 bg-[#111]/90 backdrop-blur-xl border border-b-0 border-white/[0.08] rounded-t-xl hover:bg-[#1a1a1a] transition-all cursor-pointer shadow-[0_-4px_20px_rgba(0,0,0,0.5)]"
         whileHover={{ y: -2 }}
         whileTap={{ scale: 0.97 }}
-        animate={isOpen ? { opacity: 0.6 } : { opacity: 1 }}
       >
-        <motion.div
-          animate={{ rotate: isOpen ? 180 : 0 }}
-          transition={{ type: "spring", stiffness: 300, damping: 25 }}
-        >
+        <motion.div animate={{ rotate: isOpen ? 180 : 0 }} transition={{ type: "spring", stiffness: 300, damping: 25 }}>
           <ChevronDown className="w-3.5 h-3.5 text-white/50" />
         </motion.div>
-        <div className="flex items-center gap-1.5">
-          <motion.div
-            animate={{ scale: [1, 1.2, 1], opacity: [0.7, 1, 0.7] }}
-            transition={{ repeat: Infinity, duration: 2, ease: "easeInOut" }}
-          >
-            <Sparkles className="w-3.5 h-3.5 text-[#FF5500]" />
-          </motion.div>
-          <span className="text-[11px] font-semibold tracking-widest uppercase text-white/60">
-            Meshwork AI
-          </span>
-          <span className="text-[9px] text-white/25 border border-white/10 px-1.5 py-0.5 rounded-md font-mono tracking-wide">
-            BETA
-          </span>
-        </div>
+        <motion.div animate={{ scale: [1, 1.2, 1], opacity: [0.7, 1, 0.7] }} transition={{ repeat: Infinity, duration: 2, ease: "easeInOut" }}>
+          <Sparkles className="w-3.5 h-3.5 text-[#FF5500]" />
+        </motion.div>
+        <span className="text-[11px] font-semibold tracking-widest uppercase text-white/60">Meshwork AI</span>
+        <span className="text-[9px] text-white/25 border border-white/10 px-1.5 py-0.5 rounded-md font-mono">BETA</span>
       </motion.button>
 
-      {/* ── Drawer Body ── */}
+      {/* Drawer */}
       <AnimatePresence>
         {isOpen && (
           <motion.div
@@ -232,10 +343,7 @@ export function AiChatDrawer() {
             {/* Header */}
             <div className="flex items-center justify-between px-5 py-4 border-b border-white/[0.04]">
               <div className="flex items-center gap-3">
-                <div
-                  className="w-7 h-7 rounded-lg flex items-center justify-center"
-                  style={{ background: "linear-gradient(135deg, #FF5500, #FF3300)", boxShadow: "0 2px 12px rgba(255,85,0,0.4)" }}
-                >
+                <div className="w-7 h-7 rounded-lg flex items-center justify-center" style={{ background: "linear-gradient(135deg, #FF5500, #FF3300)", boxShadow: "0 2px 12px rgba(255,85,0,0.4)" }}>
                   <Wand2 className="w-3.5 h-3.5 text-white" />
                 </div>
                 <div>
@@ -244,46 +352,28 @@ export function AiChatDrawer() {
                     <span className="text-[9px] text-[#FF5500]/70 border border-[#FF5500]/20 bg-[#FF5500]/5 px-1.5 py-0.5 rounded font-mono tracking-wider">BETA</span>
                   </div>
                   <div className="flex items-center gap-1.5 mt-0.5">
-                    <motion.div
-                      className="w-1.5 h-1.5 rounded-full bg-emerald-400"
-                      animate={{ opacity: [1, 0.4, 1] }}
-                      transition={{ repeat: Infinity, duration: 2 }}
-                    />
-                    <span className="text-[10px] text-white/30">Connected</span>
+                    <motion.div className="w-1.5 h-1.5 rounded-full bg-emerald-400" animate={{ opacity: [1, 0.4, 1] }} transition={{ repeat: Infinity, duration: 2 }} />
+                    <span className="text-[10px] text-white/30">NVIDIA Nemotron · Canvas-aware</span>
                   </div>
                 </div>
               </div>
-              <button
-                onClick={() => setIsOpen(false)}
-                className="w-8 h-8 flex items-center justify-center rounded-xl text-white/20 hover:text-white/60 hover:bg-white/5 transition-all"
-              >
+              <button onClick={() => setIsOpen(false)} className="w-8 h-8 flex items-center justify-center rounded-xl text-white/20 hover:text-white/60 hover:bg-white/5 transition-all">
                 <ChevronDown className="w-4 h-4" />
               </button>
             </div>
 
-            {/* Chat Area */}
-            <div
-              ref={chatAreaRef}
-              className="flex-1 overflow-y-auto px-5 py-5 space-y-5 scrollbar-thin scrollbar-thumb-white/[0.06]"
-            >
-              {/* Suggestions — only show when no user messages yet */}
+            {/* Chat */}
+            <div className="flex-1 overflow-y-auto px-5 py-5 space-y-5 scrollbar-thin scrollbar-thumb-white/[0.06]">
+              {/* Suggestions */}
               {messages.filter((m) => m.role === "user").length === 0 && (
-                <motion.div
-                  initial={{ opacity: 0, y: 8 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ delay: 0.2 }}
-                  className="flex flex-wrap gap-2 mb-1"
-                >
-                  {suggestions.map((s, i) => (
+                <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.15 }} className="flex flex-wrap gap-2 mb-1">
+                  {SUGGESTIONS.map((s, i) => (
                     <motion.button
                       key={s}
                       initial={{ opacity: 0, scale: 0.9 }}
                       animate={{ opacity: 1, scale: 1 }}
-                      transition={{ delay: 0.2 + i * 0.05 }}
-                      onClick={() => {
-                        setInput(s);
-                        textareaRef.current?.focus();
-                      }}
+                      transition={{ delay: 0.15 + i * 0.05 }}
+                      onClick={() => { setInput(s); textareaRef.current?.focus(); }}
                       className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-[11px] text-white/50 border border-white/[0.06] hover:border-[#FF5500]/30 hover:text-white/80 hover:bg-[#FF5500]/5 transition-all cursor-pointer"
                     >
                       <Zap className="w-3 h-3 text-[#FF5500]/60" />
@@ -294,55 +384,32 @@ export function AiChatDrawer() {
               )}
 
               {/* Messages */}
-              {messages.map((msg, i) => (
+              {messages.map((msg) => (
                 <motion.div
                   key={msg.id}
                   initial={{ opacity: 0, y: 12, scale: 0.98 }}
                   animate={{ opacity: 1, y: 0, scale: 1 }}
-                  transition={{ type: "spring", stiffness: 400, damping: 35, delay: i === 0 ? 0 : 0 }}
+                  transition={{ type: "spring", stiffness: 400, damping: 35 }}
                   className={`flex gap-3 ${msg.role === "user" ? "justify-end" : "justify-start"}`}
                 >
                   {msg.role === "assistant" && (
-                    <div
-                      className="w-7 h-7 rounded-lg shrink-0 flex items-center justify-center mt-0.5 border border-white/[0.06]"
-                      style={{ background: "linear-gradient(145deg, #1E1E1E, #141414)" }}
-                    >
+                    <div className="w-7 h-7 rounded-lg shrink-0 flex items-center justify-center mt-0.5 border border-white/[0.06]" style={{ background: "linear-gradient(145deg, #1E1E1E, #141414)" }}>
                       <Bot className="w-3.5 h-3.5 text-[#FF5500]" />
                     </div>
                   )}
-
                   <div
-                    className={`max-w-[82%] rounded-2xl px-4 py-3 text-[13px] leading-relaxed ${
-                      msg.role === "user"
-                        ? "rounded-tr-sm text-white/90"
-                        : "rounded-tl-sm text-white/80"
-                    }`}
-                    style={
-                      msg.role === "user"
-                        ? {
-                            background: "linear-gradient(135deg, rgba(255,85,0,0.15), rgba(255,60,0,0.08))",
-                            border: "1px solid rgba(255,85,0,0.2)",
-                          }
-                        : {
-                            background: "rgba(255,255,255,0.03)",
-                            border: "1px solid rgba(255,255,255,0.055)",
-                          }
-                    }
+                    className={`max-w-[82%] rounded-2xl px-4 py-3 text-[13px] leading-relaxed ${msg.role === "user" ? "rounded-tr-sm text-white/90" : "rounded-tl-sm text-white/80"}`}
+                    style={msg.role === "user"
+                      ? { background: "linear-gradient(135deg, rgba(255,85,0,0.15), rgba(255,60,0,0.08))", border: "1px solid rgba(255,85,0,0.2)" }
+                      : { background: "rgba(255,255,255,0.03)", border: "1px solid rgba(255,255,255,0.055)" }}
                   >
                     {msg.role === "assistant" ? (
                       <>
-                        <div className="prose prose-invert prose-sm max-w-none prose-p:my-1.5 prose-p:leading-relaxed prose-headings:text-white/90 prose-headings:font-semibold prose-headings:my-2 prose-ul:my-1.5 prose-li:my-0.5 prose-li:text-white/70 prose-strong:text-white/90 prose-strong:font-semibold prose-code:text-[#FF7733] prose-code:bg-white/[0.06] prose-code:px-1 prose-code:py-0.5 prose-code:rounded prose-code:text-[12px] prose-code:font-mono">
-                          <ReactMarkdown remarkPlugins={[remarkGfm]}>
-                            {msg.content}
-                          </ReactMarkdown>
+                        <div className="prose prose-invert prose-sm max-w-none prose-p:my-1.5 prose-p:leading-relaxed prose-headings:text-white/90 prose-headings:font-semibold prose-headings:my-2 prose-ul:my-1.5 prose-li:my-0.5 prose-li:text-white/70 prose-strong:text-white/90 prose-code:text-[#FF7733] prose-code:bg-white/[0.06] prose-code:px-1 prose-code:py-0.5 prose-code:rounded prose-code:text-[12px] prose-code:font-mono">
+                          <ReactMarkdown remarkPlugins={[remarkGfm]}>{msg.content}</ReactMarkdown>
                         </div>
                         {msg.appliedToCanvas && (
-                          <motion.div
-                            initial={{ opacity: 0, y: 4 }}
-                            animate={{ opacity: 1, y: 0 }}
-                            transition={{ delay: 0.3 }}
-                            className="flex items-center gap-1.5 mt-2.5 pt-2.5 border-t border-white/[0.06]"
-                          >
+                          <motion.div initial={{ opacity: 0, y: 4 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.3 }} className="flex items-center gap-1.5 mt-2.5 pt-2.5 border-t border-white/[0.06]">
                             <div className="w-1.5 h-1.5 rounded-full bg-emerald-400/80" />
                             <span className="text-[11px] text-emerald-400/60 font-medium">Applied to canvas</span>
                           </motion.div>
@@ -355,36 +422,20 @@ export function AiChatDrawer() {
                 </motion.div>
               ))}
 
-              {/* Loading indicator */}
+              {/* Loading */}
               <AnimatePresence>
                 {isLoading && (
-                  <motion.div
-                    initial={{ opacity: 0, y: 12 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    exit={{ opacity: 0, y: 4 }}
-                    className="flex gap-3 justify-start"
-                  >
-                    <div
-                      className="w-7 h-7 rounded-lg shrink-0 flex items-center justify-center mt-0.5 border border-white/[0.06]"
-                      style={{ background: "linear-gradient(145deg, #1E1E1E, #141414)" }}
-                    >
+                  <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: 4 }} className="flex gap-3">
+                    <div className="w-7 h-7 rounded-lg shrink-0 flex items-center justify-center mt-0.5 border border-white/[0.06]" style={{ background: "linear-gradient(145deg, #1E1E1E, #141414)" }}>
                       <Loader2 className="w-3.5 h-3.5 text-[#FF5500] animate-spin" />
                     </div>
-                    <div
-                      className="px-4 py-3 rounded-2xl rounded-tl-sm flex items-center gap-2"
-                      style={{ background: "rgba(255,255,255,0.03)", border: "1px solid rgba(255,255,255,0.055)" }}
-                    >
+                    <div className="px-4 py-3 rounded-2xl rounded-tl-sm flex items-center gap-2" style={{ background: "rgba(255,255,255,0.03)", border: "1px solid rgba(255,255,255,0.055)" }}>
                       <div className="flex items-center gap-1">
                         {[0, 0.15, 0.3].map((delay, i) => (
-                          <motion.div
-                            key={i}
-                            className="w-1.5 h-1.5 rounded-full bg-[#FF5500]/60"
-                            animate={{ y: [0, -4, 0], opacity: [0.4, 1, 0.4] }}
-                            transition={{ repeat: Infinity, duration: 0.9, delay, ease: "easeInOut" }}
-                          />
+                          <motion.div key={i} className="w-1.5 h-1.5 rounded-full bg-[#FF5500]/60" animate={{ y: [0, -4, 0], opacity: [0.4, 1, 0.4] }} transition={{ repeat: Infinity, duration: 0.9, delay, ease: "easeInOut" }} />
                         ))}
                       </div>
-                      <span className="text-[12px] text-white/30">Thinking</span>
+                      <span className="text-[12px] text-white/30">Designing architecture</span>
                     </div>
                   </motion.div>
                 )}
@@ -398,34 +449,22 @@ export function AiChatDrawer() {
               <form
                 onSubmit={handleSubmit}
                 className="relative flex items-end gap-2 rounded-2xl p-1.5 transition-all"
-                style={{
-                  background: "rgba(20,20,20,0.9)",
-                  border: "1px solid rgba(255,255,255,0.08)",
-                  boxShadow: "0 0 0 0 rgba(255,85,0,0)",
-                  transition: "border-color 0.2s, box-shadow 0.2s",
-                }}
-                onFocus={() => {}}
+                style={{ background: "rgba(20,20,20,0.9)", border: "1px solid rgba(255,255,255,0.08)" }}
               >
                 <textarea
                   ref={textareaRef}
                   value={input}
                   onChange={handleInputChange}
                   onKeyDown={handleKeyDown}
-                  placeholder="Describe an architecture or ask me to modify the canvas..."
+                  placeholder="Describe an architecture, add annotations, or ask me to modify the canvas..."
                   className="flex-1 max-h-32 min-h-[44px] bg-transparent border-0 resize-none outline-none text-white/90 text-[13px] placeholder:text-white/25 px-3 py-3 leading-relaxed scrollbar-thin"
                   rows={1}
-                  style={{ fontFamily: "inherit" }}
                 />
                 <motion.button
                   type="submit"
                   disabled={!input.trim() || isLoading}
                   className="w-10 h-10 shrink-0 flex items-center justify-center mb-0.5 rounded-xl text-white transition-all cursor-pointer disabled:cursor-default"
-                  style={{
-                    background: input.trim() && !isLoading
-                      ? "linear-gradient(135deg, #FF6611, #FF3300)"
-                      : "rgba(255,255,255,0.04)",
-                    boxShadow: input.trim() && !isLoading ? "0 4px 16px rgba(255,85,0,0.35)" : "none",
-                  }}
+                  style={{ background: input.trim() && !isLoading ? "linear-gradient(135deg, #FF6611, #FF3300)" : "rgba(255,255,255,0.04)", boxShadow: input.trim() && !isLoading ? "0 4px 16px rgba(255,85,0,0.35)" : "none" }}
                   whileHover={input.trim() && !isLoading ? { scale: 1.05 } : {}}
                   whileTap={input.trim() && !isLoading ? { scale: 0.95 } : {}}
                 >
@@ -434,7 +473,7 @@ export function AiChatDrawer() {
               </form>
               <div className="flex items-center justify-center gap-1.5 mt-2.5">
                 <Sparkles className="w-2.5 h-2.5 text-white/15" />
-                <span className="text-[10px] text-white/20 tracking-wide">OpenRouter · Enter to send · Shift+Enter for new line</span>
+                <span className="text-[10px] text-white/20 tracking-wide">Enter to send · Shift+Enter for new line</span>
               </div>
             </div>
           </motion.div>
