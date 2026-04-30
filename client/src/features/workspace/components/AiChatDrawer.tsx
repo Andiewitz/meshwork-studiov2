@@ -88,7 +88,7 @@ Provide technical, precise answers and return JSON blocks wrapped in \`\`\`json 
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           provider: "openrouter",
-          model: "google/gemma-3-27b-it:free", // Reliable free model
+          model: "google/gemma-4-31b-it:free", // Upgraded to Gemma 4 31B to avoid rate limits
           messages: payloadMessages,
           stream: false,
         }),
