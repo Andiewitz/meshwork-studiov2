@@ -238,6 +238,7 @@ export function AiChatDrawer() {
       const response = await secureFetch("/api/ai/chat", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
+        credentials: "include",
         body: JSON.stringify({
           provider: "openrouter",
           // NVIDIA Nemotron Ultra — best free instruction-following model
