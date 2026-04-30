@@ -255,6 +255,11 @@ export function AiChatDrawer() {
       }
 
       const data = await response.json();
+      
+      if (!data.choices || !data.choices[0]) {
+        throw new Error(`Invalid response format from AI provider: ${JSON.stringify(data)}`);
+      }
+
       const rawContent = data.choices[0]?.message?.content || "No response generated.";
       const { display, jsonBlock } = parseAIResponse(rawContent);
 
