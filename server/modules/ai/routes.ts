@@ -169,7 +169,7 @@ router.post("/chat", isAuthenticated, async (req: Request, res: Response) => {
     
     // For openrouter, we check ENV first as a fallback for this test
     if (provider === "openrouter" && process.env.OPENROUTER_API_KEY) {
-      apiKey = process.env.OPENROUTER_API_KEY;
+      apiKey = process.env.OPENROUTER_API_KEY.trim().replace(/^["']|["']$/g, '');
     } else {
       const apiKeyRecord = await getApiKeyWithPlaintext(userId, provider);
       
