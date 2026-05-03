@@ -876,7 +876,7 @@ function WorkspaceView() {
                                         initial={{ opacity: 0, y: -16 }}
                                         animate={{ opacity: 1, y: 0 }}
                                         transition={{ duration: 0.5, ease: [0.16, 1, 0.3, 1] }}
-                                        className="flex items-center gap-1.5 px-1.5 py-1.5 rounded-xl bg-[#161616]/80 backdrop-blur-xl border border-white/[0.08] shadow-[0_4px_24px_rgba(0,0,0,0.4)]"
+                                        className="flex items-center gap-1.5 px-1.5 py-1.5 rounded-xl bg-[#121214]/80 backdrop-blur-xl border border-white/[0.08] shadow-[inset_0_1px_0_rgba(255,255,255,0.1),0_4px_12px_rgba(0,0,0,0.5)]"
                                     >
                                         <Popover>
                                             <PopoverTrigger asChild>
@@ -933,7 +933,7 @@ function WorkspaceView() {
                                         transition={{ duration: 0.5, ease: [0.16, 1, 0.3, 1], delay: 0.1 }}
                                         className="flex items-center gap-2"
                                     >
-                                        <div className="flex items-center gap-0.5 px-1 py-1 rounded-xl bg-[#161616]/80 backdrop-blur-xl border border-white/[0.08] shadow-[0_4px_24px_rgba(0,0,0,0.4)]">
+                                        <div className="flex items-center gap-0.5 px-1 py-1 rounded-xl bg-[#121214]/80 backdrop-blur-xl border border-white/[0.08] shadow-[inset_0_1px_0_rgba(255,255,255,0.1),0_4px_12px_rgba(0,0,0,0.5)]">
                                             <button onClick={undo} className="w-8 h-8 flex items-center justify-center rounded-lg text-white/35 hover:text-white/80 hover:bg-white/[0.07] transition-all" title="Undo"><Undo2 className="w-3.5 h-3.5" /></button>
                                             <button onClick={redo} className="w-8 h-8 flex items-center justify-center rounded-lg text-white/35 hover:text-white/80 hover:bg-white/[0.07] transition-all" title="Redo"><Redo2 className="w-3.5 h-3.5" /></button>
                                             <div className="w-px h-4 bg-white/[0.08] mx-0.5" />
@@ -1147,7 +1147,7 @@ function WorkspaceView() {
                                         initial={{ opacity: 0, y: 30, filter: 'blur(10px)' }}
                                         animate={{ opacity: 1, y: 0, filter: 'blur(0px)' }}
                                         transition={{ duration: 0.6, ease: [0.16, 1, 0.3, 1], delay: 0.2 }}
-                                        className="flex items-center rounded-2xl p-1.5 gap-0.5 bg-[#161616]/90 backdrop-blur-2xl border border-white/[0.06] shadow-[0_8px_40px_rgba(0,0,0,0.7)]"
+                                        className="flex items-center rounded-2xl p-1.5 gap-0.5 bg-[#121214]/80 backdrop-blur-xl border border-white/[0.08] shadow-[inset_0_1px_0_rgba(255,255,255,0.1),0_8px_32px_rgba(0,0,0,0.5)]"
                                     >
                                         {[
                                             { mode: 'select' as const, icon: MousePointer2, title: 'Select' },
@@ -1278,7 +1278,7 @@ function WorkspaceView() {
                                 animate={{ x: 0, opacity: 1 }}
                                 exit={{ x: 280, opacity: 0 }}
                                 transition={{ duration: 0.25, ease: [0.16, 1, 0.3, 1] }}
-                                className="absolute right-0 top-0 h-full w-[280px] bg-[#111]/80 backdrop-blur-xl border-l border-white/[0.08] overflow-hidden z-40"
+                                className="absolute right-0 top-0 h-full w-[280px] bg-[#121214]/80 backdrop-blur-xl border-l border-white/[0.08] shadow-[inset_1px_0_0_rgba(255,255,255,0.05),-4px_0_24px_rgba(0,0,0,0.5)] overflow-hidden z-40"
                             >
                                 <div className="h-full overflow-y-auto" style={{ scrollbarWidth: 'none' }}>
                                     <PropertiesSidebar
