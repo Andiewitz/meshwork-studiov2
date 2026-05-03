@@ -309,7 +309,7 @@ export function SystemNode({ id, data, selected, type, width, height }: NodeProp
                     <div
                         className={`
                             relative p-3 overflow-hidden w-full h-full flex items-center gap-3 rounded-xl
-                            bg-gradient-to-br from-[#1A1A1A] to-[#161616]
+                            bg-[#1A1A1A]
                             shadow-lg shadow-black/25 ${nodeFont}
                             ${selectionRing}
                             ${!selected ? 'group-hover:shadow-xl group-hover:shadow-black/30' : ''}
@@ -380,7 +380,7 @@ export function SystemNode({ id, data, selected, type, width, height }: NodeProp
                     <div
                         className={`
                             relative p-3 overflow-hidden w-full h-full rounded-xl
-                            bg-gradient-to-br from-[#1A1A1A] to-[#161616]
+                            bg-[#1A1A1A]
                             shadow-lg shadow-black/25 ${nodeFont}
                             ${isData ? 'flex flex-col items-center text-center' : 'flex items-center gap-3'}
                             ${selectionRing}
