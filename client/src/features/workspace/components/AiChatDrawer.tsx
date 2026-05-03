@@ -10,7 +10,7 @@ import { validateAndRepairCanvas } from "@/lib/ai-canvas-utils";
 // GROUND TRUTH SYSTEM PROMPT
 // Updated whenever node types or sizes change in dimensions.ts
 // ─────────────────────────────────────────────────────────────
-const SYSTEM_PROMPT = `You are Meshwork AI — an expert cloud architecture co-pilot embedded inside Meshwork Studio, a professional infrastructure diagramming tool.
+const SYSTEM_PROMPT = `You are Mosh — an expert cloud architecture co-pilot embedded inside Meshwork Studio, a professional infrastructure diagramming tool.
 
 BEHAVIOR RULES:
 1. Always reply in clear, natural language. Explain what you designed or changed (2-4 sentences) like a senior architect briefing their team.
@@ -172,7 +172,7 @@ export function AiChatDrawer() {
       id: "init",
       role: "assistant",
       content:
-        "I'm Meshwork AI. Describe your system and I'll design it — or ask me to modify what's already on the canvas. I support annotations, colored edges, arrows, and the full node library.",
+        "I'm Mosh. Describe your system and I'll design it — or ask me to modify what's already on the canvas. I support annotations, colored edges, arrows, and the full node library.",
     },
   ]);
   const [input, setInput] = useState("");
@@ -325,7 +325,7 @@ export function AiChatDrawer() {
         <motion.div animate={{ scale: [1, 1.2, 1], opacity: [0.7, 1, 0.7] }} transition={{ repeat: Infinity, duration: 2, ease: "easeInOut" }}>
           <Sparkles className="w-3.5 h-3.5 text-[#FF5500]" />
         </motion.div>
-        <span className="text-[11px] font-semibold tracking-widest uppercase text-white/60">Meshwork AI</span>
+        <span className="text-[11px] font-semibold tracking-widest uppercase text-white/60">Mosh</span>
         <span className="text-[9px] text-white/25 border border-white/10 px-1.5 py-0.5 rounded-md font-mono">BETA</span>
       </motion.button>
 
@@ -355,7 +355,7 @@ export function AiChatDrawer() {
                 </div>
                 <div>
                   <div className="flex items-center gap-2">
-                    <span className="text-[12px] font-semibold text-white/90 tracking-wide">Meshwork AI</span>
+                    <span className="text-[12px] font-semibold text-white/90 tracking-wide">MOSH</span>
                     <span className="text-[9px] text-[#FF5500]/70 border border-[#FF5500]/20 bg-[#FF5500]/5 px-1.5 py-0.5 rounded font-mono tracking-wider">BETA</span>
                   </div>
                   <div className="flex items-center gap-1.5 mt-0.5">
