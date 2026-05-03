@@ -814,7 +814,7 @@ function WorkspaceView() {
                 initial={{ opacity: 0, y: -16 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.5, ease: [0.16, 1, 0.3, 1] }}
-                className="absolute top-5 left-[232px] z-50 flex items-center gap-1.5 px-1.5 py-1.5 rounded-xl bg-[#161616]/80 backdrop-blur-xl border border-white/[0.08] shadow-[0_4px_24px_rgba(0,0,0,0.4)]"
+                className="absolute top-5 left-[252px] z-50 flex items-center gap-1.5 px-1.5 py-1.5 rounded-xl bg-[#161616]/80 backdrop-blur-xl border border-white/[0.08] shadow-[0_4px_24px_rgba(0,0,0,0.4)]"
             >
                 <Popover>
                     <PopoverTrigger asChild>
@@ -947,7 +947,7 @@ function WorkspaceView() {
                             >
                                 <Controls position="bottom-left" className="!bg-[#161616]/90 !backdrop-blur-2xl !border-white/[0.06] !text-white/50 !shadow-[0_8px_40px_rgba(0,0,0,0.7)] !rounded-2xl overflow-hidden !m-6 [&_button]:!bg-transparent [&_button]:!border-white/[0.05] [&_button]:hover:!bg-white/10 [&_button_svg]:!fill-white/70" />
                                 <MiniMap position="bottom-right" className="!bg-[#161616]/90 !backdrop-blur-2xl !border-white/[0.06] !shadow-[0_8px_40px_rgba(0,0,0,0.7)] !rounded-2xl !mr-6 !mb-6 overflow-hidden [&_.react-flow__minimap-mask]:!fill-white/80" />
-                                <Background variant={'dots' as any} gap={24} size={1} color="#ffffff15" />
+                                <Background variant={'dots' as any} gap={20} size={1.2} color="#ffffff22" />
                                 <div 
                                     className="absolute inset-0 pointer-events-none z-[0]"
                                     style={{

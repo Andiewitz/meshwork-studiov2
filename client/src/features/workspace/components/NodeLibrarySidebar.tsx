@@ -79,7 +79,7 @@ export const NodeLibrarySidebar: React.FC<NodeLibrarySidebarProps> = ({ onDragSt
             exit={{ width: 0, opacity: 0 }}
             transition={{ duration: 0.25, ease: [0.16, 1, 0.3, 1] }}
             className="h-full flex flex-col bg-[#0D0D0D]/75 backdrop-blur-2xl border-r border-white/[0.05] overflow-hidden flex-shrink-0"
-            style={{ width: 220 }}
+            style={{ width: 240 }}
         >
             {/* Header */}
             <div className="flex items-center justify-between px-4 pt-4 pb-3 flex-shrink-0">
@@ -110,11 +110,11 @@ export const NodeLibrarySidebar: React.FC<NodeLibrarySidebarProps> = ({ onDragSt
 
             {/* Filter tabs */}
             <div className="flex items-center gap-px px-3 pb-3 flex-shrink-0">
-                {FILTER_TABS.slice(0, 4).map(tab => (
+                {FILTER_TABS.slice(0, 5).map(tab => (
                     <button
                         key={tab}
                         onClick={() => setActiveFilter(tab)}
-                        className={`px-2.5 py-1 rounded-md text-[10px] font-medium transition-all flex-1 ${
+                    className={`px-1.5 py-1 rounded-md text-[10px] font-medium transition-all flex-1 text-center ${
                             activeFilter === tab
                                 ? 'bg-white/[0.1] text-white/90 border border-white/[0.1]'
                                 : 'text-white/30 hover:text-white/50 hover:bg-white/[0.04] border border-transparent'
@@ -144,21 +144,21 @@ export const NodeLibrarySidebar: React.FC<NodeLibrarySidebarProps> = ({ onDragSt
                                     key={node.type}
                                     draggable
                                     onDragStart={(e) => onDragStart(e, node.type, node.label)}
-                                    className="flex items-center gap-2.5 px-2 py-2 rounded-lg hover:bg-white/[0.06] hover:backdrop-blur-sm transition-all cursor-grab active:cursor-grabbing group"
+                                    className="flex items-center gap-3 px-2 py-2 rounded-lg hover:bg-white/[0.06] hover:backdrop-blur-sm transition-all cursor-grab active:cursor-grabbing group"
                                 >
                                     <div
-                                        className="w-5 h-5 rounded-md flex items-center justify-center flex-shrink-0"
-                                        style={{ backgroundColor: `${CATEGORY_COLORS[category]}20` }}
+                                        className="w-6 h-6 rounded-md flex items-center justify-center flex-shrink-0"
+                                        style={{ backgroundColor: `${CATEGORY_COLORS[category]}18` }}
                                     >
                                         <node.icon
-                                            className="w-3 h-3"
+                                            className="w-3.5 h-3.5"
                                             style={{ color: CATEGORY_COLORS[category] }}
                                         />
                                     </div>
-                                    <span className="text-[12px] text-white/60 group-hover:text-white/90 transition-colors flex-1 truncate font-medium">
+                                    <span className="text-[12px] text-white/60 group-hover:text-white/90 transition-colors flex-1 truncate">
                                         {node.label}
                                     </span>
-                                    <GripVertical className="w-3 h-3 text-white/0 group-hover:text-white/20 transition-colors flex-shrink-0" />
+                                    <GripVertical className="w-3.5 h-3.5 text-white/0 group-hover:text-white/25 transition-colors flex-shrink-0" />
                                 </div>
                             ))}
                         </div>
