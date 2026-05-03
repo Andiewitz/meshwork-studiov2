@@ -116,7 +116,13 @@ export function validateAndRepairCanvas(raw: any): { nodes: Node[]; edges: Edge[
           ...(hasDash ? { strokeDasharray: e.style.strokeDasharray } : {}),
         },
         ...(hasArrow ? { markerEnd: { type: "arrowclosed", color: e.style?.stroke || "#555" } } : {}),
-        ...(e.label ? { label: e.label, labelStyle: { fill: "#888", fontSize: 11 } } : {}),
+        ...(e.label ? {
+          label: e.label,
+          labelStyle: { fill: "#999", fontSize: 10, fontFamily: "var(--font-mono)", fontWeight: 500 },
+          labelBgStyle: { fill: "#1A1A1A", fillOpacity: 0.9 },
+          labelBgPadding: [6, 4] as [number, number],
+          labelBgBorderRadius: 6,
+        } : {}),
       };
     });
 
