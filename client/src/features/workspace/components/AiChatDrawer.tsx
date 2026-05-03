@@ -159,22 +159,15 @@ interface Message {
 }
 
 const SUGGESTIONS = [
-  "Design a 3-tier web app",
-  "Add Redis cache + annotate it",
-  "Create a K8s deployment",
-  "Add an arrow label between nodes",
+  "Design a scalable Kubernetes microservices architecture",
+  "Set up a high-availability Postgres cluster",
+  "Build a serverless event-driven data pipeline",
+  "Create a secure AWS VPC with public/private subnets",
 ];
 
 export function AiChatDrawer() {
   const [isOpen, setIsOpen] = useState(false);
-  const [messages, setMessages] = useState<Message[]>([
-    {
-      id: "init",
-      role: "assistant",
-      content:
-        "I'm Mosh. Describe your system and I'll design it — or ask me to modify what's already on the canvas. I support annotations, colored edges, arrows, and the full node library.",
-    },
-  ]);
+  const [messages, setMessages] = useState<Message[]>([]);
   const [input, setInput] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
@@ -290,12 +283,21 @@ export function AiChatDrawer() {
         },
       ]);
     } catch (error: any) {
+      let errorMessage = "An unexpected error occurred.";
+      if (error.message.includes("key") || error.message.includes("API")) {
+        errorMessage = "No API key configured. Please ensure your provider API key is set correctly.";
+      } else if (error.message.includes("429") || error.message.toLowerCase().includes("rate limit")) {
+        errorMessage = "Rate limit exceeded. Please try again in a few moments.";
+      } else if (error.message) {
+        errorMessage = error.message;
+      }
+
       setMessages((prev) => [
         ...prev,
         {
           id: (Date.now() + 1).toString(),
           role: "assistant",
-          content: `Something went wrong: ${error.message}`,
+          content: `⚠️ **System Error**\n\n${errorMessage}`,
         },
       ]);
     } finally {
@@ -323,7 +325,7 @@ export function AiChatDrawer() {
           <ChevronDown className="w-3.5 h-3.5 text-white/50" />
         </motion.div>
         <motion.div animate={{ scale: [1, 1.2, 1], opacity: [0.7, 1, 0.7] }} transition={{ repeat: Infinity, duration: 2, ease: "easeInOut" }}>
-          <Sparkles className="w-3.5 h-3.5 text-[#FF5500]" />
+          <Bot className="w-3.5 h-3.5 text-[#10B981]" />
         </motion.div>
         <span className="text-[11px] font-semibold tracking-widest uppercase text-white/60">Mosh</span>
         <span className="text-[9px] text-white/25 border border-white/10 px-1.5 py-0.5 rounded-md font-mono">BETA</span>
@@ -342,13 +344,13 @@ export function AiChatDrawer() {
             {/* Header */}
             <div className="flex items-center justify-between px-5 py-4 border-b border-white/[0.04]">
               <div className="flex items-center gap-3">
-                <div className="w-7 h-7 rounded-lg flex items-center justify-center" style={{ background: "linear-gradient(135deg, #FF5500, #FF3300)", boxShadow: "0 2px 12px rgba(255,85,0,0.4)" }}>
-                  <Wand2 className="w-3.5 h-3.5 text-white" />
+                <div className="w-7 h-7 rounded-lg flex items-center justify-center" style={{ background: "linear-gradient(135deg, #10B981, #059669)", boxShadow: "0 2px 12px rgba(16, 185, 129, 0.4)" }}>
+                  <Bot className="w-4 h-4 text-white" />
                 </div>
                 <div>
                   <div className="flex items-center gap-2">
                     <span className="text-[12px] font-semibold text-white/90 tracking-wide">MOSH</span>
-                    <span className="text-[9px] text-[#FF5500]/70 border border-[#FF5500]/20 bg-[#FF5500]/5 px-1.5 py-0.5 rounded font-mono tracking-wider">BETA</span>
+                    <span className="text-[9px] text-[#10B981]/70 border border-[#10B981]/20 bg-[#10B981]/5 px-1.5 py-0.5 rounded font-mono tracking-wider">BETA</span>
                   </div>
                   <div className="flex items-center gap-1.5 mt-0.5">
                     <motion.div className="w-1.5 h-1.5 rounded-full bg-emerald-400" animate={{ opacity: [1, 0.4, 1] }} transition={{ repeat: Infinity, duration: 2 }} />
@@ -363,22 +365,31 @@ export function AiChatDrawer() {
 
             {/* Chat */}
             <div className="flex-1 overflow-y-auto px-5 py-5 space-y-5 scrollbar-thin scrollbar-thumb-white/[0.06]">
-              {/* Suggestions */}
-              {messages.filter((m) => m.role === "user").length === 0 && (
-                <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.15 }} className="flex flex-wrap gap-2 mb-1">
-                  {SUGGESTIONS.map((s, i) => (
-                    <motion.button
-                      key={s}
-                      initial={{ opacity: 0, scale: 0.9 }}
-                      animate={{ opacity: 1, scale: 1 }}
-                      transition={{ delay: 0.15 + i * 0.05 }}
-                      onClick={() => { setInput(s); textareaRef.current?.focus(); }}
-                      className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-[11px] text-white/50 border border-white/[0.06] hover:border-[#FF5500]/30 hover:text-white/80 hover:bg-[#FF5500]/5 transition-all cursor-pointer"
-                    >
-                      <Zap className="w-3 h-3 text-[#FF5500]/60" />
-                      {s}
-                    </motion.button>
-                  ))}
+              {/* Empty State & Suggestions */}
+              {messages.length === 0 && (
+                <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.15 }} className="flex flex-col items-center justify-center text-center mt-8 mb-6 space-y-6">
+                  <div className="w-16 h-16 rounded-2xl flex items-center justify-center bg-white/[0.02] border border-white/[0.05] shadow-lg">
+                    <Bot className="w-8 h-8 text-[#10B981]" />
+                  </div>
+                  <div className="space-y-1">
+                    <h3 className="text-white font-medium text-sm">I'm Mosh. Let's design.</h3>
+                    <p className="text-white/40 text-xs max-w-[240px]">Describe your cloud infrastructure or ask me to modify the canvas.</p>
+                  </div>
+                  <div className="flex flex-col w-full gap-2 px-2 mt-4">
+                    {SUGGESTIONS.map((s, i) => (
+                      <motion.button
+                        key={s}
+                        initial={{ opacity: 0, x: -10 }}
+                        animate={{ opacity: 1, x: 0 }}
+                        transition={{ delay: 0.2 + i * 0.05 }}
+                        onClick={() => { setInput(s); textareaRef.current?.focus(); }}
+                        className="flex items-center gap-2 px-3 py-2.5 rounded-xl text-[12px] text-white/60 border border-white/[0.06] hover:border-[#10B981]/40 hover:text-white/90 hover:bg-[#10B981]/10 transition-all cursor-pointer text-left w-full group"
+                      >
+                        <Bot className="w-3.5 h-3.5 text-[#10B981]/60 group-hover:text-[#10B981] transition-colors shrink-0" />
+                        <span className="truncate">{s}</span>
+                      </motion.button>
+                    ))}
+                  </div>
                 </motion.div>
               )}
 
@@ -393,18 +404,18 @@ export function AiChatDrawer() {
                 >
                   {msg.role === "assistant" && (
                     <div className="w-7 h-7 rounded-lg shrink-0 flex items-center justify-center mt-0.5 border border-white/[0.06]" style={{ background: "linear-gradient(145deg, #1E1E1E, #141414)" }}>
-                      <Bot className="w-3.5 h-3.5 text-[#FF5500]" />
+                      <Bot className="w-3.5 h-3.5 text-[#10B981]" />
                     </div>
                   )}
                   <div
                     className={`max-w-[82%] rounded-2xl px-4 py-3 text-[13px] leading-relaxed ${msg.role === "user" ? "rounded-tr-sm text-white/90" : "rounded-tl-sm text-white/80"}`}
                     style={msg.role === "user"
-                      ? { background: "linear-gradient(135deg, rgba(255,85,0,0.15), rgba(255,60,0,0.08))", border: "1px solid rgba(255,85,0,0.2)" }
+                      ? { background: "linear-gradient(135deg, rgba(16,185,129,0.15), rgba(5,150,105,0.08))", border: "1px solid rgba(16,185,129,0.2)" }
                       : { background: "rgba(255,255,255,0.03)", border: "1px solid rgba(255,255,255,0.055)" }}
                   >
                     {msg.role === "assistant" ? (
                       <>
-                        <div className="prose prose-invert prose-sm max-w-none prose-p:my-1.5 prose-p:leading-relaxed prose-headings:text-white/90 prose-headings:font-semibold prose-headings:my-2 prose-ul:my-1.5 prose-li:my-0.5 prose-li:text-white/70 prose-strong:text-white/90 prose-code:text-[#FF7733] prose-code:bg-white/[0.06] prose-code:px-1 prose-code:py-0.5 prose-code:rounded prose-code:text-[12px] prose-code:font-mono">
+                        <div className="prose prose-invert prose-sm max-w-none prose-p:my-1.5 prose-p:leading-relaxed prose-headings:text-white/90 prose-headings:font-semibold prose-headings:my-2 prose-ul:my-1.5 prose-li:my-0.5 prose-li:text-white/70 prose-strong:text-white/90 prose-code:text-[#34D399] prose-code:bg-white/[0.06] prose-code:px-1 prose-code:py-0.5 prose-code:rounded prose-code:text-[12px] prose-code:font-mono">
                           <ReactMarkdown remarkPlugins={[remarkGfm]}>{msg.content}</ReactMarkdown>
                         </div>
                         {msg.appliedToCanvas && (
@@ -426,12 +437,12 @@ export function AiChatDrawer() {
                 {isLoading && (
                   <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: 4 }} className="flex gap-3">
                     <div className="w-7 h-7 rounded-lg shrink-0 flex items-center justify-center mt-0.5 border border-white/[0.06]" style={{ background: "linear-gradient(145deg, #1E1E1E, #141414)" }}>
-                      <Loader2 className="w-3.5 h-3.5 text-[#FF5500] animate-spin" />
+                      <Loader2 className="w-3.5 h-3.5 text-[#10B981] animate-spin" />
                     </div>
                     <div className="px-4 py-3 rounded-2xl rounded-tl-sm flex items-center gap-2" style={{ background: "rgba(255,255,255,0.03)", border: "1px solid rgba(255,255,255,0.055)" }}>
                       <div className="flex items-center gap-1">
                         {[0, 0.15, 0.3].map((delay, i) => (
-                          <motion.div key={i} className="w-1.5 h-1.5 rounded-full bg-[#FF5500]/60" animate={{ y: [0, -4, 0], opacity: [0.4, 1, 0.4] }} transition={{ repeat: Infinity, duration: 0.9, delay, ease: "easeInOut" }} />
+                          <motion.div key={i} className="w-1.5 h-1.5 rounded-full bg-[#10B981]/60" animate={{ y: [0, -4, 0], opacity: [0.4, 1, 0.4] }} transition={{ repeat: Infinity, duration: 0.9, delay, ease: "easeInOut" }} />
                         ))}
                       </div>
                       <span className="text-[12px] text-white/30">Designing architecture</span>
@@ -463,7 +474,7 @@ export function AiChatDrawer() {
                   type="submit"
                   disabled={!input.trim() || isLoading}
                   className="w-10 h-10 shrink-0 flex items-center justify-center mb-0.5 rounded-xl text-white transition-all cursor-pointer disabled:cursor-default"
-                  style={{ background: input.trim() && !isLoading ? "linear-gradient(135deg, #FF6611, #FF3300)" : "rgba(255,255,255,0.04)", boxShadow: input.trim() && !isLoading ? "0 4px 16px rgba(255,85,0,0.35)" : "none" }}
+                  style={{ background: input.trim() && !isLoading ? "linear-gradient(135deg, #10B981, #059669)" : "rgba(255,255,255,0.04)", boxShadow: input.trim() && !isLoading ? "0 4px 16px rgba(16,185,129,0.35)" : "none" }}
                   whileHover={input.trim() && !isLoading ? { scale: 1.05 } : {}}
                   whileTap={input.trim() && !isLoading ? { scale: 0.95 } : {}}
                 >
