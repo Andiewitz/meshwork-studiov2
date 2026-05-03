@@ -59,7 +59,7 @@ export const NodeLibrarySidebar: React.FC<NodeLibrarySidebarProps> = ({ onDragSt
                 animate={{ width: 44, opacity: 1 }}
                 exit={{ width: 0, opacity: 0 }}
                 transition={{ duration: 0.2, ease: [0.16, 1, 0.3, 1] }}
-                className="h-full flex flex-col items-center pt-4 gap-2 bg-[#111111] border-r border-white/[0.06] flex-shrink-0"
+                className="h-full flex flex-col items-center pt-4 gap-2 bg-[#0D0D0D]/70 backdrop-blur-2xl border-r border-white/[0.05] flex-shrink-0"
             >
                 <button
                     onClick={() => setCollapsed(false)}
@@ -78,7 +78,7 @@ export const NodeLibrarySidebar: React.FC<NodeLibrarySidebarProps> = ({ onDragSt
             animate={{ width: 220, opacity: 1 }}
             exit={{ width: 0, opacity: 0 }}
             transition={{ duration: 0.25, ease: [0.16, 1, 0.3, 1] }}
-            className="h-full flex flex-col bg-[#111111] border-r border-white/[0.06] overflow-hidden flex-shrink-0"
+            className="h-full flex flex-col bg-[#0D0D0D]/75 backdrop-blur-2xl border-r border-white/[0.05] overflow-hidden flex-shrink-0"
             style={{ width: 220 }}
         >
             {/* Header */}
@@ -102,7 +102,7 @@ export const NodeLibrarySidebar: React.FC<NodeLibrarySidebarProps> = ({ onDragSt
                         placeholder="Search..."
                         value={searchTerm}
                         onChange={(e) => setSearchTerm(e.target.value)}
-                        className="w-full pl-8 pr-10 py-1.5 text-[12px] bg-white/[0.05] border border-white/[0.06] rounded-lg text-white/80 placeholder:text-white/20 outline-none focus:border-white/[0.15] transition-all"
+                        className="w-full pl-8 pr-10 py-1.5 text-[12px] bg-white/[0.04] border border-white/[0.07] rounded-lg text-white/80 placeholder:text-white/20 outline-none focus:border-white/20 focus:bg-white/[0.06] transition-all"
                     />
                     <kbd className="absolute right-2.5 top-1/2 -translate-y-1/2 text-[9px] font-mono text-white/20 bg-white/[0.06] px-1.5 py-0.5 rounded border border-white/[0.06]">⌘K</kbd>
                 </div>
@@ -116,8 +116,8 @@ export const NodeLibrarySidebar: React.FC<NodeLibrarySidebarProps> = ({ onDragSt
                         onClick={() => setActiveFilter(tab)}
                         className={`px-2.5 py-1 rounded-md text-[10px] font-medium transition-all flex-1 ${
                             activeFilter === tab
-                                ? 'bg-white/[0.1] text-white/90'
-                                : 'text-white/30 hover:text-white/60 hover:bg-white/[0.05]'
+                                ? 'bg-white/[0.1] text-white/90 border border-white/[0.1]'
+                                : 'text-white/30 hover:text-white/50 hover:bg-white/[0.04] border border-transparent'
                         }`}
                     >
                         {FILTER_LABELS[tab]}
@@ -144,7 +144,7 @@ export const NodeLibrarySidebar: React.FC<NodeLibrarySidebarProps> = ({ onDragSt
                                     key={node.type}
                                     draggable
                                     onDragStart={(e) => onDragStart(e, node.type, node.label)}
-                                    className="flex items-center gap-2.5 px-2 py-2 rounded-lg hover:bg-white/[0.05] transition-all cursor-grab active:cursor-grabbing group"
+                                    className="flex items-center gap-2.5 px-2 py-2 rounded-lg hover:bg-white/[0.06] hover:backdrop-blur-sm transition-all cursor-grab active:cursor-grabbing group"
                                 >
                                     <div
                                         className="w-5 h-5 rounded-md flex items-center justify-center flex-shrink-0"
@@ -173,7 +173,7 @@ export const NodeLibrarySidebar: React.FC<NodeLibrarySidebarProps> = ({ onDragSt
             </div>
 
             {/* New Component button */}
-            <div className="px-3 py-3 border-t border-white/[0.05] flex-shrink-0">
+            <div className="px-3 py-3 border-t border-white/[0.06] flex-shrink-0 bg-white/[0.01]">
                 <button className="w-full flex items-center gap-2 px-3 py-2 rounded-lg text-white/40 hover:text-white/70 hover:bg-white/[0.05] transition-all text-[12px] font-medium">
                     <Plus className="w-3.5 h-3.5" />
                     New Component
