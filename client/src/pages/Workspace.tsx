@@ -859,9 +859,9 @@ function WorkspaceView() {
                                 selectionOnDrag={drawingMode === 'select'}
                                 selectionMode={SelectionMode.Partial}
                             >
-                                <Controls position="bottom-left" className="!bg-[#1E1E1E]/95 !backdrop-blur-xl !border-white/[0.05] !text-white/50 !shadow-2xl !rounded-full overflow-hidden !m-6 [&_button]:!bg-transparent [&_button]:!border-white/[0.05] [&_button]:hover:!bg-white/10 [&_button_svg]:!fill-white/70" />
-                                <MiniMap position="bottom-right" className="!bg-[#1E1E1E]/95 !backdrop-blur-xl !border-white/[0.05] !shadow-2xl !rounded-2xl !mr-6 !mb-6 overflow-hidden [&_.react-flow__minimap-mask]:!fill-white/80" />
-                                <Background variant={'dots' as any} gap={20} size={1.5} color="#333333" />
+                                <Controls position="bottom-left" className="!bg-[#161616]/90 !backdrop-blur-2xl !border-white/[0.06] !text-white/50 !shadow-[0_8px_40px_rgba(0,0,0,0.7)] !rounded-2xl overflow-hidden !m-6 [&_button]:!bg-transparent [&_button]:!border-white/[0.05] [&_button]:hover:!bg-white/10 [&_button_svg]:!fill-white/70" />
+                                <MiniMap position="bottom-right" className="!bg-[#161616]/90 !backdrop-blur-2xl !border-white/[0.06] !shadow-[0_8px_40px_rgba(0,0,0,0.7)] !rounded-2xl !mr-6 !mb-6 overflow-hidden [&_.react-flow__minimap-mask]:!fill-white/80" />
+                                <Background variant={'dots' as any} gap={24} size={1} color="#ffffff15" />
                                 <div 
                                     className="absolute inset-0 pointer-events-none z-[0]"
                                     style={{
@@ -878,6 +878,17 @@ function WorkspaceView() {
                                     />
                                 </div>
 
+                                <div 
+                                    className="absolute inset-0 pointer-events-none z-[1]"
+                                    style={{
+                                        background: `
+                                            radial-gradient(ellipse at top, rgba(255,85,0,0.03) 0%, transparent 50%),
+                                            radial-gradient(ellipse at bottom, rgba(255,85,0,0.02) 0%, transparent 50%),
+                                            radial-gradient(ellipse at left, rgba(255,85,0,0.02) 0%, transparent 40%),
+                                            radial-gradient(ellipse at right, rgba(255,85,0,0.02) 0%, transparent 40%)
+                                        `,
+                                    }}
+                                />
 
 
                                 {menu && (
@@ -1140,56 +1151,51 @@ function WorkspaceView() {
                                     </motion.div>
                                 </Panel>
 
-                                {/* ── Right-side vertical toolbar (Stitch-style) ── */}
-                                <Panel position="top-right" className="mr-6 mt-40 z-50">
+                                {/* ── Bottom-center horizontal toolbar ── */}
+                                <Panel position="bottom-center" className="mb-6 z-50">
                                     <motion.div 
-                                        initial={{ opacity: 0, x: 20, filter: 'blur(10px)' }}
-                                        animate={{ opacity: 1, x: 0, filter: 'blur(0px)' }}
+                                        initial={{ opacity: 0, y: 30, filter: 'blur(10px)' }}
+                                        animate={{ opacity: 1, y: 0, filter: 'blur(0px)' }}
                                         transition={{ duration: 0.6, ease: [0.16, 1, 0.3, 1], delay: 0.2 }}
-                                        className="flex flex-col items-center rounded-full p-1.5 gap-1.5 bg-[#1E1E1E]/95 backdrop-blur-xl border border-white/[0.05] shadow-[0_8px_32px_rgba(0,0,0,0.6)]"
+                                        className="flex items-center rounded-2xl p-1.5 gap-0.5 bg-[#161616]/90 backdrop-blur-2xl border border-white/[0.06] shadow-[0_8px_40px_rgba(0,0,0,0.7)]"
                                     >
-                                        <button
-                                            onClick={() => {
-                                                setDrawingMode('select');
-                                            }}
-                                            className={`w-9 h-9 flex items-center justify-center rounded-full transition-all ${drawingMode === 'select' ? 'bg-white text-black shadow-lg scale-105' : 'text-white/40 hover:text-white hover:bg-[#2A2A2A]'}`}
-                                            title="Selection Tool"
-                                        >
-                                            <MousePointer2 className="w-4 h-4" />
-                                        </button>
-                                        <button
-                                            onClick={() => {
-                                                setDrawingMode('pan');
-                                            }}
-                                            className={`w-9 h-9 flex items-center justify-center rounded-full transition-all ${drawingMode === 'pan' ? 'bg-white text-black shadow-lg scale-105' : 'text-white/40 hover:text-white hover:bg-[#2A2A2A]'}`}
-                                            title="Hand / Pan Tool"
-                                        >
-                                            <Hand className="w-4 h-4" />
-                                        </button>
-                                        <button
+                                        {[
+                                            { mode: 'select' as const, icon: MousePointer2, title: 'Select' },
+                                            { mode: 'pan' as const, icon: Hand, title: 'Pan' },
+                                        ].map(tool => (
+                                            <motion.button
+                                                key={tool.mode}
+                                                onClick={() => setDrawingMode(tool.mode)}
+                                                className={`w-10 h-10 flex items-center justify-center rounded-xl transition-all ${drawingMode === tool.mode ? 'bg-[#FF5500] text-white shadow-[0_0_20px_rgba(255,85,0,0.3)]' : 'text-white/40 hover:text-white hover:bg-white/[0.06]'}`}
+                                                title={tool.title}
+                                                whileTap={{ scale: 0.92 }}
+                                            >
+                                                <tool.icon className="w-4 h-4" />
+                                            </motion.button>
+                                        ))}
+
+                                        <div className="w-px h-5 bg-white/[0.08] mx-1" />
+
+                                        <motion.button
                                             onClick={() => setDrawingMode(drawingMode === 'infrastructure' ? 'select' : 'infrastructure')}
-                                            className={`w-9 h-9 flex items-center justify-center rounded-full transition-all ${drawingMode === 'infrastructure' ? 'bg-white text-black shadow-lg scale-105' : 'text-white/40 hover:text-white hover:bg-[#2A2A2A]'}`}
-                                            title="Infrastructure Tool (Click map to place VPC)"
+                                            className={`w-10 h-10 flex items-center justify-center rounded-xl transition-all ${drawingMode === 'infrastructure' ? 'bg-[#FF5500] text-white shadow-[0_0_20px_rgba(255,85,0,0.3)]' : 'text-white/40 hover:text-white hover:bg-white/[0.06]'}`}
+                                            title="Infrastructure Zone"
+                                            whileTap={{ scale: 0.92 }}
                                         >
                                             <Square className="w-4 h-4" />
-                                        </button>
-                                        <button
-                                            onClick={() => setDrawingMode(drawingMode === 'annotation' ? 'select' : 'annotation')}
-                                            className={`w-9 h-9 flex items-center justify-center rounded-full transition-all ${drawingMode === 'annotation' ? 'bg-white text-black shadow-lg scale-105' : 'text-white/40 hover:text-white hover:bg-[#2A2A2A]'}`}
-                                            title="Annotation Tool (Click map to place)"
-                                        >
-                                            <Pencil className="w-4 h-4" />
-                                        </button>
+                                        </motion.button>
 
-                                        <div className="w-6 h-[1px] my-0.5 bg-white/10" />
                                         <Popover>
                                             <PopoverTrigger asChild>
-                                                <button className="w-9 h-9 flex items-center justify-center rounded-full transition-all text-white/40 hover:text-white hover:bg-[#2A2A2A]" title="Connection Settings">
+                                                <motion.button
+                                                    className={`w-10 h-10 flex items-center justify-center rounded-xl transition-all text-white/40 hover:text-white hover:bg-white/[0.06]`}
+                                                    title="Connection Settings"
+                                                    whileTap={{ scale: 0.92 }}
+                                                >
                                                     <Spline className="w-4 h-4" />
-                                                </button>
+                                                </motion.button>
                                             </PopoverTrigger>
-                                            <PopoverContent className="w-64 p-3 bg-[#1E1E1E]/95 backdrop-blur-xl border border-white/[0.05] rounded-2xl shadow-2xl z-[150] space-y-4" side="left" align="start" sideOffset={16}>
-                                                {/* Style & Arrow */}
+                                            <PopoverContent className="w-64 p-3 bg-[#161616]/95 backdrop-blur-2xl border border-white/[0.06] rounded-2xl shadow-[0_16px_48px_rgba(0,0,0,0.8)] z-[150] space-y-4" side="top" align="center" sideOffset={16}>
                                                 <div className="space-y-2">
                                                     <div className="text-[10px] uppercase font-bold tracking-widest text-white/40 px-1">Line Style</div>
                                                     <div className="grid grid-cols-3 gap-1">
@@ -1225,7 +1231,6 @@ function WorkspaceView() {
                                                         })}
                                                     </div>
                                                 </div>
-                                                {/* Shape */}
                                                 <div className="space-y-2">
                                                     <div className="text-[10px] uppercase font-bold tracking-widest text-white/40 px-1">Line Shape</div>
                                                     <div className="grid grid-cols-3 gap-1">
@@ -1250,21 +1255,35 @@ function WorkspaceView() {
                                                 </div>
                                             </PopoverContent>
                                         </Popover>
-                                        <button
+
+                                        <motion.button
+                                            onClick={() => setDrawingMode(drawingMode === 'annotation' ? 'select' : 'annotation')}
+                                            className={`w-10 h-10 flex items-center justify-center rounded-xl transition-all ${drawingMode === 'annotation' ? 'bg-[#FF5500] text-white shadow-[0_0_20px_rgba(255,85,0,0.3)]' : 'text-white/40 hover:text-white hover:bg-white/[0.06]'}`}
+                                            title="Annotation"
+                                            whileTap={{ scale: 0.92 }}
+                                        >
+                                            <Pencil className="w-4 h-4" />
+                                        </motion.button>
+
+                                        <motion.button
                                             onClick={() => fitView({ duration: 800 })}
-                                            className="p-2.5 rounded-xl transition-all text-white/40 hover:text-white hover:bg-white/5"
+                                            className="w-10 h-10 flex items-center justify-center rounded-xl transition-all text-white/40 hover:text-white hover:bg-white/[0.06]"
                                             title="Fit View"
+                                            whileTap={{ scale: 0.92 }}
                                         >
                                             <Maximize className="w-4 h-4" />
-                                        </button>
-                                        <div className="w-5 h-px my-0.5 bg-white/10" />
-                                        <button
+                                        </motion.button>
+
+                                        <div className="w-px h-5 bg-white/[0.08] mx-1" />
+
+                                        <motion.button
                                             onClick={() => setIsSimulating(!isSimulating)}
-                                            className={`p-2.5 rounded-xl transition-all ${isSimulating ? 'bg-green-500 text-white shadow-[0_0_15px_rgba(22,163,74,0.4)]' : 'text-white/40 hover:text-white hover:bg-white/5'}`}
+                                            className={`w-10 h-10 flex items-center justify-center rounded-xl transition-all ${isSimulating ? 'bg-green-500 text-white shadow-[0_0_20px_rgba(22,163,74,0.4)]' : 'text-white/40 hover:text-white hover:bg-white/[0.06]'}`}
                                             title={isSimulating ? 'Stop Simulation' : 'Simulate'}
+                                            whileTap={{ scale: 0.92 }}
                                         >
                                             <Play className={`w-4 h-4 ${isSimulating ? 'fill-white' : ''}`} />
-                                        </button>
+                                        </motion.button>
                                     </motion.div>
                                 </Panel>
                             </ReactFlow>

@@ -87,47 +87,66 @@ export const NodeLibrarySidebar: React.FC<NodeLibrarySidebarProps> = ({ onDragSt
             className="h-full flex flex-col bg-[#0E0E0E]/85 backdrop-blur-2xl border-r border-white/[0.04] overflow-hidden"
             style={{ width: 260 }}
         >
-            {/* Header */}
             <div className="px-3 pt-4 pb-2 flex-shrink-0">
-                <div className="flex items-center justify-between mb-3">
-                    <div className="flex items-center gap-2">
-                        <Package className="w-3.5 h-3.5 text-white/25" />
-                        <span className="text-[10px] uppercase font-bold tracking-[0.2em] text-white/25">Components</span>
-                    </div>
-                    <button
-                        onClick={() => setCollapsed(true)}
-                        className="w-6 h-6 flex items-center justify-center rounded text-white/20 hover:text-white/50 hover:bg-white/[0.05] transition-all"
-                    >
-                        <PanelLeftClose className="w-3.5 h-3.5" />
-                    </button>
-                </div>
-
-                {/* Search */}
-                <div className="relative">
+                <div className="relative mb-3">
                     <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-white/20" />
                     <input
                         type="text"
-                        placeholder="Search..."
+                        placeholder="Search components..."
                         value={searchTerm}
                         onChange={(e) => setSearchTerm(e.target.value)}
-                        className="w-full pl-8 pr-3 py-2 text-[12px] bg-white/[0.04] border border-white/[0.06] rounded-lg text-white/80 placeholder:text-white/15 outline-none focus:border-white/[0.12] focus:bg-white/[0.06] transition-all"
+                        className="w-full pl-8 pr-14 py-2 text-[12px] bg-white/[0.04] border border-white/[0.06] rounded-lg text-white/80 placeholder:text-white/15 outline-none focus:border-[#FF5500]/30 focus:bg-white/[0.06] transition-all"
                     />
+                    <div className="absolute right-2.5 top-1/2 -translate-y-1/2 flex items-center gap-1">
+                        <kbd className="text-[9px] font-mono text-white/20 bg-white/[0.06] px-1.5 py-0.5 rounded border border-white/[0.06]">⌘K</kbd>
+                    </div>
                 </div>
+
+                {!isSearching && (
+                    <div className="flex items-center gap-1 mb-2">
+                        {['All', ...CATEGORY_ORDER].map(tab => (
+                            <button
+                                key={tab}
+                                onClick={() => {
+                                    if (tab === 'All') {
+                                        setExpandedCategories(Object.fromEntries(CATEGORY_ORDER.map(c => [c, true])));
+                                    } else {
+                                        setExpandedCategories(Object.fromEntries(CATEGORY_ORDER.map(c => [c, c === tab])));
+                                    }
+                                }}
+                                className={`px-2.5 py-1 rounded-md text-[10px] font-semibold transition-all ${
+                                    (tab === 'All' && Object.values(expandedCategories).every(v => v))
+                                        ? 'bg-[#FF5500]/15 text-[#FF5500] border border-[#FF5500]/20'
+                                        : (tab !== 'All' && expandedCategories[tab] && !Object.values(expandedCategories).every(v => v))
+                                            ? 'bg-white/[0.08] text-white/80 border border-white/[0.08]'
+                                            : 'text-white/30 hover:text-white/60 hover:bg-white/[0.04] border border-transparent'
+                                }`}
+                            >
+                                {tab === 'Kubernetes' ? 'K8s' : tab}
+                            </button>
+                        ))}
+                        <div className="flex-1" />
+                        <button
+                            onClick={() => setCollapsed(true)}
+                            className="w-6 h-6 flex items-center justify-center rounded text-white/20 hover:text-white/50 hover:bg-white/[0.05] transition-all"
+                        >
+                            <PanelLeftClose className="w-3.5 h-3.5" />
+                        </button>
+                    </div>
+                )}
             </div>
 
-            {/* Recent / Favorites */}
             {!isSearching && (
-                <div className="px-3 pt-2 pb-1 flex-shrink-0">
-                    <div className="text-[9px] uppercase font-bold tracking-[0.15em] text-white/20 mb-2 px-0.5">Recent</div>
+                <div className="px-3 pt-1 pb-1 flex-shrink-0">
                     <div className="grid grid-cols-3 gap-1.5">
                         {favorites.map((node) => (
                             <div
                                 key={node.type}
                                 draggable
                                 onDragStart={(e) => onDragStart(e, node.type, node.label)}
-                                className="flex flex-col items-center gap-1.5 p-2.5 rounded-lg bg-white/[0.03] border border-white/[0.04] hover:bg-white/[0.07] hover:border-white/[0.1] transition-all cursor-grab active:cursor-grabbing group"
+                                className="flex flex-col items-center gap-1.5 p-2.5 rounded-lg bg-white/[0.03] border border-white/[0.04] hover:bg-white/[0.07] hover:border-[#FF5500]/20 transition-all cursor-grab active:cursor-grabbing group"
                             >
-                                <node.icon className="w-4 h-4 text-white/40 group-hover:text-white/70 transition-colors" />
+                                <node.icon className="w-4 h-4 text-white/40 group-hover:text-[#FF5500]/70 transition-colors" />
                                 <span className="text-[9px] font-medium text-white/35 group-hover:text-white/60 transition-colors leading-tight text-center">{node.label}</span>
                             </div>
                         ))}
