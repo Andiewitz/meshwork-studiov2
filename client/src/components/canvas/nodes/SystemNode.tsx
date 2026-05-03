@@ -308,20 +308,24 @@ export function SystemNode({ id, data, selected, type, width, height }: NodeProp
                 ) : isKubernetes ? (
                     <div
                         className={`
-                            relative p-3 overflow-hidden w-full h-full flex items-center gap-3 rounded-xl
-                            bg-[#1A1A1A]
-                            shadow-lg shadow-black/25 ${nodeFont}
+                            relative px-3 py-2.5 overflow-hidden w-full h-full flex items-center gap-3 rounded-2xl
+                            bg-[#121214]/80 backdrop-blur-xl
+                            shadow-[0_8px_32px_rgba(0,0,0,0.4),inset_0_1px_0_rgba(255,255,255,0.1)]
                             ${selectionRing}
-                            ${!selected ? 'group-hover:shadow-xl group-hover:shadow-black/30' : ''}
-                            transition-all
+                            ${!selected ? 'hover:shadow-[0_12px_40px_rgba(0,0,0,0.5),inset_0_1px_0_rgba(255,255,255,0.15)] hover:bg-[#16161A]/90' : ''}
+                            transition-all duration-300 group
                         `}
-                        style={{ border: `1px solid ${finalColor}30` }}
+                        style={{ border: `1px solid ${finalColor}40` }}
                     >
-                        <K8sLogo className="absolute right-2 bottom-2 w-8 h-8 object-contain opacity-[0.04] pointer-events-none text-white" />
+                        <div className="absolute inset-0 opacity-[0.03] group-hover:opacity-[0.06] transition-opacity pointer-events-none" style={{ backgroundImage: `radial-gradient(circle at 50% 0%, ${finalColor}, transparent 70%)` }} />
+                        <K8sLogo className="absolute right-2 bottom-2 w-8 h-8 object-contain opacity-[0.04] pointer-events-none text-white z-0" />
 
                         <div 
-                            className="relative w-10 h-10 rounded-lg flex items-center justify-center flex-shrink-0"
-                            style={{ backgroundColor: `${finalColor}20` }}
+                            className="relative w-9 h-9 rounded-xl flex items-center justify-center flex-shrink-0 shadow-[inset_0_1px_0_rgba(255,255,255,0.2)] z-10"
+                            style={{ 
+                                background: `linear-gradient(135deg, ${finalColor}30, ${finalColor}10)`,
+                                border: `1px solid ${finalColor}50` 
+                            }}
                         >
                             {brand.Icon && typeof brand.Icon !== 'string' && <brand.Icon size={20} className="text-white/90" />}
                             {K8sResourceIcon && (
@@ -338,8 +342,8 @@ export function SystemNode({ id, data, selected, type, width, height }: NodeProp
                             )}
                         </div>
 
-                        <div className="flex flex-col min-w-0 flex-1">
-                            <span className="text-[12px] font-semibold line-clamp-2 break-words whitespace-pre-wrap leading-tight text-white/90">
+                        <div className="flex flex-col min-w-0 flex-1 z-10">
+                            <span className="text-[13px] font-medium tracking-tight line-clamp-2 break-words whitespace-pre-wrap leading-tight text-white/95">
                                 {data.label as string}
                             </span>
                             <div className="flex gap-1 mt-1.5 flex-wrap">
@@ -376,59 +380,46 @@ export function SystemNode({ id, data, selected, type, width, height }: NodeProp
                 ) : (
                     <div
                         className={`
-                            relative p-3 overflow-hidden w-full h-full rounded-xl
-                            bg-[#1A1A1A]
-                            shadow-lg shadow-black/25 ${nodeFont}
-                            ${isData ? 'flex flex-col items-center text-center' : 'flex items-center gap-3'}
+                            relative px-3 py-2.5 overflow-hidden w-full h-full rounded-2xl
+                            bg-[#121214]/80 backdrop-blur-xl
+                            shadow-[0_8px_32px_rgba(0,0,0,0.4),inset_0_1px_0_rgba(255,255,255,0.1)]
+                            flex items-center gap-3.5
                             ${selectionRing}
-                            ${!selected ? 'group-hover:shadow-xl group-hover:shadow-black/30' : ''}
-                            transition-all
+                            ${!selected ? 'hover:shadow-[0_12px_40px_rgba(0,0,0,0.5),inset_0_1px_0_rgba(255,255,255,0.15)] hover:bg-[#16161A]/90' : ''}
+                            transition-all duration-300 group
                         `}
-                        style={{ border: `1px solid ${finalColor}30` }}
+                        style={{ border: `1px solid ${finalColor}40` }}
                     >
-                        <div className={`
-                            relative rounded-lg flex items-center justify-center flex-shrink-0
-                            ${isData ? 'w-12 h-12 mb-1' : 'w-10 h-10'}
-                        `}
-                            style={{ backgroundColor: `${finalColor}20` }}
+                        <div className="absolute inset-0 opacity-[0.03] group-hover:opacity-[0.06] transition-opacity pointer-events-none" style={{ backgroundImage: `radial-gradient(circle at 50% 0%, ${finalColor}, transparent 70%)` }} />
+                        
+                        <div className="relative rounded-xl flex items-center justify-center flex-shrink-0 shadow-[inset_0_1px_0_rgba(255,255,255,0.2)] z-10 w-9 h-9"
+                            style={{ 
+                                background: `linear-gradient(135deg, ${finalColor}30, ${finalColor}10)`,
+                                border: `1px solid ${finalColor}50` 
+                            }}
                         >
                             {brand.Icon ? (
                                 typeof brand.Icon === 'string' ? (
                                     <img
                                         src={brand.Icon}
-                                        className={`object-contain ${isData ? 'w-5 h-5' : 'w-[18px] h-[18px]'}`}
+                                        className="object-contain w-[18px] h-[18px]"
                                         alt=""
                                     />
                                 ) : (
-                                    <brand.Icon size={isData ? 24 : 20} className="text-white/90" />
+                                    <brand.Icon size={20} className="text-white/90" />
                                 )
                             ) : type === 'user' ? (
-                                <UserIcon size={isData ? 24 : 18} strokeWidth={2} className="text-white/90" />
+                                <UserIcon size={18} strokeWidth={2} className="text-white/90" />
                             ) : (
                                 <div className="w-4 h-4 bg-white/20 rounded" />
                             )}
                         </div>
 
-                        <div className="flex flex-col min-w-0">
-                            <span className="text-[12px] font-semibold line-clamp-2 break-words whitespace-pre-wrap leading-tight text-white/90">
+                        <div className="flex flex-col min-w-0 z-10">
+                            <span className="text-[13px] font-medium tracking-tight line-clamp-2 break-words whitespace-pre-wrap leading-tight text-white/95">
                                 {data.label as string}
                             </span>
                         </div>
-
-                        {/* Sub-Collections for Data nodes */}
-                        {isData && Array.isArray(data.collections) && data.collections.length > 0 && (
-                            <div className="mt-2 w-full space-y-1 flex-grow overflow-hidden">
-                                <div className="text-[7px] uppercase tracking-[0.15em] font-bold text-white/20 mb-1">Collections</div>
-                                <div className="flex flex-col gap-0.5 overflow-y-auto max-h-[200px] pr-1 scrollbar-hide">
-                                    {(data.collections as any[]).map((coll, i) => (
-                                        <div key={i} className="px-2 py-1 bg-white/[0.06] rounded-md text-[9px] font-medium text-white/60 truncate flex items-center gap-1.5 shrink-0">
-                                            <div className="w-1 h-1 rounded-full bg-white/30" />
-                                            {String(coll)}
-                                        </div>
-                                    ))}
-                                </div>
-                            </div>
-                        )}
 
                         {/* Expandable: arrow badge bottom-left — click to enter sub-canvas */}
                         {EXPANDABLE_TYPES.has(type as string) && (
