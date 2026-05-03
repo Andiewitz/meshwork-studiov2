@@ -5,6 +5,8 @@ import { nodeTypesList, getDynamicFavorites, DEFAULT_FAVORITES } from '@/feature
 
 interface NodeLibrarySidebarProps {
     onDragStart: (event: React.DragEvent, nodeType: string, label: string) => void;
+    collapsed: boolean;
+    setCollapsed: (c: boolean) => void;
 }
 
 const CATEGORY_ORDER = ['Core', 'More', 'Kubernetes', 'Templates'];
@@ -32,10 +34,9 @@ const FILTER_LABELS: Record<string, string> = {
     'Templates': 'Templates',
 };
 
-export const NodeLibrarySidebar: React.FC<NodeLibrarySidebarProps> = ({ onDragStart }) => {
+export const NodeLibrarySidebar: React.FC<NodeLibrarySidebarProps> = ({ onDragStart, collapsed, setCollapsed }) => {
     const [searchTerm, setSearchTerm] = useState('');
     const [activeFilter, setActiveFilter] = useState('All');
-    const [collapsed, setCollapsed] = useState(false);
 
     const filteredByCategory = useMemo(() => {
         const result: Record<string, typeof nodeTypesList> = {};
@@ -56,10 +57,10 @@ export const NodeLibrarySidebar: React.FC<NodeLibrarySidebarProps> = ({ onDragSt
         return (
             <motion.div
                 initial={{ width: 0, opacity: 0 }}
-                animate={{ width: 44, opacity: 1 }}
+                animate={{ width: 56, opacity: 1 }}
                 exit={{ width: 0, opacity: 0 }}
                 transition={{ duration: 0.2, ease: [0.16, 1, 0.3, 1] }}
-                className="h-full flex flex-col items-center pt-4 gap-2 bg-[#18181B] border-r border-white/[0.08] flex-shrink-0"
+                className="absolute top-0 left-0 bottom-0 z-40 flex flex-col items-center pt-4 gap-2 bg-[#121214]/80 backdrop-blur-xl border-r border-white/[0.08] shadow-[inset_-1px_0_0_rgba(255,255,255,0.05),4px_0_24px_rgba(0,0,0,0.5)]"
             >
                 <button
                     onClick={() => setCollapsed(false)}
@@ -75,11 +76,11 @@ export const NodeLibrarySidebar: React.FC<NodeLibrarySidebarProps> = ({ onDragSt
     return (
         <motion.div
             initial={{ width: 0, opacity: 0 }}
-            animate={{ width: 220, opacity: 1 }}
+            animate={{ width: 260, opacity: 1 }}
             exit={{ width: 0, opacity: 0 }}
             transition={{ duration: 0.25, ease: [0.16, 1, 0.3, 1] }}
-            className="h-full flex flex-col bg-[#18181B] border-r border-white/[0.08] overflow-hidden flex-shrink-0"
-            style={{ width: 240 }}
+            className="absolute top-0 left-0 bottom-0 z-40 flex flex-col bg-[#121214]/80 backdrop-blur-xl border-r border-white/[0.08] shadow-[inset_-1px_0_0_rgba(255,255,255,0.05),4px_0_24px_rgba(0,0,0,0.5)] overflow-hidden"
+            style={{ width: 260 }}
         >
             {/* Header */}
             <div className="flex items-center justify-between px-4 pt-4 pb-3 flex-shrink-0">
@@ -148,11 +149,14 @@ export const NodeLibrarySidebar: React.FC<NodeLibrarySidebarProps> = ({ onDragSt
                                     key={node.type}
                                     draggable
                                     onDragStart={(e) => onDragStart(e, node.type, node.label)}
-                                    className="flex items-center gap-3 px-2 py-[7px] rounded-lg hover:bg-white/[0.07] transition-all cursor-grab active:cursor-grabbing group"
+                                    className="flex items-center gap-3 px-2 py-2 rounded-xl hover:bg-[#1C1C1F]/90 hover:shadow-[0_4px_12px_rgba(0,0,0,0.2),inset_0_1px_0_rgba(255,255,255,0.1)] transition-all cursor-grab active:cursor-grabbing group border border-transparent hover:border-white/[0.05]"
                                 >
                                     <div
-                                        className="w-6 h-6 rounded-md flex items-center justify-center flex-shrink-0"
-                                        style={{ backgroundColor: `${CATEGORY_COLORS[category]}18` }}
+                                        className="w-7 h-7 rounded-lg flex items-center justify-center flex-shrink-0 shadow-[inset_0_1px_0_rgba(255,255,255,0.15)]"
+                                        style={{ 
+                                            background: `linear-gradient(135deg, ${CATEGORY_COLORS[category]}30, ${CATEGORY_COLORS[category]}10)`,
+                                            border: `1px solid ${CATEGORY_COLORS[category]}40`
+                                        }}
                                     >
                                         <node.icon
                                             className="w-3.5 h-3.5"

@@ -139,6 +139,7 @@ function WorkspaceView() {
     const [edgeStyle, setEdgeStyle] = useState<'solid' | 'dashed' | 'dotted'>('solid');
     const [hasArrow, setHasArrow] = useState(false);
     const [drawingMode, setDrawingMode] = useState<'select' | 'pan' | 'annotation' | 'infrastructure'>('select');
+    const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
 
     // ── Nested canvas navigation stack ──
     interface CanvasLevel {
@@ -806,8 +807,8 @@ function WorkspaceView() {
     }
 
     return (
-        <div className="h-screen w-screen overflow-hidden font-sans text-sm selection:bg-white/10 bg-[#0A0A0A] text-white flex relative">
-            <NodeLibrarySidebar onDragStart={onDragStart} />
+        <div className="h-screen w-screen overflow-hidden font-sans text-sm selection:bg-white/10 bg-[#0A0A0A] text-white relative">
+            <NodeLibrarySidebar onDragStart={onDragStart} collapsed={sidebarCollapsed} setCollapsed={setSidebarCollapsed} />
 
 
                 <motion.main
@@ -870,7 +871,7 @@ function WorkspaceView() {
                                 <Background variant={'dots' as any} gap={20} size={1.2} color="#ffffff22" />
 
                                 {/* ── Top-left panel — inside ReactFlow so it tracks canvas not root ── */}
-                                <Panel position="top-left" className="m-5">
+                                <Panel position="top-left" className={`transition-all duration-300 my-5 ${sidebarCollapsed ? 'ml-[76px]' : 'ml-[280px]'}`}>
                                     <motion.div
                                         initial={{ opacity: 0, y: -16 }}
                                         animate={{ opacity: 1, y: 0 }}
