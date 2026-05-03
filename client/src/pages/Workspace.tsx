@@ -809,86 +809,6 @@ function WorkspaceView() {
         <div className="h-screen w-screen overflow-hidden font-sans text-sm selection:bg-white/10 bg-[#0A0A0A] text-white flex relative">
             <NodeLibrarySidebar onDragStart={onDragStart} />
 
-            {/* ── Top-left: hamburger + title ── z-50 above everything ── */}
-            <motion.div
-                initial={{ opacity: 0, y: -16 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.5, ease: [0.16, 1, 0.3, 1] }}
-                className="absolute top-5 left-[252px] z-50 flex items-center gap-1.5 px-1.5 py-1.5 rounded-xl bg-[#161616]/80 backdrop-blur-xl border border-white/[0.08] shadow-[0_4px_24px_rgba(0,0,0,0.4)]"
-            >
-                <Popover>
-                    <PopoverTrigger asChild>
-                        <button className="w-8 h-8 flex items-center justify-center rounded-lg text-white/40 hover:text-white/80 hover:bg-white/[0.07] transition-all" title="Menu">
-                            <Menu className="w-4 h-4" />
-                        </button>
-                    </PopoverTrigger>
-                    <PopoverContent className="w-48 p-1.5 bg-[#161616]/95 backdrop-blur-2xl border border-white/[0.08] rounded-xl shadow-[0_8px_40px_rgba(0,0,0,0.7)] z-[200]" side="bottom" align="start" sideOffset={8}>
-                        <Link href="/">
-                            <button className="w-full flex items-center gap-2.5 px-3 py-2 rounded-lg text-[12px] text-white/60 hover:text-white hover:bg-white/[0.07] transition-all">
-                                <ChevronLeft className="w-3.5 h-3.5" />
-                                Back to Library
-                            </button>
-                        </Link>
-                        <div className="h-px bg-white/[0.06] my-1" />
-                        <button
-                            onClick={() => { if (confirm('Delete this project?')) deleteWorkspace.mutate(workspaceId, { onSuccess: () => { toast({ title: 'Deleted' }); setLocation('/'); } }); }}
-                            className="w-full flex items-center gap-2.5 px-3 py-2 rounded-lg text-[12px] text-red-400/70 hover:text-red-400 hover:bg-red-500/10 transition-all"
-                        >
-                            <Trash2 className="w-3.5 h-3.5" />
-                            Delete Project
-                        </button>
-                    </PopoverContent>
-                </Popover>
-                <div className="w-px h-4 bg-white/[0.08]" />
-                {isNested ? (
-                    <div className="flex items-center gap-1">
-                        <button onClick={() => exitToLevel(0)} className="px-2 py-1 rounded-md text-[12px] text-white/40 hover:text-white hover:bg-white/[0.07] transition-all">{workspace?.title || 'Main'}</button>
-                        {canvasStack.map((level, i) => (
-                            <React.Fragment key={level.nodeId}>
-                                <ChevronRight className="w-3 h-3 text-white/15" />
-                                {i === canvasStack.length - 1
-                                    ? <span className="px-2 py-1 rounded-md text-[12px] font-semibold text-white/80 bg-white/[0.07]">{level.label}</span>
-                                    : <button onClick={() => exitToLevel(i + 1)} className="px-2 py-1 rounded-md text-[12px] text-white/40 hover:text-white hover:bg-white/[0.07] transition-all">{level.label}</button>}
-                            </React.Fragment>
-                        ))}
-                    </div>
-                ) : (
-                    <span className="px-1.5 text-[13px] font-semibold text-white/80 pr-2">{workspace?.title || 'Untitled'}</span>
-                )}
-                <div className="flex items-center pr-1">
-                    {saveStatus === 'saved' && <span className="text-[10px] text-white/25">Saved</span>}
-                    {saveStatus === 'saving' && <span className="text-[10px] text-blue-400/70 animate-pulse">Saving…</span>}
-                    {saveStatus === 'unsaved' && <span className="w-2 h-2 rounded-full bg-amber-400/70 cursor-pointer block" onClick={handleSave} title="Unsaved changes" />}
-                </div>
-            </motion.div>
-
-            {/* ── Top-right: undo/redo/simulate + Save ── z-50 ── */}
-            <motion.div
-                initial={{ opacity: 0, y: -16 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.5, ease: [0.16, 1, 0.3, 1], delay: 0.1 }}
-                className="absolute top-5 right-5 z-50 flex items-center gap-2"
-            >
-                <div className="flex items-center gap-0.5 px-1 py-1 rounded-xl bg-[#161616]/80 backdrop-blur-xl border border-white/[0.08] shadow-[0_4px_24px_rgba(0,0,0,0.4)]">
-                    <button onClick={undo} className="w-8 h-8 flex items-center justify-center rounded-lg text-white/35 hover:text-white/80 hover:bg-white/[0.07] transition-all" title="Undo (⌘Z)"><Undo2 className="w-3.5 h-3.5" /></button>
-                    <button onClick={redo} className="w-8 h-8 flex items-center justify-center rounded-lg text-white/35 hover:text-white/80 hover:bg-white/[0.07] transition-all" title="Redo (⌘Y)"><Redo2 className="w-3.5 h-3.5" /></button>
-                    <div className="w-px h-4 bg-white/[0.08] mx-0.5" />
-                    <button
-                        onClick={() => setIsSimulating(!isSimulating)}
-                        className={`w-8 h-8 flex items-center justify-center rounded-lg transition-all ${isSimulating ? 'bg-green-500/20 text-green-400' : 'text-white/35 hover:text-white/80 hover:bg-white/[0.07]'}`}
-                        title={isSimulating ? 'Stop' : 'Simulate'}
-                    >
-                        <Play className={`w-3.5 h-3.5 ${isSimulating ? 'fill-green-400' : ''}`} />
-                    </button>
-                </div>
-                <button
-                    onClick={handleSave}
-                    className="h-9 px-4 flex items-center gap-1.5 rounded-xl bg-green-500 hover:bg-green-400 text-white text-[12px] font-semibold transition-all shadow-[0_2px_12px_rgba(22,163,74,0.35)] active:scale-[0.97]"
-                >
-                    {saveStatus === 'saving' ? <CloudUpload className="w-3.5 h-3.5 animate-pulse" /> : saveStatus === 'saved' ? <CheckCircle2 className="w-3.5 h-3.5" /> : <Save className="w-3.5 h-3.5" />}
-                    {saveStatus === 'saving' ? 'Saving…' : saveStatus === 'saved' ? 'Saved' : 'Save'}
-                </button>
-            </motion.div>
 
                 <motion.main
                     initial={{ opacity: 0 }}
@@ -948,6 +868,91 @@ function WorkspaceView() {
                                 <Controls position="bottom-left" className="!bg-[#161616]/90 !backdrop-blur-2xl !border-white/[0.06] !text-white/50 !shadow-[0_8px_40px_rgba(0,0,0,0.7)] !rounded-2xl overflow-hidden !m-6 [&_button]:!bg-transparent [&_button]:!border-white/[0.05] [&_button]:hover:!bg-white/10 [&_button_svg]:!fill-white/70" />
                                 <MiniMap position="bottom-right" className="!bg-[#161616]/90 !backdrop-blur-2xl !border-white/[0.06] !shadow-[0_8px_40px_rgba(0,0,0,0.7)] !rounded-2xl !mr-6 !mb-6 overflow-hidden [&_.react-flow__minimap-mask]:!fill-white/80" />
                                 <Background variant={'dots' as any} gap={20} size={1.2} color="#ffffff22" />
+
+                                {/* ── Top-left panel — inside ReactFlow so it tracks canvas not root ── */}
+                                <Panel position="top-left" className="m-5">
+                                    <motion.div
+                                        initial={{ opacity: 0, y: -16 }}
+                                        animate={{ opacity: 1, y: 0 }}
+                                        transition={{ duration: 0.5, ease: [0.16, 1, 0.3, 1] }}
+                                        className="flex items-center gap-1.5 px-1.5 py-1.5 rounded-xl bg-[#161616]/80 backdrop-blur-xl border border-white/[0.08] shadow-[0_4px_24px_rgba(0,0,0,0.4)]"
+                                    >
+                                        <Popover>
+                                            <PopoverTrigger asChild>
+                                                <button className="w-8 h-8 flex items-center justify-center rounded-lg text-white/40 hover:text-white/80 hover:bg-white/[0.07] transition-all" title="Menu">
+                                                    <Menu className="w-4 h-4" />
+                                                </button>
+                                            </PopoverTrigger>
+                                            <PopoverContent className="w-48 p-1.5 bg-[#161616]/95 backdrop-blur-2xl border border-white/[0.08] rounded-xl shadow-[0_8px_40px_rgba(0,0,0,0.7)] z-[200]" side="bottom" align="start" sideOffset={8}>
+                                                <Link href="/">
+                                                    <button className="w-full flex items-center gap-2.5 px-3 py-2 rounded-lg text-[12px] text-white/60 hover:text-white hover:bg-white/[0.07] transition-all">
+                                                        <ChevronLeft className="w-3.5 h-3.5" />
+                                                        Back to Library
+                                                    </button>
+                                                </Link>
+                                                <div className="h-px bg-white/[0.06] my-1" />
+                                                <button
+                                                    onClick={() => { if (confirm('Delete this project?')) deleteWorkspace.mutate(workspaceId, { onSuccess: () => { toast({ title: 'Deleted' }); setLocation('/'); } }); }}
+                                                    className="w-full flex items-center gap-2.5 px-3 py-2 rounded-lg text-[12px] text-red-400/70 hover:text-red-400 hover:bg-red-500/10 transition-all"
+                                                >
+                                                    <Trash2 className="w-3.5 h-3.5" />
+                                                    Delete Project
+                                                </button>
+                                            </PopoverContent>
+                                        </Popover>
+                                        <div className="w-px h-4 bg-white/[0.08]" />
+                                        {isNested ? (
+                                            <div className="flex items-center gap-1">
+                                                <button onClick={() => exitToLevel(0)} className="px-2 py-1 rounded-md text-[12px] text-white/40 hover:text-white hover:bg-white/[0.07] transition-all">{workspace?.title || 'Main'}</button>
+                                                {canvasStack.map((level, i) => (
+                                                    <React.Fragment key={level.nodeId}>
+                                                        <ChevronRight className="w-3 h-3 text-white/15" />
+                                                        {i === canvasStack.length - 1
+                                                            ? <span className="px-2 py-1 rounded-md text-[12px] font-semibold text-white/80 bg-white/[0.07]">{level.label}</span>
+                                                            : <button onClick={() => exitToLevel(i + 1)} className="px-2 py-1 rounded-md text-[12px] text-white/40 hover:text-white hover:bg-white/[0.07] transition-all">{level.label}</button>}
+                                                    </React.Fragment>
+                                                ))}
+                                            </div>
+                                        ) : (
+                                            <span className="px-1.5 text-[13px] font-semibold text-white/80 pr-2">{workspace?.title || 'Untitled'}</span>
+                                        )}
+                                        <div className="flex items-center pr-1">
+                                            {saveStatus === 'saved' && <span className="text-[10px] text-white/25">Saved</span>}
+                                            {saveStatus === 'saving' && <span className="text-[10px] text-blue-400/70 animate-pulse">Saving…</span>}
+                                            {saveStatus === 'unsaved' && <span className="w-2 h-2 rounded-full bg-amber-400/70 cursor-pointer block" onClick={handleSave} title="Unsaved changes" />}
+                                        </div>
+                                    </motion.div>
+                                </Panel>
+
+                                {/* ── Top-right panel ── */}
+                                <Panel position="top-right" className="m-5">
+                                    <motion.div
+                                        initial={{ opacity: 0, y: -16 }}
+                                        animate={{ opacity: 1, y: 0 }}
+                                        transition={{ duration: 0.5, ease: [0.16, 1, 0.3, 1], delay: 0.1 }}
+                                        className="flex items-center gap-2"
+                                    >
+                                        <div className="flex items-center gap-0.5 px-1 py-1 rounded-xl bg-[#161616]/80 backdrop-blur-xl border border-white/[0.08] shadow-[0_4px_24px_rgba(0,0,0,0.4)]">
+                                            <button onClick={undo} className="w-8 h-8 flex items-center justify-center rounded-lg text-white/35 hover:text-white/80 hover:bg-white/[0.07] transition-all" title="Undo"><Undo2 className="w-3.5 h-3.5" /></button>
+                                            <button onClick={redo} className="w-8 h-8 flex items-center justify-center rounded-lg text-white/35 hover:text-white/80 hover:bg-white/[0.07] transition-all" title="Redo"><Redo2 className="w-3.5 h-3.5" /></button>
+                                            <div className="w-px h-4 bg-white/[0.08] mx-0.5" />
+                                            <button
+                                                onClick={() => setIsSimulating(!isSimulating)}
+                                                className={`w-8 h-8 flex items-center justify-center rounded-lg transition-all ${isSimulating ? 'bg-green-500/20 text-green-400' : 'text-white/35 hover:text-white/80 hover:bg-white/[0.07]'}`}
+                                                title={isSimulating ? 'Stop' : 'Simulate'}
+                                            >
+                                                <Play className={`w-3.5 h-3.5 ${isSimulating ? 'fill-green-400' : ''}`} />
+                                            </button>
+                                        </div>
+                                        <button
+                                            onClick={handleSave}
+                                            className="h-9 px-4 flex items-center gap-1.5 rounded-xl bg-green-500 hover:bg-green-400 text-white text-[12px] font-semibold transition-all shadow-[0_2px_12px_rgba(22,163,74,0.35)] active:scale-[0.97]"
+                                        >
+                                            {saveStatus === 'saving' ? <CloudUpload className="w-3.5 h-3.5 animate-pulse" /> : saveStatus === 'saved' ? <CheckCircle2 className="w-3.5 h-3.5" /> : <Save className="w-3.5 h-3.5" />}
+                                            {saveStatus === 'saving' ? 'Saving…' : saveStatus === 'saved' ? 'Saved' : 'Save'}
+                                        </button>
+                                    </motion.div>
+                                </Panel>
                                 <div 
                                     className="absolute inset-0 pointer-events-none z-[0]"
                                     style={{
