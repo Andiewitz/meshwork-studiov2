@@ -65,7 +65,7 @@ export const NodeLibrarySidebar: React.FC<NodeLibrarySidebarProps> = ({ onDragSt
                 animate={{ width: 48, opacity: 1 }}
                 exit={{ width: 0, opacity: 0 }}
                 transition={{ duration: 0.2, ease: [0.16, 1, 0.3, 1] }}
-                className="h-full flex flex-col items-center py-4 bg-[#141414] border-r border-white/[0.06]"
+                className="h-full flex flex-col items-center py-4 bg-[#0E0E0E]/85 backdrop-blur-2xl border-r border-white/[0.04]"
             >
                 <button
                     onClick={() => setCollapsed(false)}
@@ -84,7 +84,7 @@ export const NodeLibrarySidebar: React.FC<NodeLibrarySidebarProps> = ({ onDragSt
             animate={{ width: 260, opacity: 1 }}
             exit={{ width: 0, opacity: 0 }}
             transition={{ duration: 0.3, ease: [0.16, 1, 0.3, 1] }}
-            className="h-full flex flex-col bg-[#141414] border-r border-white/[0.06] overflow-hidden"
+            className="h-full flex flex-col bg-[#0E0E0E]/85 backdrop-blur-2xl border-r border-white/[0.04] overflow-hidden"
             style={{ width: 260 }}
         >
             {/* Header */}

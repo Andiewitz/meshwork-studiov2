@@ -1280,7 +1280,7 @@ function WorkspaceView() {
                                     animate={{ width: 280, opacity: 1 }}
                                     exit={{ width: 0, opacity: 0 }}
                                     transition={{ duration: 0.25, ease: [0.16, 1, 0.3, 1] }}
-                                    className="h-full bg-[#141414] border-l border-white/[0.06] overflow-hidden flex-shrink-0"
+                                    className="h-full bg-[#0E0E0E]/85 backdrop-blur-2xl border-l border-white/[0.04] overflow-hidden flex-shrink-0"
                                 >
                                     <div className="h-full overflow-y-auto scrollbar-hide" style={{ width: 280 }}>
                                         <PropertiesSidebar
