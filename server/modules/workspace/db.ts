@@ -41,7 +41,8 @@ async function createTables() {
                 is_favorite BOOLEAN DEFAULT false,
                 user_id TEXT,
                 collection_id INTEGER REFERENCES collections(id) ON DELETE SET NULL,
-                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
             );
         `);
         console.log("[WorkspaceDB] Workspaces table created/verified");
@@ -60,7 +61,11 @@ async function runMigrations() {
         await pool.query(`
             ALTER TABLE workspaces ADD COLUMN IF NOT EXISTS is_favorite BOOLEAN DEFAULT false;
         `);
-        console.log("[WorkspaceDB] Migrations verified (is_favorite)");
+        // v1.2: Add updated_at to workspaces
+        await pool.query(`
+            ALTER TABLE workspaces ADD COLUMN IF NOT EXISTS updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP;
+        `);
+        console.log("[WorkspaceDB] Migrations verified (is_favorite, updated_at)");
     } catch (err) {
         console.error("[WorkspaceDB] Migration failed:", err);
     }
