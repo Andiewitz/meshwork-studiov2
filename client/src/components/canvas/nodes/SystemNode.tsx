@@ -163,13 +163,11 @@ export function SystemNode({ id, data, selected, type, width, height }: NodeProp
         );
     }
 
-    // Shared handle style — small rounded dots that appear on hover
     const handleCls = "!w-2 !h-2 !rounded-full !border-2 !border-blue-400 !bg-white !opacity-0 group-hover:!opacity-100 !transition-opacity !shadow-sm";
-
-    // Selection ring style
     const selectionRing = selected 
         ? 'ring-2 ring-blue-500/40 shadow-[0_0_20px_rgba(59,130,246,0.15)]' 
         : '';
+    const nodeFont = "font-[Inter,var(--font-label),sans-serif]";
 
     return (
         <>
@@ -311,30 +309,21 @@ export function SystemNode({ id, data, selected, type, width, height }: NodeProp
                     <div
                         className={`
                             relative p-3 overflow-hidden w-full h-full flex items-center gap-3 rounded-xl
-                            bg-[#1A1A1A] border border-white/[0.06]
-                            shadow-lg shadow-black/25
+                            bg-gradient-to-br from-[#1A1A1A] to-[#161616]
+                            shadow-lg shadow-black/25 ${nodeFont}
                             ${selectionRing}
-                            ${!selected ? 'group-hover:shadow-xl group-hover:shadow-black/30 group-hover:border-white/[0.1]' : ''}
+                            ${!selected ? 'group-hover:shadow-xl group-hover:shadow-black/30' : ''}
                             transition-all
                         `}
+                        style={{ border: `1px solid ${finalColor}30` }}
                     >
-                        {/* Brand accent stripe */}
-                        <div 
-                            className="absolute left-0 top-2 bottom-2 w-[3px] rounded-full"
-                            style={{ backgroundColor: finalColor }}
-                        />
+                        <K8sLogo className="absolute right-2 bottom-2 w-8 h-8 object-contain opacity-[0.04] pointer-events-none text-white" />
 
-                        {/* K8s helm watermark */}
-                        <K8sLogo
-                            className="absolute right-2 bottom-2 w-8 h-8 object-contain opacity-[0.04] pointer-events-none text-white"
-                        />
-
-                        {/* Logo container — rounded square with brand tint */}
                         <div 
-                            className="relative w-9 h-9 rounded-lg flex items-center justify-center flex-shrink-0 ml-1"
+                            className="relative w-10 h-10 rounded-lg flex items-center justify-center flex-shrink-0"
                             style={{ backgroundColor: `${finalColor}20` }}
                         >
-                            {brand.Icon && typeof brand.Icon !== 'string' && <brand.Icon size={18} className="text-white/90" />}
+                            {brand.Icon && typeof brand.Icon !== 'string' && <brand.Icon size={20} className="text-white/90" />}
                             {K8sResourceIcon && (
                                 <div className="absolute -bottom-1 -right-1 w-4 h-4 bg-white/10 rounded-sm flex items-center justify-center">
                                     {K8sResourceIcon}
@@ -353,7 +342,7 @@ export function SystemNode({ id, data, selected, type, width, height }: NodeProp
                             <span className="text-[12px] font-semibold line-clamp-2 break-words whitespace-pre-wrap leading-tight text-white/90">
                                 {data.label as string}
                             </span>
-                            <span className="text-[9px] uppercase tracking-[0.12em] font-bold mt-0.5 text-white/30">
+                            <span className="text-[10px] font-medium mt-0.5 text-white/30">
                                 {brand.label}
                             </span>
                             <div className="flex gap-1 mt-1.5 flex-wrap">
@@ -391,24 +380,18 @@ export function SystemNode({ id, data, selected, type, width, height }: NodeProp
                     <div
                         className={`
                             relative p-3 overflow-hidden w-full h-full rounded-xl
-                            bg-[#1A1A1A] border border-white/[0.06]
-                            shadow-lg shadow-black/25
+                            bg-gradient-to-br from-[#1A1A1A] to-[#161616]
+                            shadow-lg shadow-black/25 ${nodeFont}
                             ${isData ? 'flex flex-col items-center text-center' : 'flex items-center gap-3'}
                             ${selectionRing}
-                            ${!selected ? 'group-hover:shadow-xl group-hover:shadow-black/30 group-hover:border-white/[0.1]' : ''}
+                            ${!selected ? 'group-hover:shadow-xl group-hover:shadow-black/30' : ''}
                             transition-all
                         `}
+                        style={{ border: `1px solid ${finalColor}30` }}
                     >
-                        {/* Brand accent stripe */}
-                        <div 
-                            className="absolute left-0 top-2 bottom-2 w-[3px] rounded-full"
-                            style={{ backgroundColor: finalColor }}
-                        />
-
-                        {/* Logo container — rounded square with brand color tint */}
                         <div className={`
                             relative rounded-lg flex items-center justify-center flex-shrink-0
-                            ${isData ? 'w-11 h-11 mb-1' : 'w-9 h-9 ml-1'}
+                            ${isData ? 'w-12 h-12 mb-1' : 'w-10 h-10'}
                         `}
                             style={{ backgroundColor: `${finalColor}20` }}
                         >
@@ -416,14 +399,14 @@ export function SystemNode({ id, data, selected, type, width, height }: NodeProp
                                 typeof brand.Icon === 'string' ? (
                                     <img
                                         src={brand.Icon}
-                                        className={`object-contain ${isData ? 'w-5 h-5' : 'w-4.5 h-4.5'}`}
+                                        className={`object-contain ${isData ? 'w-5 h-5' : 'w-[18px] h-[18px]'}`}
                                         alt=""
                                     />
                                 ) : (
-                                    <brand.Icon size={isData ? 22 : 18} className="text-white/90" />
+                                    <brand.Icon size={isData ? 24 : 20} className="text-white/90" />
                                 )
                             ) : type === 'user' ? (
-                                <UserIcon size={isData ? 22 : 16} strokeWidth={2} className="text-white/90" />
+                                <UserIcon size={isData ? 24 : 18} strokeWidth={2} className="text-white/90" />
                             ) : (
                                 <div className="w-4 h-4 bg-white/20 rounded" />
                             )}
@@ -433,7 +416,7 @@ export function SystemNode({ id, data, selected, type, width, height }: NodeProp
                             <span className="text-[12px] font-semibold line-clamp-2 break-words whitespace-pre-wrap leading-tight text-white/90">
                                 {data.label as string}
                             </span>
-                            <span className="text-[9px] uppercase tracking-[0.12em] font-bold mt-0.5 text-white/30">
+                            <span className="text-[10px] font-medium mt-0.5 text-white/30">
                                 {brand.label}
                             </span>
                         </div>

@@ -8,7 +8,7 @@
   --font-sans: 'DM Sans', system-ui, sans-serif;
   --font-display: 'Space Grotesk', sans-serif;
   --font-label: 'Inter', sans-serif;
-  --font-mono: ui-monospace, monospace;
+  --font-mono: 'Geist Mono', 'JetBrains Mono', ui-monospace, monospace;
 
   /* Lumina / Avant-Garde Theme */
   --background: 0 0% 94%;
