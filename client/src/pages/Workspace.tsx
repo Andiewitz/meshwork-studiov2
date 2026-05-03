@@ -806,13 +806,12 @@ function WorkspaceView() {
     }
 
     return (
-        <div className="h-screen w-screen overflow-hidden font-sans text-sm selection:bg-white/10 bg-[#0A0A0A] text-white flex">
-                <NodeLibrarySidebar onDragStart={onDragStart} />
+        <div className="h-screen w-screen overflow-hidden font-sans text-sm selection:bg-white/10 bg-[#0A0A0A] text-white relative">
                 <motion.main
                     initial={{ opacity: 0 }}
                     animate={{ opacity: 1 }}
                     transition={{ duration: 0.6, ease: [0.16, 1, 0.3, 1] }}
-                    className="h-full flex-1 relative transition-colors duration-300 bg-[#0A0A0A]"
+                    className="absolute inset-0 transition-colors duration-300 bg-[#0A0A0A]"
                             data-cursor={drawingMode}
                             style={{ cursor: drawingMode === 'pan' ? 'grab' : undefined }}
                         >
@@ -1307,21 +1306,26 @@ function WorkspaceView() {
                                     </motion.div>
                                 </Panel>
                             </ReactFlow>
-                            
-                            <AiChatDrawer />
-                        </motion.main>
 
-                        {/* ── Right-side Properties Panel ── */}
+                        <AiChatDrawer />
+                    </motion.main>
+
+                    {/* ── Left sidebar — overlays canvas for real backdrop-blur ── */}
+                    <div className="absolute left-0 top-0 h-full z-40 pointer-events-auto">
+                        <NodeLibrarySidebar onDragStart={onDragStart} />
+                    </div>
+
+                        {/* ── Right-side Properties Panel — overlays canvas ── */}
                         <AnimatePresence>
                             {selectedNode && (
                                 <motion.aside
-                                    initial={{ width: 0, opacity: 0 }}
-                                    animate={{ width: 280, opacity: 1 }}
-                                    exit={{ width: 0, opacity: 0 }}
+                                    initial={{ x: 280, opacity: 0 }}
+                                    animate={{ x: 0, opacity: 1 }}
+                                    exit={{ x: 280, opacity: 0 }}
                                     transition={{ duration: 0.25, ease: [0.16, 1, 0.3, 1] }}
-                                    className="h-full bg-[#0E0E0E]/85 backdrop-blur-2xl border-l border-white/[0.04] overflow-hidden flex-shrink-0"
+                                    className="absolute right-0 top-0 h-full w-[280px] bg-[#0E0E0E]/80 backdrop-blur-2xl border-l border-white/[0.06] overflow-hidden z-40"
                                 >
-                                    <div className="h-full overflow-y-auto scrollbar-hide" style={{ width: 280 }}>
+                                    <div className="h-full overflow-y-auto scrollbar-hide">
                                         <PropertiesSidebar
                                             selectedNode={selectedNode}
                                             updateNodeData={updateNodeData}
@@ -1336,6 +1340,7 @@ function WorkspaceView() {
         </div>
     );
 }
+
 
 export default function Workspace() {
     return (
