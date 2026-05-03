@@ -90,7 +90,9 @@ import {
     AlertCircle,
     Package,
     GripVertical,
-    Hand
+    Hand,
+    Undo2,
+    Redo2,
 } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { useAuth } from '@/hooks/use-auth';
@@ -878,18 +880,6 @@ function WorkspaceView() {
                                     />
                                 </div>
 
-                                <div 
-                                    className="absolute inset-0 pointer-events-none z-[1]"
-                                    style={{
-                                        background: `
-                                            radial-gradient(ellipse at top, rgba(255,85,0,0.03) 0%, transparent 50%),
-                                            radial-gradient(ellipse at bottom, rgba(255,85,0,0.02) 0%, transparent 50%),
-                                            radial-gradient(ellipse at left, rgba(255,85,0,0.02) 0%, transparent 40%),
-                                            radial-gradient(ellipse at right, rgba(255,85,0,0.02) 0%, transparent 40%)
-                                        `,
-                                    }}
-                                />
-
 
                                 {menu && (
                                     <motion.div
@@ -1128,26 +1118,53 @@ function WorkspaceView() {
                                         transition={{ duration: 0.6, ease: [0.16, 1, 0.3, 1], delay: 0.15 }}
                                         className="flex items-center gap-2"
                                     >
+                                        <div className="flex items-center gap-0.5 px-1 py-1 rounded-xl bg-[#161616]/90 backdrop-blur-2xl border border-white/[0.06] shadow-[0_4px_24px_rgba(0,0,0,0.5)]">
+                                            <button onClick={undo} className="w-8 h-8 flex items-center justify-center rounded-lg text-white/35 hover:text-white/80 hover:bg-white/[0.06] transition-all" title="Undo (⌘Z)">
+                                                <Undo2 className="w-3.5 h-3.5" />
+                                            </button>
+                                            <button onClick={redo} className="w-8 h-8 flex items-center justify-center rounded-lg text-white/35 hover:text-white/80 hover:bg-white/[0.06] transition-all" title="Redo (⌘⇧Z)">
+                                                <Redo2 className="w-3.5 h-3.5" />
+                                            </button>
+                                            <div className="w-px h-4 bg-white/[0.08] mx-0.5" />
+                                            <button
+                                                onClick={() => setIsSimulating(!isSimulating)}
+                                                className={`w-8 h-8 flex items-center justify-center rounded-lg transition-all ${isSimulating ? 'bg-green-500/20 text-green-400' : 'text-white/35 hover:text-white/80 hover:bg-white/[0.06]'}`}
+                                                title={isSimulating ? 'Stop Simulation' : 'Simulate'}
+                                            >
+                                                <Play className={`w-3.5 h-3.5 ${isSimulating ? 'fill-green-400' : ''}`} />
+                                            </button>
+                                            <div className="w-px h-4 bg-white/[0.08] mx-0.5" />
+                                            <button
+                                                onClick={() => {
+                                                    if (confirm("Are you sure you want to delete this entire project?")) {
+                                                        deleteWorkspace.mutate(workspaceId, {
+                                                            onSuccess: () => {
+                                                                toast({ title: "Project Deleted", description: "Architecture removed from catalog." });
+                                                                setLocation("/");
+                                                            }
+                                                        });
+                                                    }
+                                                }}
+                                                className="w-8 h-8 flex items-center justify-center rounded-lg text-white/25 hover:text-red-400 hover:bg-red-500/10 transition-all"
+                                                title="Delete Project"
+                                            >
+                                                <Trash2 className="w-3.5 h-3.5" />
+                                            </button>
+                                        </div>
+
                                         <button
-                                            onClick={() => {
-                                                if (confirm("Are you sure you want to delete this entire project? This action cannot be undone.")) {
-                                                    deleteWorkspace.mutate(workspaceId, {
-                                                        onSuccess: () => {
-                                                            toast({ title: "Project Deleted", description: "Architecture removed from catalog." });
-                                                            setLocation("/");
-                                                        }
-                                                    });
-                                                }
-                                            }}
-                                            className="w-10 h-10 flex items-center justify-center rounded-full bg-[#1E1E1E]/95 backdrop-blur-xl border border-white/[0.05] shadow-2xl text-red-400/80 hover:text-red-400 hover:bg-red-500/20 transition-all cursor-pointer pointer-events-auto"
-                                            title="Delete Project"
+                                            onClick={handleSave}
+                                            className="h-9 px-4 flex items-center gap-2 rounded-xl bg-green-500 hover:bg-green-400 text-white text-[12px] font-semibold transition-all shadow-[0_2px_12px_rgba(22,163,74,0.3)] hover:shadow-[0_4px_20px_rgba(22,163,74,0.4)] active:scale-[0.97]"
                                         >
-                                            <Trash2 className="w-4 h-4" />
+                                            {saveStatus === 'saving' ? (
+                                                <CloudUpload className="w-3.5 h-3.5 animate-pulse" />
+                                            ) : saveStatus === 'saved' ? (
+                                                <CheckCircle2 className="w-3.5 h-3.5" />
+                                            ) : (
+                                                <Save className="w-3.5 h-3.5" />
+                                            )}
+                                            {saveStatus === 'saving' ? 'Saving...' : saveStatus === 'saved' ? 'Saved' : 'Save'}
                                         </button>
-                                        <Avatar className="w-10 h-10 ring-1 ring-white/5 shadow-2xl pointer-events-auto cursor-pointer">
-                                            <AvatarImage src={user?.profileImageUrl || undefined} />
-                                            <AvatarFallback className="bg-[#1E1E1E]/95 backdrop-blur-xl text-white/70 text-[11px] font-bold">{user?.firstName?.[0] || 'U'}</AvatarFallback>
-                                        </Avatar>
                                     </motion.div>
                                 </Panel>
 
@@ -1272,17 +1289,6 @@ function WorkspaceView() {
                                             whileTap={{ scale: 0.92 }}
                                         >
                                             <Maximize className="w-4 h-4" />
-                                        </motion.button>
-
-                                        <div className="w-px h-5 bg-white/[0.08] mx-1" />
-
-                                        <motion.button
-                                            onClick={() => setIsSimulating(!isSimulating)}
-                                            className={`w-10 h-10 flex items-center justify-center rounded-xl transition-all ${isSimulating ? 'bg-green-500 text-white shadow-[0_0_20px_rgba(22,163,74,0.4)]' : 'text-white/40 hover:text-white hover:bg-white/[0.06]'}`}
-                                            title={isSimulating ? 'Stop Simulation' : 'Simulate'}
-                                            whileTap={{ scale: 0.92 }}
-                                        >
-                                            <Play className={`w-4 h-4 ${isSimulating ? 'fill-white' : ''}`} />
                                         </motion.button>
                                     </motion.div>
                                 </Panel>
