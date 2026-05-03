@@ -59,7 +59,7 @@ export const NodeLibrarySidebar: React.FC<NodeLibrarySidebarProps> = ({ onDragSt
                 animate={{ width: 44, opacity: 1 }}
                 exit={{ width: 0, opacity: 0 }}
                 transition={{ duration: 0.2, ease: [0.16, 1, 0.3, 1] }}
-                className="h-full flex flex-col items-center pt-4 gap-2 bg-[#0D0D0D]/70 backdrop-blur-2xl border-r border-white/[0.05] flex-shrink-0"
+                className="h-full flex flex-col items-center pt-4 gap-2 bg-[#18181B] border-r border-white/[0.08] flex-shrink-0"
             >
                 <button
                     onClick={() => setCollapsed(false)}
@@ -78,7 +78,7 @@ export const NodeLibrarySidebar: React.FC<NodeLibrarySidebarProps> = ({ onDragSt
             animate={{ width: 220, opacity: 1 }}
             exit={{ width: 0, opacity: 0 }}
             transition={{ duration: 0.25, ease: [0.16, 1, 0.3, 1] }}
-            className="h-full flex flex-col bg-[#0D0D0D]/75 backdrop-blur-2xl border-r border-white/[0.05] overflow-hidden flex-shrink-0"
+            className="h-full flex flex-col bg-[#18181B] border-r border-white/[0.08] overflow-hidden flex-shrink-0"
             style={{ width: 240 }}
         >
             {/* Header */}
@@ -108,33 +108,37 @@ export const NodeLibrarySidebar: React.FC<NodeLibrarySidebarProps> = ({ onDragSt
                 </div>
             </div>
 
-            {/* Filter tabs */}
-            <div className="flex items-center gap-px px-3 pb-3 flex-shrink-0">
-                {FILTER_TABS.slice(0, 5).map(tab => (
-                    <button
-                        key={tab}
-                        onClick={() => setActiveFilter(tab)}
-                    className={`px-1.5 py-1 rounded-md text-[10px] font-medium transition-all flex-1 text-center ${
-                            activeFilter === tab
-                                ? 'bg-white/[0.1] text-white/90 border border-white/[0.1]'
-                                : 'text-white/30 hover:text-white/50 hover:bg-white/[0.04] border border-transparent'
-                        }`}
-                    >
-                        {FILTER_LABELS[tab]}
-                    </button>
-                ))}
+            {/* Filter tabs — only 4 short ones */}
+            <div className="flex items-center gap-1 px-3 pb-3 flex-shrink-0">
+                {(['All', 'Core', 'More', 'Kubernetes'] as const).map(tab => {
+                    const labels: Record<string, string> = { All: 'All', Core: 'Compute', More: 'Vendor', Kubernetes: 'K8s' };
+                    return (
+                        <button
+                            key={tab}
+                            onClick={() => setActiveFilter(tab)}
+                            className={`px-2.5 py-1 rounded-md text-[10px] font-semibold transition-all flex-1 text-center ${
+                                activeFilter === tab
+                                    ? 'bg-white/[0.12] text-white border border-white/[0.12]'
+                                    : 'text-white/30 hover:text-white/60 hover:bg-white/[0.05] border border-transparent'
+                            }`}
+                        >
+                            {labels[tab]}
+                        </button>
+                    );
+                })}
             </div>
 
             {/* Node list */}
             <div className="flex-1 overflow-y-auto px-2 pb-2" style={{ scrollbarWidth: 'none' }}>
                 {Object.entries(filteredByCategory).map(([category, items]) => (
                     <div key={category} className="mb-3">
-                        {/* Section header */}
-                        <div className="flex items-center justify-between px-2 mb-1">
-                            <span className="text-[9px] font-bold tracking-[0.12em] text-white/25">
+                        {/* Section header with color accent */}
+                        <div className="flex items-center gap-2 px-2 mb-1.5">
+                            <div className="w-0.5 h-3 rounded-full flex-shrink-0" style={{ backgroundColor: CATEGORY_COLORS[category] }} />
+                            <span className="text-[9px] font-bold tracking-[0.14em] text-white/30">
                                 {CATEGORY_DISPLAY[category] || category.toUpperCase()}
                             </span>
-                            <span className="text-[9px] text-white/20">{items.length}</span>
+                            <span className="text-[9px] text-white/20 ml-auto">{items.length}</span>
                         </div>
 
                         {/* Items */}
@@ -144,7 +148,7 @@ export const NodeLibrarySidebar: React.FC<NodeLibrarySidebarProps> = ({ onDragSt
                                     key={node.type}
                                     draggable
                                     onDragStart={(e) => onDragStart(e, node.type, node.label)}
-                                    className="flex items-center gap-3 px-2 py-2 rounded-lg hover:bg-white/[0.06] hover:backdrop-blur-sm transition-all cursor-grab active:cursor-grabbing group"
+                                    className="flex items-center gap-3 px-2 py-[7px] rounded-lg hover:bg-white/[0.07] transition-all cursor-grab active:cursor-grabbing group"
                                 >
                                     <div
                                         className="w-6 h-6 rounded-md flex items-center justify-center flex-shrink-0"

@@ -342,9 +342,6 @@ export function SystemNode({ id, data, selected, type, width, height }: NodeProp
                             <span className="text-[12px] font-semibold line-clamp-2 break-words whitespace-pre-wrap leading-tight text-white/90">
                                 {data.label as string}
                             </span>
-                            <span className="text-[10px] font-medium mt-0.5 text-white/30">
-                                {brand.label}
-                            </span>
                             <div className="flex gap-1 mt-1.5 flex-wrap">
                                 {Boolean(data.replicas) && (
                                     <span className="text-[7px] px-1.5 py-0.5 bg-white/[0.06] rounded-md text-white/60 font-medium">
@@ -415,9 +412,6 @@ export function SystemNode({ id, data, selected, type, width, height }: NodeProp
                         <div className="flex flex-col min-w-0">
                             <span className="text-[12px] font-semibold line-clamp-2 break-words whitespace-pre-wrap leading-tight text-white/90">
                                 {data.label as string}
-                            </span>
-                            <span className="text-[10px] font-medium mt-0.5 text-white/30">
-                                {brand.label}
                             </span>
                         </div>
 
