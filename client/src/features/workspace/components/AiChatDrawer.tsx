@@ -170,6 +170,7 @@ export function AiChatDrawer() {
   const [messages, setMessages] = useState<Message[]>([]);
   const [input, setInput] = useState("");
   const [isLoading, setIsLoading] = useState(false);
+  const [isDesigning, setIsDesigning] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const { setNodes, setEdges, fitView, getNodes, getEdges, getViewport } = useReactFlow();
@@ -198,11 +199,19 @@ export function AiChatDrawer() {
     e?.preventDefault();
     if (!input.trim() || isLoading) return;
 
-    const userMsg: Message = { id: Date.now().toString(), role: "user", content: input };
+    const userInput = input;
+    const isArchitectureTask = /design|create|build|add|connect|attach|draw|architecture|system|app|generate|make|put/i.test(userInput);
+
+    const userMsg: Message = { id: Date.now().toString(), role: "user", content: userInput };
     setMessages((prev) => [...prev, userMsg]);
     setInput("");
     if (textareaRef.current) textareaRef.current.style.height = "auto";
+    
     setIsLoading(true);
+    setIsDesigning(isArchitectureTask);
+    if (isArchitectureTask) {
+      window.dispatchEvent(new CustomEvent('mosh:designing', { detail: true }));
+    }
 
     try {
       const { secureFetch } = await import("@/lib/secure-fetch");
@@ -302,6 +311,8 @@ export function AiChatDrawer() {
       ]);
     } finally {
       setIsLoading(false);
+      setIsDesigning(false);
+      window.dispatchEvent(new CustomEvent('mosh:designing', { detail: false }));
     }
   };
 
@@ -439,13 +450,8 @@ export function AiChatDrawer() {
                     <div className="w-7 h-7 rounded-lg shrink-0 flex items-center justify-center mt-0.5 border border-white/[0.06]" style={{ background: "linear-gradient(145deg, #1E1E1E, #141414)" }}>
                       <Loader2 className="w-3.5 h-3.5 text-[#10B981] animate-spin" />
                     </div>
-                    <div className="px-4 py-3 rounded-2xl rounded-tl-sm flex items-center gap-2" style={{ background: "rgba(255,255,255,0.03)", border: "1px solid rgba(255,255,255,0.055)" }}>
-                      <div className="flex items-center gap-1">
-                        {[0, 0.15, 0.3].map((delay, i) => (
-                          <motion.div key={i} className="w-1.5 h-1.5 rounded-full bg-[#10B981]/60" animate={{ y: [0, -4, 0], opacity: [0.4, 1, 0.4] }} transition={{ repeat: Infinity, duration: 0.9, delay, ease: "easeInOut" }} />
-                        ))}
-                      </div>
-                      <span className="text-[12px] text-white/30">Designing architecture</span>
+                    <div className="px-4 py-3 rounded-2xl rounded-tl-sm flex w-full max-w-[82%]" style={{ background: "rgba(255,255,255,0.03)", border: "1px solid rgba(255,255,255,0.055)" }}>
+                      <MoshLoadingIndicator isDesigning={isDesigning} />
                     </div>
                   </motion.div>
                 )}
@@ -489,6 +495,62 @@ export function AiChatDrawer() {
           </motion.div>
         )}
       </AnimatePresence>
+    </div>
+  );
+}
+
+const DESIGN_PHRASES = [
+  "Analyzing topological constraints...",
+  "Allocating cloud primitives...",
+  "Routing virtual edges...",
+  "Synthesizing infrastructure...",
+  "Validating architectural patterns...",
+  "Finalizing layout...",
+];
+
+function MoshLoadingIndicator({ isDesigning }: { isDesigning: boolean }) {
+  const [phraseIndex, setPhraseIndex] = useState(0);
+
+  useEffect(() => {
+    if (!isDesigning) return;
+    const interval = setInterval(() => {
+      setPhraseIndex((prev) => (prev + 1) % DESIGN_PHRASES.length);
+    }, 2500);
+    return () => clearInterval(interval);
+  }, [isDesigning]);
+
+  if (!isDesigning) {
+    return (
+      <div className="flex items-center gap-1">
+        {[0, 0.15, 0.3].map((delay, i) => (
+          <motion.div key={i} className="w-1.5 h-1.5 rounded-full bg-[#10B981]/60" animate={{ y: [0, -4, 0], opacity: [0.4, 1, 0.4] }} transition={{ repeat: Infinity, duration: 0.9, delay, ease: "easeInOut" }} />
+        ))}
+      </div>
+    );
+  }
+
+  return (
+    <div className="flex flex-col w-full gap-2">
+      <div className="flex items-center justify-between">
+        <motion.span 
+          key={phraseIndex}
+          initial={{ opacity: 0, y: 4 }}
+          animate={{ opacity: 1, y: 0 }}
+          exit={{ opacity: 0, y: -4 }}
+          className="text-[11px] text-[#10B981] font-mono tracking-tight"
+        >
+          {DESIGN_PHRASES[phraseIndex]}
+        </motion.span>
+        <span className="text-[9px] text-white/30 font-mono animate-pulse">GENERATING</span>
+      </div>
+      <div className="h-1.5 w-full bg-white/[0.05] rounded-full overflow-hidden">
+        <motion.div 
+          className="h-full bg-gradient-to-r from-[#10B981] to-[#34D399]"
+          initial={{ width: "0%" }}
+          animate={{ width: ["0%", "85%"] }}
+          transition={{ duration: 12, ease: "easeOut" }}
+        />
+      </div>
     </div>
   );
 }
