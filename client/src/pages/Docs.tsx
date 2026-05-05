@@ -3,13 +3,6 @@ import { Shield, BrainCircuit, Box, Paintbrush, BookOpen, Clock, Calendar, Code,
 export default function Docs() {
   return (
     <div className="max-w-3xl mx-auto pb-24 relative px-4 pt-12 md:pt-20 font-body">
-      {/* Background ambient effects */}
-      <div className="fixed inset-0 -z-10 overflow-hidden pointer-events-none">
-        <div className="absolute inset-0 bg-[linear-gradient(45deg,transparent_49.5%,currentColor_49.5%,currentColor_50.5%,transparent_50.5%),linear-gradient(-45deg,transparent_49.5%,currentColor_49.5%,currentColor_50.5%,transparent_50.5%)] [background-size:40px_40px] opacity-[0.02]" />
-        <div className="absolute top-0 left-1/4 w-[500px] h-[500px] bg-gradient-radial from-amber-500/5 via-transparent to-transparent rounded-full blur-3xl" />
-        <div className="absolute bottom-1/4 right-0 w-[400px] h-[400px] bg-gradient-radial from-rose-500/5 via-transparent to-transparent rounded-full blur-3xl" />
-      </div>
-
       {/* Article Header */}
       <header className="mb-14">
         <div className="flex flex-wrap items-center gap-3 text-sm text-muted-foreground mb-6 font-label">
