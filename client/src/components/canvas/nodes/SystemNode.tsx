@@ -453,7 +453,7 @@ export function SystemNode({ id, data, selected, type, width, height }: NodeProp
 
                 {/* Hover Tooltip */}
                 <AnimatePresence>
-                    {isHovered && data.description && (
+                    {isHovered && !!data.description && (
                         <motion.div
                             initial={{ opacity: 0, y: -5 }}
                             animate={{ opacity: 1, y: 0 }}
