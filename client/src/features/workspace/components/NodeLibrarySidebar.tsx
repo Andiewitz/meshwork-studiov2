@@ -53,6 +53,32 @@ export const NodeLibrarySidebar: React.FC<NodeLibrarySidebarProps> = ({ onDragSt
         return result;
     }, [searchTerm, activeFilter]);
 
+    const [hoveredNode, setHoveredNode] = useState<string | null>(null);
+
+    const NODE_DESCRIPTIONS: Record<string, string> = {
+        'server': 'General purpose compute instance (e.g. EC2, VM)',
+        'database': 'Relational or NoSQL database server',
+        'cache': 'In-memory data store (e.g. Redis, Memcached)',
+        'gateway': 'API Gateway for routing client requests',
+        'loadBalancer': 'Distributes traffic across multiple targets',
+        'microservice': 'Containerized application or service',
+        'worker': 'Background processing or job queue worker',
+        'logic': 'Serverless function (e.g. AWS Lambda)',
+        'queue': 'Message queue (e.g. SQS, RabbitMQ)',
+        'bus': 'Event stream / Message bus (e.g. Kafka)',
+        'storage': 'Object storage (e.g. S3, GCS)',
+        'cdn': 'Content Delivery Network for edge caching',
+        'vpc': 'Virtual Private Cloud network boundary',
+        'region': 'Cloud region or physical datacenter',
+        'user': 'End user or client application',
+        'app': 'Frontend client application (Web/Mobile)',
+        'api': 'External 3rd-party API service',
+        'search': 'Search engine or indexing service',
+        'k8s-pod': 'Smallest deployable Kubernetes object',
+        'k8s-deployment': 'Manages stateless applications',
+        'k8s-service': 'Network endpoint for a set of Pods',
+    };
+
     if (collapsed) {
         return (
             <motion.div
@@ -79,7 +105,7 @@ export const NodeLibrarySidebar: React.FC<NodeLibrarySidebarProps> = ({ onDragSt
             animate={{ width: 260, opacity: 1 }}
             exit={{ width: 0, opacity: 0 }}
             transition={{ duration: 0.25, ease: [0.16, 1, 0.3, 1] }}
-            className="absolute top-0 left-0 bottom-0 z-40 flex flex-col bg-[#121214]/80 backdrop-blur-xl border-r border-white/[0.08] shadow-[inset_-1px_0_0_rgba(255,255,255,0.05),4px_0_24px_rgba(0,0,0,0.5)] overflow-hidden"
+            className="absolute top-0 left-0 bottom-0 z-40 flex flex-col bg-[#121214]/80 backdrop-blur-xl border-r border-white/[0.08] shadow-[inset_-1px_0_0_rgba(255,255,255,0.05),4px_0_24px_rgba(0,0,0,0.5)] overflow-visible"
             style={{ width: 260 }}
         >
             {/* Header */}
@@ -143,13 +169,18 @@ export const NodeLibrarySidebar: React.FC<NodeLibrarySidebarProps> = ({ onDragSt
                         </div>
 
                         {/* Items */}
-                        <div className="space-y-px">
+                        <div className="space-y-px relative">
                             {items.map((node) => (
                                 <div
                                     key={node.type}
                                     draggable
-                                    onDragStart={(e) => onDragStart(e, node.type, node.label)}
-                                    className="flex items-center gap-3 px-2 py-2 rounded-xl hover:bg-[#1C1C1F]/90 hover:shadow-[0_4px_12px_rgba(0,0,0,0.2),inset_0_1px_0_rgba(255,255,255,0.1)] transition-all cursor-grab active:cursor-grabbing group border border-transparent hover:border-white/[0.05]"
+                                    onDragStart={(e) => {
+                                        setHoveredNode(null);
+                                        onDragStart(e, node.type, node.label);
+                                    }}
+                                    onMouseEnter={() => setHoveredNode(node.type)}
+                                    onMouseLeave={() => setHoveredNode(null)}
+                                    className="flex items-center gap-3 px-2 py-2 rounded-xl hover:bg-[#1C1C1F]/90 hover:shadow-[0_4px_12px_rgba(0,0,0,0.2),inset_0_1px_0_rgba(255,255,255,0.1)] transition-all cursor-grab active:cursor-grabbing group border border-transparent hover:border-white/[0.05] relative"
                                 >
                                     <div
                                         className="w-7 h-7 rounded-lg flex items-center justify-center flex-shrink-0 shadow-[inset_0_1px_0_rgba(255,255,255,0.15)]"
@@ -167,6 +198,24 @@ export const NodeLibrarySidebar: React.FC<NodeLibrarySidebarProps> = ({ onDragSt
                                         {node.label}
                                     </span>
                                     <GripVertical className="w-3.5 h-3.5 text-white/0 group-hover:text-white/25 transition-colors flex-shrink-0" />
+                                    
+                                    <AnimatePresence>
+                                        {hoveredNode === node.type && (
+                                            <motion.div
+                                                initial={{ opacity: 0, x: -5 }}
+                                                animate={{ opacity: 1, x: 0 }}
+                                                exit={{ opacity: 0, x: -5 }}
+                                                transition={{ duration: 0.15 }}
+                                                className="absolute left-full ml-4 top-1/2 -translate-y-1/2 w-48 bg-[#121214] border border-white/10 rounded-lg p-2.5 z-50 shadow-2xl backdrop-blur-xl"
+                                                style={{ pointerEvents: 'none' }}
+                                            >
+                                                <div className="text-[11px] font-semibold text-white/90 mb-1">{node.label}</div>
+                                                <div className="text-[10px] text-white/50 leading-relaxed">
+                                                    {NODE_DESCRIPTIONS[node.type] || 'Architectural component for system design.'}
+                                                </div>
+                                            </motion.div>
+                                        )}
+                                    </AnimatePresence>
                                 </div>
                             ))}
                         </div>
