@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Handle, Position, NodeProps, NodeResizer } from '@xyflow/react';
-import { EXPANDABLE_TYPES, NODE_DESCRIPTIONS } from '@/features/workspace/utils/nodeTypes';
+import { EXPANDABLE_TYPES } from '@/features/workspace/utils/nodeTypes';
 import { fireEnterNode } from '@/features/workspace/utils/canvasEvents';
 import {
     User as UserIcon,
@@ -453,7 +453,7 @@ export function SystemNode({ id, data, selected, type, width, height }: NodeProp
 
                 {/* Hover Tooltip */}
                 <AnimatePresence>
-                    {isHovered && NODE_DESCRIPTIONS[type as string] && (
+                    {isHovered && data.description && (
                         <motion.div
                             initial={{ opacity: 0, y: -5 }}
                             animate={{ opacity: 1, y: 0 }}
@@ -462,8 +462,8 @@ export function SystemNode({ id, data, selected, type, width, height }: NodeProp
                             className="absolute bottom-full mb-2 left-1/2 -translate-x-1/2 w-48 bg-[#121214] border border-white/10 rounded-lg p-2.5 z-[1000] shadow-2xl backdrop-blur-xl pointer-events-none"
                         >
                             <div className="text-[11px] font-semibold text-white/90 mb-1">{data.label as string || type}</div>
-                            <div className="text-[10px] text-white/50 leading-relaxed">
-                                {NODE_DESCRIPTIONS[type as string]}
+                            <div className="text-[10px] text-white/50 leading-relaxed whitespace-pre-wrap">
+                                {data.description as string}
                             </div>
                         </motion.div>
                     )}
