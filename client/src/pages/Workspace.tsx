@@ -1349,25 +1349,25 @@ function MoshZoneOverlay() {
                     transition={{ duration: 0.4, ease: [0.16, 1, 0.3, 1] }}
                     className="absolute inset-0"
                 >
-                    <div className="absolute inset-0 border border-[#10B981]/40 bg-[#10B981]/5 rounded-3xl overflow-hidden backdrop-blur-md shadow-[0_8px_32px_rgba(16,185,129,0.1)]">
+                    <div className="absolute inset-0 border border-white/20 bg-white/5 rounded-3xl overflow-hidden backdrop-blur-md shadow-[0_8px_32px_rgba(0,0,0,0.5)]">
                         {/* Scanning Laser */}
                         <motion.div 
-                            className="absolute left-0 right-0 h-[2px] bg-[#10B981] shadow-[0_0_24px_4px_#10B981]"
+                            className="absolute left-0 right-0 h-[2px] bg-white shadow-[0_0_24px_4px_rgba(255,255,255,0.8)]"
                             animate={{ top: ["0%", "100%", "0%"] }}
                             transition={{ duration: 3, ease: "linear", repeat: Infinity }}
                         />
                         
                         {/* Header */}
-                        <div className="absolute top-0 left-0 right-0 h-10 border-b border-[#10B981]/20 bg-[#10B981]/10 flex items-center px-4 gap-2">
-                            <span className="w-2 h-2 bg-[#10B981] animate-pulse rounded-full shadow-[0_0_8px_#10B981]" />
-                            <span className="text-[11px] font-mono text-[#10B981] uppercase tracking-widest">Mosh Architecture Zone</span>
+                        <div className="absolute top-0 left-0 right-0 h-10 border-b border-white/10 bg-white/5 flex items-center px-4 gap-2">
+                            <span className="w-2 h-2 bg-white animate-pulse rounded-full shadow-[0_0_8px_rgba(255,255,255,0.8)]" />
+                            <span className="text-[11px] font-mono text-white/70 uppercase tracking-widest">Mosh Architecture Zone</span>
                         </div>
 
                         {/* Grid */}
                         <div 
                             className="absolute inset-0 top-10 opacity-30"
                             style={{
-                                backgroundImage: `linear-gradient(rgba(16, 185, 129, 0.4) 1px, transparent 1px), linear-gradient(90deg, rgba(16, 185, 129, 0.4) 1px, transparent 1px)`,
+                                backgroundImage: `linear-gradient(rgba(255, 255, 255, 0.1) 1px, transparent 1px), linear-gradient(90deg, rgba(255, 255, 255, 0.1) 1px, transparent 1px)`,
                                 backgroundSize: '40px 40px'
                             }}
                         />

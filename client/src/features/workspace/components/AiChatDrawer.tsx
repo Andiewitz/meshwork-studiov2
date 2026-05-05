@@ -500,12 +500,10 @@ export function AiChatDrawer() {
 }
 
 const DESIGN_PHRASES = [
-  "Analyzing topological constraints...",
-  "Allocating cloud primitives...",
-  "Routing virtual edges...",
-  "Synthesizing infrastructure...",
-  "Validating architectural patterns...",
-  "Finalizing layout...",
+  "Thinking...",
+  "Designing architecture...",
+  "Generating layout...",
+  "Positioning nodes...",
 ];
 
 function MoshLoadingIndicator({ isDesigning }: { isDesigning: boolean }) {
