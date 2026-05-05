@@ -206,11 +206,16 @@ export function AiChatDrawer() {
     setMessages((prev) => [...prev, userMsg]);
     setInput("");
     if (textareaRef.current) textareaRef.current.style.height = "auto";
-    
+    const viewport = getViewport();
+    const vw = window.innerWidth;
+    const vh = window.innerHeight;
+    const centerX = Math.round((-viewport.x + vw / 2) / viewport.zoom);
+    const centerY = Math.round((-viewport.y + vh / 2) / viewport.zoom);
+
     setIsLoading(true);
     setIsDesigning(isArchitectureTask);
     if (isArchitectureTask) {
-      window.dispatchEvent(new CustomEvent('mosh:designing', { detail: true }));
+      window.dispatchEvent(new CustomEvent('mosh:designing', { detail: { active: true, x: centerX, y: centerY } }));
     }
 
     try {
@@ -219,11 +224,6 @@ export function AiChatDrawer() {
       // Inject canvas state + viewport position
       const currentNodes = getNodes();
       const currentEdges = getEdges();
-      const viewport = getViewport();
-      const vw = window.innerWidth;
-      const vh = window.innerHeight;
-      const centerX = Math.round((-viewport.x + vw / 2) / viewport.zoom);
-      const centerY = Math.round((-viewport.y + vh / 2) / viewport.zoom);
 
       const canvasContext = currentNodes.length > 0
         ? `\n\nCURRENT CANVAS (${currentNodes.length} nodes, ${currentEdges.length} edges):\n\`\`\`json\n${JSON.stringify({ nodes: currentNodes, edges: currentEdges })}\n\`\`\`\nVIEWPORT CENTER: approximately x=${centerX}, y=${centerY}. Place new nodes near this center.\nWhen modifying, emit the COMPLETE updated nodes+edges.`
@@ -312,7 +312,7 @@ export function AiChatDrawer() {
     } finally {
       setIsLoading(false);
       setIsDesigning(false);
-      window.dispatchEvent(new CustomEvent('mosh:designing', { detail: false }));
+      window.dispatchEvent(new CustomEvent('mosh:designing', { detail: { active: false } }));
     }
   };
 
@@ -543,12 +543,11 @@ function MoshLoadingIndicator({ isDesigning }: { isDesigning: boolean }) {
         </motion.span>
         <span className="text-[9px] text-white/30 font-mono animate-pulse">GENERATING</span>
       </div>
-      <div className="h-1.5 w-full bg-white/[0.05] rounded-full overflow-hidden">
+      <div className="h-1.5 w-full bg-white/[0.05] rounded-full overflow-hidden relative">
         <motion.div 
-          className="h-full bg-gradient-to-r from-[#10B981] to-[#34D399]"
-          initial={{ width: "0%" }}
-          animate={{ width: ["0%", "85%"] }}
-          transition={{ duration: 12, ease: "easeOut" }}
+          className="absolute top-0 bottom-0 w-1/3 bg-gradient-to-r from-transparent via-[#10B981] to-transparent"
+          animate={{ left: ["-30%", "100%"] }}
+          transition={{ duration: 1.5, ease: "easeInOut", repeat: Infinity, repeatType: "reverse" }}
         />
       </div>
     </div>

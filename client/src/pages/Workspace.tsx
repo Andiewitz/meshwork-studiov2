@@ -21,6 +21,7 @@ import {
     ConnectionMode,
     SelectionMode,
     ReactFlowProvider,
+    useViewport,
 } from '@xyflow/react';
 
 import '@xyflow/react/dist/style.css';
@@ -1305,70 +1306,74 @@ export default function Workspace() {
 }
 
 function MoshZoneOverlay() {
-    const [isDesigning, setIsDesigning] = useState(false);
+    const [zone, setZone] = useState<{ active: boolean, x: number, y: number }>({ active: false, x: 0, y: 0 });
+    const { x, y, zoom } = useViewport();
 
     useEffect(() => {
-        const handleDesigning = (e: any) => setIsDesigning(e.detail);
+        const handleDesigning = (e: any) => {
+            if (e.detail?.active) {
+                setZone({ active: true, x: e.detail.x, y: e.detail.y });
+            } else {
+                setZone(prev => ({ ...prev, active: false }));
+            }
+        };
         window.addEventListener('mosh:designing', handleDesigning);
         return () => window.removeEventListener('mosh:designing', handleDesigning);
     }, []);
 
+    if (!zone.active) return null;
+
+    // Fixed size for the fake node
+    const width = 800;
+    const height = 600;
+    
+    // Project canvas coordinates to screen coordinates
+    const screenX = zone.x * zoom + x;
+    const screenY = zone.y * zoom + y;
+
     return (
-        <AnimatePresence>
-            {isDesigning && (
+        <div 
+            className="absolute top-0 left-0 pointer-events-none z-[10]"
+            style={{ 
+                transform: `translate(${screenX - (width * zoom) / 2}px, ${screenY - (height * zoom) / 2}px) scale(${zoom})`,
+                transformOrigin: 'top left',
+                width: `${width}px`,
+                height: `${height}px`
+            }}
+        >
+            <AnimatePresence>
                 <motion.div
                     initial={{ opacity: 0, scale: 0.95 }}
                     animate={{ opacity: 1, scale: 1 }}
                     exit={{ opacity: 0, scale: 1.05 }}
                     transition={{ duration: 0.4, ease: [0.16, 1, 0.3, 1] }}
-                    className="absolute inset-0 pointer-events-none z-[35] flex items-center justify-center overflow-hidden"
+                    className="absolute inset-0"
                 >
-                    {/* Dark backdrop for focus */}
-                    <div className="absolute inset-0 bg-[#000000]/40 backdrop-blur-[2px]" />
-
-                    {/* Scanning Box */}
-                    <div className="relative w-[700px] h-[500px]">
-                        {/* Corner brackets */}
-                        <div className="absolute top-0 left-0 w-16 h-16 border-t-2 border-l-2 border-[#10B981]/80 rounded-tl-xl shadow-[inset_2px_2px_12px_rgba(16,185,129,0.2)]" />
-                        <div className="absolute top-0 right-0 w-16 h-16 border-t-2 border-r-2 border-[#10B981]/80 rounded-tr-xl shadow-[inset_-2px_2px_12px_rgba(16,185,129,0.2)]" />
-                        <div className="absolute bottom-0 left-0 w-16 h-16 border-b-2 border-l-2 border-[#10B981]/80 rounded-bl-xl shadow-[inset_2px_-2px_12px_rgba(16,185,129,0.2)]" />
-                        <div className="absolute bottom-0 right-0 w-16 h-16 border-b-2 border-r-2 border-[#10B981]/80 rounded-br-xl shadow-[inset_-2px_-2px_12px_rgba(16,185,129,0.2)]" />
-
+                    <div className="absolute inset-0 border border-[#10B981]/40 bg-[#10B981]/5 rounded-3xl overflow-hidden backdrop-blur-md shadow-[0_8px_32px_rgba(16,185,129,0.1)]">
                         {/* Scanning Laser */}
                         <motion.div 
                             className="absolute left-0 right-0 h-[2px] bg-[#10B981] shadow-[0_0_24px_4px_#10B981]"
                             animate={{ top: ["0%", "100%", "0%"] }}
-                            transition={{ duration: 4, ease: "linear", repeat: Infinity }}
+                            transition={{ duration: 3, ease: "linear", repeat: Infinity }}
                         />
                         
-                        {/* Laser Trail Gradient */}
-                        <motion.div 
-                            className="absolute left-0 right-0 h-32 bg-gradient-to-t from-[#10B981]/20 to-transparent pointer-events-none"
-                            animate={{ top: ["0%", "100%", "0%"], opacity: [0.5, 0.8, 0.5] }}
-                            transition={{ duration: 4, ease: "linear", repeat: Infinity }}
-                            style={{ translateY: "-100%" }}
-                        />
+                        {/* Header */}
+                        <div className="absolute top-0 left-0 right-0 h-10 border-b border-[#10B981]/20 bg-[#10B981]/10 flex items-center px-4 gap-2">
+                            <span className="w-2 h-2 bg-[#10B981] animate-pulse rounded-full shadow-[0_0_8px_#10B981]" />
+                            <span className="text-[11px] font-mono text-[#10B981] uppercase tracking-widest">Mosh Architecture Zone</span>
+                        </div>
 
-                        {/* Glowing Grid Background */}
+                        {/* Grid */}
                         <div 
-                            className="absolute inset-0 bg-[#10B981]/[0.015]"
+                            className="absolute inset-0 top-10 opacity-30"
                             style={{
-                                backgroundImage: `linear-gradient(rgba(16, 185, 129, 0.15) 1px, transparent 1px), linear-gradient(90deg, rgba(16, 185, 129, 0.15) 1px, transparent 1px)`,
+                                backgroundImage: `linear-gradient(rgba(16, 185, 129, 0.4) 1px, transparent 1px), linear-gradient(90deg, rgba(16, 185, 129, 0.4) 1px, transparent 1px)`,
                                 backgroundSize: '40px 40px'
                             }}
                         />
-
-                        {/* Status Text */}
-                        <div className="absolute -top-8 left-0 text-[11px] font-mono text-[#10B981] uppercase tracking-widest flex items-center gap-2">
-                            <span className="w-2 h-2 bg-[#10B981] animate-pulse rounded-full shadow-[0_0_8px_#10B981]" />
-                            Mosh Architecture Synthesis Active
-                        </div>
-                        <div className="absolute -bottom-8 right-0 text-[10px] font-mono text-[#10B981]/60 uppercase tracking-widest">
-                            Establishing Topologies...
-                        </div>
                     </div>
                 </motion.div>
-            )}
-        </AnimatePresence>
+            </AnimatePresence>
+        </div>
     );
 }
