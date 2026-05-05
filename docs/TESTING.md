@@ -55,7 +55,7 @@ We follow three rules:
 ### All Tests (Recommended)
 
 ```bash
-# Run the full suite (64 tests, ~2 seconds)
+# Run the full suite
 npm run test:run
 ```
 
@@ -148,7 +148,7 @@ Use this same pattern in any future test that interacts with browser storage API
 
 **File:** `tests/unit/auth/lockout.test.ts`
 
-These tests verify the brute-force protection math — lockout durations, attempt counting, and progressive delays. **26 tests** covering every edge case of the lockout algorithm.
+These tests verify the brute-force protection math — lockout durations, attempt counting, and progressive delays. Extensive test cases cover every edge case of the lockout algorithm.
 
 ---
 
@@ -197,7 +197,7 @@ This lets us test the **route logic** (ownership checks, Zod validation) without
 
 **File:** `tests/integration/auth/lockout-routes.test.ts`
 
-**29 tests** that verify the lockout system works correctly at the HTTP level — including progressive delays, lockout expiration, and attempt reset after successful login.
+Tests that verify the lockout system works correctly at the HTTP level — including progressive delays, lockout expiration, and attempt reset after successful login.
 
 ---
 

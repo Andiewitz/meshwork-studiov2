@@ -88,17 +88,16 @@ function ThemeToggle() {
 
 ---
 
-## Neo-Brutalist Design Language
+## Sharp Glassmorphism Design Language
 
-Meshwork Studio uses a **neo-brutalist** aesthetic: bold borders, flat colors, zero border-radius, visible structure. No soft shadows, no gradients, no rounded corners by default.
+Meshwork Studio uses a **Sharp Glassmorphism** aesthetic: this blends structural clarity with modern overlays. It evolved from a pure neo-brutalist origin, maintaining sharp corners and high contrast, but introduces frosted glass effects for depth and focus.
 
 ### Core Principles
 
 1. **Hard edges** — `border-radius: 0` everywhere (`--radius: 0rem`)
-2. **Bold borders** — 2px solid borders using the foreground color
-3. **Offset shadows** — Shadows that look like physical depth, not blur
-4. **High contrast** — Black on white, white on black, red for accents
-5. **Uppercase typography** — Labels and headings in uppercase with wide letter-spacing
+2. **Glass Overlays** — Use of `backdrop-filter: blur()` and semi-transparent backgrounds for modals, drawers, and headers (e.g., Mosh AI Drawer, node tooltips).
+3. **High contrast** — Deep charcoal and warm off-white, with brand red for accents
+4. **Uppercase typography** — Labels and headings in uppercase with wide letter-spacing
 
 ### Utility Classes
 

@@ -20,6 +20,11 @@ Mosh operates on a **Bring Your Own Key (BYOK)** architecture by default, interf
    - The backend streams the LLM response back to the client using Server-Sent Events (SSE).
    - The frontend parses the streaming Markdown. If the LLM generates a JSON code block with canvas modifications, it is intercepted and passed to the `canvas-utils` to automatically draw nodes and connections on the screen.
 
+### 4. Resilience & Rate Limiting
+Because external LLMs frequently rate limit or temporarily drop connections, Mosh implements a robust client-side retry mechanism:
+- If a request fails (e.g., HTTP 429 Too Many Requests), the AI engine enters a retry loop with **exponential backoff** (e.g., waiting 2s, 4s, 8s).
+- During generations, Mosh uses a "pseudo-node" (a visual loading indicator placed spatially on the canvas) to indicate where new architecture will appear, providing immediate feedback while the system retries requests in the background.
+
 ## 🔐 Security Model (BYOK)
 
 Because users supply their own highly sensitive API keys (which can incur severe financial costs if leaked), Mosh employs a zero-trust, defense-in-depth storage model.

@@ -6,11 +6,12 @@
 
 1. [The Big Picture](#the-big-picture)
 2. [Node System](#node-system)
-3. [Spatial Containment](#spatial-containment)
-4. [Canvas Persistence](#canvas-persistence)
-5. [Database Sync Strategy](#database-sync-strategy)
-6. [Canvas Templates](#canvas-templates)
-7. [Data Flow](#data-flow)
+3. [Interaction Modes](#interaction-modes)
+4. [Spatial Containment](#spatial-containment)
+5. [Canvas Persistence](#canvas-persistence)
+6. [Database Sync Strategy](#database-sync-strategy)
+7. [Canvas Templates](#canvas-templates)
+8. [Data Flow](#data-flow)
 
 ---
 
@@ -70,6 +71,22 @@ CREATE TABLE nodes (
   extent      TEXT                     -- "parent" locks node inside parent bounds
 );
 ```
+
+### Dynamic Tooltips
+Nodes support dynamic hover tooltips that consume user-defined content. Instead of generic helper text, hovering over a node displays the custom `description` field bound to that specific node's data (configurable via the Properties Sidebar). The tooltip renders via a portal to ensure it escapes any `overflow: hidden` restrictions and maintains `whitespace-pre-wrap` for structured documentation.
+
+---
+
+## Interaction Modes
+
+To prevent unintended layout changes, canvas interactions are strictly decoupled across specific tools:
+
+| Mode | Node Dragging | Selection | Use Case |
+|------|---------------|-----------|----------|
+| **Select / Infrastructure** | Disabled | Enabled | Default state. Cursor acts as a standard pointer. Clicking and dragging on the canvas initiates a box-selection or pans the canvas (if dragging the background). Dragging a node explicitly *does not* move it. |
+| **Pan / Grab** | Enabled | Disabled | Movement state. Cursor turns into a grab hand. Nodes cannot be selected. Dragging a node *moves* the node. Clicking and dragging the background pans the canvas. |
+
+This behavior is enforced by dynamically toggling React Flow's `nodesDraggable` and `elementsSelectable` props based on the active `drawingMode` state, ensuring a predictable user experience.
 
 ---
 
