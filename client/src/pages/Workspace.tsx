@@ -853,7 +853,7 @@ function WorkspaceView() {
                                 onDrop={onDrop}
                                 nodeTypes={nodeTypes}
                                 fitView
-                                style={{ cursor: 'inherit' }}
+                                className={drawingMode === 'select' ? '[&_.react-flow__pane]:!cursor-default' : ''}
                                 defaultEdgeOptions={{
                                     type: 'step',
                                     style: { stroke: '#555', strokeWidth: 2 },
@@ -864,8 +864,10 @@ function WorkspaceView() {
                                 connectionMode={ConnectionMode.Loose}
                                 panOnScroll={true}
                                 panOnDrag={drawingMode === 'pan' ? true : [1, 2]}
-                                selectionOnDrag={drawingMode === 'select'}
+                                selectionOnDrag={drawingMode === 'select' || drawingMode === 'infrastructure'}
                                 selectionMode={SelectionMode.Partial}
+                                nodesDraggable={drawingMode === 'select' || drawingMode === 'infrastructure'}
+                                elementsSelectable={drawingMode === 'select' || drawingMode === 'infrastructure'}
                             >
                                 <Controls position="bottom-left" className="!bg-[#161616]/90 !backdrop-blur-2xl !border-white/[0.06] !text-white/50 !shadow-[0_8px_40px_rgba(0,0,0,0.7)] !rounded-2xl overflow-hidden !m-6 [&_button]:!bg-transparent [&_button]:!border-white/[0.05] [&_button]:hover:!bg-white/10 [&_button_svg]:!fill-white/70" />
                                 <MiniMap position="bottom-right" className="!bg-[#161616]/90 !backdrop-blur-2xl !border-white/[0.06] !shadow-[0_8px_40px_rgba(0,0,0,0.7)] !rounded-2xl !mr-6 !mb-6 overflow-hidden [&_.react-flow__minimap-mask]:!fill-white/80" />
