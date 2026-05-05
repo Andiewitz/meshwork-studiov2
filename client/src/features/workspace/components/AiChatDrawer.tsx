@@ -237,23 +237,54 @@ export function AiChatDrawer() {
         { role: "user", content: userMsg.content },
       ];
 
-      const response = await secureFetch("/api/ai/chat", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        credentials: "include",
-        body: JSON.stringify({
-          provider: "openrouter",
-          // NVIDIA Nemotron Ultra — best free instruction-following model
-          // Tested working: Nemotron Super 120B (8s) > GPT-OSS 120B (16s) > openrouter/free
-          model: "nvidia/nemotron-3-super-120b-a12b:free",
-          messages: payloadMessages,
-          stream: false,
-        }),
-      });
+      let response: Response | null = null;
+      let attempt = 0;
+      const maxAttempts = 6;
+      const baseDelay = 1500; // 1.5s base delay
 
-      if (!response.ok) {
-        const err = await response.json().catch(() => ({}));
-        throw new Error(err.error || err.message || `Error ${response.status}`);
+      while (attempt < maxAttempts) {
+        try {
+          response = await secureFetch("/api/ai/chat", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            credentials: "include",
+            body: JSON.stringify({
+              provider: "openrouter",
+              // NVIDIA Nemotron Ultra — best free instruction-following model
+              // Tested working: Nemotron Super 120B (8s) > GPT-OSS 120B (16s) > openrouter/free
+              model: "nvidia/nemotron-3-super-120b-a12b:free",
+              messages: payloadMessages,
+              stream: false,
+            }),
+          });
+
+          if (response.ok) {
+            break; // Success
+          }
+
+          if (response.status === 429 || response.status >= 500) {
+            attempt++;
+            if (attempt >= maxAttempts) break;
+            
+            console.warn(`[Mosh] Request failed with status ${response.status}. Retrying attempt ${attempt}/${maxAttempts}...`);
+            await new Promise(res => setTimeout(res, baseDelay * Math.pow(1.5, attempt - 1)));
+          } else {
+            // Client error (400, 401, 403, etc) -> don't retry
+            break;
+          }
+        } catch (err) {
+          // Network errors (e.g., DNS, disconnect)
+          attempt++;
+          if (attempt >= maxAttempts) throw err;
+          
+          console.warn(`[Mosh] Network error: ${err}. Retrying attempt ${attempt}/${maxAttempts}...`);
+          await new Promise(res => setTimeout(res, baseDelay * Math.pow(1.5, attempt - 1)));
+        }
+      }
+
+      if (!response || !response.ok) {
+        const err = await response?.json().catch(() => ({}));
+        throw new Error(err?.error || err?.message || `Error ${response?.status || 'Unknown after retries'}`);
       }
 
       const data = await response.json();
