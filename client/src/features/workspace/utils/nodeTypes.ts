@@ -167,3 +167,27 @@ export function getDynamicFavorites(): Array<{ type: string; label: string; icon
             : DEFAULT_FAVORITES[0]; // fallback
     });
 }
+
+export const NODE_DESCRIPTIONS: Record<string, string> = {
+    'server': 'General purpose compute instance (e.g. EC2, VM)',
+    'database': 'Relational or NoSQL database server',
+    'cache': 'In-memory data store (e.g. Redis, Memcached)',
+    'gateway': 'API Gateway for routing client requests',
+    'loadBalancer': 'Distributes traffic across multiple targets',
+    'microservice': 'Containerized application or service',
+    'worker': 'Background processing or job queue worker',
+    'logic': 'Serverless function (e.g. AWS Lambda)',
+    'queue': 'Message queue (e.g. SQS, RabbitMQ)',
+    'bus': 'Event stream / Message bus (e.g. Kafka)',
+    'storage': 'Object storage (e.g. S3, GCS)',
+    'cdn': 'Content Delivery Network for edge caching',
+    'vpc': 'Virtual Private Cloud network boundary',
+    'region': 'Cloud region or physical datacenter',
+    'user': 'End user or client application',
+    'app': 'Frontend client application (Web/Mobile)',
+    'api': 'External 3rd-party API service',
+    'search': 'Search engine or indexing service',
+    'k8s-pod': 'Smallest deployable Kubernetes object',
+    'k8s-deployment': 'Manages stateless applications',
+    'k8s-service': 'Network endpoint for a set of Pods',
+};

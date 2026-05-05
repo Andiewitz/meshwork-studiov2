@@ -1,5 +1,7 @@
+import React, { useState } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
 import { Handle, Position, NodeProps, NodeResizer } from '@xyflow/react';
-import { EXPANDABLE_TYPES } from '@/features/workspace/utils/nodeTypes';
+import { EXPANDABLE_TYPES, NODE_DESCRIPTIONS } from '@/features/workspace/utils/nodeTypes';
 import { fireEnterNode } from '@/features/workspace/utils/canvasEvents';
 import {
     User as UserIcon,
@@ -117,6 +119,7 @@ const providerBrands: Record<string, NodeBrand> = {
 };
 
 export function SystemNode({ id, data, selected, type, width, height }: NodeProps) {
+    const [isHovered, setIsHovered] = useState(false);
     const provider = (data.provider as string || '').toLowerCase();
     const isInfrastructure = type === 'vpc' || type === 'region';
     const isNote = type === 'note';
@@ -180,7 +183,11 @@ export function SystemNode({ id, data, selected, type, width, height }: NodeProp
                 handleClassName="!h-2.5 !w-2.5 !bg-white !border-2 !border-blue-500 !rounded-full !shadow-md"
                 handleStyle={{ margin: -6 }}
             />
-            <div className="group w-full h-full relative">
+            <div 
+                className="group w-full h-full relative"
+                onMouseEnter={() => setIsHovered(true)}
+                onMouseLeave={() => setIsHovered(false)}
+            >
                 {/* Connection Handles — small rounded dots */}
                 <Handle type="source" position={Position.Top} id="top" className={handleCls} />
                 <Handle type="source" position={Position.Bottom} id="bottom" className={handleCls} />
@@ -443,6 +450,24 @@ export function SystemNode({ id, data, selected, type, width, height }: NodeProp
                         )}
                     </div>
                 )}
+
+                {/* Hover Tooltip */}
+                <AnimatePresence>
+                    {isHovered && NODE_DESCRIPTIONS[type as string] && (
+                        <motion.div
+                            initial={{ opacity: 0, y: -5 }}
+                            animate={{ opacity: 1, y: 0 }}
+                            exit={{ opacity: 0, y: -5 }}
+                            transition={{ duration: 0.15 }}
+                            className="absolute bottom-full mb-2 left-1/2 -translate-x-1/2 w-48 bg-[#121214] border border-white/10 rounded-lg p-2.5 z-[1000] shadow-2xl backdrop-blur-xl pointer-events-none"
+                        >
+                            <div className="text-[11px] font-semibold text-white/90 mb-1">{data.label as string || type}</div>
+                            <div className="text-[10px] text-white/50 leading-relaxed">
+                                {NODE_DESCRIPTIONS[type as string]}
+                            </div>
+                        </motion.div>
+                    )}
+                </AnimatePresence>
             </div>
         </>
     );
