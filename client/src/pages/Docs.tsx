@@ -3,6 +3,11 @@ import { Shield, BrainCircuit, Box, Paintbrush, BookOpen, Clock, Calendar, Code,
 export default function Docs() {
   return (
     <div className="max-w-3xl mx-auto pb-24 relative px-4 pt-12 md:pt-20 font-body">
+      {/* Grid overlay */}
+      <div className="fixed inset-0 -z-10 overflow-hidden pointer-events-none">
+        <div className="absolute inset-0 bg-[linear-gradient(45deg,transparent_49.5%,currentColor_49.5%,currentColor_50.5%,transparent_50.5%),linear-gradient(-45deg,transparent_49.5%,currentColor_49.5%,currentColor_50.5%,transparent_50.5%)] [background-size:40px_40px] opacity-[0.02]" />
+      </div>
+
       {/* Article Header */}
       <header className="mb-14">
         <div className="flex flex-wrap items-center gap-3 text-sm text-muted-foreground mb-6 font-label">
