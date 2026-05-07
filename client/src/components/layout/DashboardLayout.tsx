@@ -105,10 +105,10 @@ export function DashboardLayout({ children }: { children: ReactNode }) {
               <motion.button
                 variants={itemVariants}
                 title={label}
-                className={`transition-colors duration-150 cursor-figma-pointer ${
+                className={`transition-all duration-300 cursor-figma-pointer ${
                   active
-                    ? "text-[#FF5500] drop-shadow-[0_0_4px_rgba(255,85,0,0.4)]"
-                    : "text-[#777575] hover:bg-[#131313] hover:text-white p-2 rounded"
+                    ? "text-primary drop-shadow-[0_0_8px_rgba(255,102,0,0.5)] scale-110"
+                    : "text-white/30 hover:bg-white/[0.05] hover:text-white p-2 rounded-xl"
                 }`}
               >
                 <Icon className={`w-5 h-5 ${active ? "fill-current" : ""}`} />
@@ -160,10 +160,10 @@ export function DashboardLayout({ children }: { children: ReactNode }) {
             onClick={() => setPanelOpen(v => !v)}
             animate={isRinging ? { rotate: [0, -18, 18, -18, 18, 0] } : { rotate: 0 }}
             transition={{ duration: 0.4 }}
-            className={`relative w-8 h-8 flex items-center justify-center transition-colors ${panelOpen || isRinging ? "text-[#FF5500]" : "text-white/40 hover:text-white/80"}`}
+            className={`relative w-8 h-8 flex items-center justify-center transition-all ${panelOpen || isRinging ? "text-primary scale-110" : "text-white/30 hover:text-white/80"}`}
           >
             <Bell className="w-4 h-4" />
-            {isUnread && <span className="absolute top-1.5 right-1.5 w-1.5 h-1.5 rounded-full bg-[#FF5500]" />}
+            {isUnread && <span className="absolute top-1.5 right-1.5 w-1.5 h-1.5 rounded-full bg-primary shadow-[0_0_10px_rgba(255,102,0,0.8)]" />}
           </motion.button>
 
           <Link href="/settings">
@@ -214,7 +214,7 @@ export function DashboardLayout({ children }: { children: ReactNode }) {
                   {/* Meta row */}
                   <div className="flex items-center justify-between mb-4">
                     <div className="flex items-center gap-2">
-                      {isUnread && <span className="w-1.5 h-1.5 rounded-full bg-[#FF5500] flex-shrink-0" />}
+                      {isUnread && <span className="w-1.5 h-1.5 rounded-full bg-primary flex-shrink-0" />}
                       <span className="text-[11px] font-bold uppercase tracking-[0.15em] text-white/50" style={{ fontFamily: 'var(--font-headline)' }}>
                         From the developer
                       </span>
@@ -261,12 +261,12 @@ export function DashboardLayout({ children }: { children: ReactNode }) {
                       href="https://buymeacoffee.com"
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="flex items-center justify-between w-full px-4 py-3 rounded-lg bg-[#FF5500]/[0.04] border border-[#FF5500]/[0.1] hover:bg-[#FF5500]/[0.08] hover:border-[#FF5500]/[0.18] transition-all group"
+                      className="flex items-center justify-between w-full px-4 py-3 rounded-lg bg-primary/[0.04] border border-primary/[0.1] hover:bg-primary/[0.08] hover:border-primary/[0.18] transition-all group"
                     >
-                      <span className="text-[12px] font-medium text-[#FF5500]/60 group-hover:text-[#FF5500]/90 transition-colors" style={{ fontFamily: 'var(--font-headline)' }}>
+                      <span className="text-[12px] font-medium text-primary/60 group-hover:text-primary/90 transition-colors" style={{ fontFamily: 'var(--font-headline)' }}>
                         Buy me a coffee
                       </span>
-                      <ArrowUpRight className="w-3 h-3 text-[#FF5500]/20 group-hover:text-[#FF5500]/50 transition-colors" />
+                      <ArrowUpRight className="w-3 h-3 text-primary/20 group-hover:text-primary/50 transition-colors" />
                     </a>
                   </div>
 

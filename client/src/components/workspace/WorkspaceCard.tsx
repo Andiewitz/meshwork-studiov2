@@ -162,11 +162,11 @@ export function WorkspaceCard({
            layout
            whileHover={viewMode === 'grid' ? { y: -4 } : { x: 4 }}
            className={cn(
-             "group transition-all duration-300 cursor-figma-pointer relative",
+             "group transition-all duration-300 cursor-figma-pointer relative glass-card glass-card-hover",
              viewMode === "grid" 
-               ? "bg-white/[0.02] backdrop-blur-md hover:bg-white/[0.04] p-1 rounded-xl flex flex-col border border-white/5 shadow-[0_8px_30px_rgba(0,0,0,0.12)]" 
-               : "bg-white/[0.02] backdrop-blur-md hover:bg-white/[0.04] p-3 rounded-xl flex flex-row items-center gap-6 border border-white/5 shadow-[0_8px_30px_rgba(0,0,0,0.12)] hover:border-white/10",
-             isSelected && "border-primary/50 shadow-[0_0_15px_rgba(255,85,0,0.2)]",
+               ? "p-1 rounded-xl flex flex-col" 
+               : "p-3 rounded-xl flex flex-row items-center gap-6",
+             isSelected && "border-primary/50 shadow-[0_0_15px_rgba(255,102,0,0.2)]",
              isDeleting && "opacity-50 pointer-events-none grayscale"
            )}
            onClick={() => isMultiSelectMode ? onToggleSelect?.(workspace.id) : setLocation(`/workspace/${workspace.id}`)}

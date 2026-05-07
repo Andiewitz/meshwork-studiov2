@@ -138,7 +138,12 @@ export default function Home() {
                     onChange={(e) => setSearchTerm(e.target.value)}
                     onFocus={() => setIsSearchFocused(true)}
                     onBlur={() => setTimeout(() => setIsSearchFocused(false), 200)}
-                    className={`w-full border py-4 pl-12 pr-16 text-base font-body text-white placeholder:text-white/30 focus:outline-none transition-all duration-300 backdrop-blur-xl ${isSearchFocused ? 'bg-black/40 border-primary/40 rounded-t-xl rounded-b-none shadow-[0_4px_30px_rgba(0,0,0,0.5)]' : 'bg-white/[0.02] border-white/10 hover:bg-white/[0.04] rounded-lg'}`}
+                    className={cn(
+                      "w-full border py-4 pl-12 pr-16 text-base font-body text-white placeholder:text-white/30 focus:outline-none transition-all duration-300 backdrop-blur-3xl",
+                      isSearchFocused 
+                        ? "bg-black/60 border-primary/50 rounded-t-2xl rounded-b-none shadow-[0_20px_50px_rgba(0,0,0,0.8)]" 
+                        : "glass-card hover:bg-white/[0.04] rounded-2xl"
+                    )}
                     placeholder="Search blueprints, assets, or run a command..."
                     type="text"
                   />
@@ -154,7 +159,7 @@ export default function Home() {
                         animate={{ opacity: 1, y: 0 }}
                         exit={{ opacity: 0, y: -10 }}
                         transition={{ duration: 0.2 }}
-                        className="absolute top-full left-0 right-0 bg-black/40 backdrop-blur-2xl border border-t-0 border-primary/40 rounded-b-xl overflow-hidden shadow-[0_20px_40px_rgba(0,0,0,0.6)] text-left"
+                        className="absolute top-full left-0 right-0 glass-card !bg-black/60 border-t-0 border-primary/50 rounded-b-2xl overflow-hidden shadow-[0_40px_80px_rgba(0,0,0,0.9)] text-left"
                       >
                         {/* Dynamic Projects Suggestion */}
                         {filteredWorkspaces.length > 0 && (
@@ -198,11 +203,11 @@ export default function Home() {
                 <div className="mt-12">
                   <motion.button
                     onClick={() => setIsCreateOpen(true)}
-                    whileHover={{ scale: 1.02 }}
-                    whileTap={{ scale: 0.95 }}
-                    className="bg-[#FF6B35] text-[#4A1200] font-headline font-bold px-10 py-4 rounded transition-shadow duration-300 shadow-[0_0_30px_rgba(255,107,53,0.3)] hover:shadow-[0_0_40px_rgba(255,107,53,0.5)] cursor-figma-pointer"
+                    whileHover={{ scale: 1.02, y: -2 }}
+                    whileTap={{ scale: 0.98 }}
+                    className="px-10 py-5 bg-primary text-black font-headline font-black uppercase tracking-[0.2em] rounded-2xl shadow-[0_20px_60px_rgba(255,102,0,0.3)] hover:shadow-[0_20px_80px_rgba(255,102,0,0.5)] transition-all duration-500"
                   >
-                    NEW WORKSPACE
+                    New Workspace
                   </motion.button>
                 </div>
               </motion.section>
