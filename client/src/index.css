@@ -10,17 +10,15 @@
   --font-label: 'Plus Jakarta Sans', sans-serif;
   --font-mono: 'Geist Mono', 'JetBrains Mono', ui-monospace, monospace;
 
-  /* Lumina / Avant-Garde Theme */
-  --background: 0 0% 94%;
-  /* #F0F0F0 */
-  --foreground: 0 0% 10%;
-  /* #1A1A1A */
+  /* Global Dark Stealth Theme (Default) */
+  --background: 0 0% 0%;       /* #000000 */
+  --foreground: 0 0% 98%;      /* #FAFAFA */
 
-  --card: 0 0% 100%;
-  --card-foreground: 0 0% 10%;
+  --card: 0 0% 3%;             /* #080808 */
+  --card-foreground: 0 0% 98%;
 
-  --popover: 0 0% 100%;
-  --popover-foreground: 0 0% 10%;
+  --popover: 0 0% 3%;
+  --popover-foreground: 0 0% 98%;
 
   /* True Black Redesign Theme */
   --color-surface: #050505;
@@ -30,21 +28,20 @@
   --color-surface-container: #0a0a0a;
   --color-surface-container-high: #0d0d0d;
   --color-surface-container-highest: #121212;
-  --color-outline: #777575;
-  --color-outline-variant: #494847;
+  --color-outline: #222222;
+  --color-outline-variant: #111111;
   
   --font-headline: 'Outfit', sans-serif;
   --font-body: 'Plus Jakarta Sans', sans-serif;
 
-  /* Primary (Accent) - #FF3D00 */
   --primary: 14 100% 50%;
   --primary-foreground: 0 0% 100%;
 
-  --secondary: 0 0% 100%;
-  --secondary-foreground: 0 0% 10%;
+  --secondary: 0 0% 7%;
+  --secondary-foreground: 0 0% 98%;
 
-  --muted: 0 0% 90%;
-  --muted-foreground: 0 0% 40%;
+  --muted: 0 0% 7%;
+  --muted-foreground: 0 0% 50%;
 
   --accent: 14 100% 50%;
   --accent-foreground: 0 0% 100%;
@@ -52,44 +49,40 @@
   --destructive: 0 84% 60%;
   --destructive-foreground: 0 0% 100%;
 
-  --border: 0 0% 10%;
-  --input: 0 0% 100%;
+  --border: 0 0% 10%;          /* #1A1A1A */
+  --input: 0 0% 5%;
   --ring: 14 100% 50%;
 
   --radius: 0rem;
-  /* Brutalist sharp corners */
 }
 
 .dark {
-  /* Dark mode: neo-brutalist, brand-consistent, NOT a flat inversion */
-  --background: 0 0% 7%;          /* #121212 — deep charcoal, not pure black */
-  --foreground: 30 10% 92%;       /* #EBEBEA — warm off-white, easier on eyes */
+  --background: 0 0% 0%;
+  --foreground: 0 0% 98%;
 
-  --card: 0 0% 10%;               /* #1A1A1A */
-  --card-foreground: 30 10% 92%;
+  --card: 0 0% 3%;
+  --card-foreground: 0 0% 98%;
 
-  --popover: 0 0% 12%;
-  --popover-foreground: 30 10% 92%;
+  --popover: 0 0% 3%;
+  --popover-foreground: 0 0% 98%;
 
-  /* Keep the brand orange-red — don't swap to purple */
-  --primary: 14 100% 50%;         /* #FF3D00 */
+  --primary: 14 100% 50%;
   --primary-foreground: 0 0% 100%;
 
-  --secondary: 0 0% 14%;
-  --secondary-foreground: 30 10% 92%;
+  --secondary: 0 0% 7%;
+  --secondary-foreground: 0 0% 98%;
 
-  --muted: 0 0% 18%;
-  --muted-foreground: 0 0% 55%;
+  --muted: 0 0% 7%;
+  --muted-foreground: 0 0% 50%;
 
-  --accent: 14 100% 50%;          /* #FF3D00 */
+  --accent: 14 100% 50%;
   --accent-foreground: 0 0% 100%;
 
   --destructive: 0 72% 45%;
   --destructive-foreground: 0 0% 100%;
 
-  /* Warm off-white border — less harsh than pure white */
-  --border: 30 10% 80%;           /* #CECECB */
-  --input: 0 0% 14%;
+  --border: 0 0% 12%;          /* #1F1F1F */
+  --input: 0 0% 5%;
   --ring: 14 100% 50%;
 }
 
