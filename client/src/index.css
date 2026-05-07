@@ -10,70 +10,70 @@
   --font-label: 'Plus Jakarta Sans', sans-serif;
   --font-mono: 'Geist Mono', 'JetBrains Mono', ui-monospace, monospace;
 
-  /* Global Dark Stealth Theme (Default) */
-  --background: 0 0% 0%;       /* #000000 */
+  /* Restored Deep Dark Theme */
+  --background: 0 0% 5%;       /* #0D0D0D */
   --foreground: 0 0% 98%;      /* #FAFAFA */
 
-  --card: 0 0% 3%;             /* #080808 */
+  --card: 0 0% 8%;             /* #141414 */
   --card-foreground: 0 0% 98%;
 
-  --popover: 0 0% 3%;
+  --popover: 0 0% 8%;
   --popover-foreground: 0 0% 98%;
 
-  /* True Black Redesign Theme */
-  --color-surface: #050505;
+  /* High Contrast Redesign Theme */
+  --color-surface: #0e0e0e;
   --color-on-surface: #ffffff;
-  --color-surface-container-lowest: #000000;
-  --color-surface-container-low: #080808;
-  --color-surface-container: #0a0a0a;
-  --color-surface-container-high: #0d0d0d;
-  --color-surface-container-highest: #121212;
-  --color-outline: #222222;
-  --color-outline-variant: #111111;
+  --color-surface-container-lowest: #050505;
+  --color-surface-container-low: #121212;
+  --color-surface-container: #1a1a1a;
+  --color-surface-container-high: #222222;
+  --color-surface-container-highest: #2a2a2a;
+  --color-outline: #333333;
+  --color-outline-variant: #222222;
   
   --font-headline: 'Outfit', sans-serif;
   --font-body: 'Plus Jakarta Sans', sans-serif;
 
-  --primary: 24 100% 50%;      /* True Orange */
+  --primary: 24 100% 50%;
   --primary-foreground: 0 0% 100%;
 
-  --secondary: 0 0% 7%;
+  --secondary: 0 0% 12%;
   --secondary-foreground: 0 0% 98%;
 
-  --muted: 0 0% 7%;
-  --muted-foreground: 0 0% 65%;
+  --muted: 0 0% 12%;
+  --muted-foreground: 0 0% 60%;
 
-  --accent: 24 100% 50%;       /* True Orange */
+  --accent: 24 100% 50%;
   --accent-foreground: 0 0% 100%;
 
   --destructive: 0 84% 60%;
   --destructive-foreground: 0 0% 100%;
 
-  --border: 0 0% 10%;          /* #1A1A1A */
-  --input: 0 0% 5%;
+  --border: 0 0% 15%;          /* #262626 */
+  --input: 0 0% 10%;
   --ring: 24 100% 50%;
 
   --radius: 0rem;
 }
 
 .dark {
-  --background: 0 0% 0%;
+  --background: 0 0% 5%;
   --foreground: 0 0% 98%;
 
-  --card: 0 0% 3%;
+  --card: 0 0% 8%;
   --card-foreground: 0 0% 98%;
 
-  --popover: 0 0% 3%;
+  --popover: 0 0% 8%;
   --popover-foreground: 0 0% 98%;
 
   --primary: 24 100% 50%;
   --primary-foreground: 0 0% 100%;
 
-  --secondary: 0 0% 7%;
+  --secondary: 0 0% 12%;
   --secondary-foreground: 0 0% 98%;
 
-  --muted: 0 0% 7%;
-  --muted-foreground: 0 0% 50%;
+  --muted: 0 0% 12%;
+  --muted-foreground: 0 0% 60%;
 
   --accent: 24 100% 50%;
   --accent-foreground: 0 0% 100%;
@@ -81,18 +81,18 @@
   --destructive: 0 72% 45%;
   --destructive-foreground: 0 0% 100%;
 
-  --border: 0 0% 12%;          /* #1F1F1F */
-  --input: 0 0% 5%;
+  --border: 0 0% 18%;          /* #2E2E2E */
+  --input: 0 0% 10%;
   --ring: 24 100% 50%;
 }
 
 @layer utilities {
   .technical-gradient {
     background: 
-      radial-gradient(circle at 50% 0%, rgba(255, 102, 0, 0.04) 0%, transparent 40%),
-      radial-gradient(circle at 0% 100%, rgba(255, 102, 0, 0.02) 0%, transparent 40%),
-      radial-gradient(circle at 100% 100%, rgba(255, 102, 0, 0.02) 0%, transparent 40%),
-      #000000;
+      radial-gradient(circle at 50% 0%, rgba(255, 102, 0, 0.05) 0%, transparent 50%),
+      radial-gradient(circle at 0% 100%, rgba(255, 102, 0, 0.02) 0%, transparent 50%),
+      radial-gradient(circle at 100% 100%, rgba(255, 102, 0, 0.02) 0%, transparent 50%),
+      #080808;
     position: relative;
   }
 
@@ -107,7 +107,12 @@
   }
 
   .glass-card {
-    @apply bg-white/[0.01] backdrop-blur-3xl border border-white/[0.12] shadow-[0_8px_32px_rgba(0,0,0,0.6)];
+    @apply bg-white/[0.02] backdrop-blur-3xl border border-white/[0.18] shadow-[0_20px_50px_rgba(0,0,0,0.8)] relative overflow-hidden;
+  }
+
+  .glass-card::before {
+    content: "";
+    @apply absolute inset-0 bg-gradient-to-br from-white/[0.05] to-transparent pointer-events-none;
   }
 
   .glass-card-hover {
