@@ -53,16 +53,17 @@ const Home = () => {
 
             {/* Background Atmosphere */}
             <div className="absolute inset-0 overflow-hidden pointer-events-none -z-10 technical-gradient">
-                <div className="absolute top-[5%] left-[-10%] w-[700px] h-[700px] rounded-full" style={{ background: 'radial-gradient(circle, rgba(255,85,0,0.07) 0%, transparent 70%)' }} />
-                <div className="absolute top-[-5%] right-[-5%] w-[600px] h-[600px] rounded-full" style={{ background: 'radial-gradient(circle, rgba(255,85,0,0.05) 0%, transparent 70%)' }} />
-                <div className="absolute bottom-[20%] left-[20%] w-[800px] h-[500px] rounded-full" style={{ background: 'radial-gradient(circle, rgba(255,85,0,0.03) 0%, transparent 70%)' }} />
+                {/* Subtle Grid Overlay */}
+                <div className="absolute inset-0 opacity-[0.03]" 
+                    style={{ backgroundImage: 'linear-gradient(rgba(255,85,0,0.1) 1px, transparent 1px), linear-gradient(90deg, rgba(255,85,0,0.1) 1px, transparent 1px)', backgroundSize: '100px 100px' }} 
+                />
             </div>
 
             {/* NAVBAR */}
             <nav
                 className={`fixed top-0 left-0 right-0 z-50 transition-all duration-500 ${
                 scrolled
-                    ? "bg-black/40 backdrop-blur-xl border-b border-white/[0.08] shadow-[0_4px_30px_rgba(0,0,0,0.5)]"
+                    ? "bg-black/20 backdrop-blur-2xl border-b border-white/[0.05] shadow-[0_4px_30px_rgba(0,0,0,0.3)]"
                     : "bg-transparent border-b border-transparent"
                 }`}
             >
@@ -128,32 +129,14 @@ const Home = () => {
 
             {/* THE "WHY" SECTION: REDESIGNED WITH SPARK BACKGROUND */}
             <section id="features" className="relative min-h-screen pt-12 md:pt-24 border-t border-white/5">
-                {/* Background Transition Overlay & Lava Flow */}
+                {/* Simplified Background Overlay */}
                 <div className="absolute inset-0 z-0 pointer-events-none overflow-hidden">
-                    <div className="absolute inset-0 bg-[#050607]"
+                    <div className="absolute inset-0"
                         style={{
-                            backgroundImage: `radial-gradient(circle at 1px 1px, rgba(255,255,255,0.05) 1px, transparent 0)`,
+                            backgroundImage: `radial-gradient(circle at 1px 1px, rgba(255,85,0,0.05) 1px, transparent 0)`,
                             backgroundSize: '40px 40px',
-                            maskImage: 'linear-gradient(to bottom, transparent, black 5%, black 95%, transparent)',
-                            WebkitMaskImage: 'linear-gradient(to bottom, transparent, black 5%, black 95%, transparent)'
+                            maskImage: 'linear-gradient(to bottom, transparent, black 10%, black 90%, transparent)',
                         }}>
-                    </div>
-
-                    <div className="absolute inset-0 opacity-20 transition-opacity duration-1000">
-                        {[
-                            { left: '10%', top: '20%', size: '600px', color: 'rgba(255, 85, 0, 0.15)', dur: 25 },
-                            { left: '60%', top: '10%', size: '800px', color: 'rgba(255, 85, 0, 0.12)', dur: 35 },
-                            { left: '20%', top: '50%', size: '700px', color: 'rgba(255, 85, 0, 0.15)', dur: 30 },
-                            { left: '70%', top: '60%', size: '600px', color: 'rgba(255, 85, 0, 0.08)', dur: 40 }
-                        ].map((lava, i) => (
-                            <motion.div
-                                key={i}
-                                className="absolute rounded-full blur-[100px]"
-                                style={{ left: lava.left, top: lava.top, width: lava.size, height: lava.size, background: `radial-gradient(circle, ${lava.color} 0%, transparent 70%)`, willChange: 'transform' }}
-                                animate={{ x: [0, 100, -50, 0], y: [0, -50, 80, 0], scale: [1, 1.1, 0.9, 1] }}
-                                transition={{ duration: lava.dur, repeat: Infinity, ease: "linear" }}
-                            />
-                        ))}
                     </div>
                 </div>
 
@@ -178,7 +161,7 @@ const Home = () => {
                     </div>
 
                     {/* Main Container - Redesigned to match image */}
-                    <div className="bg-black/40 backdrop-blur-2xl border-x border-b border-white/[0.08] rounded-b-2xl p-6 md:p-20 relative overflow-hidden shadow-[0_20px_60px_rgba(0,0,0,0.5)]">
+                    <div className="glass-card rounded-b-2xl p-6 md:p-20 relative overflow-hidden shadow-[0_40px_100px_rgba(0,0,0,0.8)]">
                         <div className="relative z-10 space-y-20 md:space-y-48">
 
                             {/* 01: See Your Entire Stack */}
@@ -267,7 +250,7 @@ const Home = () => {
                                     </p>
                                 </div>
 
-                                <div className="lg:col-span-6 relative flex items-center justify-center p-8 bg-white/[0.02] border border-white/5 rounded-3xl h-[300px] md:h-[400px] overflow-hidden">
+                                <div className="lg:col-span-6 relative flex items-center justify-center p-8 glass-card rounded-3xl h-[300px] md:h-[400px] overflow-hidden">
                                      <div className="space-y-4 w-full max-w-sm">
                                         {[
                                             { label: "Outdated wiki diagram", status: "Last updated 8 months ago", dead: true },

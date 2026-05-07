@@ -95,8 +95,30 @@
 
 @layer utilities {
   .technical-gradient {
-    background-color: #050505;
-    background-image: radial-gradient(circle at 50% 50%, #121110 0%, #050505 100%);
+    background: 
+      radial-gradient(circle at 50% 0%, rgba(255, 85, 0, 0.05) 0%, transparent 50%),
+      radial-gradient(circle at 0% 100%, rgba(255, 85, 0, 0.02) 0%, transparent 50%),
+      radial-gradient(circle at 100% 100%, rgba(255, 85, 0, 0.02) 0%, transparent 50%),
+      #050505;
+    position: relative;
+  }
+
+  .technical-gradient::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.65' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)'/%3E%3C/svg%3E");
+    opacity: 0.02;
+    pointer-events: none;
+    z-index: 1;
+  }
+
+  .glass-card {
+    @apply bg-white/[0.01] backdrop-blur-3xl border border-white/[0.08] shadow-[0_8px_32px_rgba(0,0,0,0.4)];
+  }
+
+  .glass-card-hover {
+    @apply hover:bg-white/[0.03] hover:border-white/[0.12] transition-all duration-500;
   }
   .glass-header {
     background: rgba(14, 14, 14, 0.6);

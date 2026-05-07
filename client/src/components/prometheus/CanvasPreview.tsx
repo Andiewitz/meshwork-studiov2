@@ -49,8 +49,8 @@ const Node = ({ icon: Icon, title, id, top, left, color, isHovered, isDragging, 
     >
         <div 
             className={cn(
-                "px-4 py-3 border border-white/10 shadow-[0_8px_30px_rgba(0,0,0,0.4)] bg-[#1a1a1a] backdrop-blur-md flex items-center gap-4 transition-all duration-300",
-                isHovered && "border-white/30 shadow-[0_12px_40px_rgba(0,0,0,0.6)]"
+                "px-4 py-3 glass-card flex items-center gap-4 transition-all duration-500",
+                isHovered && "bg-white/[0.04] border-white/[0.2] scale-[1.02]"
             )}
         >
             <div className={cn("w-10 h-10 flex items-center justify-center border", color.bg, color.border)}>
@@ -197,16 +197,16 @@ const CanvasPreview = () => {
                 </motion.div>
             </div>
 
-            <div className="relative rounded-t-xl border border-white/10 bg-[#0A0A0A] shadow-2xl overflow-hidden transform transition-all duration-700 hover:shadow-[0_0_50px_rgba(255,61,0,0.1)]">
+            <div className="relative rounded-t-xl border border-white/[0.05] bg-black/40 backdrop-blur-3xl shadow-2xl overflow-hidden transform transition-all duration-700">
                 {/* Visualizer Top Chrome */}
-                <div className="flex items-center justify-between px-4 py-3 border-b border-white/5 bg-[#121417]">
+                <div className="flex items-center justify-between px-4 py-3 border-b border-white/[0.05] bg-white/[0.02]">
                     <div className="flex items-center gap-2">
                         <div className="h-3 w-3 rounded-full bg-red-500/20 border border-red-500/50"></div>
                         <div className="h-3 w-3 rounded-full bg-yellow-500/20 border border-yellow-500/50"></div>
                         <div className="h-3 w-3 rounded-full bg-green-500/20 border border-green-500/50"></div>
                     </div>
 
-                    <div className="flex bg-[#08090a] px-3 border border-white/5 rounded-lg items-center divide-x divide-white/5 h-8">
+                    <div className="flex bg-black/40 px-3 border border-white/[0.05] rounded-lg items-center divide-x divide-white/[0.05] h-8">
                         <div className="text-[10px] uppercase font-mono tracking-widest text-primary/70 pr-3 font-bold">Meshwork Environment</div>
                         <div className="text-[10px] uppercase font-mono tracking-widest text-white/30 pl-3">production-cluster-us-east</div>
                     </div>
@@ -220,7 +220,7 @@ const CanvasPreview = () => {
                 </div>
 
                 {/* Main Canvas Area */}
-                <div className="h-[500px] md:h-[600px] bg-[#0c0e12] relative overflow-hidden bg-[radial-gradient(rgba(255,255,255,0.04)_1px,transparent_1px)] [background-size:24px_24px]">
+                <div className="h-[500px] md:h-[600px] bg-black relative overflow-hidden bg-[radial-gradient(rgba(255,85,0,0.06)_1px,transparent_1px)] [background-size:32px_32px]">
                     
                     {/* SVG Connector Lines */}
                     <svg className="absolute inset-0 w-full h-full pointer-events-none" style={{ zIndex: 5 }}>
@@ -276,7 +276,7 @@ const CanvasPreview = () => {
                     ))}
 
                     {/* Properties Panel Simulator */}
-                    <div className="absolute top-4 right-4 bottom-4 w-60 border border-white/5 bg-[#141414]/90 backdrop-blur-xl rounded-xl p-5 flex flex-col z-40 shadow-2xl">
+                    <div className="absolute top-4 right-4 bottom-4 w-60 glass-card rounded-xl p-5 flex flex-col z-40 shadow-2xl">
                         <div className="flex items-center gap-2 mb-6 opacity-30">
                             <Workflow className="w-4 h-4 text-white" />
                             <span className="text-[10px] uppercase font-bold tracking-widest text-white">Properties</span>
