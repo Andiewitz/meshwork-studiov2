@@ -53,9 +53,9 @@ const Home = () => {
 
             {/* Background Atmosphere */}
             <div className="absolute inset-0 overflow-hidden pointer-events-none -z-10 technical-gradient">
-                <div className="absolute top-[5%] left-[-10%] w-[700px] h-[700px] rounded-full" style={{ background: 'radial-gradient(circle, rgba(255,120,0,0.07) 0%, transparent 70%)' }} />
-                <div className="absolute top-[-5%] right-[-5%] w-[600px] h-[600px] rounded-full" style={{ background: 'radial-gradient(circle, rgba(255,150,0,0.05) 0%, transparent 70%)' }} />
-                <div className="absolute bottom-[20%] left-[20%] w-[800px] h-[500px] rounded-full" style={{ background: 'radial-gradient(circle, rgba(255,130,0,0.03) 0%, transparent 70%)' }} />
+                <div className="absolute top-[5%] left-[-10%] w-[700px] h-[700px] rounded-full" style={{ background: 'radial-gradient(circle, rgba(255,85,0,0.07) 0%, transparent 70%)' }} />
+                <div className="absolute top-[-5%] right-[-5%] w-[600px] h-[600px] rounded-full" style={{ background: 'radial-gradient(circle, rgba(255,85,0,0.05) 0%, transparent 70%)' }} />
+                <div className="absolute bottom-[20%] left-[20%] w-[800px] h-[500px] rounded-full" style={{ background: 'radial-gradient(circle, rgba(255,85,0,0.03) 0%, transparent 70%)' }} />
             </div>
 
             {/* NAVBAR */}
@@ -97,12 +97,10 @@ const Home = () => {
                     animate={{ opacity: 1, scale: 1 }}
                     transition={{ duration: 1 }}
                 >
-                    <div className="inline-block border border-primary/40 bg-primary/10 px-6 py-1.5 font-bold text-primary font-mono text-sm uppercase tracking-widest shadow-[0_0_30px_rgba(255,61,0,0.15)] mb-6">
-                        Meshwork Studio V1
-                    </div>
+                    {/* V1 Pill Removed */}
                     <h1 className="font-display text-5xl md:text-8xl lg:text-[100px] font-extrabold tracking-tighter leading-[0.85] text-white mb-8 max-w-5xl mx-auto">
                         Design Cloud <br/>
-                        <span className="text-transparent bg-clip-text bg-gradient-to-r from-primary via-orange-400 to-primary bg-[length:200%_auto] block mt-2">Architecture</span>
+                        <span className="text-transparent bg-clip-text bg-gradient-to-r from-primary to-primary/60 block mt-2">Architecture</span>
                     </h1>
                     <p className="text-base md:text-xl font-medium text-white/50 max-w-2xl mx-auto tracking-tight leading-snug mb-10 px-2 lg:px-0">
                         The visual workspace for mapping, connecting, and sharing your cloud infrastructure. Built explicitly for engineering teams who think in systems.
@@ -143,10 +141,10 @@ const Home = () => {
 
                     <div className="absolute inset-0 opacity-20 transition-opacity duration-1000">
                         {[
-                            { left: '10%', top: '20%', size: '600px', color: 'rgba(255, 120, 0, 0.15)', dur: 25 },
-                            { left: '60%', top: '10%', size: '800px', color: 'rgba(255, 140, 0, 0.12)', dur: 35 },
-                            { left: '20%', top: '50%', size: '700px', color: 'rgba(255, 120, 0, 0.15)', dur: 30 },
-                            { left: '70%', top: '60%', size: '600px', color: 'rgba(255, 160, 0, 0.08)', dur: 40 }
+                            { left: '10%', top: '20%', size: '600px', color: 'rgba(255, 85, 0, 0.15)', dur: 25 },
+                            { left: '60%', top: '10%', size: '800px', color: 'rgba(255, 85, 0, 0.12)', dur: 35 },
+                            { left: '20%', top: '50%', size: '700px', color: 'rgba(255, 85, 0, 0.15)', dur: 30 },
+                            { left: '70%', top: '60%', size: '600px', color: 'rgba(255, 85, 0, 0.08)', dur: 40 }
                         ].map((lava, i) => (
                             <motion.div
                                 key={i}
@@ -216,7 +214,7 @@ const Home = () => {
                                                 <span className="text-white/60"><span className="text-primary">&gt;</span> {node}</span>
                                             </motion.div>
                                         ))}
-                                        <motion.div initial={{ scaleX: 0 }} whileInView={{ scaleX: 1 }} transition={{ delay: 0.8, duration: 0.3 }} className="h-1 bg-gradient-to-r from-primary to-orange-400 origin-left mt-2 relative overflow-hidden">
+                                        <motion.div initial={{ scaleX: 0 }} whileInView={{ scaleX: 1 }} transition={{ delay: 0.8, duration: 0.3 }} className="h-1 bg-gradient-to-r from-primary to-primary/60 origin-left mt-2 relative overflow-hidden">
                                             <motion.div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/30 to-transparent" animate={{ x: ["-100%", "200%"] }} transition={{ duration: 1.5, repeat: Infinity, ease: "linear", delay: 1 }} />
                                         </motion.div>
                                     </div>
@@ -331,68 +329,7 @@ const Home = () => {
 
             {/* CALL TO ACTION — THE FORGE */}
             <section className="relative min-h-[80vh] flex items-center justify-center mt-24 border-t border-white/5 overflow-hidden">
-                {/* LEFT IRON WALL — Soft Blend to Center */}
-                <div className="absolute left-0 top-0 bottom-0 w-[28%] z-10 pointer-events-none hidden md:block">
-                    <div className="absolute inset-0"
-                        style={{ background: 'linear-gradient(160deg, #111 0%, #0d0d0d 30%, #050505 70%, #000 100%)', zIndex: 1, boxShadow: 'inset -2px 0 10px rgba(0,0,0,0.8)' }}>
-                        <div className="absolute right-0 inset-y-0 w-32 bg-gradient-to-l from-[#060606] via-[#0a0a0a]/80 to-transparent pointer-events-none" />
-                        {[12, 25, 38, 52, 65, 78, 90].map(t => (
-                            <div key={`l1-${t}`} className="absolute left-0 right-0 h-px" style={{ top: `${t}%`, background: 'linear-gradient(to left, transparent, rgba(255,255,255,0.03), transparent)' }} />
-                        ))}
-                        {[15, 30, 45, 60, 75, 88].map(t => (
-                            <div key={`l2-${t}`} className="absolute left-5 w-4 h-4 rounded-full" style={{ top: `${t}%`, background: 'radial-gradient(circle at 35% 35%, #2a2a2a, #0d0d0d)', boxShadow: 'inset 1px 1px 3px #333, inset -1px -1px 3px #000' }} />
-                        ))}
-                    </div>
-                </div>
-
-                {/* RIGHT IRON WALL — Soft Blend to Center */}
-                <div className="absolute right-0 top-0 bottom-0 w-[28%] z-10 pointer-events-none hidden md:block">
-                    <div className="absolute inset-0"
-                        style={{ background: 'linear-gradient(200deg, #111 0%, #0d0d0d 30%, #050505 70%, #000 100%)', zIndex: 1, boxShadow: 'inset 2px 0 10px rgba(0,0,0,0.8)' }}>
-                        <div className="absolute left-0 inset-y-0 w-32 bg-gradient-to-r from-[#060606] via-[#0a0a0a]/80 to-transparent pointer-events-none" />
-                        {[12, 25, 38, 52, 65, 78, 90].map(t => (
-                            <div key={`r1-${t}`} className="absolute left-0 right-0 h-px" style={{ top: `${t}%`, background: 'linear-gradient(to right, transparent, rgba(255,255,255,0.03), transparent)' }} />
-                        ))}
-                        {[15, 30, 45, 60, 75, 88].map(t => (
-                            <div key={`r2-${t}`} className="absolute right-5 w-4 h-4 rounded-full" style={{ top: `${t}%`, background: 'radial-gradient(circle at 35% 35%, #2a2a2a, #0d0d0d)', boxShadow: 'inset 1px 1px 3px #333, inset -1px -1px 3px #000' }} />
-                        ))}
-                    </div>
-                </div>
-
-                {/* Fire layers */}
-                <div className="absolute inset-0 overflow-hidden z-0 bg-[#020202]">
-                    <div className="absolute bottom-0 left-0 right-0 h-[70%]" style={{ background: 'radial-gradient(ellipse at 50% 100%, rgba(255,100,0,0.5) 0%, rgba(255,70,0,0.3) 40%, transparent 75%)' }} />
-                    <div className="absolute bottom-0 left-0 right-0 h-[55%]" style={{ background: 'radial-gradient(ellipse at 50% 100%, rgba(255,140,0,0.6) 0%, rgba(255,100,0,0.3) 45%, transparent 78%)' }} />
-                    <div className="absolute bottom-0 left-0 right-0 h-[38%]" style={{ background: 'radial-gradient(ellipse at 50% 100%, rgba(255,180,0,0.6) 0%, rgba(255,140,0,0.4) 40%, transparent 72%)' }} />
-                    <div className="absolute bottom-0 left-[25%] right-[25%] h-[18%]" style={{ background: 'radial-gradient(ellipse at 50% 100%, rgba(255,230,0,0.8) 0%, rgba(255,180,0,0.4) 50%, transparent 100%)' }} />
-
-                    {[
-                        { left: '5%', w: '15%', delay: 0, dur: 2.0 },
-                        { left: '24%', w: '19%', delay: 0.4, dur: 1.8 },
-                        { left: '45%', w: '18%', delay: 0.2, dur: 2.3 },
-                        { left: '64%', w: '17%', delay: 0.7, dur: 1.9 },
-                        { left: '82%', w: '14%', delay: 0.1, dur: 2.2 },
-                     ].map((f, i) => (
-                        <motion.div key={`fire-${i}`} className="absolute bottom-0 rounded-t-full relative z-0"
-                            style={{ left: f.left, width: f.w, background: `linear-gradient(to top, rgba(255,${120 + i * 20},0,0.7), rgba(255,100,0,0.3), transparent)`, transformOrigin: 'bottom center', willChange: 'transform' }}
-                            animate={{ height: ['28%', '52%', '33%', '58%', '30%'], scaleX: [1, 0.82, 1.12, 0.88, 1], x: [0, (i % 2 === 0 ? 6 : -6), 0, (i % 2 === 0 ? -4 : 4), 0] }}
-                            transition={{ duration: f.dur, delay: f.delay, repeat: Infinity, ease: 'easeInOut' }}
-                        />
-                    ))}
-
-                    {[
-                        { left: '15%', delay: 0, dur: 2.8 },
-                        { left: '38%', delay: 0.6, dur: 3.2 },
-                        { left: '60%', delay: 0.2, dur: 2.5 },
-                        { left: '82%', delay: 1.0, dur: 3.0 },
-                    ].map((e, i) => (
-                        <motion.div key={`spark-${i}`} className="absolute w-2 h-2 rounded-full pointer-events-none"
-                            style={{ left: e.left, bottom: '28%', background: 'rgba(255,190,40,0.95)', boxShadow: '0 0 10px rgba(255,140,0,0.9)', willChange: 'transform, opacity' }}
-                            animate={{ y: [0, -320], x: [0, (i % 2 === 0 ? 30 : -30)], opacity: [1, 0.9, 0], scale: [1, 0.6, 0] }}
-                            transition={{ duration: e.dur, delay: e.delay, repeat: Infinity, ease: 'easeOut' }}
-                        />
-                    ))}
-                </div>
+                {/* Removed Fire and Iron walls */}
 
                 <div className="container mx-auto px-4 relative z-20 text-center">
                     <motion.div
