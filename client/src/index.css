@@ -22,14 +22,14 @@
   --popover: 0 0% 100%;
   --popover-foreground: 0 0% 10%;
 
-  /* Redesign Theme Variable Definitions */
-  --color-surface: #0e0e0e;
+  /* True Black Redesign Theme */
+  --color-surface: #050505;
   --color-on-surface: #ffffff;
   --color-surface-container-lowest: #000000;
-  --color-surface-container-low: #131313;
-  --color-surface-container: #1a1919;
-  --color-surface-container-high: #201f1f;
-  --color-surface-container-highest: #262626;
+  --color-surface-container-low: #080808;
+  --color-surface-container: #0a0a0a;
+  --color-surface-container-high: #0d0d0d;
+  --color-surface-container-highest: #121212;
   --color-outline: #777575;
   --color-outline-variant: #494847;
   
@@ -96,10 +96,10 @@
 @layer utilities {
   .technical-gradient {
     background: 
-      radial-gradient(circle at 50% 0%, rgba(255, 85, 0, 0.05) 0%, transparent 50%),
-      radial-gradient(circle at 0% 100%, rgba(255, 85, 0, 0.02) 0%, transparent 50%),
-      radial-gradient(circle at 100% 100%, rgba(255, 85, 0, 0.02) 0%, transparent 50%),
-      #050505;
+      radial-gradient(circle at 50% 0%, rgba(255, 85, 0, 0.03) 0%, transparent 40%),
+      radial-gradient(circle at 0% 100%, rgba(255, 85, 0, 0.01) 0%, transparent 40%),
+      radial-gradient(circle at 100% 100%, rgba(255, 85, 0, 0.01) 0%, transparent 40%),
+      #000000;
     position: relative;
   }
 
