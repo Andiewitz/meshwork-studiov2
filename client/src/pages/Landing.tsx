@@ -62,7 +62,7 @@ const Home = () => {
             <nav
                 className={`fixed top-0 left-0 right-0 z-50 transition-all duration-500 ${
                 scrolled
-                    ? "bg-[#0e0e0e]/95 backdrop-blur-xl border-b border-white/10 shadow-[0_4px_30px_rgba(0,0,0,0.4)]"
+                    ? "bg-black/40 backdrop-blur-xl border-b border-white/[0.08] shadow-[0_4px_30px_rgba(0,0,0,0.5)]"
                     : "bg-transparent border-b border-transparent"
                 }`}
             >
@@ -100,7 +100,7 @@ const Home = () => {
                     <div className="inline-block border border-primary/40 bg-primary/10 px-6 py-1.5 font-bold text-primary font-mono text-sm uppercase tracking-widest shadow-[0_0_30px_rgba(255,61,0,0.15)] mb-6">
                         Meshwork Studio V1
                     </div>
-                    <h1 className="font-serif text-5xl md:text-8xl lg:text-[100px] font-medium leading-[0.85] text-white mb-8 max-w-5xl mx-auto">
+                    <h1 className="font-display text-5xl md:text-8xl lg:text-[100px] font-extrabold tracking-tighter leading-[0.85] text-white mb-8 max-w-5xl mx-auto">
                         Design Cloud <br/>
                         <span className="text-transparent bg-clip-text bg-gradient-to-r from-primary via-orange-400 to-primary bg-[length:200%_auto] block mt-2">Architecture</span>
                     </h1>
@@ -110,12 +110,12 @@ const Home = () => {
 
                     <div className="flex flex-col sm:flex-row items-center justify-center gap-4 mb-16 md:mb-24">
                         <Link href="/auth/register">
-                            <Button size="lg" className="w-full sm:w-auto px-10 border border-primary shadow-[0_0_20px_rgba(255,61,0,0.15)] bg-primary text-black">
+                            <Button size="lg" className="w-full sm:w-auto px-10 border border-primary shadow-[0_0_30px_rgba(255,61,0,0.3)] hover:shadow-[0_0_40px_rgba(255,61,0,0.5)] bg-primary text-black font-headline tracking-widest uppercase">
                                 Start Building Free <ArrowRight className="ml-2 w-5 h-5" />
                             </Button>
                         </Link>
                         <a href="#features">
-                            <Button variant="secondary" size="lg" className="w-full sm:w-auto px-10 text-white/70 hover:text-white">
+                            <Button variant="secondary" size="lg" className="w-full sm:w-auto px-10 text-white hover:bg-white/[0.06] bg-white/[0.03] backdrop-blur-md border border-white/10 hover:border-white/20 font-headline tracking-widest uppercase">
                                 Discover Features
                             </Button>
                         </a>
@@ -180,7 +180,7 @@ const Home = () => {
                     </div>
 
                     {/* Main Container - Redesigned to match image */}
-                    <div className="bg-[#0A0A0A]/80 backdrop-blur-md border-x border-b border-white/10 rounded-b-2xl p-6 md:p-20 relative overflow-hidden">
+                    <div className="bg-black/40 backdrop-blur-2xl border-x border-b border-white/[0.08] rounded-b-2xl p-6 md:p-20 relative overflow-hidden shadow-[0_20px_60px_rgba(0,0,0,0.5)]">
                         <div className="relative z-10 space-y-20 md:space-y-48">
 
                             {/* 01: See Your Entire Stack */}
@@ -189,7 +189,7 @@ const Home = () => {
                                     <div className="inline-block px-3 py-1 rounded border border-primary/20 bg-primary/5 text-[10px] font-mono text-primary uppercase tracking-[0.2em]">
                                         Bird's-eye View
                                     </div>
-                                    <h3 className="font-serif text-3xl md:text-5xl font-medium text-white leading-[0.9]">
+                                    <h3 className="font-display text-3xl md:text-5xl font-extrabold tracking-tighter text-white leading-[0.9]">
                                         See your entire <br />
                                         stack. At once.
                                     </h3>
@@ -229,7 +229,7 @@ const Home = () => {
                                     <div className="inline-block px-3 py-1 rounded border border-blue-500/20 bg-blue-500/5 text-[10px] font-mono text-blue-500 uppercase tracking-[0.2em]">
                                         Specialized Tooling
                                     </div>
-                                    <h3 className="font-serif text-3xl md:text-5xl font-medium text-white leading-[0.9]">
+                                    <h3 className="font-display text-3xl md:text-5xl font-extrabold tracking-tighter text-white leading-[0.9]">
                                         Not another <br /> Lucidchart.
                                     </h3>
                                     <p className="text-base text-white/50 leading-relaxed font-medium">
@@ -261,7 +261,7 @@ const Home = () => {
                                     <div className="inline-block px-3 py-1 rounded border border-emerald-500/20 bg-emerald-500/5 text-[10px] font-mono text-emerald-500 uppercase tracking-[0.2em]">
                                         Always Current
                                     </div>
-                                    <h3 className="font-serif text-3xl md:text-5xl font-medium text-white leading-[0.9]">
+                                    <h3 className="font-display text-3xl md:text-5xl font-extrabold tracking-tighter text-white leading-[0.9]">
                                         Kill stale <br /> Architecture docs.
                                     </h3>
                                     <p className="text-base text-white/50 leading-relaxed font-medium">
@@ -297,7 +297,7 @@ const Home = () => {
                                     <div className="inline-block px-3 py-1 rounded border border-purple-500/20 bg-purple-500/5 text-[10px] font-mono text-purple-500 uppercase tracking-[0.2em]">
                                         Auto-Routing
                                     </div>
-                                    <h3 className="font-serif text-3xl md:text-5xl font-medium text-white leading-[0.9]">
+                                    <h3 className="font-display text-3xl md:text-5xl font-extrabold tracking-tighter text-white leading-[0.9]">
                                         Layouts that <br /> just work.
                                     </h3>
                                     <p className="text-base text-white/50 leading-relaxed font-medium">
@@ -422,7 +422,7 @@ const Home = () => {
                             </div>
                         </motion.div>
 
-                        <h2 className="font-serif text-5xl md:text-8xl lg:text-[100px] font-medium tracking-tighter text-white leading-[0.85] mb-8" style={{ textShadow: '0 0 60px rgba(245,140,0,0.5), 0 0 120px rgba(245,100,0,0.2)' }}>
+                        <h2 className="font-display text-5xl md:text-8xl lg:text-[100px] font-extrabold tracking-tighter text-white leading-[0.85] mb-8" style={{ textShadow: '0 0 60px rgba(245,140,0,0.5), 0 0 120px rgba(245,100,0,0.2)' }}>
                             <span className="block opacity-60">Stop Drawing.</span>
                             <span className="block text-primary drop-shadow-[0_0_80px_rgba(255,61,0,0.4)]">Start Building.</span>
                         </h2>
@@ -433,13 +433,15 @@ const Home = () => {
 
                         <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
                             <Link href="/auth/register">
-                                <Button size="lg" className="w-full sm:w-auto px-10 h-14 bg-blue-600 text-white hover:bg-blue-500 border border-blue-500/50 shadow-[0_0_30px_rgba(37,99,235,0.3)]">
+                                <Button size="lg" className="w-full sm:w-auto px-10 h-14 bg-primary text-black hover:brightness-110 border border-primary/50 shadow-[0_0_30px_rgba(255,61,0,0.3)] hover:shadow-[0_0_40px_rgba(255,61,0,0.5)] font-headline tracking-widest uppercase">
                                     Get Meshwork Studio Free
                                 </Button>
                             </Link>
-                            <Button variant="secondary" size="lg" className="w-full sm:w-auto px-10 h-14 border border-white/10 text-white hover:bg-white/5">
-                                Read the Docs
-                            </Button>
+                            <Link href="/docs">
+                                <Button variant="secondary" size="lg" className="w-full sm:w-auto px-10 h-14 text-white hover:bg-white/[0.06] bg-white/[0.03] backdrop-blur-md border border-white/10 hover:border-white/20 font-headline tracking-widest uppercase">
+                                    Read the Docs
+                                </Button>
+                            </Link>
                         </div>
                     </motion.div>
                 </div>

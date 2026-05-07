@@ -2,6 +2,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { motion } from "framer-motion";
 import { ArrowRight, Sparkles } from "lucide-react";
+import { MeshworkLogo } from "@/components/MeshworkLogo";
 
 export default function AuthPage() {
     return (
@@ -12,10 +13,10 @@ export default function AuthPage() {
 
                 {/* Logo */}
                 <div className="relative z-10 flex items-center gap-3">
-                    <div className="w-10 h-10 rounded-xl bg-white flex items-center justify-center">
-                        <span className="text-black font-bold font-serif text-xl">W</span>
+                    <div className="w-10 h-10 flex items-center justify-center">
+                        <MeshworkLogo />
                     </div>
-                    <span className="text-2xl font-bold font-serif tracking-tight">Weaving Studio</span>
+                    <span className="text-2xl font-bold font-headline uppercase tracking-tighter">Meshwork Studio</span>
                 </div>
 
                 {/* Hero Content */}
@@ -34,18 +35,18 @@ export default function AuthPage() {
                     </motion.div>
 
                     <div className="mt-8 text-center max-w-md">
-                        <h2 className="text-3xl font-bold mb-4 tracking-tight">
-                            Your digital HQ, reimagined.
+                        <h2 className="text-3xl font-display font-bold mb-4 tracking-tight">
+                            Design Cloud Architecture.
                         </h2>
-                        <p className="text-zinc-500 text-lg leading-relaxed">
-                            Join thousands of teams using Weaving Studio to streamline workflows and boost productivity.
+                        <p className="text-white/50 text-lg leading-relaxed">
+                            Join thousands of teams using Meshwork Studio to map, manage, and visualize their infrastructure.
                         </p>
                     </div>
                 </div>
 
                 {/* Footer */}
-                <div className="relative z-10 flex justify-between text-sm text-zinc-500">
-                    <p>© 2026 Weaving Studio Inc.</p>
+                <div className="relative z-10 flex justify-between text-sm text-white/50">
+                    <p>© 2026 Meshwork Studio.</p>
                     <div className="flex gap-6">
                         <a href="#" className="hover:text-white transition-colors">Privacy</a>
                         <a href="#" className="hover:text-white transition-colors">Terms</a>
