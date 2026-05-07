@@ -1,13 +1,13 @@
-@import url('https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,100..1000;1,9..40,100..1000&family=Inter:wght@400;500;600;700&family=Space+Grotesk:wght@400;500;600;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Plus+Jakarta+Sans:ital,wght@0,200..800;1,200..800&family=Outfit:wght@100..900&family=Space+Grotesk:wght@400;500;600;700&display=swap');
 
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
 :root {
-  --font-sans: 'DM Sans', system-ui, sans-serif;
+  --font-sans: 'Plus Jakarta Sans', system-ui, sans-serif;
   --font-display: 'Space Grotesk', sans-serif;
-  --font-label: 'Inter', sans-serif;
+  --font-label: 'Plus Jakarta Sans', sans-serif;
   --font-mono: 'Geist Mono', 'JetBrains Mono', ui-monospace, monospace;
 
   /* Lumina / Avant-Garde Theme */
@@ -33,8 +33,8 @@
   --color-outline: #777575;
   --color-outline-variant: #494847;
   
-  --font-headline: 'Inter', sans-serif;
-  --font-body: 'DM Sans', sans-serif;
+  --font-headline: 'Outfit', sans-serif;
+  --font-body: 'Plus Jakarta Sans', sans-serif;
 
   /* Primary (Accent) - #FF3D00 */
   --primary: 14 100% 50%;
