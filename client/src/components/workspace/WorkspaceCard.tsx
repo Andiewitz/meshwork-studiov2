@@ -164,8 +164,8 @@ export function WorkspaceCard({
            className={cn(
              "group transition-all duration-300 cursor-figma-pointer relative",
              viewMode === "grid" 
-               ? "bg-surface-container-low hover:bg-surface-container-high p-1 rounded-lg flex flex-col" 
-               : "bg-surface-container-low hover:bg-surface-container-high p-3 rounded-lg flex flex-row items-center gap-6 border border-transparent hover:border-outline-variant/10",
+               ? "bg-white/[0.02] backdrop-blur-md hover:bg-white/[0.04] p-1 rounded-xl flex flex-col border border-white/5 shadow-[0_8px_30px_rgba(0,0,0,0.12)]" 
+               : "bg-white/[0.02] backdrop-blur-md hover:bg-white/[0.04] p-3 rounded-xl flex flex-row items-center gap-6 border border-white/5 shadow-[0_8px_30px_rgba(0,0,0,0.12)] hover:border-white/10",
              isSelected && "border-primary/50 shadow-[0_0_15px_rgba(255,85,0,0.2)]",
              isDeleting && "opacity-50 pointer-events-none grayscale"
            )}

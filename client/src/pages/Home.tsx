@@ -138,7 +138,7 @@ export default function Home() {
                     onChange={(e) => setSearchTerm(e.target.value)}
                     onFocus={() => setIsSearchFocused(true)}
                     onBlur={() => setTimeout(() => setIsSearchFocused(false), 200)}
-                    className={`w-full border py-4 pl-12 pr-16 text-base font-body text-white placeholder:text-outline/40 focus:outline-none transition-all duration-300 backdrop-blur-md ${isSearchFocused ? 'bg-[#0A0A0A] border-primary/40 rounded-t-xl rounded-b-none' : 'bg-[#161616] border-[#2A2A2A] rounded-lg'}`}
+                    className={`w-full border py-4 pl-12 pr-16 text-base font-body text-white placeholder:text-white/30 focus:outline-none transition-all duration-300 backdrop-blur-xl ${isSearchFocused ? 'bg-black/40 border-primary/40 rounded-t-xl rounded-b-none shadow-[0_4px_30px_rgba(0,0,0,0.5)]' : 'bg-white/[0.02] border-white/10 hover:bg-white/[0.04] rounded-lg'}`}
                     placeholder="Search blueprints, assets, or run a command..."
                     type="text"
                   />
@@ -154,7 +154,7 @@ export default function Home() {
                         animate={{ opacity: 1, y: 0 }}
                         exit={{ opacity: 0, y: -10 }}
                         transition={{ duration: 0.2 }}
-                        className="absolute top-full left-0 right-0 bg-[#0A0A0A]/95 backdrop-blur-xl border border-t-0 border-[#FF5500]/50 rounded-b-xl overflow-hidden shadow-[0_20px_40px_rgba(0,0,0,0.6)] text-left"
+                        className="absolute top-full left-0 right-0 bg-black/40 backdrop-blur-2xl border border-t-0 border-primary/40 rounded-b-xl overflow-hidden shadow-[0_20px_40px_rgba(0,0,0,0.6)] text-left"
                       >
                         {/* Dynamic Projects Suggestion */}
                         {filteredWorkspaces.length > 0 && (
@@ -227,7 +227,7 @@ export default function Home() {
                     ))}
                   </div>
                   {displayWorkspaces.length === 0 && !searchTerm && (
-                    <motion.div variants={fadeUpVariants} className="bg-surface-container-low border border-dashed border-outline-variant/30 rounded-xl p-16 flex flex-col items-center justify-center text-center">
+                    <motion.div variants={fadeUpVariants} className="bg-white/[0.02] backdrop-blur-xl border border-dashed border-white/10 rounded-xl p-16 flex flex-col items-center justify-center text-center shadow-[0_8px_30px_rgba(0,0,0,0.12)]">
                       <Package className="w-12 h-12 text-outline/30 mb-4" />
                       <p className="text-outline font-headline">No recent projects found.</p>
                       <button onClick={() => setIsCreateOpen(true)} className="text-primary hover:text-white mt-2 font-headline font-bold text-sm transition-colors cursor-figma-pointer">Create your first</button>
@@ -259,7 +259,7 @@ export default function Home() {
                       onChange={(e) => setSearchTerm(e.target.value)}
                       type="text"
                       placeholder="Filter..."
-                      className="bg-surface-container-low border border-outline-variant/20 rounded pl-8 pr-3 py-1.5 text-sm outline-none focus:border-primary/50 text-white transition-colors cursor-figma"
+                      className="bg-white/[0.02] backdrop-blur-md border border-white/10 rounded pl-8 pr-3 py-1.5 text-sm outline-none focus:border-primary/50 text-white transition-colors cursor-figma"
                     />
                   </div>
                   <div className="flex items-center gap-1 bg-surface-container-low p-1 rounded-lg border border-outline-variant/10">

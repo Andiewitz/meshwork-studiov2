@@ -88,7 +88,7 @@ export function DashboardLayout({ children }: { children: ReactNode }) {
       {/* ── Left sidebar ── */}
       <motion.aside
         initial="hidden" animate="visible" variants={sidebarVariants}
-        className="fixed left-0 top-0 h-full w-20 z-50 bg-[#000000] flex flex-col items-center py-8 gap-8 border-r border-[#494847]/15"
+        className="fixed left-0 top-0 h-full w-20 z-50 bg-black/40 backdrop-blur-xl flex flex-col items-center py-8 gap-8 border-r border-white/[0.05]"
       >
         <motion.div variants={itemVariants} className="mb-4">
           <MeshworkLogo className="text-white w-8 h-8" />
@@ -143,7 +143,7 @@ export function DashboardLayout({ children }: { children: ReactNode }) {
       <motion.header
         initial={{ opacity: 0, y: -20 }} animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.5, delay: 0.2 }}
-        className="fixed top-0 left-20 right-0 z-40 bg-neutral-950/60 backdrop-blur-xl flex justify-between items-center px-10 py-4"
+        className="fixed top-0 left-20 right-0 z-40 bg-black/40 backdrop-blur-xl flex justify-between items-center px-10 py-4 border-b border-white/[0.05]"
       >
         <div className="flex items-center gap-3">
           <h1 className="text-[15px] font-bold tracking-tight text-white" style={{ fontFamily: 'var(--font-headline)' }}>
@@ -192,7 +192,7 @@ export function DashboardLayout({ children }: { children: ReactNode }) {
               key="panel"
               initial={{ x: "100%" }} animate={{ x: 0 }} exit={{ x: "100%" }}
               transition={{ duration: 0.28, ease: [0.16, 1, 0.3, 1] }}
-              className="fixed top-0 right-0 h-full w-[400px] z-[70] bg-[#0D0D0D] border-l border-white/[0.06] flex flex-col"
+              className="fixed top-0 right-0 h-full w-[400px] z-[70] bg-black/50 backdrop-blur-3xl border-l border-white/[0.08] flex flex-col shadow-[-20px_0_40px_rgba(0,0,0,0.5)]"
             >
               {/* Header */}
               <div className="flex items-center justify-between px-6 py-5 border-b border-white/[0.05]">

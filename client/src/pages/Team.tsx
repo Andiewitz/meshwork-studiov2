@@ -66,10 +66,10 @@ export default function Team() {
         <button 
           onClick={handleNotifyClick}
           disabled={hasNotified}
-          className={`font-headline font-bold px-8 py-3 rounded transition-colors duration-300 border cursor-figma-pointer flex items-center gap-2 mx-auto ${
+          className={`font-headline font-bold px-8 py-3 rounded-xl transition-all duration-300 border cursor-figma-pointer flex items-center gap-2 mx-auto backdrop-blur-md shadow-[0_4px_24px_rgba(0,0,0,0.2)] ${
             hasNotified 
               ? "bg-primary/10 text-primary border-primary/20 cursor-default" 
-              : "bg-surface-container-high hover:bg-surface-container-highest text-white border-outline-variant/20"
+              : "bg-white/[0.03] hover:bg-white/[0.06] text-white border-white/10 hover:border-white/20"
           }`}
         >
           {hasNotified && <Check className="w-4 h-4" />}
