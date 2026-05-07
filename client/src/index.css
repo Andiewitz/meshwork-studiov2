@@ -34,16 +34,16 @@
   --font-headline: 'Outfit', sans-serif;
   --font-body: 'Plus Jakarta Sans', sans-serif;
 
-  --primary: 14 100% 50%;
+  --primary: 24 100% 50%;      /* True Orange */
   --primary-foreground: 0 0% 100%;
 
   --secondary: 0 0% 7%;
   --secondary-foreground: 0 0% 98%;
 
   --muted: 0 0% 7%;
-  --muted-foreground: 0 0% 50%;
+  --muted-foreground: 0 0% 65%;
 
-  --accent: 14 100% 50%;
+  --accent: 24 100% 50%;       /* True Orange */
   --accent-foreground: 0 0% 100%;
 
   --destructive: 0 84% 60%;
@@ -51,7 +51,7 @@
 
   --border: 0 0% 10%;          /* #1A1A1A */
   --input: 0 0% 5%;
-  --ring: 14 100% 50%;
+  --ring: 24 100% 50%;
 
   --radius: 0rem;
 }
@@ -66,7 +66,7 @@
   --popover: 0 0% 3%;
   --popover-foreground: 0 0% 98%;
 
-  --primary: 14 100% 50%;
+  --primary: 24 100% 50%;
   --primary-foreground: 0 0% 100%;
 
   --secondary: 0 0% 7%;
@@ -75,7 +75,7 @@
   --muted: 0 0% 7%;
   --muted-foreground: 0 0% 50%;
 
-  --accent: 14 100% 50%;
+  --accent: 24 100% 50%;
   --accent-foreground: 0 0% 100%;
 
   --destructive: 0 72% 45%;
@@ -83,15 +83,15 @@
 
   --border: 0 0% 12%;          /* #1F1F1F */
   --input: 0 0% 5%;
-  --ring: 14 100% 50%;
+  --ring: 24 100% 50%;
 }
 
 @layer utilities {
   .technical-gradient {
     background: 
-      radial-gradient(circle at 50% 0%, rgba(255, 85, 0, 0.03) 0%, transparent 40%),
-      radial-gradient(circle at 0% 100%, rgba(255, 85, 0, 0.01) 0%, transparent 40%),
-      radial-gradient(circle at 100% 100%, rgba(255, 85, 0, 0.01) 0%, transparent 40%),
+      radial-gradient(circle at 50% 0%, rgba(255, 102, 0, 0.04) 0%, transparent 40%),
+      radial-gradient(circle at 0% 100%, rgba(255, 102, 0, 0.02) 0%, transparent 40%),
+      radial-gradient(circle at 100% 100%, rgba(255, 102, 0, 0.02) 0%, transparent 40%),
       #000000;
     position: relative;
   }
@@ -107,7 +107,7 @@
   }
 
   .glass-card {
-    @apply bg-white/[0.01] backdrop-blur-3xl border border-white/[0.08] shadow-[0_8px_32px_rgba(0,0,0,0.4)];
+    @apply bg-white/[0.01] backdrop-blur-3xl border border-white/[0.12] shadow-[0_8px_32px_rgba(0,0,0,0.6)];
   }
 
   .glass-card-hover {
