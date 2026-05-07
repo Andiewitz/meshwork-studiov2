@@ -5,7 +5,7 @@ import { ArrowRight, Sparkles } from "lucide-react";
 
 export default function AuthPage() {
     return (
-        <div className="min-h-screen grid lg:grid-cols-2 bg-background overflow-hidden">
+        <div className="min-h-screen grid lg:grid-cols-2 technical-gradient overflow-hidden">
             {/* Left Panel - Hero/Brand */}
             <div className="hidden lg:flex flex-col justify-between p-8 bg-black text-white relative overflow-hidden border-r border-white/5">
                 {/* Background content */}

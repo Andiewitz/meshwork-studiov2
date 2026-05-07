@@ -95,7 +95,7 @@
 
 @layer utilities {
   .technical-gradient {
-    background: radial-gradient(circle at 50% -20%, #0D0D0D 0%, #050505 100%);
+    background: radial-gradient(circle at 50% 50%, #161616 0%, #080808 100%);
   }
   .glass-header {
     background: rgba(14, 14, 14, 0.6);

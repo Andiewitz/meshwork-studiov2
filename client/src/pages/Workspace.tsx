@@ -808,7 +808,7 @@ function WorkspaceView() {
     }
 
     return (
-        <div className="h-screen w-screen overflow-hidden font-sans text-sm selection:bg-white/10 bg-[#0A0A0A] text-white relative">
+        <div className="h-screen w-screen overflow-hidden font-sans text-sm selection:bg-white/10 technical-gradient text-white relative">
             <NodeLibrarySidebar onDragStart={onDragStart} collapsed={sidebarCollapsed} setCollapsed={setSidebarCollapsed} />
 
 

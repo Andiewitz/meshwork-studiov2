@@ -52,7 +52,7 @@ const Home = () => {
             />
 
             {/* Background Atmosphere */}
-            <div className="absolute inset-0 overflow-hidden pointer-events-none -z-10 bg-[#0A0A0A]">
+            <div className="absolute inset-0 overflow-hidden pointer-events-none -z-10 technical-gradient">
                 <div className="absolute top-[5%] left-[-10%] w-[700px] h-[700px] rounded-full" style={{ background: 'radial-gradient(circle, rgba(255,120,0,0.07) 0%, transparent 70%)' }} />
                 <div className="absolute top-[-5%] right-[-5%] w-[600px] h-[600px] rounded-full" style={{ background: 'radial-gradient(circle, rgba(255,150,0,0.05) 0%, transparent 70%)' }} />
                 <div className="absolute bottom-[20%] left-[20%] w-[800px] h-[500px] rounded-full" style={{ background: 'radial-gradient(circle, rgba(255,130,0,0.03) 0%, transparent 70%)' }} />
