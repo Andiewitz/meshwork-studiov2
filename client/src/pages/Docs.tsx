@@ -22,7 +22,7 @@ export default function Docs() {
           </span>
         </div>
         
-        <h1 className="text-4xl md:text-5xl font-display font-semibold tracking-tight text-foreground mb-6 leading-tight">
+        <h1 className="text-4xl md:text-5xl font-headline font-semibold tracking-tight text-foreground mb-6 leading-tight">
           Meshwork Studio Architecture & Systems Overview
         </h1>
         
@@ -43,7 +43,7 @@ export default function Docs() {
             <div className="p-2.5 rounded-md bg-muted text-foreground">
               <Box className="w-6 h-6" />
             </div>
-            <h2 className="text-3xl font-display font-semibold text-foreground tracking-tight">Canvas Engine Pipeline</h2>
+            <h2 className="text-3xl font-headline font-semibold text-foreground tracking-tight">Canvas Engine Pipeline</h2>
           </div>
           
           <div className="space-y-10 text-base text-foreground/80 leading-relaxed">
@@ -90,7 +90,7 @@ export default function Docs() {
             <div className="p-2.5 rounded-md bg-muted text-foreground">
               <BrainCircuit className="w-6 h-6" />
             </div>
-            <h2 className="text-3xl font-display font-semibold text-foreground tracking-tight">Mosh AI Integration</h2>
+            <h2 className="text-3xl font-headline font-semibold text-foreground tracking-tight">Mosh AI Integration</h2>
           </div>
           
           <div className="space-y-10 text-base text-foreground/80 leading-relaxed">
@@ -134,7 +134,7 @@ export default function Docs() {
             <div className="p-2.5 rounded-md bg-muted text-foreground">
               <Shield className="w-6 h-6" />
             </div>
-            <h2 className="text-3xl font-display font-semibold text-foreground tracking-tight">Security Posture</h2>
+            <h2 className="text-3xl font-headline font-semibold text-foreground tracking-tight">Security Posture</h2>
           </div>
           
           <div className="space-y-10 text-base text-foreground/80 leading-relaxed">
@@ -169,7 +169,7 @@ export default function Docs() {
             <div className="p-2.5 rounded-md bg-muted text-foreground">
               <Paintbrush className="w-6 h-6" />
             </div>
-            <h2 className="text-3xl font-display font-semibold text-foreground tracking-tight">Design System & UI</h2>
+            <h2 className="text-3xl font-headline font-semibold text-foreground tracking-tight">Design System & UI</h2>
           </div>
           
           <div className="space-y-10 text-base text-foreground/80 leading-relaxed">

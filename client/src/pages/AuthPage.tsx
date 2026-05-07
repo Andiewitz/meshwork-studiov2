@@ -16,7 +16,7 @@ export default function AuthPage() {
                     <div className="w-10 h-10 flex items-center justify-center">
                         <MeshworkLogo />
                     </div>
-                    <span className="text-2xl font-bold font-headline uppercase tracking-tighter">Meshwork Studio</span>
+                    <span className="text-2xl font-bold font-display uppercase tracking-tighter">Meshwork Studio</span>
                 </div>
 
                 {/* Hero Content */}
@@ -35,7 +35,7 @@ export default function AuthPage() {
                     </motion.div>
 
                     <div className="mt-8 text-center max-w-md">
-                        <h2 className="text-3xl font-display font-bold mb-4 tracking-tight">
+                        <h2 className="text-3xl font-headline font-bold mb-4 tracking-tight">
                             Design Cloud Architecture.
                         </h2>
                         <p className="text-white/50 text-lg leading-relaxed">

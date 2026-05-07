@@ -71,7 +71,7 @@ const Home = () => {
                         <div className="w-9 h-9 flex items-center justify-center transition-all group-hover:drop-shadow-[0_0_12px_rgba(255,61,0,0.5)]">
                             <MeshworkLogo />
                         </div>
-                        <span className="text-lg font-black tracking-tighter uppercase hidden sm:block text-white">Meshwork Studio</span>
+                        <span className="text-lg font-display font-black tracking-tighter uppercase hidden sm:block text-white">Meshwork Studio</span>
                     </Link>
                     <div className="hidden md:flex items-center gap-8">
                         <a href="#features" className="text-sm font-bold uppercase tracking-wider text-white/50 hover:text-primary transition-colors">Features</a>
@@ -98,7 +98,7 @@ const Home = () => {
                     transition={{ duration: 1 }}
                 >
                     {/* V1 Pill Removed */}
-                    <h1 className="font-display text-5xl md:text-8xl lg:text-[100px] font-extrabold tracking-tighter leading-[0.85] text-white mb-8 max-w-5xl mx-auto">
+                    <h1 className="font-headline text-5xl md:text-8xl lg:text-[100px] font-extrabold tracking-tighter leading-[0.85] text-white mb-8 max-w-5xl mx-auto">
                         Design Cloud <br/>
                         <span className="text-transparent bg-clip-text bg-gradient-to-r from-primary to-primary/60 block mt-2">Architecture</span>
                     </h1>
@@ -187,7 +187,7 @@ const Home = () => {
                                     <div className="inline-block px-3 py-1 rounded border border-primary/20 bg-primary/5 text-[10px] font-mono text-primary uppercase tracking-[0.2em]">
                                         Bird's-eye View
                                     </div>
-                                    <h3 className="font-display text-3xl md:text-5xl font-extrabold tracking-tighter text-white leading-[0.9]">
+                                    <h3 className="font-headline text-3xl md:text-5xl font-extrabold tracking-tighter text-white leading-[0.9]">
                                         See your entire <br />
                                         stack. At once.
                                     </h3>
@@ -227,7 +227,7 @@ const Home = () => {
                                     <div className="inline-block px-3 py-1 rounded border border-blue-500/20 bg-blue-500/5 text-[10px] font-mono text-blue-500 uppercase tracking-[0.2em]">
                                         Specialized Tooling
                                     </div>
-                                    <h3 className="font-display text-3xl md:text-5xl font-extrabold tracking-tighter text-white leading-[0.9]">
+                                    <h3 className="font-headline text-3xl md:text-5xl font-extrabold tracking-tighter text-white leading-[0.9]">
                                         Not another <br /> Lucidchart.
                                     </h3>
                                     <p className="text-base text-white/50 leading-relaxed font-medium">
@@ -259,7 +259,7 @@ const Home = () => {
                                     <div className="inline-block px-3 py-1 rounded border border-emerald-500/20 bg-emerald-500/5 text-[10px] font-mono text-emerald-500 uppercase tracking-[0.2em]">
                                         Always Current
                                     </div>
-                                    <h3 className="font-display text-3xl md:text-5xl font-extrabold tracking-tighter text-white leading-[0.9]">
+                                    <h3 className="font-headline text-3xl md:text-5xl font-extrabold tracking-tighter text-white leading-[0.9]">
                                         Kill stale <br /> Architecture docs.
                                     </h3>
                                     <p className="text-base text-white/50 leading-relaxed font-medium">
@@ -295,7 +295,7 @@ const Home = () => {
                                     <div className="inline-block px-3 py-1 rounded border border-purple-500/20 bg-purple-500/5 text-[10px] font-mono text-purple-500 uppercase tracking-[0.2em]">
                                         Auto-Routing
                                     </div>
-                                    <h3 className="font-display text-3xl md:text-5xl font-extrabold tracking-tighter text-white leading-[0.9]">
+                                    <h3 className="font-headline text-3xl md:text-5xl font-extrabold tracking-tighter text-white leading-[0.9]">
                                         Layouts that <br /> just work.
                                     </h3>
                                     <p className="text-base text-white/50 leading-relaxed font-medium">
@@ -359,7 +359,7 @@ const Home = () => {
                             </div>
                         </motion.div>
 
-                        <h2 className="font-display text-5xl md:text-8xl lg:text-[100px] font-extrabold tracking-tighter text-white leading-[0.85] mb-8" style={{ textShadow: '0 0 60px rgba(245,140,0,0.5), 0 0 120px rgba(245,100,0,0.2)' }}>
+                        <h2 className="font-headline text-5xl md:text-8xl lg:text-[100px] font-extrabold tracking-tighter text-white leading-[0.85] mb-8" style={{ textShadow: '0 0 60px rgba(245,140,0,0.5), 0 0 120px rgba(245,100,0,0.2)' }}>
                             <span className="block opacity-60">Stop Drawing.</span>
                             <span className="block text-primary drop-shadow-[0_0_80px_rgba(255,61,0,0.4)]">Start Building.</span>
                         </h2>

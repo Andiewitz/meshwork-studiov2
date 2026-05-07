@@ -478,7 +478,7 @@ export default function Dev() {
                   </span>
                 </div>
                 
-                <h1 className="text-4xl md:text-5xl font-bold font-display leading-tight">
+                <h1 className="text-4xl md:text-5xl font-bold font-headline leading-tight">
                   {selectedPost.title}
                 </h1>
                 
@@ -684,7 +684,7 @@ export default function Dev() {
                         <span>·</span>
                         {post.readTime}
                       </div>
-                      <h3 className="font-display font-semibold text-lg group-hover:text-primary transition-colors line-clamp-2">
+                      <h3 className="font-headline font-semibold text-lg group-hover:text-primary transition-colors line-clamp-2">
                         {post.title}
                       </h3>
                       <p className="text-sm text-muted-foreground line-clamp-2">
@@ -724,7 +724,7 @@ export default function Dev() {
                         <span>·</span>
                         {post.readTime}
                       </div>
-                      <h3 className="font-display font-semibold group-hover:text-primary transition-colors">
+                      <h3 className="font-headline font-semibold group-hover:text-primary transition-colors">
                         {post.title}
                       </h3>
                       <p className="text-sm text-muted-foreground font-sans line-clamp-2">
