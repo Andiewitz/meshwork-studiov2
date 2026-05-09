@@ -35,7 +35,10 @@ function broadcastToRoom(workspaceId: number, message: ServerMessage, excludeUse
     if (!room) return;
 
     const payload = JSON.stringify(message);
-    for (const [uid, user] of room) {
+    const users = Array.from(room.entries());
+    for (let i = 0; i < users.length; i++) {
+        const uid = users[i][0];
+        const user = users[i][1];
         if (uid === excludeUserId) continue;
         if (user.ws.readyState === WebSocket.OPEN) {
             user.ws.send(payload);
@@ -51,8 +54,14 @@ function getPresenceList(workspaceId: number): Omit<PresenceUser, "ws">[] {
 }
 
 function removeFromAllRooms(ws: WebSocket) {
-    for (const [workspaceId, room] of rooms) {
-        for (const [userId, user] of room) {
+    const allRooms = Array.from(rooms.entries());
+    for (let i = 0; i < allRooms.length; i++) {
+        const workspaceId = allRooms[i][0];
+        const room = allRooms[i][1];
+        const users = Array.from(room.entries());
+        for (let j = 0; j < users.length; j++) {
+            const userId = users[j][0];
+            const user = users[j][1];
             if (user.ws === ws) {
                 room.delete(userId);
                 broadcastToRoom(workspaceId, { type: "left", userId });
@@ -69,8 +78,6 @@ function removeFromAllRooms(ws: WebSocket) {
 // ─── Session Resolver ────────────────────────────────────────────────
 // Resolves a session cookie to a user object. Uses the same session
 // store as Express (connect-pg-simple / memory).
-// We import the session store lazily to avoid circular deps.
-let sessionStore: any = null;
 
 async function resolveSession(req: IncomingMessage): Promise<{ id: string; email: string; firstName: string | null } | null> {
     try {
@@ -81,37 +88,18 @@ async function resolveSession(req: IncomingMessage): Promise<{ id: string; email
         // Decode the connect.sid cookie (format: s:<id>.<signature>)
         const rawSid = sid.startsWith("s:") ? sid.slice(2).split(".")[0] : sid;
 
-        // Dynamically import the auth module's session store
-        if (!sessionStore) {
-            try {
-                const { getSessionStore } = await import("../auth/session");
-                sessionStore = getSessionStore();
-            } catch {
-                // Fallback: try to read from pg sessions table directly
-                const { db } = await import("../workspace/db");
-                const { sessions } = await import("@shared/schema");
-                const { eq } = await import("drizzle-orm");
+        // Read from pg sessions table directly
+        const { db } = await import("../workspace/db");
+        const { sessions } = await import("@shared/schema");
+        const { eq } = await import("drizzle-orm");
 
-                const [session] = await db.select().from(sessions).where(eq(sessions.sid, rawSid));
-                if (!session) return null;
+        const [session] = await db.select().from(sessions).where(eq(sessions.sid, rawSid));
+        if (!session) return null;
 
-                const sess = session.sess as any;
-                if (!sess?.passport?.user) return null;
+        const sess = session.sess as any;
+        if (!sess?.passport?.user) return null;
 
-                return sess.passport.user;
-            }
-        }
-
-        // Use session store's get method
-        return new Promise((resolve) => {
-            sessionStore.get(rawSid, (err: any, session: any) => {
-                if (err || !session?.passport?.user) {
-                    resolve(null);
-                    return;
-                }
-                resolve(session.passport.user);
-            });
-        });
+        return sess.passport.user;
     } catch {
         return null;
     }
