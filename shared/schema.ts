@@ -115,6 +115,62 @@ export const loginAttempts = pgTable("login_attempts", {
   index("IDX_login_attempts_locked_until").on(table.lockedUntil),
 ]);
 
+// ─── Teams ───────────────────────────────────────────────────────────
+// A "team" is a collaborative room that users can join via invite code.
+
+export const teams = pgTable("teams", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  name: varchar("name", { length: 64 }).notNull(),
+  inviteCode: varchar("invite_code", { length: 8 }).unique().notNull(),
+  ownerId: varchar("owner_id").notNull().references(() => users.id),
+  createdAt: timestamp("created_at").defaultNow(),
+}, (table) => [
+  index("IDX_teams_invite_code").on(table.inviteCode),
+  index("IDX_teams_owner_id").on(table.ownerId),
+]);
+
+// Junction table: which users belong to which team + their cursor color.
+export const teamMembers = pgTable("team_members", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  teamId: varchar("team_id").notNull().references(() => teams.id, { onDelete: "cascade" }),
+  userId: varchar("user_id").notNull().references(() => users.id, { onDelete: "cascade" }),
+  role: varchar("role", { length: 16 }).notNull().default("member"), // "owner" | "member"
+  color: varchar("color", { length: 7 }).notNull(), // hex cursor color
+  joinedAt: timestamp("joined_at").defaultNow(),
+}, (table) => [
+  index("IDX_team_members_team_id").on(table.teamId),
+  index("IDX_team_members_user_id").on(table.userId),
+]);
+
+// Junction table: which workspaces are shared with a team.
+export const teamWorkspaces = pgTable("team_workspaces", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  teamId: varchar("team_id").notNull().references(() => teams.id, { onDelete: "cascade" }),
+  workspaceId: integer("workspace_id").notNull().references(() => workspaces.id, { onDelete: "cascade" }),
+  sharedAt: timestamp("shared_at").defaultNow(),
+}, (table) => [
+  index("IDX_team_workspaces_team_id").on(table.teamId),
+  index("IDX_team_workspaces_workspace_id").on(table.workspaceId),
+]);
+
+// 12 high-contrast cursor colors. Owner always gets index 0 (brand orange).
+export const CURSOR_COLORS = [
+  "#FF6600", // Brand Orange (owner)
+  "#3B82F6", // Blue
+  "#10B981", // Emerald
+  "#F59E0B", // Amber
+  "#EF4444", // Red
+  "#8B5CF6", // Violet
+  "#EC4899", // Pink
+  "#14B8A6", // Teal
+  "#F97316", // Orange
+  "#6366F1", // Indigo
+  "#84CC16", // Lime
+  "#06B6D4", // Cyan
+] as const;
+
+
+// ─── Zod Schemas & Types ─────────────────────────────────────────────
 
 export const insertCollectionSchema = createInsertSchema(collections).omit({ id: true, createdAt: true });
 // Custom validation for workspace title
@@ -137,6 +193,14 @@ export const insertNodeSchema = createInsertSchema(nodes);
 export const insertUserApiKeySchema = createInsertSchema(userApiKeys).omit({ id: true, createdAt: true, updatedAt: true });
 export const insertEdgeSchema = createInsertSchema(edges);
 
+export const insertTeamSchema = createInsertSchema(teams).omit({ id: true, createdAt: true, inviteCode: true });
+export const insertTeamMemberSchema = createInsertSchema(teamMembers).omit({ id: true, joinedAt: true });
+export const insertTeamWorkspaceSchema = createInsertSchema(teamWorkspaces).omit({ id: true, sharedAt: true });
+
+export const joinTeamSchema = z.object({
+  inviteCode: z.string().min(1, "Invite code is required").max(8),
+});
+
 export type Collection = typeof collections.$inferSelect;
 export type InsertCollection = z.infer<typeof insertCollectionSchema>;
 export type Workspace = typeof workspaces.$inferSelect;
@@ -147,6 +211,13 @@ export type UserApiKey = typeof userApiKeys.$inferSelect;
 export type InsertUserApiKey = z.infer<typeof insertUserApiKeySchema>;
 export type Edge = typeof edges.$inferSelect;
 export type InsertEdge = z.infer<typeof insertEdgeSchema>;
+
+export type Team = typeof teams.$inferSelect;
+export type InsertTeam = z.infer<typeof insertTeamSchema>;
+export type TeamMember = typeof teamMembers.$inferSelect;
+export type InsertTeamMember = z.infer<typeof insertTeamMemberSchema>;
+export type TeamWorkspace = typeof teamWorkspaces.$inferSelect;
+export type InsertTeamWorkspace = z.infer<typeof insertTeamWorkspaceSchema>;
 
 export type CreateWorkspaceRequest = InsertWorkspace;
 export type UpdateWorkspaceRequest = Partial<InsertWorkspace>;
