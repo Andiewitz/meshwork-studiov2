@@ -4,6 +4,7 @@ import { AuthModule } from "./modules/auth";
 import { WorkspaceModule } from "./modules/workspace";
 import { CanvasModule } from "./modules/canvas";
 import { AIModule } from "./modules/ai";
+import { TeamModule } from "./modules/team";
 import { registerCsrfRoutes } from "./routes/csrf";
 
 export async function registerRoutes(
@@ -24,6 +25,9 @@ export async function registerRoutes(
 
   // Initialize AI Module (handles BYOK AI service)
   AIModule.initialize(app);
+
+  // Initialize Team Module (handles teams, members, and shared workspaces)
+  TeamModule.initialize(app);
 
   console.log("[Monolith] All modules initialized");
 
