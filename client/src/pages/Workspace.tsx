@@ -114,6 +114,8 @@ import { PropertiesSidebar } from "@/features/workspace/components/PropertiesSid
 import { AiChatDrawer } from "@/features/workspace/components/AiChatDrawer";
 import { NodeLibrarySidebar } from "@/features/workspace/components/NodeLibrarySidebar";
 import { calculateContainment, calculateGlobalPosition } from "@/features/workspace/utils/containment";
+import { usePresence } from "@/hooks/use-presence";
+import { CollaboratorCursors, PresenceIndicator } from "@/components/canvas/CollaboratorCursors";
 
 function WorkspaceView() {
     const { id } = useParams();
@@ -141,6 +143,24 @@ function WorkspaceView() {
     const [hasArrow, setHasArrow] = useState(false);
     const [drawingMode, setDrawingMode] = useState<'select' | 'pan' | 'annotation' | 'infrastructure'>('select');
     const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
+
+    // ── Real-time collaboration (cursors & presence) ──
+    const { collaborators, isConnected: isPresenceConnected, sendCursor } = usePresence(workspaceId);
+    const lastCursorSent = useRef(0);
+    const canvasWrapperRef = useRef<HTMLDivElement>(null);
+
+    // Throttled cursor broadcast on mouse move
+    const handleCanvasMouseMove = useCallback((e: React.MouseEvent) => {
+        const now = Date.now();
+        if (now - lastCursorSent.current < 50) return; // Throttle to ~20fps
+        lastCursorSent.current = now;
+        try {
+            const pos = screenToFlowPosition({ x: e.clientX, y: e.clientY });
+            sendCursor(pos.x, pos.y);
+        } catch {
+            // screenToFlowPosition may throw if ReactFlow isn't ready
+        }
+    }, [screenToFlowPosition, sendCursor]);
 
     // ── Nested canvas navigation stack ──
     interface CanvasLevel {
@@ -813,6 +833,8 @@ function WorkspaceView() {
 
 
                 <motion.main
+                    ref={canvasWrapperRef}
+                    onMouseMove={handleCanvasMouseMove}
                     initial={{ opacity: 0 }}
                     animate={{ opacity: 1 }}
                     transition={{ duration: 0.6, ease: [0.16, 1, 0.3, 1] }}
@@ -832,6 +854,8 @@ function WorkspaceView() {
                                     />
                                 )}
                             </AnimatePresence>
+                            {/* Collaborator cursor overlay */}
+                            <CollaboratorCursors collaborators={collaborators} />
                             <ReactFlow
                                 nodes={nodes}
                                 edges={edges}
@@ -936,6 +960,10 @@ function WorkspaceView() {
                                         transition={{ duration: 0.5, ease: [0.16, 1, 0.3, 1], delay: 0.1 }}
                                         className="flex items-center gap-2"
                                     >
+                                        {/* Presence indicator */}
+                                        {collaborators.length > 0 && (
+                                            <PresenceIndicator collaborators={collaborators} isConnected={isPresenceConnected} />
+                                        )}
                                         <div className="flex items-center gap-0.5 px-1 py-1 rounded-xl bg-[#121214]/80 backdrop-blur-xl border border-white/[0.08] shadow-[inset_0_1px_0_rgba(255,255,255,0.1),0_4px_12px_rgba(0,0,0,0.5)]">
                                             <button onClick={undo} className="w-8 h-8 flex items-center justify-center rounded-lg text-white/35 hover:text-white/80 hover:bg-white/[0.07] transition-all" title="Undo"><Undo2 className="w-3.5 h-3.5" /></button>
                                             <button onClick={redo} className="w-8 h-8 flex items-center justify-center rounded-lg text-white/35 hover:text-white/80 hover:bg-white/[0.07] transition-all" title="Redo"><Redo2 className="w-3.5 h-3.5" /></button>
