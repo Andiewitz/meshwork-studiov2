@@ -90,7 +90,7 @@ export default function Home() {
   }, [workspaces, searchTerm]);
 
   // Derived arrays based on page config
-  const displayWorkspaces = isWorkspacesPage ? filteredWorkspaces : filteredWorkspaces.slice(0, 4);
+  const displayWorkspaces = isWorkspacesPage ? filteredWorkspaces : filteredWorkspaces.slice(0, 3);
 
   // Time-based greeting logic
   const getGreeting = () => {
@@ -222,7 +222,7 @@ export default function Home() {
                     </Link>
                   </motion.div>
                   <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-10">
-                    {displayWorkspaces.map(workspace => (
+                    {displayWorkspaces.slice(0, 3).map(workspace => (
                       <WorkspaceCard
                         key={workspace.id}
                         workspace={workspace}
