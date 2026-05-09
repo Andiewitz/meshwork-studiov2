@@ -2,12 +2,14 @@ import { db } from "./db";
 import {
     workspaces,
     collections,
+    teamMembers,
+    teamWorkspaces,
     type InsertWorkspace,
     type Workspace,
     type Collection,
     type InsertCollection,
 } from "@shared/schema";
-import { eq, desc, and, isNull } from "drizzle-orm";
+import { eq, desc, and, isNull, or, inArray } from "drizzle-orm";
 
 export interface IWorkspaceStorage {
     // Collections (subcollections/folders)
@@ -59,13 +61,36 @@ export class WorkspaceDatabaseStorage implements IWorkspaceStorage {
 
     // Workspaces
     async getWorkspaces(userId: string, collectionId: number | null = null): Promise<Workspace[]> {
-        const query = collectionId
-            ? and(eq(workspaces.userId, userId), eq(workspaces.collectionId, collectionId))
-            : and(eq(workspaces.userId, userId), isNull(workspaces.collectionId));
+        // 1. Get teams the user is in
+        const memberships = await db
+            .select({ teamId: teamMembers.teamId })
+            .from(teamMembers)
+            .where(eq(teamMembers.userId, userId));
+
+        const teamIds = memberships.map(m => m.teamId);
+
+        // 2. Get workspaces shared with those teams
+        let sharedWorkspaceIds: number[] = [];
+        if (teamIds.length > 0) {
+            const shared = await db
+                .select({ workspaceId: teamWorkspaces.workspaceId })
+                .from(teamWorkspaces)
+                .where(inArray(teamWorkspaces.teamId, teamIds));
+            sharedWorkspaceIds = shared.map(s => s.workspaceId);
+        }
+
+        // 3. Query workspaces owned by user OR shared with their teams
+        const baseQuery = collectionId
+            ? eq(workspaces.collectionId, collectionId)
+            : isNull(workspaces.collectionId);
+
+        const authQuery = sharedWorkspaceIds.length > 0
+            ? or(eq(workspaces.userId, userId), inArray(workspaces.id, sharedWorkspaceIds))
+            : eq(workspaces.userId, userId);
 
         return await db.select()
             .from(workspaces)
-            .where(query)
+            .where(and(baseQuery, authQuery))
             .orderBy(desc(workspaces.createdAt));
     }
 

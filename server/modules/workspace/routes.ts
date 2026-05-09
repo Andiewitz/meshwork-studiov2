@@ -1,5 +1,6 @@
 import type { Express } from "express";
 import { workspaceStorage } from "./storage";
+import { teamStorage } from "../team/storage";
 import { CanvasModule } from "../canvas";
 import { api } from "@shared/routes";
 import { AuthModule } from "../auth";
@@ -79,7 +80,8 @@ export function registerWorkspaceRoutes(app: Express) {
         if (!workspace) return res.status(404).json({ message: 'Workspace not found' });
 
         const userId = req.user!.id;
-        if (workspace.userId !== userId) return res.status(401).json({ message: "Unauthorized" });
+        const hasAccess = await teamStorage.canAccessWorkspace(userId, workspace.id);
+        if (!hasAccess) return res.status(401).json({ message: "Unauthorized" });
 
         res.json(workspace);
     });

@@ -255,6 +255,31 @@ export class TeamDatabaseStorage implements ITeamStorage {
             .from(teams)
             .where(inArray(teams.id, shared.map((s) => s.teamId)));
     }
+
+    async canAccessWorkspace(userId: string, workspaceId: number): Promise<boolean> {
+        // 1. Check if user is the owner
+        const [workspace] = await db.select().from(workspaces).where(eq(workspaces.id, workspaceId));
+        if (workspace?.userId === userId) return true;
+
+        // 2. Check if workspace is shared with any team the user is in
+        const teamsWithAccess = await db
+            .select({ teamId: teamWorkspaces.teamId })
+            .from(teamWorkspaces)
+            .where(eq(teamWorkspaces.workspaceId, workspaceId));
+        
+        if (teamsWithAccess.length === 0) return false;
+
+        const teamIds = teamsWithAccess.map(t => t.teamId);
+        const [membership] = await db
+            .select()
+            .from(teamMembers)
+            .where(and(
+                eq(teamMembers.userId, userId),
+                inArray(teamMembers.teamId, teamIds)
+            ));
+
+        return !!membership;
+    }
 }
 
 export const teamStorage = new TeamDatabaseStorage();

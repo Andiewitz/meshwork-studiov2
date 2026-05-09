@@ -1,5 +1,6 @@
 import type { Express } from "express";
 import { canvasStorage } from "./storage";
+import { teamStorage } from "../team/storage";
 import { WorkspaceModule } from "../workspace";
 import { api } from "@shared/routes";
 import { AuthModule } from "../auth";
@@ -17,7 +18,8 @@ export function registerCanvasRoutes(app: Express) {
         if (!workspace) return res.status(404).json({ message: "Workspace not found" });
 
         const userId = req.user!.id;
-        if (workspace.userId !== userId) return res.status(401).json({ message: "Unauthorized" });
+        const hasAccess = await teamStorage.canAccessWorkspace(userId, workspace.id);
+        if (!hasAccess) return res.status(401).json({ message: "Unauthorized" });
 
         const nodes = await canvasStorage.getNodes(id);
         const edges = await canvasStorage.getEdges(id);
@@ -30,7 +32,8 @@ export function registerCanvasRoutes(app: Express) {
         if (!workspace) return res.status(404).json({ message: "Workspace not found" });
 
         const userId = req.user!.id;
-        if (workspace.userId !== userId) return res.status(401).json({ message: "Unauthorized" });
+        const hasAccess = await teamStorage.canAccessWorkspace(userId, workspace.id);
+        if (!hasAccess) return res.status(401).json({ message: "Unauthorized" });
 
         const { nodes, edges } = api.workspaces.syncCanvas.input.parse(req.body);
         await canvasStorage.syncCanvas(id, nodes, edges);
@@ -46,7 +49,8 @@ export function registerCanvasRoutes(app: Express) {
         if (!workspace) return res.status(404).json({ message: "Source workspace not found" });
 
         const userId = req.user!.id;
-        if (workspace.userId !== userId) return res.status(401).json({ message: "Unauthorized" });
+        const hasAccess = await teamStorage.canAccessWorkspace(userId, workspace.id);
+        if (!hasAccess) return res.status(401).json({ message: "Unauthorized" });
 
         await canvasStorage.duplicateCanvas(id, toWorkspaceId);
         res.json({ success: true });

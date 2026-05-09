@@ -81,7 +81,8 @@ function removeFromAllRooms(ws: WebSocket) {
 
 async function resolveSession(req: IncomingMessage): Promise<{ id: string; email: string; firstName: string | null } | null> {
     try {
-        const cookies = cookie.parse(req.headers.cookie || "");
+        const cookieHeader = req.headers.cookie || "";
+        const cookies = cookie.parse(cookieHeader);
         const sid = cookies["meshwork.sid"];
         if (!sid) return null;
 
@@ -100,7 +101,8 @@ async function resolveSession(req: IncomingMessage): Promise<{ id: string; email
         if (!sess?.passport?.user) return null;
 
         return sess.passport.user;
-    } catch {
+    } catch (err) {
+        console.error("[WebSocket] Session resolution error:", err);
         return null;
     }
 }
@@ -149,11 +151,11 @@ export function initializeWebSocket(httpServer: HttpServer) {
                         }
 
                         // Verify user has access to this workspace (via team membership)
-                        const teams = await teamStorage.getTeamsForWorkspace(msg.workspaceId);
+                        const teamsWithAccess = await teamStorage.getTeamsForWorkspace(msg.workspaceId);
                         let memberColor = "#FFFFFF";
                         let hasAccess = false;
 
-                        for (const team of teams) {
+                        for (const team of teamsWithAccess) {
                             const isMember = await teamStorage.isTeamMember(team.id, user.id);
                             if (isMember) {
                                 hasAccess = true;
@@ -166,7 +168,17 @@ export function initializeWebSocket(httpServer: HttpServer) {
                         }
 
                         if (!hasAccess) {
-                            ws.send(JSON.stringify({ type: "error", message: "No team access to this workspace" }));
+                            // Check if they are the owner directly (fallback if not in teamWorkspaces but they own it)
+                            const { workspaceStorage } = await import("../workspace/storage");
+                            const wsObj = await workspaceStorage.getWorkspace(msg.workspaceId);
+                            if (wsObj?.userId === user.id) {
+                                hasAccess = true;
+                                memberColor = "#FF6600"; // Default owner color
+                            }
+                        }
+
+                        if (!hasAccess) {
+                            ws.send(JSON.stringify({ type: "error", message: "No access to this workspace" }));
                             ws.close();
                             return;
                         }

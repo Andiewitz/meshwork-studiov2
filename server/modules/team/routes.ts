@@ -36,7 +36,7 @@ export function registerTeamRoutes(app: Express) {
 
     // ── Get team details + members ───────────────────────────────────
     app.get("/api/teams/:id", isAuthenticated, async (req, res) => {
-        const teamId = req.params.id as string;
+        const teamId = Array.isArray(req.params.id) ? req.params.id[0] : req.params.id;
         const userId = req.user!.id;
 
         const isMember = await teamStorage.isTeamMember(teamId, userId);
@@ -66,8 +66,8 @@ export function registerTeamRoutes(app: Express) {
 
     // ── Leave / remove member ────────────────────────────────────────
     app.delete("/api/teams/:id/members/:userId", csrfProtection, isAuthenticated, async (req, res) => {
-        const teamId = req.params.id as string;
-        const targetUserId = req.params.userId as string;
+        const teamId = Array.isArray(req.params.id) ? req.params.id[0] : req.params.id;
+        const targetUserId = Array.isArray(req.params.userId) ? req.params.userId[0] : req.params.userId;
         const requesterId = req.user!.id;
 
         // Can remove yourself, or owner can remove anyone
@@ -88,7 +88,7 @@ export function registerTeamRoutes(app: Express) {
     // ── Share workspace with team ────────────────────────────────────
     app.post("/api/teams/:id/workspaces", csrfProtection, isAuthenticated, async (req, res) => {
         try {
-            const teamId = req.params.id as string;
+            const teamId = Array.isArray(req.params.id) ? req.params.id[0] : req.params.id;
             const userId = req.user!.id;
             const { workspaceId } = req.body;
 
@@ -108,7 +108,7 @@ export function registerTeamRoutes(app: Express) {
 
     // ── List team workspaces ─────────────────────────────────────────
     app.get("/api/teams/:id/workspaces", isAuthenticated, async (req, res) => {
-        const teamId = req.params.id as string;
+        const teamId = Array.isArray(req.params.id) ? req.params.id[0] : req.params.id;
         const userId = req.user!.id;
 
         const isMember = await teamStorage.isTeamMember(teamId, userId);
@@ -120,7 +120,7 @@ export function registerTeamRoutes(app: Express) {
 
     // ── Unshare workspace ────────────────────────────────────────────
     app.delete("/api/teams/:id/workspaces/:workspaceId", csrfProtection, isAuthenticated, async (req, res) => {
-        const teamId = req.params.id as string;
+        const teamId = Array.isArray(req.params.id) ? req.params.id[0] : req.params.id;
         const workspaceId = Number(req.params.workspaceId);
         const userId = req.user!.id;
 
@@ -133,7 +133,7 @@ export function registerTeamRoutes(app: Express) {
 
     // ── Regenerate invite code (owner only) ──────────────────────────
     app.post("/api/teams/:id/regenerate-code", csrfProtection, isAuthenticated, async (req, res) => {
-        const teamId = req.params.id as string;
+        const teamId = Array.isArray(req.params.id) ? req.params.id[0] : req.params.id;
         const userId = req.user!.id;
 
         const isOwner = await teamStorage.isTeamOwner(teamId, userId);
@@ -145,7 +145,7 @@ export function registerTeamRoutes(app: Express) {
 
     // ── Delete team (owner only) ─────────────────────────────────────
     app.delete("/api/teams/:id", csrfProtection, isAuthenticated, async (req, res) => {
-        const teamId = req.params.id as string;
+        const teamId = Array.isArray(req.params.id) ? req.params.id[0] : req.params.id;
         const userId = req.user!.id;
 
         const isOwner = await teamStorage.isTeamOwner(teamId, userId);
