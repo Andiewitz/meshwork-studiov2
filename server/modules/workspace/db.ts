@@ -18,6 +18,9 @@ async function createTables() {
     if (!connectionString) return;
 
     try {
+        // Enable pgcrypto for gen_random_uuid()
+        await pool.query(`CREATE EXTENSION IF NOT EXISTS pgcrypto;`);
+
         // Create collections table for workspace organization
         await pool.query(`
             CREATE TABLE IF NOT EXISTS collections (

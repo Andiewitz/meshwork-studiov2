@@ -18,6 +18,9 @@ async function createTables() {
     if (!connectionString) return;
 
     try {
+        // Enable pgcrypto for gen_random_uuid()
+        await pool.query(`CREATE EXTENSION IF NOT EXISTS pgcrypto;`);
+
         // Create users table with new auth fields
         await pool.query(`
             CREATE TABLE IF NOT EXISTS users (
