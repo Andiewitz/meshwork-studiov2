@@ -102,6 +102,10 @@ import {
     Crown,
     Users,
     ChevronUp,
+    Image,
+    FileDown,
+    FileUp,
+    FileJson,
 } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { useAuth } from '@/hooks/use-auth';
@@ -122,6 +126,7 @@ import { NodeLibrarySidebar } from "@/features/workspace/components/NodeLibraryS
 import { calculateContainment, calculateGlobalPosition } from "@/features/workspace/utils/containment";
 import { usePresence } from "@/hooks/use-presence";
 import { CollaboratorCursors, PresenceIndicator } from "@/components/canvas/CollaboratorCursors";
+import { exportAsPng, exportAsSvg, exportAsJson, importFromJson } from "@/features/workspace/utils/exportCanvas";
 
 function WorkspaceView() {
     const { id } = useParams();
@@ -162,6 +167,43 @@ function WorkspaceView() {
     const updateRole = useUpdateMemberRole();
     const teamMembers = membersData?.members || [];
     const teamId = membersData?.teamId;
+
+    // ── Export / Import handlers ──
+    const importFileRef = useRef<HTMLInputElement>(null);
+    const rfInstance = useReactFlow();
+
+    const handleExportPng = useCallback(async () => {
+        try {
+            await exportAsPng(rfInstance, workspace?.title);
+            toast({ title: 'Exported as PNG' });
+        } catch (e: any) { toast({ title: 'Export failed', description: e.message, variant: 'destructive' }); }
+    }, [rfInstance, workspace?.title, toast]);
+
+    const handleExportSvg = useCallback(async () => {
+        try {
+            await exportAsSvg(rfInstance, workspace?.title);
+            toast({ title: 'Exported as SVG' });
+        } catch (e: any) { toast({ title: 'Export failed', description: e.message, variant: 'destructive' }); }
+    }, [rfInstance, workspace?.title, toast]);
+
+    const handleExportJson = useCallback(() => {
+        exportAsJson(nodes, edges, workspace?.title || 'canvas');
+        toast({ title: 'Exported as JSON' });
+    }, [nodes, edges, workspace?.title, toast]);
+
+    const handleImportJson = useCallback(async (e: React.ChangeEvent<HTMLInputElement>) => {
+        const file = e.target.files?.[0];
+        if (!file) return;
+        try {
+            const { nodes: importedNodes, edges: importedEdges } = await importFromJson(file);
+            setNodes(importedNodes as any);
+            setEdges(importedEdges as any);
+            toast({ title: `Imported ${importedNodes.length} nodes` });
+        } catch (err: any) {
+            toast({ title: 'Import failed', description: err.message, variant: 'destructive' });
+        }
+        e.target.value = ''; // Reset file input
+    }, [setNodes, setEdges, toast]);
 
     // ── Real-time collaboration (cursors & presence) ──
     const isRemoteUpdate = useRef(false);
@@ -979,7 +1021,7 @@ function WorkspaceView() {
                                                     <Menu className="w-4 h-4" />
                                                 </button>
                                             </PopoverTrigger>
-                                            <PopoverContent className="w-48 p-1.5 bg-[#161616]/95 backdrop-blur-2xl border border-white/[0.08] rounded-xl shadow-[0_8px_40px_rgba(0,0,0,0.7)] z-[200]" side="bottom" align="start" sideOffset={8}>
+                                            <PopoverContent className="w-52 p-1.5 bg-[#161616]/95 backdrop-blur-2xl border border-white/[0.08] rounded-xl shadow-[0_8px_40px_rgba(0,0,0,0.7)] z-[200]" side="bottom" align="start" sideOffset={8}>
                                                 <Link href="/">
                                                     <button className="w-full flex items-center gap-2.5 px-3 py-2 rounded-lg text-[12px] text-white/60 hover:text-white hover:bg-white/[0.07] transition-all">
                                                         <ChevronLeft className="w-3.5 h-3.5" />
@@ -987,14 +1029,41 @@ function WorkspaceView() {
                                                     </button>
                                                 </Link>
                                                 <div className="h-px bg-white/[0.06] my-1" />
+                                                {/* ── Export ── */}
+                                                <button onClick={handleExportPng} className="w-full flex items-center gap-2.5 px-3 py-2 rounded-lg text-[12px] text-white/60 hover:text-white hover:bg-white/[0.07] transition-all">
+                                                    <Image className="w-3.5 h-3.5" />
+                                                    Export as PNG
+                                                </button>
+                                                <button onClick={handleExportSvg} className="w-full flex items-center gap-2.5 px-3 py-2 rounded-lg text-[12px] text-white/60 hover:text-white hover:bg-white/[0.07] transition-all">
+                                                    <FileDown className="w-3.5 h-3.5" />
+                                                    Export as SVG
+                                                </button>
+                                                <button onClick={handleExportJson} className="w-full flex items-center gap-2.5 px-3 py-2 rounded-lg text-[12px] text-white/60 hover:text-white hover:bg-white/[0.07] transition-all">
+                                                    <FileJson className="w-3.5 h-3.5" />
+                                                    Export as JSON
+                                                </button>
+                                                {/* ── Import (editor+ only) ── */}
+                                                {canEdit && (
+                                                    <>
+                                                        <button onClick={() => importFileRef.current?.click()} className="w-full flex items-center gap-2.5 px-3 py-2 rounded-lg text-[12px] text-white/60 hover:text-white hover:bg-white/[0.07] transition-all">
+                                                            <FileUp className="w-3.5 h-3.5" />
+                                                            Import JSON
+                                                        </button>
+                                                        <input ref={importFileRef} type="file" accept=".json" onChange={handleImportJson} className="hidden" />
+                                                    </>
+                                                )}
+                                                {/* ── Danger zone ── */}
                                                 {canDelete && (
-                                                    <button
-                                                        onClick={() => { if (confirm('Delete this project?')) deleteWorkspace.mutate(workspaceId, { onSuccess: () => { toast({ title: 'Deleted' }); setLocation('/'); } }); }}
-                                                        className="w-full flex items-center gap-2.5 px-3 py-2 rounded-lg text-[12px] text-red-400/70 hover:text-red-400 hover:bg-red-500/10 transition-all"
-                                                    >
-                                                        <Trash2 className="w-3.5 h-3.5" />
-                                                        Delete Project
-                                                    </button>
+                                                    <>
+                                                        <div className="h-px bg-white/[0.06] my-1" />
+                                                        <button
+                                                            onClick={() => { if (confirm('Delete this project?')) deleteWorkspace.mutate(workspaceId, { onSuccess: () => { toast({ title: 'Deleted' }); setLocation('/'); } }); }}
+                                                            className="w-full flex items-center gap-2.5 px-3 py-2 rounded-lg text-[12px] text-red-400/70 hover:text-red-400 hover:bg-red-500/10 transition-all"
+                                                        >
+                                                            <Trash2 className="w-3.5 h-3.5" />
+                                                            Delete Project
+                                                        </button>
+                                                    </>
                                                 )}
                                             </PopoverContent>
                                         </Popover>
