@@ -50,7 +50,7 @@ function CollaboratorCursor({ user }: CollaboratorCursorProps) {
         const dx = targetRef.current.x - prev.x;
         const dy = targetRef.current.y - prev.y;
         if (Math.abs(dx) < 0.5 && Math.abs(dy) < 0.5) return targetRef.current;
-        return { x: prev.x + dx * 0.15, y: prev.y + dy * 0.15 };
+        return { x: prev.x + dx * 0.4, y: prev.y + dy * 0.4 };
       });
       animFrameRef.current = requestAnimationFrame(lerp);
     };
