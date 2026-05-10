@@ -27,11 +27,15 @@ COPY --from=builder /app/dist ./dist
 COPY --from=builder /app/package*.json ./
 COPY --from=builder /app/node_modules/connect-pg-simple/table.sql ./dist/table.sql
 
-# Install only production dependencies
-RUN npm install --omit=dev
+# Copy drizzle config for schema push at startup
+COPY --from=builder /app/drizzle.config.ts ./
+COPY --from=builder /app/shared ./shared
+
+# Install production deps + drizzle-kit for schema sync
+RUN npm install --omit=dev && npm install drizzle-kit
 
 # Set environment variables
 ENV NODE_ENV=production
 
-# Start the application
-CMD ["npm", "start"]
+# Push schema then start app (DATABASE_URL available at runtime, not build)
+CMD ["sh", "-c", "npx drizzle-kit push && node dist/index.cjs"]
