@@ -132,6 +132,7 @@ import { usePresence } from "@/hooks/use-presence";
 import { CollaboratorCursors, PresenceIndicator } from "@/components/canvas/CollaboratorCursors";
 import { exportAsPng, exportAsSvg, exportAsJson, importFromJson } from "@/features/workspace/utils/exportCanvas";
 import { KeyboardShortcutsModal } from "@/features/workspace/components/KeyboardShortcutsModal";
+import { EDGE_TYPES, EDGE_TYPE_LABELS, EDGE_STYLES, BG_VARIANTS, BG_VARIANT_LABELS, GRID_SIZE_MIN, GRID_SIZE_MAX, type EdgeType, type EdgeStyle, type BgVariant } from "@/features/workspace/utils/canvasSettings";
 
 function WorkspaceView() {
     const { id } = useParams();
@@ -156,11 +157,13 @@ function WorkspaceView() {
     const [isSimulating, setIsSimulating] = useState(false);
     const [searchTerm, setSearchTerm] = useState('');
     const [snapToGrid, setSnapToGrid] = useState(true);
-    const [edgeType, setEdgeType] = useState<'step' | 'straight' | 'smoothstep' | 'default'>('step');
-    const [edgeStyle, setEdgeStyle] = useState<'solid' | 'dashed' | 'dotted'>('solid');
+    const [edgeType, setEdgeType] = useState<EdgeType>('step');
+    const [edgeStyle, setEdgeStyle] = useState<EdgeStyle>('solid');
     const [hasArrow, setHasArrow] = useState(false);
     const [drawingMode, setDrawingMode] = useState<'select' | 'pan' | 'annotation' | 'infrastructure'>('select');
     const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
+    const [gridSize, setGridSize] = useState(20);
+    const [bgVariant, setBgVariant] = useState<BgVariant>('dots');
 
     // ── Role-based access control ──
     const { data: roleData } = useWorkspaceRole(workspaceId);
@@ -1076,7 +1079,7 @@ function WorkspaceView() {
                                     style: { stroke: '#555', strokeWidth: 2 },
                                 }}
                                 snapToGrid={snapToGrid}
-                                snapGrid={[12, 12]}
+                                snapGrid={[gridSize, gridSize]}
                                 colorMode="dark"
                                 connectionMode={ConnectionMode.Loose}
                                 panOnScroll={true}
@@ -1089,7 +1092,7 @@ function WorkspaceView() {
                             >
                                 <Controls position="bottom-left" className="!bg-[#161616]/90 !backdrop-blur-2xl !border-white/[0.06] !text-white/50 !shadow-[0_8px_40px_rgba(0,0,0,0.7)] !rounded-2xl overflow-hidden !m-6 [&_button]:!bg-transparent [&_button]:!border-white/[0.05] [&_button]:hover:!bg-white/10 [&_button_svg]:!fill-white/70" />
                                 <MiniMap position="bottom-right" className="!bg-[#161616]/90 !backdrop-blur-2xl !border-white/[0.06] !shadow-[0_8px_40px_rgba(0,0,0,0.7)] !rounded-2xl !mr-6 !mb-6 overflow-hidden [&_.react-flow__minimap-mask]:!fill-white/80" />
-                                <Background variant={'dots' as any} gap={20} size={1.2} color="#ffffff22" />
+                                {bgVariant !== 'none' && <Background variant={bgVariant as any} gap={gridSize} size={1.2} color="#ffffff22" />}
 
                                 {/* Collaborator cursors — inside ReactFlow so they follow the viewport like nodes */}
                                 <CollaboratorCursors collaborators={collaborators} />
@@ -1182,6 +1185,77 @@ function WorkspaceView() {
                                                     <Keyboard className="w-3.5 h-3.5" />
                                                     Keyboard Shortcuts
                                                 </button>
+                                                {/* ── Canvas Settings (nested popover) ── */}
+                                                <Popover>
+                                                    <PopoverTrigger asChild>
+                                                        <button className="w-full flex items-center justify-between px-3 py-2 rounded-lg text-[12px] text-white/60 hover:text-white hover:bg-white/[0.07] transition-all">
+                                                            <span className="flex items-center gap-2.5"><Settings className="w-3.5 h-3.5" />Canvas Settings</span>
+                                                            <ChevronRight className="w-3 h-3 opacity-40" />
+                                                        </button>
+                                                    </PopoverTrigger>
+                                                    <PopoverContent className="w-56 p-2 bg-[#1A1A1A]/95 backdrop-blur-2xl border border-white/[0.08] rounded-xl shadow-[0_8px_32px_rgba(0,0,0,0.8)] z-[300]" side="right" align="start" sideOffset={4}>
+                                                        <div className="px-2 py-1 mb-1"><span className="text-[10px] font-bold text-white/40 uppercase tracking-widest">Canvas</span></div>
+
+                                                        {/* Snap to Grid */}
+                                                        <button onClick={() => setSnapToGrid(!snapToGrid)} className={`w-full flex items-center justify-between px-2.5 py-1.5 rounded-lg text-[11px] transition-all ${snapToGrid ? 'text-emerald-400 bg-emerald-500/10' : 'text-white/50 hover:bg-white/[0.06]'}`}>
+                                                            Snap to Grid
+                                                            <div className={`w-6 h-3.5 rounded-full transition-all ${snapToGrid ? 'bg-emerald-500' : 'bg-white/10'}`}>
+                                                                <div className={`w-2.5 h-2.5 rounded-full bg-white mt-0.5 transition-all ${snapToGrid ? 'ml-3' : 'ml-0.5'}`} />
+                                                            </div>
+                                                        </button>
+
+                                                        {/* Grid Size */}
+                                                        <div className="px-2.5 py-1.5">
+                                                            <div className="flex items-center justify-between mb-1">
+                                                                <span className="text-[11px] text-white/50">Grid Size</span>
+                                                                <span className="text-[10px] text-white/30 font-mono">{gridSize}px</span>
+                                                            </div>
+                                                            <input type="range" min={GRID_SIZE_MIN} max={GRID_SIZE_MAX} step={5} value={gridSize} onChange={(e) => setGridSize(Number(e.target.value))} className="w-full h-1 rounded-full appearance-none bg-white/10 accent-white/60" />
+                                                        </div>
+
+                                                        {/* Arrow Heads */}
+                                                        <button onClick={() => setHasArrow(!hasArrow)} className={`w-full flex items-center justify-between px-2.5 py-1.5 rounded-lg text-[11px] transition-all ${hasArrow ? 'text-blue-400 bg-blue-500/10' : 'text-white/50 hover:bg-white/[0.06]'}`}>
+                                                            Arrow Heads
+                                                            <div className={`w-6 h-3.5 rounded-full transition-all ${hasArrow ? 'bg-blue-500' : 'bg-white/10'}`}>
+                                                                <div className={`w-2.5 h-2.5 rounded-full bg-white mt-0.5 transition-all ${hasArrow ? 'ml-3' : 'ml-0.5'}`} />
+                                                            </div>
+                                                        </button>
+
+                                                        <div className="h-px bg-white/[0.06] my-1.5" />
+                                                        <div className="px-2 py-1"><span className="text-[10px] font-bold text-white/40 uppercase tracking-widest">Edge Type</span></div>
+
+                                                        {/* Edge Type */}
+                                                        <div className="flex gap-1 px-2 py-1">
+                                                            {EDGE_TYPES.map(t => (
+                                                                <button key={t} onClick={() => setEdgeType(t)} className={`flex-1 px-1.5 py-1 rounded-md text-[10px] font-medium transition-all ${edgeType === t ? 'bg-white/[0.1] text-white/90' : 'text-white/35 hover:text-white/60 hover:bg-white/[0.04]'}`}>
+                                                                    {EDGE_TYPE_LABELS[t]}
+                                                                </button>
+                                                            ))}
+                                                        </div>
+
+                                                        {/* Edge Style */}
+                                                        <div className="px-2 py-1 mt-0.5"><span className="text-[10px] font-bold text-white/40 uppercase tracking-widest">Edge Style</span></div>
+                                                        <div className="flex gap-1 px-2 py-1">
+                                                            {EDGE_STYLES.map(s => (
+                                                                <button key={s} onClick={() => setEdgeStyle(s)} className={`flex-1 px-1.5 py-1 rounded-md text-[10px] font-medium capitalize transition-all ${edgeStyle === s ? 'bg-white/[0.1] text-white/90' : 'text-white/35 hover:text-white/60 hover:bg-white/[0.04]'}`}>
+                                                                    {s}
+                                                                </button>
+                                                            ))}
+                                                        </div>
+
+                                                        <div className="h-px bg-white/[0.06] my-1.5" />
+                                                        <div className="px-2 py-1"><span className="text-[10px] font-bold text-white/40 uppercase tracking-widest">Background</span></div>
+
+                                                        {/* Background Variant */}
+                                                        <div className="flex gap-1 px-2 py-1">
+                                                            {BG_VARIANTS.map(v => (
+                                                                <button key={v} onClick={() => setBgVariant(v)} className={`flex-1 px-1.5 py-1 rounded-md text-[10px] font-medium transition-all ${bgVariant === v ? 'bg-white/[0.1] text-white/90' : 'text-white/35 hover:text-white/60 hover:bg-white/[0.04]'}`}>
+                                                                    {BG_VARIANT_LABELS[v]}
+                                                                </button>
+                                                            ))}
+                                                        </div>
+                                                    </PopoverContent>
+                                                </Popover>
                                                 {/* ── Danger zone ── */}
                                                 {canDelete && (
                                                     <>
@@ -1377,13 +1451,13 @@ function WorkspaceView() {
                                         maskImage: 'radial-gradient(circle at var(--mouse-x, -1000px) var(--mouse-y, -1000px), black 0px, transparent 350px)',
                                     } as any}
                                 >
-                                    <Background 
-                                        variant={'dots' as any} 
-                                        gap={20} 
+                                    {bgVariant !== 'none' && <Background 
+                                        variant={bgVariant as any} 
+                                        gap={gridSize} 
                                         size={1.5} 
                                         color="#FFFFFF" 
                                         className="opacity-50"
-                                    />
+                                    />}
                                 </div>
 
 
