@@ -18,14 +18,18 @@ interface PresenceUser {
 }
 
 interface ClientMessage {
-    type: "join" | "cursor" | "leave";
+    type: "join" | "cursor" | "leave" | "node-move";
     workspaceId?: number;
     x?: number;
     y?: number;
+    nodeId?: string;
+    nodeX?: number;
+    nodeY?: number;
+    parentId?: string | null;
 }
 
 interface ServerMessage {
-    type: "presence" | "cursor" | "joined" | "left" | "error";
+    type: "presence" | "cursor" | "joined" | "left" | "error" | "node-move";
     [key: string]: any;
 }
 
@@ -230,6 +234,19 @@ export function initializeWebSocket(httpServer: HttpServer) {
                         removeFromAllRooms(ws);
                         currentUserId = null;
                         currentWorkspaceId = null;
+                        break;
+                    }
+
+                    case "node-move": {
+                        if (!currentUserId || !currentWorkspaceId || !msg.nodeId) return;
+                        broadcastToRoom(currentWorkspaceId, {
+                            type: "node-move",
+                            userId: currentUserId,
+                            nodeId: msg.nodeId,
+                            nodeX: msg.nodeX,
+                            nodeY: msg.nodeY,
+                            parentId: msg.parentId,
+                        }, currentUserId);
                         break;
                     }
                 }

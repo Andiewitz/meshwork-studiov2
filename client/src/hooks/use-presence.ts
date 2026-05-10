@@ -10,7 +10,7 @@ export interface PresenceUser {
 }
 
 interface ServerMessage {
-  type: "presence" | "cursor" | "joined" | "left" | "error";
+  type: "presence" | "cursor" | "joined" | "left" | "error" | "node-move";
   users?: PresenceUser[];
   userId?: string;
   name?: string;
@@ -18,12 +18,18 @@ interface ServerMessage {
   x?: number;
   y?: number;
   message?: string;
+  nodeId?: string;
+  nodeX?: number;
+  nodeY?: number;
+  parentId?: string | null;
 }
 
 // ─── Hook ────────────────────────────────────────────────────────────
 
-export function usePresence(workspaceId: number | null) {
+export function usePresence(workspaceId: number | null, onNodeMove?: (nodeId: string, x: number, y: number, parentId?: string | null) => void) {
   const wsRef = useRef<WebSocket | null>(null);
+  const onNodeMoveRef = useRef(onNodeMove);
+  onNodeMoveRef.current = onNodeMove;
   const [collaborators, setCollaborators] = useState<Map<string, PresenceUser>>(new Map());
   const [isConnected, setIsConnected] = useState(false);
   const reconnectTimer = useRef<ReturnType<typeof setTimeout>>();
@@ -110,6 +116,13 @@ export function usePresence(workspaceId: number | null) {
             console.warn("[Presence] Server error:", msg.message);
             break;
           }
+
+          case "node-move": {
+            if (msg.nodeId != null && msg.nodeX != null && msg.nodeY != null) {
+              onNodeMoveRef.current?.(msg.nodeId, msg.nodeX, msg.nodeY, msg.parentId);
+            }
+            break;
+          }
         }
       } catch {
         // Ignore malformed messages
@@ -151,9 +164,16 @@ export function usePresence(workspaceId: number | null) {
     }
   }, []);
 
+  const sendNodeMove = useCallback((nodeId: string, x: number, y: number, parentId?: string | null) => {
+    if (wsRef.current?.readyState === WebSocket.OPEN) {
+      wsRef.current.send(JSON.stringify({ type: "node-move", nodeId, nodeX: x, nodeY: y, parentId: parentId ?? null }));
+    }
+  }, []);
+
   return {
     collaborators: Array.from(collaborators.values()),
     isConnected,
     sendCursor,
+    sendNodeMove,
   };
 }

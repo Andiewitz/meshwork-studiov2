@@ -145,8 +145,18 @@ function WorkspaceView() {
     const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
 
     // ── Real-time collaboration (cursors & presence) ──
-    const { collaborators, isConnected: isPresenceConnected, sendCursor } = usePresence(workspaceId);
+    const handleRemoteNodeMove = useCallback((nodeId: string, x: number, y: number, parentId?: string | null) => {
+        setNodes((nds) => nds.map((n) => {
+            if (n.id === nodeId) {
+                return { ...n, position: { x, y }, ...(parentId !== undefined ? { parentId: parentId || undefined } : {}) };
+            }
+            return n;
+        }));
+    }, [setNodes]);
+
+    const { collaborators, isConnected: isPresenceConnected, sendCursor, sendNodeMove } = usePresence(workspaceId, handleRemoteNodeMove);
     const lastCursorSent = useRef(0);
+    const lastNodeMoveSent = useRef(0);
     const canvasWrapperRef = useRef<HTMLDivElement>(null);
 
     // Throttled cursor broadcast on mouse move
@@ -737,6 +747,13 @@ function WorkspaceView() {
         takeSnapshot();
     }, [takeSnapshot]);
 
+    const onNodeDrag = useCallback((_: any, node: Node) => {
+        const now = Date.now();
+        if (now - lastNodeMoveSent.current < 50) return; // Throttle to ~20fps
+        lastNodeMoveSent.current = now;
+        sendNodeMove(node.id, node.position.x, node.position.y, node.parentId);
+    }, [sendNodeMove]);
+
     const duplicateSelection = useCallback(
         (ids: string[]) => {
             if (ids.length === 0) return;
@@ -771,6 +788,7 @@ function WorkspaceView() {
                 }
                 return n;
             }));
+            sendNodeMove(node.id, localPosition!.x, localPosition!.y, parentId);
         } else {
             // Check if we dragged out of a parent
             const containers = nodes.filter(n => ['vpc', 'region', 'k8s-namespace'].includes(n.type!) && n.id !== node.id);
@@ -795,10 +813,14 @@ function WorkspaceView() {
                         }
                         return n;
                     }));
+                    sendNodeMove(node.id, globalPos.x, globalPos.y, null);
                 }
+            } else {
+                // Send final position even if no containment change
+                sendNodeMove(node.id, node.position.x, node.position.y, node.parentId);
             }
         }
-    }, [nodes, setNodes]);
+    }, [nodes, setNodes, sendNodeMove]);
 
     const selectedNode = nodes.find((n) => n.id === selectedNodeId) || null;
 
@@ -865,6 +887,7 @@ function WorkspaceView() {
                                 onNodeClick={onNodeClick}
                                 onNodeDoubleClick={onNodeDoubleClick}
                                 onNodeDragStart={onNodeDragStart}
+                                onNodeDrag={onNodeDrag}
                                 onNodeDragStop={onNodeDragStop}
                                 onNodeContextMenu={onNodeContextMenu}
                                 onSelectionContextMenu={onSelectionContextMenu}
