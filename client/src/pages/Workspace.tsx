@@ -120,7 +120,7 @@ import { CollaboratorCursors, PresenceIndicator } from "@/components/canvas/Coll
 function WorkspaceView() {
     const { id } = useParams();
     const workspaceId = Number(id);
-    const { data: canvasData, isLoading: isCanvasLoading, sync, isSyncing, isError: isCanvasError, refetch: refetchCanvas } = useCanvas(workspaceId);
+    const { data: canvasData, isLoading: isCanvasLoading, sync, isSyncing, isError: isCanvasError } = useCanvas(workspaceId);
     const { data: workspace, isLoading: isWorkspaceLoading, isError: isWorkspaceError } = useWorkspace(workspaceId);
 
     const isLoading = isCanvasLoading || isWorkspaceLoading;
@@ -148,26 +148,26 @@ function WorkspaceView() {
     const isRemoteUpdate = useRef(false);
 
     const handleRemoteNodeMove = useCallback((nodeId: string, x: number, y: number, parentId?: string | null) => {
+        isRemoteUpdate.current = true;
         setNodes((nds) => nds.map((n) => {
             if (n.id === nodeId) {
                 return { ...n, position: { x, y }, ...(parentId !== undefined ? { parentId: parentId || undefined } : {}) };
             }
             return n;
         }));
+        // Reset after React processes the batch
+        requestAnimationFrame(() => { isRemoteUpdate.current = false; });
     }, [setNodes]);
 
-    const handleRemoteCanvasSaved = useCallback(async () => {
-        const result = await refetchCanvas();
-        if (result.data) {
-            isRemoteUpdate.current = true;
-            setNodes(result.data.nodes || []);
-            setEdges(result.data.edges || []);
-            // Reset flag after React processes the state update
-            setTimeout(() => { isRemoteUpdate.current = false; }, 100);
-        }
-    }, [refetchCanvas, setNodes, setEdges]);
+    const handleRemoteCanvasSync = useCallback((nodes: any[], edges: any[]) => {
+        isRemoteUpdate.current = true;
+        setNodes(nodes || []);
+        setEdges(edges || []);
+        // Reset after React processes the batch
+        requestAnimationFrame(() => { isRemoteUpdate.current = false; });
+    }, [setNodes, setEdges]);
 
-    const { collaborators, isConnected: isPresenceConnected, sendCursor, sendNodeMove, sendCanvasSaved } = usePresence(workspaceId, handleRemoteNodeMove, handleRemoteCanvasSaved);
+    const { collaborators, isConnected: isPresenceConnected, sendCursor, sendNodeMove, sendCanvasSync } = usePresence(workspaceId, handleRemoteNodeMove, handleRemoteCanvasSync);
     const lastCursorSent = useRef(0);
     const lastNodeMoveSent = useRef(0);
     const canvasWrapperRef = useRef<HTMLDivElement>(null);
@@ -407,7 +407,7 @@ function WorkspaceView() {
             sync({ nodes, edges }, {
                 onSuccess: () => {
                     setSaveStatus('saved');
-                    sendCanvasSaved();
+                    sendCanvasSync(nodes, edges);
                 },
                 onError: (err: any) => {
                     setSaveStatus('offline_saved');

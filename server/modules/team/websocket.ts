@@ -18,7 +18,7 @@ interface PresenceUser {
 }
 
 interface ClientMessage {
-    type: "join" | "cursor" | "leave" | "node-move" | "canvas-saved";
+    type: "join" | "cursor" | "leave" | "node-move" | "canvas-sync";
     workspaceId?: number;
     x?: number;
     y?: number;
@@ -26,10 +26,12 @@ interface ClientMessage {
     nodeX?: number;
     nodeY?: number;
     parentId?: string | null;
+    nodes?: any[];
+    edges?: any[];
 }
 
 interface ServerMessage {
-    type: "presence" | "cursor" | "joined" | "left" | "error" | "node-move" | "canvas-saved";
+    type: "presence" | "cursor" | "joined" | "left" | "error" | "node-move" | "canvas-sync";
     [key: string]: any;
 }
 
@@ -250,11 +252,13 @@ export function initializeWebSocket(httpServer: HttpServer) {
                         break;
                     }
 
-                    case "canvas-saved": {
+                    case "canvas-sync": {
                         if (!currentUserId || !currentWorkspaceId) return;
                         broadcastToRoom(currentWorkspaceId, {
-                            type: "canvas-saved",
+                            type: "canvas-sync",
                             userId: currentUserId,
+                            nodes: msg.nodes,
+                            edges: msg.edges,
                         }, currentUserId);
                         break;
                     }

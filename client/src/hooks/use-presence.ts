@@ -10,7 +10,7 @@ export interface PresenceUser {
 }
 
 interface ServerMessage {
-  type: "presence" | "cursor" | "joined" | "left" | "error" | "node-move" | "canvas-saved";
+  type: "presence" | "cursor" | "joined" | "left" | "error" | "node-move" | "canvas-sync";
   users?: PresenceUser[];
   userId?: string;
   name?: string;
@@ -22,6 +22,8 @@ interface ServerMessage {
   nodeX?: number;
   nodeY?: number;
   parentId?: string | null;
+  nodes?: any[];
+  edges?: any[];
 }
 
 // ─── Hook ────────────────────────────────────────────────────────────
@@ -29,13 +31,13 @@ interface ServerMessage {
 export function usePresence(
   workspaceId: number | null,
   onNodeMove?: (nodeId: string, x: number, y: number, parentId?: string | null) => void,
-  onCanvasSaved?: () => void,
+  onCanvasSync?: (nodes: any[], edges: any[]) => void,
 ) {
   const wsRef = useRef<WebSocket | null>(null);
   const onNodeMoveRef = useRef(onNodeMove);
   onNodeMoveRef.current = onNodeMove;
-  const onCanvasSavedRef = useRef(onCanvasSaved);
-  onCanvasSavedRef.current = onCanvasSaved;
+  const onCanvasSyncRef = useRef(onCanvasSync);
+  onCanvasSyncRef.current = onCanvasSync;
   const [collaborators, setCollaborators] = useState<Map<string, PresenceUser>>(new Map());
   const [isConnected, setIsConnected] = useState(false);
   const reconnectTimer = useRef<ReturnType<typeof setTimeout>>();
@@ -130,8 +132,10 @@ export function usePresence(
             break;
           }
 
-          case "canvas-saved": {
-            onCanvasSavedRef.current?.();
+          case "canvas-sync": {
+            if (msg.nodes && msg.edges) {
+              onCanvasSyncRef.current?.(msg.nodes, msg.edges);
+            }
             break;
           }
         }
@@ -181,9 +185,9 @@ export function usePresence(
     }
   }, []);
 
-  const sendCanvasSaved = useCallback(() => {
+  const sendCanvasSync = useCallback((nodes: any[], edges: any[]) => {
     if (wsRef.current?.readyState === WebSocket.OPEN) {
-      wsRef.current.send(JSON.stringify({ type: "canvas-saved" }));
+      wsRef.current.send(JSON.stringify({ type: "canvas-sync", nodes, edges }));
     }
   }, []);
 
@@ -192,6 +196,6 @@ export function usePresence(
     isConnected,
     sendCursor,
     sendNodeMove,
-    sendCanvasSaved,
+    sendCanvasSync,
   };
 }

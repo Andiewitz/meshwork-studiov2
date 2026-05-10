@@ -6,7 +6,7 @@ import { describe, it, expect } from 'vitest';
 // we validate the protocol contracts and message parsing logic.
 
 interface ClientMessage {
-  type: 'join' | 'cursor' | 'leave' | 'node-move' | 'canvas-saved';
+  type: 'join' | 'cursor' | 'leave' | 'node-move' | 'canvas-sync';
   workspaceId?: number;
   x?: number;
   y?: number;
@@ -14,10 +14,12 @@ interface ClientMessage {
   nodeX?: number;
   nodeY?: number;
   parentId?: string | null;
+  nodes?: any[];
+  edges?: any[];
 }
 
 interface ServerMessage {
-  type: 'presence' | 'cursor' | 'joined' | 'left' | 'error' | 'node-move' | 'canvas-saved';
+  type: 'presence' | 'cursor' | 'joined' | 'left' | 'error' | 'node-move' | 'canvas-sync';
   [key: string]: any;
 }
 
@@ -61,10 +63,15 @@ describe('WebSocket Protocol (Unit)', () => {
       expect(msg.parentId).toBeNull();
     });
 
-    it('canvas-saved message has no payload', () => {
-      const msg: ClientMessage = { type: 'canvas-saved' };
-      expect(msg.type).toBe('canvas-saved');
-      expect(msg.workspaceId).toBeUndefined();
+    it('canvas-sync message carries nodes and edges', () => {
+      const msg: ClientMessage = {
+        type: 'canvas-sync',
+        nodes: [{ id: 'n1', position: { x: 0, y: 0 } }],
+        edges: [{ id: 'e1', source: 'n1', target: 'n2' }],
+      };
+      expect(msg.type).toBe('canvas-sync');
+      expect(msg.nodes).toHaveLength(1);
+      expect(msg.edges).toHaveLength(1);
     });
 
     it('leave message has no payload', () => {
@@ -77,7 +84,7 @@ describe('WebSocket Protocol (Unit)', () => {
         { type: 'join', workspaceId: 1 },
         { type: 'cursor', x: 10, y: 20 },
         { type: 'node-move', nodeId: 'n1', nodeX: 100, nodeY: 200, parentId: null },
-        { type: 'canvas-saved' },
+        { type: 'canvas-sync', nodes: [], edges: [] },
         { type: 'leave' },
       ];
 
@@ -127,13 +134,16 @@ describe('WebSocket Protocol (Unit)', () => {
       expect(msg.userId).toBe('u1');
     });
 
-    it('canvas-saved relay includes userId', () => {
+    it('canvas-sync relay includes userId and data', () => {
       const msg: ServerMessage = {
-        type: 'canvas-saved',
+        type: 'canvas-sync',
         userId: 'u1',
+        nodes: [{ id: 'n1' }],
+        edges: [],
       };
-      expect(msg.type).toBe('canvas-saved');
+      expect(msg.type).toBe('canvas-sync');
       expect(msg.userId).toBe('u1');
+      expect(msg.nodes).toHaveLength(1);
     });
 
     it('error message has message string', () => {
