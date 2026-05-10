@@ -3,6 +3,9 @@ import type { Server as HttpServer } from "http";
 import type { IncomingMessage } from "http";
 import cookie from "cookie";
 import { teamStorage } from "./storage";
+import { db } from "../workspace/db";
+import { sessions } from "@shared/schema";
+import { eq } from "drizzle-orm";
 
 // ─── Types ───────────────────────────────────────────────────────────
 
@@ -90,10 +93,6 @@ async function resolveSession(req: IncomingMessage): Promise<{ id: string; email
         const rawSid = sid.startsWith("s:") ? sid.slice(2).split(".")[0] : sid;
 
         // Read from pg sessions table directly
-        const { db } = await import("../workspace/db");
-        const { sessions } = await import("@shared/schema");
-        const { eq } = await import("drizzle-orm");
-
         const [session] = await db.select().from(sessions).where(eq(sessions.sid, rawSid));
         if (!session) return null;
 
@@ -150,37 +149,22 @@ export function initializeWebSocket(httpServer: HttpServer) {
                             return;
                         }
 
-                        // Verify user has access to this workspace (via team membership)
-                        const teamsWithAccess = await teamStorage.getTeamsForWorkspace(msg.workspaceId);
-                        let memberColor = "#FFFFFF";
-                        let hasAccess = false;
-
-                        for (const team of teamsWithAccess) {
-                            const isMember = await teamStorage.isTeamMember(team.id, user.id);
-                            if (isMember) {
-                                hasAccess = true;
-                                // Get their color
-                                const members = await teamStorage.getTeamMembers(team.id);
-                                const me = members.find((m) => m.userId === user.id);
-                                if (me) memberColor = me.color;
-                                break;
-                            }
-                        }
-
-                        if (!hasAccess) {
-                            // Check if they are the owner directly (fallback if not in teamWorkspaces but they own it)
-                            const { workspaceStorage } = await import("../workspace/storage");
-                            const wsObj = await workspaceStorage.getWorkspace(msg.workspaceId);
-                            if (wsObj?.userId === user.id) {
-                                hasAccess = true;
-                                memberColor = "#FF6600"; // Default owner color
-                            }
-                        }
+                        // Verify user has access to this workspace
+                        const hasAccess = await teamStorage.canAccessWorkspace(user.id, msg.workspaceId);
 
                         if (!hasAccess) {
                             ws.send(JSON.stringify({ type: "error", message: "No access to this workspace" }));
                             ws.close();
                             return;
+                        }
+
+                        // Get their cursor color from the first team with this workspace
+                        let memberColor = "#FF6600"; // Default owner color
+                        const teamsWithAccess = await teamStorage.getTeamsForWorkspace(msg.workspaceId);
+                        for (const team of teamsWithAccess) {
+                            const members = await teamStorage.getTeamMembers(team.id);
+                            const me = members.find((m) => m.userId === user.id);
+                            if (me) { memberColor = me.color; break; }
                         }
 
                         // Remove from previous room if re-joining

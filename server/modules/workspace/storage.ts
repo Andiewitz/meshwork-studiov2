@@ -79,18 +79,19 @@ export class WorkspaceDatabaseStorage implements IWorkspaceStorage {
             sharedWorkspaceIds = shared.map(s => s.workspaceId);
         }
 
-        // 3. Query workspaces owned by user OR shared with their teams
-        const baseQuery = collectionId
-            ? eq(workspaces.collectionId, collectionId)
-            : isNull(workspaces.collectionId);
+        // 3. Build query: owned workspaces respect collection filter,
+        //    shared workspaces always appear at root level (no collection filter)
+        const ownedQuery = collectionId
+            ? and(eq(workspaces.userId, userId), eq(workspaces.collectionId, collectionId))
+            : and(eq(workspaces.userId, userId), isNull(workspaces.collectionId));
 
-        const authQuery = sharedWorkspaceIds.length > 0
-            ? or(eq(workspaces.userId, userId), inArray(workspaces.id, sharedWorkspaceIds))
-            : eq(workspaces.userId, userId);
+        const fullQuery = sharedWorkspaceIds.length > 0 && !collectionId
+            ? or(ownedQuery, inArray(workspaces.id, sharedWorkspaceIds))
+            : ownedQuery;
 
         return await db.select()
             .from(workspaces)
-            .where(and(baseQuery, authQuery))
+            .where(fullQuery!)
             .orderBy(desc(workspaces.createdAt));
     }
 

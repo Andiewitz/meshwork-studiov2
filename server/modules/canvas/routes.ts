@@ -52,6 +52,12 @@ export function registerCanvasRoutes(app: Express) {
         const hasAccess = await teamStorage.canAccessWorkspace(userId, workspace.id);
         if (!hasAccess) return res.status(401).json({ message: "Unauthorized" });
 
+        // Validate destination workspace — must be owned by the user
+        const destWorkspace = await workspaceStorage.getWorkspace(toWorkspaceId);
+        if (!destWorkspace || destWorkspace.userId !== userId) {
+            return res.status(403).json({ message: "Cannot write to destination workspace" });
+        }
+
         await canvasStorage.duplicateCanvas(id, toWorkspaceId);
         res.json({ success: true });
     });

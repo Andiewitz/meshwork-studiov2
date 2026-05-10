@@ -14,9 +14,25 @@ import {
   Share2,
   ExternalLink,
   Shield,
-  Palette,
   Calendar,
+  UserMinus,
+  Loader2,
+  Box,
+  Server,
+  Globe,
+  Database,
+  GitBranch,
+  Zap,
+  Cpu,
+  Network,
+  Cloud,
+  Lock,
+  BarChart3,
+  Code2,
+  Wifi,
+  LayoutGrid,
 } from "lucide-react";
+import type { LucideIcon } from "lucide-react";
 import { useAuth } from "@/hooks/use-auth";
 import {
   useTeams,
@@ -31,6 +47,25 @@ import {
 } from "@/hooks/use-teams";
 import { useWorkspaces } from "@/hooks/use-workspaces";
 import { useToast } from "@/hooks/use-toast";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
+
+const ICON_MAP: Record<string, LucideIcon> = {
+  server: Server, globe: Globe, box: Box, database: Database, shield: Shield,
+  git: GitBranch, zap: Zap, cpu: Cpu, network: Network, cloud: Cloud,
+  lock: Lock, chart: BarChart3, code: Code2, wifi: Wifi, grid: LayoutGrid,
+};
+function getWsIcon(iconId?: string | null): LucideIcon {
+  return ICON_MAP[iconId || "box"] || Box;
+}
 
 const containerVariants = {
   hidden: { opacity: 0 },
@@ -63,8 +98,11 @@ export default function Team() {
   const [selectedTeamId, setSelectedTeamId] = useState<string | null>(null);
   const [copiedCode, setCopiedCode] = useState<string | null>(null);
   const [showCreateForm, setShowCreateForm] = useState(false);
+  const [confirmAction, setConfirmAction] = useState<{
+    title: string; description: string; action: () => Promise<void>;
+  } | null>(null);
 
-  const { data: teamDetail } = useTeam(selectedTeamId);
+  const { data: teamDetail, isLoading: isDetailLoading } = useTeam(selectedTeamId);
   const { data: teamWorkspaces } = useTeamWorkspaces(selectedTeamId);
 
   const handleCreateTeam = async () => {
@@ -108,6 +146,7 @@ export default function Team() {
   };
 
   return (
+    <>
     <motion.div
       key="team"
       initial="hidden"
@@ -136,7 +175,7 @@ export default function Team() {
             className="group flex items-center gap-3 px-6 py-3 bg-white text-black font-headline font-bold text-xs uppercase tracking-widest rounded-2xl hover:bg-primary transition-all duration-300"
           >
             <Plus className="w-4 h-4 transition-transform group-hover:rotate-90" />
-            Establish Team
+            New Team
           </button>
         </div>
       </motion.div>
@@ -155,7 +194,7 @@ export default function Team() {
               
               <h3 className="text-sm font-bold uppercase tracking-[0.2em] text-white/60 mb-6 font-headline flex items-center gap-2">
                 <Shield className="w-4 h-4 text-primary" />
-                Initialize New Workspace Collective
+                Create a New Team
               </h3>
               
               <div className="flex flex-col sm:flex-row gap-4 relative z-10">
@@ -186,7 +225,7 @@ export default function Team() {
           {/* Join Portal */}
           <motion.div variants={fadeUpVariants} className="glass-card rounded-[2rem] p-7 bg-white/[0.01]">
             <h3 className="text-[10px] font-black uppercase tracking-[0.3em] text-white/30 mb-5 font-headline">
-              Infiltration Portal
+              Join a Team
             </h3>
             <div className="relative group">
               <input
@@ -210,7 +249,7 @@ export default function Team() {
           {/* Collectives List */}
           <div className="space-y-4">
              <h3 className="text-[10px] font-black uppercase tracking-[0.3em] text-white/30 pl-4 font-headline">
-              Your Collectives
+              Your Teams
             </h3>
             
             {isLoading ? (
@@ -221,8 +260,8 @@ export default function Team() {
             ) : !teams || teams.length === 0 ? (
               <motion.div variants={fadeUpVariants} className="glass-card rounded-[2rem] p-10 text-center border-dashed border-white/5 bg-transparent">
                 <Users className="w-10 h-10 text-white/5 mx-auto mb-4" />
-                <p className="text-white/20 text-sm font-medium">Isolation detected.</p>
-                <p className="text-white/10 text-[10px] mt-2 uppercase tracking-widest">Initialize or infiltrate a team.</p>
+                <p className="text-white/20 text-sm font-medium">No teams yet.</p>
+                <p className="text-white/10 text-[10px] mt-2 uppercase tracking-widest">Create or join a team to start.</p>
               </motion.div>
             ) : (
               teams.map((team) => (
@@ -243,7 +282,7 @@ export default function Team() {
                       </h4>
                       <div className="flex items-center gap-2 mt-1">
                         <span className="text-[10px] text-white/20 font-bold uppercase tracking-widest">
-                          {team.memberCount} Entit{team.memberCount !== 1 ? "ies" : "y"}
+                          {team.memberCount} member{team.memberCount !== 1 ? "s" : ""}
                         </span>
                         {team.ownerId === user?.id && (
                           <div className="w-1 h-1 rounded-full bg-primary" />
@@ -282,7 +321,18 @@ export default function Team() {
         {/* ─── Right Sidebar: Detail & Assets ────────────────────────── */}
         <div className="lg:col-span-8">
           <AnimatePresence mode="wait">
-            {selectedTeamId && teamDetail ? (
+            {selectedTeamId && isDetailLoading ? (
+              <motion.div key="loading" initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="glass-card rounded-[2.5rem] p-10 bg-white/[0.01] space-y-6">
+                <div className="h-8 w-48 bg-white/5 rounded-xl animate-pulse" />
+                <div className="flex gap-4">
+                  <div className="h-5 w-24 bg-white/5 rounded-full animate-pulse" />
+                  <div className="h-5 w-20 bg-white/5 rounded-full animate-pulse" />
+                </div>
+                <div className="grid grid-cols-2 gap-4 mt-8">
+                  {[1,2,3,4].map(i => <div key={i} className="h-20 bg-white/[0.02] rounded-2xl animate-pulse" />)}
+                </div>
+              </motion.div>
+            ) : selectedTeamId && teamDetail ? (
               <motion.div
                 key={selectedTeamId}
                 initial={{ opacity: 0, x: 20 }}
@@ -336,15 +386,20 @@ export default function Team() {
                       <button
                         onClick={() => {
                           const isOwner = teamDetail.ownerId === user?.id;
-                          const msg = isOwner ? "Dissolve this collective? This action is irreversible." : "Depart from this collective?";
-                          if (confirm(msg)) {
-                            if (isOwner) deleteTeam.mutate(selectedTeamId);
-                            else leaveTeam.mutate({ teamId: selectedTeamId, userId: user!.id });
-                            setSelectedTeamId(null);
-                          }
+                          setConfirmAction({
+                            title: isOwner ? "Delete this team?" : "Leave this team?",
+                            description: isOwner
+                              ? "This will permanently delete the team, remove all members, and unshare all workspaces. This cannot be undone."
+                              : "You will lose access to all workspaces shared with this team.",
+                            action: async () => {
+                              if (isOwner) await deleteTeam.mutateAsync(selectedTeamId);
+                              else await leaveTeam.mutateAsync({ teamId: selectedTeamId, userId: user!.id });
+                              setSelectedTeamId(null);
+                            },
+                          });
                         }}
                         className="w-10 h-10 flex items-center justify-center bg-white/[0.03] border border-white/5 rounded-2xl text-red-400/30 hover:text-red-400 hover:bg-red-400/10 hover:border-red-400/30 transition-all"
-                        title={teamDetail.ownerId === user?.id ? "Dissolve Team" : "Depart Team"}
+                        title={teamDetail.ownerId === user?.id ? "Delete Team" : "Leave Team"}
                       >
                         {teamDetail.ownerId === user?.id ? <Trash2 className="w-4 h-4" /> : <LogOut className="w-4 h-4" />}
                       </button>
@@ -355,7 +410,7 @@ export default function Team() {
                   <div>
                     <h4 className="text-[10px] font-black uppercase tracking-[0.3em] text-white/20 mb-6 font-headline flex items-center gap-2">
                       <Users className="w-3.5 h-3.5" />
-                      Active Personnel
+                      Members
                     </h4>
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                       {teamDetail.members.map((member) => (
@@ -389,9 +444,26 @@ export default function Team() {
                             <p className="text-[10px] text-white/25 truncate font-mono uppercase tracking-wider">{member.role}</p>
                           </div>
                           
-                          {member.role === "owner" && (
+                          {member.role === "owner" ? (
                             <Crown className="w-3.5 h-3.5 text-primary/40" />
-                          )}
+                          ) : teamDetail.ownerId === user?.id && member.userId !== user?.id ? (
+                            <button
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                setConfirmAction({
+                                  title: `Remove ${member.firstName || member.email.split("@")[0]}?`,
+                                  description: "They will lose access to all workspaces shared with this team.",
+                                  action: async () => {
+                                    await leaveTeam.mutateAsync({ teamId: selectedTeamId!, userId: member.userId });
+                                  },
+                                });
+                              }}
+                              className="p-1.5 rounded-lg text-white/10 hover:text-red-400 hover:bg-red-400/10 transition-all opacity-0 group-hover:opacity-100"
+                              title="Remove member"
+                            >
+                              <UserMinus className="w-3.5 h-3.5" />
+                            </button>
+                          ) : null}
                         </div>
                       ))}
                     </div>
@@ -403,7 +475,7 @@ export default function Team() {
                   <div className="flex items-center justify-between mb-8">
                     <h4 className="text-[10px] font-black uppercase tracking-[0.3em] text-white/20 font-headline flex items-center gap-2">
                       <Share2 className="w-3.5 h-3.5" />
-                      Shared Infrastructure
+                      Shared Workspaces
                     </h4>
                   </div>
 
@@ -416,9 +488,11 @@ export default function Team() {
                               <ExternalLink className="w-4 h-4 text-primary" />
                             </div>
                             
-                            <div className="w-10 h-10 rounded-xl bg-white/5 flex items-center justify-center mb-4 group-hover:scale-110 transition-transform duration-500">
-                               <Plus className="w-4 h-4 text-white/20" />
-                            </div>
+                            {(() => { const WsIcon = getWsIcon(ws.icon); return (
+                              <div className="w-10 h-10 rounded-xl bg-white/5 flex items-center justify-center mb-4 group-hover:scale-110 transition-transform duration-500">
+                                <WsIcon className="w-4 h-4 text-white/20 group-hover:text-primary transition-colors" />
+                              </div>
+                            ); })()}
                             
                             <h5 className="text-base font-headline font-bold text-white group-hover:text-primary transition-colors truncate pr-6">
                               {ws.title}
@@ -433,7 +507,7 @@ export default function Team() {
                   ) : (
                     <div className="py-12 text-center border-2 border-dashed border-white/5 rounded-[2rem] mb-8">
                       <Share2 className="w-8 h-8 text-white/[0.03] mx-auto mb-3" />
-                      <p className="text-white/10 text-xs font-bold uppercase tracking-widest">No infrastructure shared yet</p>
+                      <p className="text-white/10 text-xs font-bold uppercase tracking-widest">No workspaces shared yet</p>
                     </div>
                   )}
 
@@ -442,12 +516,11 @@ export default function Team() {
                     <div className="pt-8 border-t border-white/5">
                       <h5 className="text-[10px] font-black uppercase tracking-[0.2em] text-white/15 mb-6 font-headline flex items-center gap-2">
                         <Plus className="w-3 h-3" />
-                        Deploy to Collective
+                        Share a Workspace
                       </h5>
                       <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
                         {workspaces
                           .filter((ws: any) => !teamWorkspaces?.some((tw) => tw.id === ws.id))
-                          .slice(0, 6)
                           .map((ws: any) => (
                             <button
                               key={ws.id}
@@ -492,5 +565,38 @@ export default function Team() {
         </div>
       </div>
     </motion.div>
+
+    {/* ─── Destructive Action Confirm Dialog ─── */}
+    <AlertDialog open={!!confirmAction} onOpenChange={(open) => { if (!open) setConfirmAction(null); }}>
+      <AlertDialogContent className="bg-[#0f0f12] border border-white/10 rounded-3xl shadow-2xl max-w-md">
+        <AlertDialogHeader>
+          <AlertDialogTitle className="text-white text-lg font-headline font-bold">
+            {confirmAction?.title}
+          </AlertDialogTitle>
+          <AlertDialogDescription className="text-white/40 text-sm">
+            {confirmAction?.description}
+          </AlertDialogDescription>
+        </AlertDialogHeader>
+        <AlertDialogFooter className="gap-3">
+          <AlertDialogCancel className="bg-white/5 border-white/10 text-white/60 hover:bg-white/10 hover:text-white rounded-xl">
+            Cancel
+          </AlertDialogCancel>
+          <AlertDialogAction
+            onClick={async () => {
+              try {
+                await confirmAction?.action();
+                setConfirmAction(null);
+              } catch (err) {
+                toast({ title: "Error", description: err instanceof Error ? err.message : "Action failed", variant: "destructive" });
+              }
+            }}
+            className="bg-red-500/20 border border-red-500/30 text-red-400 hover:bg-red-500/30 rounded-xl"
+          >
+            Confirm
+          </AlertDialogAction>
+        </AlertDialogFooter>
+      </AlertDialogContent>
+    </AlertDialog>
+    </>
   );
 }

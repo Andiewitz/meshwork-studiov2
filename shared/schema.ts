@@ -1,4 +1,4 @@
-import { pgTable, text, serial, timestamp, integer, jsonb, varchar, index, boolean, primaryKey } from "drizzle-orm/pg-core";
+import { pgTable, text, serial, timestamp, integer, jsonb, varchar, index, uniqueIndex, boolean, primaryKey } from "drizzle-orm/pg-core";
 import { createInsertSchema } from "drizzle-zod";
 import { z } from "zod";
 import { sql } from "drizzle-orm";
@@ -140,6 +140,7 @@ export const teamMembers = pgTable("team_members", {
 }, (table) => [
   index("IDX_team_members_team_id").on(table.teamId),
   index("IDX_team_members_user_id").on(table.userId),
+  uniqueIndex("UQ_team_members_team_user").on(table.teamId, table.userId),
 ]);
 
 // Junction table: which workspaces are shared with a team.
@@ -151,6 +152,7 @@ export const teamWorkspaces = pgTable("team_workspaces", {
 }, (table) => [
   index("IDX_team_workspaces_team_id").on(table.teamId),
   index("IDX_team_workspaces_workspace_id").on(table.workspaceId),
+  uniqueIndex("UQ_team_workspaces_team_ws").on(table.teamId, table.workspaceId),
 ]);
 
 // 12 high-contrast cursor colors. Owner always gets index 0 (brand orange).

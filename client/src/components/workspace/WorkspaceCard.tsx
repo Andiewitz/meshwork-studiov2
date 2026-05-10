@@ -23,6 +23,7 @@ import {
   BarChart3,
   Code2,
   Wifi,
+  Users,
 } from "lucide-react";
 import {
   DropdownMenu,
@@ -39,6 +40,7 @@ import {
 import { useLocation } from "wouter";
 import { useState, useRef, useEffect } from "react";
 import { useUpdateWorkspace, useDuplicateWorkspace } from "@/hooks/use-workspaces";
+import { useAuth } from "@/hooks/use-auth";
 import { useToast } from "@/hooks/use-toast";
 import type { LucideIcon } from "lucide-react";
 import { cn } from "@/lib/utils";
@@ -86,8 +88,10 @@ export function WorkspaceCard({
 }: WorkspaceCardProps) {
   const [, setLocation] = useLocation();
   const { toast } = useToast();
+  const { user } = useAuth();
   const updateWorkspace = useUpdateWorkspace();
   const duplicateWorkspace = useDuplicateWorkspace();
+  const isShared = workspace.userId !== null && user?.id !== undefined && workspace.userId !== user.id;
 
   const [isRenaming, setIsRenaming] = useState(false);
   const [title, setTitle] = useState(workspace.title);
@@ -142,16 +146,22 @@ export function WorkspaceCard({
       <DropdownMenuItem onClick={() => setLocation(`/workspace/${workspace.id}`)} className="cursor-figma-pointer focus:bg-surface-container-high focus:text-primary">
         <ExternalLink className="w-4 h-4 mr-2" /> Open
       </DropdownMenuItem>
-      <DropdownMenuItem onClick={(e) => { e.stopPropagation(); setIsRenaming(true); }} className="cursor-figma-pointer focus:bg-surface-container-high focus:text-white">
-        <Pencil className="w-4 h-4 mr-2" /> Rename
-      </DropdownMenuItem>
+      {!isShared && (
+        <DropdownMenuItem onClick={(e) => { e.stopPropagation(); setIsRenaming(true); }} className="cursor-figma-pointer focus:bg-surface-container-high focus:text-white">
+          <Pencil className="w-4 h-4 mr-2" /> Rename
+        </DropdownMenuItem>
+      )}
       <DropdownMenuItem onClick={(e) => { e.stopPropagation(); handleDuplicate(); }} className="cursor-figma-pointer focus:bg-surface-container-high focus:text-white">
         <Copy className="w-4 h-4 mr-2" /> Duplicate
       </DropdownMenuItem>
-      <DropdownMenuSeparator className="bg-outline-variant/20" />
-      <DropdownMenuItem onClick={(e) => { e.stopPropagation(); onDelete?.(workspace.id); }} className="text-error focus:bg-error/10 focus:text-error cursor-figma-pointer">
-        <Trash className="w-4 h-4 mr-2" /> Delete
-      </DropdownMenuItem>
+      {!isShared && (
+        <>
+          <DropdownMenuSeparator className="bg-outline-variant/20" />
+          <DropdownMenuItem onClick={(e) => { e.stopPropagation(); onDelete?.(workspace.id); }} className="text-error focus:bg-error/10 focus:text-error cursor-figma-pointer">
+            <Trash className="w-4 h-4 mr-2" /> Delete
+          </DropdownMenuItem>
+        </>
+      )}
     </>
   );
 
@@ -185,18 +195,28 @@ export function WorkspaceCard({
                <Icon className="w-10 h-10 text-outline group-hover:text-primary transition-colors duration-500 group-hover:scale-110" />
              </div>
 
+             {/* Shared badge — top left of thumbnail */}
+             {isShared && (
+               <div className="absolute top-3 left-3 z-20 flex items-center gap-1 px-2 py-0.5 rounded-full bg-blue-500/20 border border-blue-400/30 backdrop-blur-sm">
+                 <Users className="w-3 h-3 text-blue-400" />
+                 <span className="text-[9px] font-bold text-blue-400 uppercase tracking-widest">Shared</span>
+               </div>
+             )}
+
              {/* Favorite star — top right of thumbnail */}
-             <button
-               onClick={handleToggleFavorite}
-               className={cn(
-                 "absolute top-3 right-3 w-7 h-7 flex items-center justify-center rounded-full transition-all duration-200 z-20",
-                 workspace.isFavorite
-                   ? "text-yellow-400 drop-shadow-[0_0_8px_rgba(250,204,21,0.4)]"
-                   : "text-white/20 opacity-0 group-hover:opacity-100 hover:text-white/60"
-               )}
-             >
-               <Star className={cn("w-4 h-4", workspace.isFavorite && "fill-current")} />
-             </button>
+             {!isShared && (
+               <button
+                 onClick={handleToggleFavorite}
+                 className={cn(
+                   "absolute top-3 right-3 w-7 h-7 flex items-center justify-center rounded-full transition-all duration-200 z-20",
+                   workspace.isFavorite
+                     ? "text-yellow-400 drop-shadow-[0_0_8px_rgba(250,204,21,0.4)]"
+                     : "text-white/20 opacity-0 group-hover:opacity-100 hover:text-white/60"
+                 )}
+               >
+                 <Star className={cn("w-4 h-4", workspace.isFavorite && "fill-current")} />
+               </button>
+             )}
           </div>
 
           <div className={cn(

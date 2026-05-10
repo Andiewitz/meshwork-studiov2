@@ -1,6 +1,7 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { secureFetch } from "../lib/secure-fetch";
 import { useAuth } from "./use-auth";
+import { api } from "@shared/routes";
 import type { Team, TeamMember, Workspace } from "@shared/schema";
 
 const API_BASE_URL = import.meta.env.VITE_API_URL || "";
@@ -112,6 +113,7 @@ export function useJoinTeam() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/teams"] });
+      queryClient.invalidateQueries({ queryKey: [api.workspaces.list.path] });
     },
   });
 }
@@ -132,6 +134,7 @@ export function useLeaveTeam() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/teams"] });
+      queryClient.invalidateQueries({ queryKey: [api.workspaces.list.path] });
     },
   });
 }
@@ -152,6 +155,7 @@ export function useDeleteTeam() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/teams"] });
+      queryClient.invalidateQueries({ queryKey: [api.workspaces.list.path] });
     },
   });
 }
@@ -175,6 +179,7 @@ export function useShareWorkspace() {
     },
     onSuccess: (_, { teamId }) => {
       queryClient.invalidateQueries({ queryKey: ["/api/teams", teamId, "workspaces"] });
+      queryClient.invalidateQueries({ queryKey: [api.workspaces.list.path] });
     },
   });
 }

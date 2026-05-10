@@ -1,5 +1,6 @@
 import type { Express } from "express";
 import { teamStorage } from "./storage";
+import { workspaceStorage } from "../workspace/storage";
 import { AuthModule } from "../auth";
 import { joinTeamSchema } from "@shared/schema";
 import { csrfProtection } from "../../middleware/csrf";
@@ -99,6 +100,12 @@ export function registerTeamRoutes(app: Express) {
             const isMember = await teamStorage.isTeamMember(teamId, userId);
             if (!isMember) return res.status(403).json({ message: "Not a member" });
 
+            // Only the workspace owner can share it
+            const ws = await workspaceStorage.getWorkspace(workspaceId);
+            if (!ws || ws.userId !== userId) {
+                return res.status(403).json({ message: "You can only share workspaces you own" });
+            }
+
             const tw = await teamStorage.shareWorkspace(teamId, workspaceId);
             res.status(201).json(tw);
         } catch (err) {
@@ -126,6 +133,13 @@ export function registerTeamRoutes(app: Express) {
 
         const isMember = await teamStorage.isTeamMember(teamId, userId);
         if (!isMember) return res.status(403).json({ message: "Not a member" });
+
+        // Only workspace owner or team owner can unshare
+        const ws = await workspaceStorage.getWorkspace(workspaceId);
+        const isOwner = await teamStorage.isTeamOwner(teamId, userId);
+        if (ws?.userId !== userId && !isOwner) {
+            return res.status(403).json({ message: "Only the workspace owner or team owner can unshare" });
+        }
 
         await teamStorage.unshareWorkspace(teamId, workspaceId);
         res.status(204).send();

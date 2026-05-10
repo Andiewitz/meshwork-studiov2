@@ -103,17 +103,21 @@ export class TeamDatabaseStorage implements ITeamStorage {
             .from(teams)
             .where(inArray(teams.id, teamIds));
 
-        // Get member counts
-        const results: (Team & { memberCount: number })[] = [];
-        for (const team of teamsList) {
-            const members = await db
-                .select()
-                .from(teamMembers)
-                .where(eq(teamMembers.teamId, team.id));
-            results.push({ ...team, memberCount: members.length });
+        // Get all member counts in one query instead of N+1
+        const counts = await db
+            .select({ teamId: teamMembers.teamId })
+            .from(teamMembers)
+            .where(inArray(teamMembers.teamId, teamIds));
+
+        const countMap = new Map<string, number>();
+        for (const c of counts) {
+            countMap.set(c.teamId, (countMap.get(c.teamId) || 0) + 1);
         }
 
-        return results;
+        return teamsList.map(team => ({
+            ...team,
+            memberCount: countMap.get(team.id) || 0,
+        }));
     }
 
     async getTeam(teamId: string): Promise<Team | undefined> {

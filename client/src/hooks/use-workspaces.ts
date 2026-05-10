@@ -80,15 +80,6 @@ export function useUpdateWorkspace() {
 
   return useMutation({
     mutationFn: async ({ id, ...updates }: { id: number } & UpdateWorkspaceRequest) => {
-      // Dev mode: optimistic update on mock data, skip server call
-      if (import.meta.env.DEV) {
-        queryClient.setQueryData([api.workspaces.list.path], (old: any[]) => {
-          if (!old) return old;
-          return old.map((ws: any) => ws.id === id ? { ...ws, ...updates } : ws);
-        });
-        return { id, ...updates } as any;
-      }
-
       const url = buildUrl(api.workspaces.update.path, { id });
       const res = await secureFetch(getApiUrl(url), {
         method: api.workspaces.update.method,
@@ -101,9 +92,7 @@ export function useUpdateWorkspace() {
       return api.workspaces.update.responses[200].parse(await res.json());
     },
     onSuccess: () => {
-      if (!import.meta.env.DEV) {
-        queryClient.invalidateQueries({ queryKey: [api.workspaces.list.path] });
-      }
+      queryClient.invalidateQueries({ queryKey: [api.workspaces.list.path] });
     },
   });
 }
