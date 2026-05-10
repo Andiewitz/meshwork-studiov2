@@ -216,4 +216,30 @@ export function registerTeamRoutes(app: Express) {
         const role = await teamStorage.getWorkspaceRole(workspaceId, userId);
         res.json({ role: role || 'none' });
     });
+
+    // ── Get all members for a workspace (via its team) ──────────────
+    app.get("/api/workspaces/:id/members", isAuthenticated, async (req, res) => {
+        const workspaceId = Number(req.params.id);
+        const userId = req.user!.id;
+
+        if (isNaN(workspaceId)) return res.status(400).json({ message: "Invalid workspace ID" });
+
+        // Check user has access
+        const hasAccess = await teamStorage.canAccessWorkspace(userId, workspaceId);
+        // Also check if user owns the workspace directly
+        const ws = await workspaceStorage.getWorkspace(workspaceId);
+        if (!hasAccess && ws?.userId !== userId) {
+            return res.status(403).json({ message: "No access to this workspace" });
+        }
+
+        // Find which team shares this workspace
+        const teams = await teamStorage.getTeamsForWorkspace(workspaceId);
+        if (teams.length === 0) {
+            return res.json({ teamId: null, members: [] });
+        }
+
+        const team = teams[0]; // Use the first team
+        const members = await teamStorage.getTeamMembers(team.id);
+        res.json({ teamId: team.id, members });
+    });
 }

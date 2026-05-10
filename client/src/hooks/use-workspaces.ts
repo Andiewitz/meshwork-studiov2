@@ -154,3 +154,51 @@ export function useWorkspaceRole(workspaceId: number | null) {
     enabled: !!workspaceId,
   });
 }
+
+// Hook to fetch all members for a workspace (via its team)
+export interface WorkspaceMember {
+  id: string;
+  userId: string;
+  email: string;
+  firstName: string | null;
+  profileImageUrl: string | null;
+  role: string;
+  color: string;
+}
+
+export function useWorkspaceMembers(workspaceId: number | null) {
+  return useQuery<{ teamId: string | null; members: WorkspaceMember[] }>({
+    queryKey: ['workspace-members', workspaceId],
+    queryFn: async () => {
+      const res = await fetch(getApiUrl(`/api/workspaces/${workspaceId}/members`), { credentials: "include" });
+      if (!res.ok) return { teamId: null, members: [] };
+      return res.json();
+    },
+    enabled: !!workspaceId,
+  });
+}
+
+// Hook to update a member's role
+export function useUpdateMemberRole() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async ({ teamId, userId, role }: { teamId: string; userId: string; role: string }) => {
+      const res = await secureFetch(getApiUrl(`/api/teams/${teamId}/members/${userId}/role`), {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ role }),
+        credentials: 'include',
+      });
+      if (!res.ok) {
+        const err = await res.json().catch(() => ({ message: 'Failed' }));
+        throw new Error(err.message);
+      }
+      return res.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['workspace-members'] });
+      queryClient.invalidateQueries({ queryKey: ['workspace-role'] });
+    },
+  });
+}
