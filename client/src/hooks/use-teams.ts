@@ -38,6 +38,7 @@ export function useTeams() {
       return res.json();
     },
     enabled: isAuthenticated,
+    refetchInterval: 5000,
   });
 }
 
@@ -52,6 +53,7 @@ export function useTeam(teamId: string | null) {
       return res.json();
     },
     enabled: isAuthenticated && !!teamId,
+    refetchInterval: 5000,
   });
 }
 
@@ -66,6 +68,7 @@ export function useTeamWorkspaces(teamId: string | null) {
       return res.json();
     },
     enabled: isAuthenticated && !!teamId,
+    refetchInterval: 5000,
   });
 }
 
