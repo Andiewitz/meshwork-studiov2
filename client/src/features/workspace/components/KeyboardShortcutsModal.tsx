@@ -1,4 +1,5 @@
 import React from 'react';
+import { createPortal } from 'react-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { X, Keyboard } from 'lucide-react';
 import { getShortcutsByCategory, SHORTCUT_CATEGORIES } from '../utils/shortcuts';
@@ -26,7 +27,7 @@ export function KeyboardShortcutsModal({ open, onClose }: KeyboardShortcutsModal
         return () => window.removeEventListener('keydown', handler);
     }, [open, onClose]);
 
-    return (
+    return createPortal(
         <AnimatePresence>
             {open && (
                 <>
@@ -93,6 +94,7 @@ export function KeyboardShortcutsModal({ open, onClose }: KeyboardShortcutsModal
                     </motion.div>
                 </>
             )}
-        </AnimatePresence>
+        </AnimatePresence>,
+        document.body
     );
 }

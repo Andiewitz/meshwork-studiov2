@@ -256,6 +256,7 @@ function WorkspaceView() {
     // ── Keyboard shortcuts modal + fullscreen ──
     const [shortcutsOpen, setShortcutsOpen] = useState(false);
     const [isFullscreen, setIsFullscreen] = useState(false);
+    const [menuOpen, setMenuOpen] = useState(false);
 
     const handleToggleFullscreen = useCallback(() => {
         if (!document.fullscreenElement) {
@@ -1105,7 +1106,7 @@ function WorkspaceView() {
                                         transition={{ duration: 0.5, ease: [0.16, 1, 0.3, 1] }}
                                         className="flex items-center gap-1.5 px-1.5 py-1.5 rounded-xl bg-[#121214]/80 backdrop-blur-xl border border-white/[0.08] shadow-[inset_0_1px_0_rgba(255,255,255,0.1),0_4px_12px_rgba(0,0,0,0.5)]"
                                     >
-                                        <Popover>
+                                        <Popover open={menuOpen} onOpenChange={setMenuOpen}>
                                             <PopoverTrigger asChild>
                                                 <button className="w-8 h-8 flex items-center justify-center rounded-lg text-white/40 hover:text-white/80 hover:bg-white/[0.07] transition-all" title="Menu">
                                                     <Menu className="w-4 h-4" />
@@ -1177,11 +1178,11 @@ function WorkspaceView() {
                                                 )}
                                                 <div className="h-px bg-white/[0.06] my-1" />
                                                 {/* ── View ── */}
-                                                <button onClick={handleToggleFullscreen} className="w-full flex items-center gap-2.5 px-3 py-2 rounded-lg text-[12px] text-white/60 hover:text-white hover:bg-white/[0.07] transition-all">
+                                                <button onClick={() => { setMenuOpen(false); handleToggleFullscreen(); }} className="w-full flex items-center gap-2.5 px-3 py-2 rounded-lg text-[12px] text-white/60 hover:text-white hover:bg-white/[0.07] transition-all">
                                                     {isFullscreen ? <Minimize2 className="w-3.5 h-3.5" /> : <Maximize2 className="w-3.5 h-3.5" />}
                                                     {isFullscreen ? 'Exit Fullscreen' : 'Fullscreen'}
                                                 </button>
-                                                <button onClick={() => setShortcutsOpen(true)} className="w-full flex items-center gap-2.5 px-3 py-2 rounded-lg text-[12px] text-white/60 hover:text-white hover:bg-white/[0.07] transition-all">
+                                                <button onClick={() => { setMenuOpen(false); setShortcutsOpen(true); }} className="w-full flex items-center gap-2.5 px-3 py-2 rounded-lg text-[12px] text-white/60 hover:text-white hover:bg-white/[0.07] transition-all">
                                                     <Keyboard className="w-3.5 h-3.5" />
                                                     Keyboard Shortcuts
                                                 </button>
