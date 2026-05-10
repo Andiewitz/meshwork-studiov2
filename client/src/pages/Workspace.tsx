@@ -131,7 +131,7 @@ import { calculateContainment, calculateGlobalPosition } from "@/features/worksp
 import { usePresence } from "@/hooks/use-presence";
 import { CollaboratorCursors, PresenceIndicator } from "@/components/canvas/CollaboratorCursors";
 import { exportAsPng, exportAsSvg, exportAsJson, importFromJson } from "@/features/workspace/utils/exportCanvas";
-import { KeyboardShortcutsModal } from "@/features/workspace/components/KeyboardShortcutsModal";
+
 import { EDGE_TYPES, EDGE_TYPE_LABELS, EDGE_STYLES, BG_VARIANTS, BG_VARIANT_LABELS, GRID_SIZE_MIN, GRID_SIZE_MAX, type EdgeType, type EdgeStyle, type BgVariant } from "@/features/workspace/utils/canvasSettings";
 
 function WorkspaceView() {
@@ -254,7 +254,6 @@ function WorkspaceView() {
     }, [teamId, toast]);
 
     // ── Keyboard shortcuts modal + fullscreen ──
-    const [shortcutsOpen, setShortcutsOpen] = useState(false);
     const [isFullscreen, setIsFullscreen] = useState(false);
     const [menuOpen, setMenuOpen] = useState(false);
 
@@ -277,7 +276,7 @@ function WorkspaceView() {
 
             if (e.key === '?') {
                 e.preventDefault();
-                setShortcutsOpen(prev => !prev);
+                setMenuOpen(prev => !prev);
             }
             if (e.key === 'F11') {
                 e.preventDefault();
@@ -1182,10 +1181,46 @@ function WorkspaceView() {
                                                     {isFullscreen ? <Minimize2 className="w-3.5 h-3.5" /> : <Maximize2 className="w-3.5 h-3.5" />}
                                                     {isFullscreen ? 'Exit Fullscreen' : 'Fullscreen'}
                                                 </button>
-                                                <button onClick={() => { setMenuOpen(false); setShortcutsOpen(true); }} className="w-full flex items-center gap-2.5 px-3 py-2 rounded-lg text-[12px] text-white/60 hover:text-white hover:bg-white/[0.07] transition-all">
-                                                    <Keyboard className="w-3.5 h-3.5" />
-                                                    Keyboard Shortcuts
-                                                </button>
+                                                {/* ── Keyboard Shortcuts (nested popover) ── */}
+                                                <Popover>
+                                                    <PopoverTrigger asChild>
+                                                        <button className="w-full flex items-center justify-between px-3 py-2 rounded-lg text-[12px] text-white/60 hover:text-white hover:bg-white/[0.07] transition-all">
+                                                            <span className="flex items-center gap-2.5"><Keyboard className="w-3.5 h-3.5" />Keyboard Shortcuts</span>
+                                                            <ChevronRight className="w-3 h-3 opacity-40" />
+                                                        </button>
+                                                    </PopoverTrigger>
+                                                    <PopoverContent className="w-64 p-2 bg-[#1A1A1A]/95 backdrop-blur-2xl border border-white/[0.08] rounded-xl shadow-[0_8px_32px_rgba(0,0,0,0.8)] z-[300] max-h-[70vh] overflow-y-auto" side="right" align="start" sideOffset={4} style={{ scrollbarWidth: 'none' }}>
+                                                        {(['Navigation', 'Editing', 'Canvas', 'View'] as const).map((category) => {
+                                                            const colors: Record<string, string> = { Navigation: 'text-blue-400', Editing: 'text-emerald-400', Canvas: 'text-amber-400', View: 'text-purple-400' };
+                                                            const shortcuts: Record<string, { key: string; label: string }[]> = {
+                                                                Navigation: [{ key: 'V', label: 'Select mode' }, { key: 'H', label: 'Pan mode' }, { key: 'A', label: 'Annotation' }, { key: 'I', label: 'Infrastructure' }],
+                                                                Editing: [{ key: 'Ctrl+Z', label: 'Undo' }, { key: 'Ctrl+Shift+Z', label: 'Redo' }, { key: 'Ctrl+S', label: 'Save' }, { key: 'Delete', label: 'Delete selected' }, { key: 'Ctrl+D', label: 'Duplicate' }, { key: 'Ctrl+A', label: 'Select all' }],
+                                                                Canvas: [{ key: 'Ctrl++', label: 'Zoom in' }, { key: 'Ctrl+-', label: 'Zoom out' }, { key: 'Ctrl+0', label: 'Fit view' }],
+                                                                View: [{ key: 'F11', label: 'Fullscreen' }, { key: '?', label: 'Shortcuts' }],
+                                                            };
+                                                            return (
+                                                                <div key={category} className="mb-2 last:mb-0">
+                                                                    <div className="px-2 py-1">
+                                                                        <span className={`text-[10px] font-bold uppercase tracking-widest ${colors[category]}`}>{category}</span>
+                                                                    </div>
+                                                                    {shortcuts[category].map((s) => (
+                                                                        <div key={s.key} className="flex items-center justify-between px-2 py-1 rounded-md hover:bg-white/[0.03]">
+                                                                            <span className="text-[11px] text-white/50">{s.label}</span>
+                                                                            <div className="flex items-center gap-0.5">
+                                                                                {s.key.split('+').map((k, i) => (
+                                                                                    <React.Fragment key={i}>
+                                                                                        {i > 0 && <span className="text-[9px] text-white/15">+</span>}
+                                                                                        <kbd className="px-1 py-0.5 rounded bg-white/[0.06] border border-white/[0.08] text-[9px] font-mono text-white/40 min-w-[18px] text-center">{k}</kbd>
+                                                                                    </React.Fragment>
+                                                                                ))}
+                                                                            </div>
+                                                                        </div>
+                                                                    ))}
+                                                                </div>
+                                                            );
+                                                        })}
+                                                    </PopoverContent>
+                                                </Popover>
                                                 {/* ── Canvas Settings (nested popover) ── */}
                                                 <Popover>
                                                     <PopoverTrigger asChild>
@@ -1759,7 +1794,7 @@ function WorkspaceView() {
                             </ReactFlow>
                         <MoshZoneOverlay />
                         <AiChatDrawer />
-                        <KeyboardShortcutsModal open={shortcutsOpen} onClose={() => setShortcutsOpen(false)} />
+
                     </motion.main>
 
                     {/* ── Right properties panel ── overlays canvas, z-40 above sidebar ── */}
