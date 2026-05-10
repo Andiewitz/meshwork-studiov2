@@ -19,6 +19,9 @@ const mockUnshareWorkspace = vi.fn();
 const mockGetTeamWorkspaces = vi.fn();
 const mockRegenerateInviteCode = vi.fn();
 const mockCanAccessWorkspace = vi.fn();
+const mockGetMemberRole = vi.fn();
+const mockUpdateMemberRole = vi.fn();
+const mockGetWorkspaceRole = vi.fn();
 
 vi.mock('@server/modules/team/storage', () => ({
   teamStorage: {
@@ -36,6 +39,9 @@ vi.mock('@server/modules/team/storage', () => ({
     getTeamWorkspaces: (...a: any[]) => mockGetTeamWorkspaces(...a),
     regenerateInviteCode: (...a: any[]) => mockRegenerateInviteCode(...a),
     canAccessWorkspace: (...a: any[]) => mockCanAccessWorkspace(...a),
+    getMemberRole: (...a: any[]) => mockGetMemberRole(...a),
+    updateMemberRole: (...a: any[]) => mockUpdateMemberRole(...a),
+    getWorkspaceRole: (...a: any[]) => mockGetWorkspaceRole(...a),
   }
 }));
 
@@ -306,6 +312,152 @@ describe('Team Routes - Full Coverage', () => {
       mockIsTeamMember.mockResolvedValue(false);
       const res = await request(app).get('/api/teams/t1/workspaces').set('x-test-user-id', 'hacker');
       expect(res.status).toBe(403);
+    });
+  });
+
+  // ─── Role Management ────────────────────────────────────────────
+
+  describe('PATCH /api/teams/:id/members/:userId/role', () => {
+    it('rejects unauthenticated requests', async () => {
+      const res = await request(app).patch('/api/teams/t1/members/u2/role').send({ role: 'editor' });
+      expect(res.status).toBe(401);
+    });
+
+    it('allows owner to change a member role to editor', async () => {
+      mockGetMemberRole.mockResolvedValueOnce('owner'); // actor
+      mockGetMemberRole.mockResolvedValueOnce('viewer'); // target
+      mockUpdateMemberRole.mockResolvedValue({ id: 'm1', teamId: 't1', userId: 'u2', role: 'editor' });
+      const res = await request(app)
+        .patch('/api/teams/t1/members/u2/role')
+        .set('x-test-user-id', 'u1')
+        .send({ role: 'editor' });
+      expect(res.status).toBe(200);
+      expect(res.body.role).toBe('editor');
+    });
+
+    it('allows owner to promote member to admin', async () => {
+      mockGetMemberRole.mockResolvedValueOnce('owner'); // actor
+      mockGetMemberRole.mockResolvedValueOnce('editor'); // target
+      mockUpdateMemberRole.mockResolvedValue({ id: 'm1', teamId: 't1', userId: 'u2', role: 'admin' });
+      const res = await request(app)
+        .patch('/api/teams/t1/members/u2/role')
+        .set('x-test-user-id', 'u1')
+        .send({ role: 'admin' });
+      expect(res.status).toBe(200);
+      expect(res.body.role).toBe('admin');
+    });
+
+    it('blocks admin from promoting to admin (only owner can)', async () => {
+      mockGetMemberRole.mockResolvedValueOnce('admin'); // actor is admin
+      const res = await request(app)
+        .patch('/api/teams/t1/members/u3/role')
+        .set('x-test-user-id', 'u2')
+        .send({ role: 'admin' });
+      expect(res.status).toBe(403);
+      expect(res.body.message).toMatch(/owner/);
+    });
+
+    it('allows admin to change member role to viewer', async () => {
+      mockGetMemberRole.mockResolvedValueOnce('admin'); // actor
+      mockGetMemberRole.mockResolvedValueOnce('editor'); // target
+      mockUpdateMemberRole.mockResolvedValue({ id: 'm1', teamId: 't1', userId: 'u3', role: 'viewer' });
+      const res = await request(app)
+        .patch('/api/teams/t1/members/u3/role')
+        .set('x-test-user-id', 'u2')
+        .send({ role: 'viewer' });
+      expect(res.status).toBe(200);
+      expect(res.body.role).toBe('viewer');
+    });
+
+    it('blocks editor from changing roles', async () => {
+      mockGetMemberRole.mockResolvedValueOnce('editor'); // actor
+      const res = await request(app)
+        .patch('/api/teams/t1/members/u3/role')
+        .set('x-test-user-id', 'u2')
+        .send({ role: 'viewer' });
+      expect(res.status).toBe(403);
+    });
+
+    it('blocks viewer from changing roles', async () => {
+      mockGetMemberRole.mockResolvedValueOnce('viewer'); // actor
+      const res = await request(app)
+        .patch('/api/teams/t1/members/u3/role')
+        .set('x-test-user-id', 'u2')
+        .send({ role: 'editor' });
+      expect(res.status).toBe(403);
+    });
+
+    it('blocks changing the owner role', async () => {
+      mockGetMemberRole.mockResolvedValueOnce('admin'); // actor
+      mockGetMemberRole.mockResolvedValueOnce('owner'); // target is owner
+      const res = await request(app)
+        .patch('/api/teams/t1/members/u1/role')
+        .set('x-test-user-id', 'u2')
+        .send({ role: 'editor' });
+      expect(res.status).toBe(403);
+      expect(res.body.message).toMatch(/owner/);
+    });
+
+    it('rejects invalid role values', async () => {
+      mockGetMemberRole.mockResolvedValueOnce('owner');
+      const res = await request(app)
+        .patch('/api/teams/t1/members/u2/role')
+        .set('x-test-user-id', 'u1')
+        .send({ role: 'superadmin' });
+      expect(res.status).toBe(400);
+    });
+
+    it('rejects setting role to owner via API', async () => {
+      mockGetMemberRole.mockResolvedValueOnce('owner');
+      const res = await request(app)
+        .patch('/api/teams/t1/members/u2/role')
+        .set('x-test-user-id', 'u1')
+        .send({ role: 'owner' });
+      expect(res.status).toBe(400);
+    });
+
+    it('blocks non-member from changing roles', async () => {
+      mockGetMemberRole.mockResolvedValueOnce(null); // not a member
+      const res = await request(app)
+        .patch('/api/teams/t1/members/u2/role')
+        .set('x-test-user-id', 'hacker')
+        .send({ role: 'viewer' });
+      expect(res.status).toBe(403);
+    });
+  });
+
+  // ─── Workspace Role ─────────────────────────────────────────────
+
+  describe('GET /api/workspaces/:id/role', () => {
+    it('returns workspace-owner for the workspace creator', async () => {
+      mockGetWorkspaceRole.mockResolvedValue('workspace-owner');
+      const res = await request(app).get('/api/workspaces/1/role').set('x-test-user-id', 'u1');
+      expect(res.status).toBe(200);
+      expect(res.body.role).toBe('workspace-owner');
+    });
+
+    it('returns editor for a team editor', async () => {
+      mockGetWorkspaceRole.mockResolvedValue('editor');
+      const res = await request(app).get('/api/workspaces/1/role').set('x-test-user-id', 'u2');
+      expect(res.status).toBe(200);
+      expect(res.body.role).toBe('editor');
+    });
+
+    it('returns none for a non-member', async () => {
+      mockGetWorkspaceRole.mockResolvedValue(null);
+      const res = await request(app).get('/api/workspaces/1/role').set('x-test-user-id', 'hacker');
+      expect(res.status).toBe(200);
+      expect(res.body.role).toBe('none');
+    });
+
+    it('rejects invalid workspace ID', async () => {
+      const res = await request(app).get('/api/workspaces/abc/role').set('x-test-user-id', 'u1');
+      expect(res.status).toBe(400);
+    });
+
+    it('rejects unauthenticated requests', async () => {
+      const res = await request(app).get('/api/workspaces/1/role');
+      expect(res.status).toBe(401);
     });
   });
 });

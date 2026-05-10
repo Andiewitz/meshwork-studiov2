@@ -3,6 +3,8 @@ import {
   insertTeamSchema,
   insertTeamMemberSchema,
   joinTeamSchema,
+  updateMemberRoleSchema,
+  TEAM_ROLES,
   teams,
   teamMembers,
   teamWorkspaces,
@@ -115,6 +117,48 @@ describe('Team Schema (Unit)', () => {
 
     it('teamWorkspaces table is defined', () => {
       expect(teamWorkspaces).toBeDefined();
+    });
+  });
+
+  // ─── updateMemberRoleSchema ─────────────────────────────────────────
+
+  describe('updateMemberRoleSchema', () => {
+    it('accepts valid role: admin', () => {
+      expect(updateMemberRoleSchema.safeParse({ role: 'admin' }).success).toBe(true);
+    });
+
+    it('accepts valid role: editor', () => {
+      expect(updateMemberRoleSchema.safeParse({ role: 'editor' }).success).toBe(true);
+    });
+
+    it('accepts valid role: viewer', () => {
+      expect(updateMemberRoleSchema.safeParse({ role: 'viewer' }).success).toBe(true);
+    });
+
+    it('rejects owner role (cannot set via API)', () => {
+      expect(updateMemberRoleSchema.safeParse({ role: 'owner' }).success).toBe(false);
+    });
+
+    it('rejects arbitrary role strings', () => {
+      expect(updateMemberRoleSchema.safeParse({ role: 'superadmin' }).success).toBe(false);
+      expect(updateMemberRoleSchema.safeParse({ role: 'member' }).success).toBe(false);
+      expect(updateMemberRoleSchema.safeParse({ role: '' }).success).toBe(false);
+    });
+
+    it('rejects missing role', () => {
+      expect(updateMemberRoleSchema.safeParse({}).success).toBe(false);
+    });
+  });
+
+  // ─── TEAM_ROLES constant ──────────────────────────────────────────
+
+  describe('TEAM_ROLES', () => {
+    it('contains exactly 4 roles in correct order', () => {
+      expect(TEAM_ROLES).toEqual(['owner', 'admin', 'editor', 'viewer']);
+    });
+
+    it('has exactly 4 entries', () => {
+      expect(TEAM_ROLES).toHaveLength(4);
     });
   });
 });
