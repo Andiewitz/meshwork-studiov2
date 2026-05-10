@@ -3,9 +3,9 @@ import { motion, AnimatePresence } from "framer-motion";
 import { Link } from "wouter";
 import {
   Users, Plus, Copy, Check, LogOut, Trash2, RefreshCw, ArrowRight,
-  Crown, Share2, ExternalLink, Shield, Calendar, UserMinus, Loader2,
-  Box, Server, Globe, Database, GitBranch, Zap, Cpu, Network, Cloud,
-  Lock, BarChart3, Code2, Wifi, LayoutGrid,
+  Crown, Share2, ExternalLink, Calendar, UserMinus, Loader2,
+  Box, Server, Globe, Database, Shield, GitBranch, Zap, Cpu, Network,
+  Cloud, Lock, BarChart3, Code2, Wifi, LayoutGrid,
 } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
 import { useAuth } from "@/hooks/use-auth";
@@ -20,6 +20,7 @@ import {
   AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 
+// ─── Icon Map ────────────────────────────────────────────────────────
 const ICON_MAP: Record<string, LucideIcon> = {
   server: Server, globe: Globe, box: Box, database: Database, shield: Shield,
   git: GitBranch, zap: Zap, cpu: Cpu, network: Network, cloud: Cloud,
@@ -29,11 +30,12 @@ function getWsIcon(iconId?: string | null): LucideIcon {
   return ICON_MAP[iconId || "box"] || Box;
 }
 
+// ─── Motion Variants ─────────────────────────────────────────────────
 const containerVariants = {
   hidden: { opacity: 0 },
-  visible: { opacity: 1, transition: { staggerChildren: 0.08, delayChildren: 0.15 } },
+  visible: { opacity: 1, transition: { staggerChildren: 0.06, delayChildren: 0.1 } },
 };
-const fadeUpVariants = {
+const itemVariants = {
   hidden: { opacity: 0, y: 16 },
   visible: { opacity: 1, y: 0, transition: { duration: 0.4, ease: [0.22, 1, 0.36, 1] } },
 };
@@ -103,267 +105,400 @@ export default function Team() {
     }
   };
 
+  const triggerConfirm = (title: string, description: string, action: () => Promise<void>) => {
+    setConfirmAction({ title, description, action });
+  };
+
+  const unsharedWorkspaces = workspaces?.filter(
+    (ws: any) => !teamWorkspaces?.some((tw) => tw.id === ws.id)
+  ) || [];
+
   return (
     <>
-    <motion.div key="team" initial="hidden" animate="visible" variants={containerVariants} className="w-full max-w-6xl mx-auto py-12 px-6">
-      {/* Header */}
-      <motion.div variants={fadeUpVariants} className="flex flex-col md:flex-row md:items-end justify-between mb-10 gap-4">
-        <div>
-          <div className="inline-flex items-center gap-2 px-2.5 py-1 rounded-full bg-primary/10 border border-primary/20 mb-3">
-            <Users className="w-3 h-3 text-primary" />
-            <span className="text-[10px] font-bold uppercase tracking-widest text-primary">Collaboration</span>
-          </div>
-          <h2 className="text-3xl font-bold tracking-tight text-white" style={{ fontFamily: 'var(--font-headline)' }}>Teams</h2>
-          <p className="text-white/30 text-sm mt-1 max-w-sm">Share workspaces and collaborate in real-time.</p>
-        </div>
-        <button
-          onClick={() => setShowCreateForm(!showCreateForm)}
-          className="group flex items-center gap-2 px-5 py-2.5 bg-primary text-black font-bold text-[11px] uppercase tracking-[0.15em] rounded-xl hover:brightness-110 transition-all shadow-lg shadow-primary/20"
-        >
-          <Plus className="w-3.5 h-3.5 transition-transform group-hover:rotate-90" />
-          New Team
-        </button>
-      </motion.div>
+      <motion.div
+        initial="hidden"
+        animate="visible"
+        variants={containerVariants}
+        className="w-full max-w-5xl mx-auto px-6 pt-16 pb-24"
+      >
+        {/* ─── Page Header ─── */}
+        <motion.div variants={itemVariants} className="mb-12">
+          <h1
+            className="text-4xl font-extrabold tracking-tight text-white leading-none"
+            style={{ fontFamily: "var(--font-headline)" }}
+          >
+            Teams
+          </h1>
+          <p className="text-sm text-[#555] mt-2 max-w-md" style={{ fontFamily: "var(--font-body)" }}>
+            Share workspaces and collaborate with real-time presence.
+          </p>
+        </motion.div>
 
-      {/* Create Form */}
-      <AnimatePresence>
-        {showCreateForm && (
-          <motion.div initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: "auto" }} exit={{ opacity: 0, height: 0 }} className="mb-8 overflow-hidden">
-            <div className="glass-card rounded-2xl p-5 border-primary/20">
-              <div className="flex flex-col sm:flex-row gap-3">
-                <input
-                  value={newTeamName}
-                  onChange={(e) => setNewTeamName(e.target.value)}
-                  onKeyDown={(e) => e.key === "Enter" && handleCreateTeam()}
-                  placeholder="Team name..."
-                  className="flex-1 bg-white/[0.04] border border-white/8 rounded-xl px-4 py-3 text-sm text-white placeholder:text-white/20 focus:outline-none focus:border-primary/40 transition-all"
-                  maxLength={64}
-                  autoFocus
-                />
-                <button onClick={handleCreateTeam} disabled={createTeam.isPending || !newTeamName.trim()} className="px-6 py-3 bg-primary text-black font-bold text-[11px] uppercase tracking-widest rounded-xl disabled:opacity-40 transition-all hover:brightness-110">
-                  {createTeam.isPending ? "Creating..." : "Create"}
-                </button>
-              </div>
-            </div>
-          </motion.div>
-        )}
-      </AnimatePresence>
-
-      <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
-        {/* Left Sidebar */}
-        <div className="lg:col-span-4 space-y-5">
+        {/* ─── Actions Row ─── */}
+        <motion.div variants={itemVariants} className="flex flex-col sm:flex-row gap-4 mb-16">
           {/* Join */}
-          <motion.div variants={fadeUpVariants} className="glass-card rounded-2xl p-5">
-            <h3 className="text-[10px] font-bold uppercase tracking-[0.2em] text-white/25 mb-3">Join a Team</h3>
-            <div className="relative">
+          <div className="flex items-center gap-2 flex-1 max-w-xs">
+            <div className="relative flex-1">
               <input
-                value={joinCode} onChange={(e) => setJoinCode(e.target.value.toUpperCase())}
+                value={joinCode}
+                onChange={(e) => setJoinCode(e.target.value.toUpperCase())}
                 onKeyDown={(e) => e.key === "Enter" && handleJoinTeam()}
-                placeholder="MX-XXXX"
-                className="w-full bg-white/[0.03] border border-white/5 rounded-xl px-4 py-3 text-sm text-white font-mono placeholder:text-white/10 focus:outline-none focus:border-primary/30 transition-all tracking-[0.15em] text-center"
+                placeholder="Enter invite code"
+                className="w-full bg-white/[0.02] border border-white/[0.06] rounded-lg px-4 py-2.5 text-sm text-white font-mono placeholder:text-white/15 focus:outline-none focus:border-primary/40 transition-colors tracking-wider"
                 maxLength={8}
               />
-              <button onClick={handleJoinTeam} disabled={joinTeam.isPending || !joinCode.trim()} className="absolute right-1.5 top-1/2 -translate-y-1/2 p-2 bg-white/5 hover:bg-primary hover:text-black rounded-lg transition-all disabled:opacity-0">
-                <ArrowRight className="w-4 h-4" />
-              </button>
             </div>
-          </motion.div>
+            <motion.button
+              whileHover={{ scale: 1.03 }}
+              whileTap={{ scale: 0.97 }}
+              onClick={handleJoinTeam}
+              disabled={joinTeam.isPending || !joinCode.trim()}
+              className="px-4 py-2.5 bg-white/[0.04] border border-white/[0.06] text-white/60 hover:text-white hover:border-white/20 rounded-lg text-xs font-bold uppercase tracking-widest transition-colors disabled:opacity-30"
+            >
+              Join
+            </motion.button>
+          </div>
 
-          {/* Teams List */}
-          <div className="space-y-3">
-            <h3 className="text-[10px] font-bold uppercase tracking-[0.2em] text-white/25 pl-1">Your Teams</h3>
+          <div className="sm:ml-auto">
+            <motion.button
+              whileHover={{ scale: 1.03, boxShadow: "0 8px 32px rgba(255,102,0,0.25)" }}
+              whileTap={{ scale: 0.97 }}
+              onClick={() => setShowCreateForm(!showCreateForm)}
+              className="flex items-center gap-2 px-5 py-2.5 bg-primary text-black font-bold text-xs uppercase tracking-[0.12em] rounded-lg transition-all shadow-lg shadow-primary/20"
+            >
+              <Plus className="w-3.5 h-3.5" />
+              Create Team
+            </motion.button>
+          </div>
+        </motion.div>
+
+        {/* ─── Create Form (inline, not floating) ─── */}
+        <AnimatePresence>
+          {showCreateForm && (
+            <motion.div
+              initial={{ opacity: 0, height: 0, marginBottom: 0 }}
+              animate={{ opacity: 1, height: "auto", marginBottom: 48 }}
+              exit={{ opacity: 0, height: 0, marginBottom: 0 }}
+              style={{ overflow: "hidden" }}
+            >
+              <div className="bg-white/[0.02] border border-primary/15 rounded-xl p-6">
+                <p className="text-[10px] font-bold uppercase tracking-[0.15em] text-white/25 mb-4 font-headline">
+                  New Team
+                </p>
+                <div className="flex gap-3">
+                  <input
+                    value={newTeamName}
+                    onChange={(e) => setNewTeamName(e.target.value)}
+                    onKeyDown={(e) => e.key === "Enter" && handleCreateTeam()}
+                    placeholder="Team name"
+                    className="flex-1 bg-white/[0.03] border border-white/[0.06] rounded-lg px-4 py-2.5 text-sm text-white placeholder:text-white/15 focus:outline-none focus:border-primary/40 transition-colors"
+                    maxLength={64}
+                    autoFocus
+                  />
+                  <motion.button
+                    whileHover={{ scale: 1.02 }}
+                    whileTap={{ scale: 0.97 }}
+                    onClick={handleCreateTeam}
+                    disabled={createTeam.isPending || !newTeamName.trim()}
+                    className="px-6 py-2.5 bg-primary text-black font-bold text-xs uppercase tracking-widest rounded-lg disabled:opacity-30 transition-all"
+                  >
+                    {createTeam.isPending ? "..." : "Create"}
+                  </motion.button>
+                </div>
+              </div>
+            </motion.div>
+          )}
+        </AnimatePresence>
+
+        {/* ─── Main Content ─── */}
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-12">
+
+          {/* ─── Left: Team List ─── */}
+          <motion.div variants={itemVariants} className="lg:col-span-4">
+            <h3 className="text-xs font-bold font-headline tracking-[0.2em] uppercase text-[#555] mb-6">
+              Your Teams
+            </h3>
+
             {isLoading ? (
-              <div className="py-16 flex flex-col items-center gap-3 opacity-20">
-                <Loader2 className="w-5 h-5 animate-spin" />
-                <span className="text-[10px] font-mono uppercase tracking-widest">Loading...</span>
+              <div className="flex items-center justify-center py-20">
+                <Loader2 className="w-5 h-5 animate-spin text-white/15" />
               </div>
             ) : !teams || teams.length === 0 ? (
-              <motion.div variants={fadeUpVariants} className="glass-card rounded-2xl p-8 text-center border-dashed border-white/5 bg-transparent">
-                <Users className="w-8 h-8 text-white/5 mx-auto mb-3" />
-                <p className="text-white/20 text-xs font-medium">No teams yet</p>
-                <p className="text-white/10 text-[10px] mt-1">Create or join one to get started.</p>
-              </motion.div>
+              <div className="border border-dashed border-white/[0.06] rounded-xl p-12 text-center">
+                <Users className="w-8 h-8 text-white/[0.06] mx-auto mb-3" />
+                <p className="text-xs text-white/20">No teams yet</p>
+                <p className="text-[10px] text-white/10 mt-1">Create or join a team above.</p>
+              </div>
             ) : (
-              teams.map((team) => (
-                <motion.div
-                  key={team.id} variants={fadeUpVariants}
-                  onClick={() => setSelectedTeamId(team.id)}
-                  className={`glass-card glass-card-hover rounded-2xl p-4 cursor-pointer group transition-all duration-300 ${selectedTeamId === team.id ? "!border-primary/40 bg-primary/[0.03] shadow-[0_8px_30px_rgba(255,102,0,0.08)]" : ""}`}
-                >
-                  <div className="flex items-center justify-between">
-                    <div className="flex-1 min-w-0">
-                      <h4 className="text-sm font-semibold text-white truncate group-hover:text-primary transition-colors" style={{ fontFamily: 'var(--font-headline)' }}>{team.name}</h4>
-                      <span className="text-[10px] text-white/20 font-medium">{team.memberCount} member{team.memberCount !== 1 ? "s" : ""}</span>
-                    </div>
-                    {team.ownerId === user?.id && <Crown className="w-3.5 h-3.5 text-primary/50 flex-shrink-0" />}
-                  </div>
-                  <div className="flex items-center justify-between mt-3 pt-3 border-t border-white/5">
-                    <code className="text-[10px] font-mono text-white/20 tracking-widest group-hover:text-white/40 transition-colors">{team.inviteCode}</code>
-                    <button onClick={(e) => { e.stopPropagation(); handleCopyCode(team.inviteCode); }} className="p-1.5 rounded-lg hover:bg-primary/10 text-white/15 hover:text-primary transition-all">
-                      {copiedCode === team.inviteCode ? <Check className="w-3 h-3 text-emerald-400" /> : <Copy className="w-3 h-3" />}
-                    </button>
-                  </div>
-                </motion.div>
-              ))
-            )}
-          </div>
-        </div>
-
-        {/* Right Detail Panel */}
-        <div className="lg:col-span-8">
-          <AnimatePresence mode="wait">
-            {selectedTeamId && isDetailLoading ? (
-              <motion.div key="loading" initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="glass-card rounded-2xl p-6 space-y-4">
-                <div className="h-6 w-40 bg-white/5 rounded-lg animate-pulse" />
-                <div className="flex gap-3"><div className="h-4 w-20 bg-white/5 rounded-full animate-pulse" /><div className="h-4 w-16 bg-white/5 rounded-full animate-pulse" /></div>
-                <div className="grid grid-cols-2 gap-3 mt-4">{[1,2,3,4].map(i => <div key={i} className="h-14 bg-white/[0.02] rounded-xl animate-pulse" />)}</div>
-              </motion.div>
-            ) : selectedTeamId && teamDetail ? (
-              <motion.div key={selectedTeamId} initial={{ opacity: 0, x: 16 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -16 }} transition={{ duration: 0.3, ease: [0.22, 1, 0.36, 1] }} className="space-y-6">
-                {/* Team Header Card */}
-                <div className="glass-card rounded-2xl p-6 relative overflow-hidden">
-                  <div className="absolute top-0 left-0 w-full h-px bg-gradient-to-r from-transparent via-primary/40 to-transparent" />
-                  <div className="flex items-start justify-between mb-6">
-                    <div>
-                      <h3 className="text-xl font-bold text-white tracking-tight" style={{ fontFamily: 'var(--font-headline)' }}>{teamDetail.name}</h3>
-                      <div className="flex items-center gap-3 mt-2">
-                        <div className="flex items-center gap-1.5 px-2 py-0.5 bg-white/[0.03] border border-white/8 rounded-full">
-                          <Calendar className="w-2.5 h-2.5 text-white/20" />
-                          <span className="text-[9px] font-medium text-white/25 uppercase tracking-wider">{new Date(teamDetail.createdAt || Date.now()).toLocaleDateString()}</span>
+              <div className="space-y-2">
+                {teams.map((team) => (
+                  <motion.button
+                    key={team.id}
+                    whileHover={{ scale: 1.015, backgroundColor: "rgba(255,255,255,0.03)" }}
+                    whileTap={{ scale: 0.985 }}
+                    onClick={() => setSelectedTeamId(team.id)}
+                    className={`w-full text-left p-4 rounded-xl border transition-all duration-200 ${
+                      selectedTeamId === team.id
+                        ? "border-primary/30 bg-primary/[0.04]"
+                        : "border-white/[0.04] bg-transparent hover:border-white/[0.08]"
+                    }`}
+                  >
+                    <div className="flex items-center justify-between">
+                      <div className="min-w-0 flex-1">
+                        <div className="flex items-center gap-2">
+                          <span className="text-sm font-semibold text-white truncate" style={{ fontFamily: "var(--font-headline)" }}>
+                            {team.name}
+                          </span>
+                          {team.ownerId === user?.id && <Crown className="w-3 h-3 text-primary/60 flex-shrink-0" />}
                         </div>
-                        <button className="flex items-center gap-1.5 px-2 py-0.5 bg-primary/5 border border-primary/10 rounded-full hover:border-primary/30 transition-all" onClick={() => handleCopyCode(teamDetail.inviteCode)}>
-                          <span className="text-[9px] font-mono text-primary/70 tracking-[0.15em]">{teamDetail.inviteCode}</span>
-                          {copiedCode === teamDetail.inviteCode ? <Check className="w-2.5 h-2.5 text-emerald-400" /> : <Copy className="w-2.5 h-2.5 text-primary/30" />}
+                        <span className="text-[10px] text-white/20 mt-0.5 block">
+                          {team.memberCount} member{team.memberCount !== 1 ? "s" : ""}
+                        </span>
+                      </div>
+                      <div className="flex items-center gap-1.5 ml-3">
+                        <code className="text-[9px] font-mono text-white/15 tracking-wider">{team.inviteCode}</code>
+                        <button
+                          onClick={(e) => { e.stopPropagation(); handleCopyCode(team.inviteCode); }}
+                          className="p-1 rounded text-white/10 hover:text-primary transition-colors"
+                        >
+                          {copiedCode === team.inviteCode ? <Check className="w-3 h-3 text-emerald-400" /> : <Copy className="w-3 h-3" />}
                         </button>
                       </div>
                     </div>
-                    <div className="flex gap-1.5">
+                  </motion.button>
+                ))}
+              </div>
+            )}
+          </motion.div>
+
+          {/* ─── Right: Detail Panel ─── */}
+          <div className="lg:col-span-8">
+            <AnimatePresence mode="wait">
+              {selectedTeamId && isDetailLoading ? (
+                <motion.div key="loading" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}>
+                  <div className="space-y-3">
+                    <div className="h-7 w-48 bg-white/[0.03] rounded-lg animate-pulse" />
+                    <div className="flex gap-3">
+                      <div className="h-5 w-20 bg-white/[0.03] rounded animate-pulse" />
+                      <div className="h-5 w-16 bg-white/[0.03] rounded animate-pulse" />
+                    </div>
+                    <div className="grid grid-cols-2 gap-3 pt-6">
+                      {[1,2,3,4].map(i => <div key={i} className="h-16 bg-white/[0.02] rounded-lg animate-pulse" />)}
+                    </div>
+                  </div>
+                </motion.div>
+              ) : selectedTeamId && teamDetail ? (
+                <motion.div
+                  key={selectedTeamId}
+                  initial={{ opacity: 0, y: 12 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, y: -8 }}
+                  transition={{ duration: 0.3, ease: [0.22, 1, 0.36, 1] }}
+                >
+                  {/* Team Name + Meta */}
+                  <div className="flex items-start justify-between mb-8">
+                    <div>
+                      <h2 className="text-2xl font-extrabold tracking-tight text-white" style={{ fontFamily: "var(--font-headline)" }}>
+                        {teamDetail.name}
+                      </h2>
+                      <div className="flex items-center gap-3 mt-2">
+                        <span className="text-[10px] text-white/20 flex items-center gap-1">
+                          <Calendar className="w-3 h-3" />
+                          {new Date(teamDetail.createdAt || Date.now()).toLocaleDateString()}
+                        </span>
+                        <button
+                          onClick={() => handleCopyCode(teamDetail.inviteCode)}
+                          className="text-[10px] font-mono text-primary/50 hover:text-primary tracking-wider transition-colors flex items-center gap-1"
+                        >
+                          {teamDetail.inviteCode}
+                          {copiedCode === teamDetail.inviteCode ? <Check className="w-2.5 h-2.5 text-emerald-400" /> : <Copy className="w-2.5 h-2.5" />}
+                        </button>
+                      </div>
+                    </div>
+                    <div className="flex gap-2">
                       {teamDetail.ownerId === user?.id && (
-                        <button onClick={() => regenerateCode.mutate(selectedTeamId)} className="w-8 h-8 flex items-center justify-center bg-white/[0.03] border border-white/5 rounded-xl text-white/20 hover:text-white hover:border-white/20 transition-all" title="Regenerate code">
-                          <RefreshCw className={`w-3.5 h-3.5 ${regenerateCode.isPending ? "animate-spin" : ""}`} />
+                        <button
+                          onClick={() => regenerateCode.mutate(selectedTeamId)}
+                          className="p-2 rounded-lg text-white/15 hover:text-white hover:bg-white/[0.04] transition-all"
+                          title="Regenerate invite code"
+                        >
+                          <RefreshCw className={`w-4 h-4 ${regenerateCode.isPending ? "animate-spin" : ""}`} />
                         </button>
                       )}
                       <button
                         onClick={() => {
                           const isOwner = teamDetail.ownerId === user?.id;
-                          setConfirmAction({
-                            title: isOwner ? "Delete this team?" : "Leave this team?",
-                            description: isOwner ? "This permanently deletes the team, removes all members, and unshares all workspaces." : "You'll lose access to all workspaces shared with this team.",
-                            action: async () => {
+                          triggerConfirm(
+                            isOwner ? "Delete this team?" : "Leave this team?",
+                            isOwner
+                              ? "This permanently deletes the team, removes all members, and unshares all workspaces."
+                              : "You'll lose access to all workspaces shared with this team.",
+                            async () => {
                               if (isOwner) await deleteTeam.mutateAsync(selectedTeamId);
                               else await leaveTeam.mutateAsync({ teamId: selectedTeamId, userId: user!.id });
                               setSelectedTeamId(null);
-                            },
-                          });
+                            }
+                          );
                         }}
-                        className="w-8 h-8 flex items-center justify-center bg-white/[0.03] border border-white/5 rounded-xl text-red-400/25 hover:text-red-400 hover:bg-red-400/10 hover:border-red-400/20 transition-all"
+                        className="p-2 rounded-lg text-red-400/20 hover:text-red-400 hover:bg-red-400/[0.06] transition-all"
                       >
-                        {teamDetail.ownerId === user?.id ? <Trash2 className="w-3.5 h-3.5" /> : <LogOut className="w-3.5 h-3.5" />}
+                        {teamDetail.ownerId === user?.id ? <Trash2 className="w-4 h-4" /> : <LogOut className="w-4 h-4" />}
                       </button>
                     </div>
                   </div>
 
-                  {/* Members */}
-                  <h4 className="text-[10px] font-bold uppercase tracking-[0.2em] text-white/20 mb-4 flex items-center gap-1.5"><Users className="w-3 h-3" /> Members</h4>
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-2.5">
-                    {teamDetail.members.map((member) => (
-                      <div key={member.id} className="flex items-center gap-3 p-3 bg-white/[0.02] border border-white/5 rounded-xl hover:bg-white/[0.04] transition-all group">
-                        <div className="relative">
-                          <div className="w-9 h-9 rounded-xl flex items-center justify-center text-xs font-bold border-2" style={{ borderColor: member.color, backgroundColor: `${member.color}10`, color: member.color }}>
-                            {member.profileImageUrl ? <img src={member.profileImageUrl} className="w-full h-full rounded-[0.45rem] object-cover" /> : (member.firstName?.[0] || member.email[0]).toUpperCase()}
+                  {/* Members Section */}
+                  <div className="mb-12">
+                    <h3 className="text-xs font-bold font-headline tracking-[0.2em] uppercase text-[#555] mb-4 flex items-center gap-2">
+                      <Users className="w-3.5 h-3.5" /> Members
+                    </h3>
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                      {teamDetail.members.map((member) => (
+                        <div
+                          key={member.id}
+                          className="flex items-center gap-3 px-4 py-3 rounded-lg border border-white/[0.04] hover:border-white/[0.08] hover:bg-white/[0.015] transition-all group"
+                        >
+                          <div className="relative flex-shrink-0">
+                            <div
+                              className="w-8 h-8 rounded-lg flex items-center justify-center text-[11px] font-bold border-2"
+                              style={{ borderColor: member.color, backgroundColor: `${member.color}08`, color: member.color }}
+                            >
+                              {member.profileImageUrl ? (
+                                <img src={member.profileImageUrl} className="w-full h-full rounded-[5px] object-cover" />
+                              ) : (
+                                (member.firstName?.[0] || member.email[0]).toUpperCase()
+                              )}
+                            </div>
                           </div>
-                          <div className="absolute -bottom-0.5 -right-0.5 w-3 h-3 rounded-full border-2 border-[#0a0a0a]" style={{ backgroundColor: member.color }} />
+                          <div className="flex-1 min-w-0">
+                            <p className="text-xs text-white/70 font-medium truncate">
+                              {member.firstName || member.email.split("@")[0]}
+                              {member.userId === user?.id && <span className="ml-1 text-[9px] text-white/15">(you)</span>}
+                            </p>
+                            <p className="text-[9px] text-white/15 font-mono uppercase tracking-wider">{member.role}</p>
+                          </div>
+                          {member.role === "owner" ? (
+                            <Crown className="w-3 h-3 text-primary/40 flex-shrink-0" />
+                          ) : teamDetail.ownerId === user?.id && member.userId !== user?.id ? (
+                            <button
+                              onClick={() => triggerConfirm(
+                                `Remove ${member.firstName || member.email.split("@")[0]}?`,
+                                "They'll lose access to all shared workspaces.",
+                                async () => { await leaveTeam.mutateAsync({ teamId: selectedTeamId!, userId: member.userId }); }
+                              )}
+                              className="p-1 rounded text-white/0 group-hover:text-white/15 hover:!text-red-400 transition-all flex-shrink-0"
+                            >
+                              <UserMinus className="w-3.5 h-3.5" />
+                            </button>
+                          ) : null}
                         </div>
-                        <div className="flex-1 min-w-0">
-                          <p className="text-xs text-white/80 font-semibold truncate">
-                            {member.firstName || member.email.split("@")[0]}
-                            {member.userId === user?.id && <span className="ml-1.5 text-[8px] text-white/20 font-normal uppercase">you</span>}
-                          </p>
-                          <p className="text-[9px] text-white/20 font-mono uppercase tracking-wider">{member.role}</p>
-                        </div>
-                        {member.role === "owner" ? (
-                          <Crown className="w-3 h-3 text-primary/40" />
-                        ) : teamDetail.ownerId === user?.id && member.userId !== user?.id ? (
-                          <button
-                            onClick={(e) => { e.stopPropagation(); setConfirmAction({ title: `Remove ${member.firstName || member.email.split("@")[0]}?`, description: "They'll lose access to all shared workspaces.", action: async () => { await leaveTeam.mutateAsync({ teamId: selectedTeamId!, userId: member.userId }); } }); }}
-                            className="p-1 rounded-md text-white/10 hover:text-red-400 hover:bg-red-400/10 transition-all opacity-0 group-hover:opacity-100"
-                          >
-                            <UserMinus className="w-3 h-3" />
-                          </button>
-                        ) : null}
-                      </div>
-                    ))}
+                      ))}
+                    </div>
                   </div>
-                </div>
 
-                {/* Shared Workspaces */}
-                <div className="glass-card rounded-2xl p-6">
-                  <h4 className="text-[10px] font-bold uppercase tracking-[0.2em] text-white/20 mb-5 flex items-center gap-1.5"><Share2 className="w-3 h-3" /> Shared Workspaces</h4>
-                  {teamWorkspaces && teamWorkspaces.length > 0 ? (
-                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mb-6">
-                      {teamWorkspaces.map((ws) => { const WsIcon = getWsIcon(ws.icon); return (
-                        <Link key={ws.id} href={`/workspace/${ws.id}`}>
-                          <div className="flex items-center gap-3 p-4 bg-white/[0.02] border border-white/5 rounded-xl hover:border-primary/30 hover:bg-primary/[0.02] transition-all cursor-pointer group">
-                            <div className="w-8 h-8 rounded-lg bg-white/5 flex items-center justify-center flex-shrink-0 group-hover:bg-primary/10 transition-all">
-                              <WsIcon className="w-3.5 h-3.5 text-white/20 group-hover:text-primary transition-colors" />
-                            </div>
-                            <div className="flex-1 min-w-0">
-                              <h5 className="text-sm font-semibold text-white group-hover:text-primary transition-colors truncate">{ws.title}</h5>
-                              <p className="text-[9px] text-white/15 uppercase tracking-wider">{ws.type}</p>
-                            </div>
-                            <ExternalLink className="w-3.5 h-3.5 text-white/10 opacity-0 group-hover:opacity-100 group-hover:text-primary/50 transition-all" />
-                          </div>
-                        </Link>
-                      ); })}
-                    </div>
-                  ) : (
-                    <div className="py-8 text-center border border-dashed border-white/5 rounded-xl mb-6">
-                      <Share2 className="w-6 h-6 text-white/[0.04] mx-auto mb-2" />
-                      <p className="text-white/10 text-[10px] font-medium uppercase tracking-widest">No workspaces shared yet</p>
-                    </div>
-                  )}
-                  {workspaces && workspaces.length > 0 && (
-                    <div className="pt-5 border-t border-white/5">
-                      <h5 className="text-[10px] font-bold uppercase tracking-[0.15em] text-white/12 mb-4 flex items-center gap-1.5"><Plus className="w-2.5 h-2.5" /> Share a Workspace</h5>
+                  {/* Shared Workspaces Section */}
+                  <div className="mb-12">
+                    <h3 className="text-xs font-bold font-headline tracking-[0.2em] uppercase text-[#555] mb-4 flex items-center gap-2">
+                      <Share2 className="w-3.5 h-3.5" /> Shared Workspaces
+                    </h3>
+                    {teamWorkspaces && teamWorkspaces.length > 0 ? (
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                        {teamWorkspaces.map((ws) => {
+                          const WsIcon = getWsIcon(ws.icon);
+                          return (
+                            <Link key={ws.id} href={`/workspace/${ws.id}`}>
+                              <motion.div
+                                whileHover={{ scale: 1.02, borderColor: "rgba(255,102,0,0.25)" }}
+                                whileTap={{ scale: 0.985 }}
+                                className="flex items-center gap-3 px-4 py-3 rounded-lg border border-white/[0.04] transition-all cursor-pointer group"
+                              >
+                                <div className="w-8 h-8 rounded-lg bg-white/[0.03] flex items-center justify-center flex-shrink-0 group-hover:bg-primary/[0.08] transition-colors">
+                                  <WsIcon className="w-3.5 h-3.5 text-white/20 group-hover:text-primary transition-colors" />
+                                </div>
+                                <div className="flex-1 min-w-0">
+                                  <p className="text-sm font-medium text-white/80 group-hover:text-white truncate transition-colors">{ws.title}</p>
+                                  <p className="text-[9px] text-white/12 uppercase tracking-wider">{ws.type}</p>
+                                </div>
+                                <ExternalLink className="w-3.5 h-3.5 text-white/0 group-hover:text-primary/40 transition-all flex-shrink-0" />
+                              </motion.div>
+                            </Link>
+                          );
+                        })}
+                      </div>
+                    ) : (
+                      <div className="border border-dashed border-white/[0.04] rounded-lg py-10 text-center">
+                        <p className="text-[10px] text-white/12 uppercase tracking-widest">No workspaces shared yet</p>
+                      </div>
+                    )}
+                  </div>
+
+                  {/* Share Picker */}
+                  {unsharedWorkspaces.length > 0 && (
+                    <div>
+                      <h3 className="text-xs font-bold font-headline tracking-[0.2em] uppercase text-[#555] mb-4 flex items-center gap-2">
+                        <Plus className="w-3.5 h-3.5" /> Share a Workspace
+                      </h3>
                       <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
-                        {workspaces.filter((ws: any) => !teamWorkspaces?.some((tw) => tw.id === ws.id)).map((ws: any) => (
-                          <button key={ws.id} onClick={() => handleShareWorkspace(ws.id)} className="flex items-center gap-2.5 p-2.5 bg-white/[0.01] border border-white/5 rounded-lg hover:border-primary/30 hover:bg-white/[0.03] transition-all text-left group">
-                            <div className="w-6 h-6 rounded-md bg-white/5 flex items-center justify-center flex-shrink-0 group-hover:bg-primary/15 group-hover:text-primary transition-all"><Plus className="w-2.5 h-2.5" /></div>
-                            <span className="text-[11px] text-white/30 truncate font-medium group-hover:text-white/70 transition-colors">{ws.title}</span>
-                          </button>
+                        {unsharedWorkspaces.map((ws: any) => (
+                          <motion.button
+                            key={ws.id}
+                            whileHover={{ scale: 1.02, borderColor: "rgba(255,102,0,0.2)" }}
+                            whileTap={{ scale: 0.97 }}
+                            onClick={() => handleShareWorkspace(ws.id)}
+                            className="flex items-center gap-2 px-3 py-2.5 border border-white/[0.04] rounded-lg text-left transition-all group"
+                          >
+                            <Plus className="w-3 h-3 text-white/10 group-hover:text-primary transition-colors flex-shrink-0" />
+                            <span className="text-[11px] text-white/25 truncate group-hover:text-white/60 transition-colors">{ws.title}</span>
+                          </motion.button>
                         ))}
                       </div>
                     </div>
                   )}
-                </div>
-              </motion.div>
-            ) : (
-              <motion.div key="empty" initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="glass-card rounded-2xl p-16 flex flex-col items-center justify-center text-center h-full min-h-[400px] border-dashed border-white/5 bg-transparent">
-                <Users className="w-12 h-12 text-white/[0.04] mb-4" />
-                <h3 className="text-sm font-semibold text-white/20 uppercase tracking-[0.15em]" style={{ fontFamily: 'var(--font-headline)' }}>Select a team</h3>
-                <p className="text-white/10 text-xs mt-2 max-w-xs">Choose a team from the sidebar to view members and shared workspaces.</p>
-              </motion.div>
-            )}
-          </AnimatePresence>
+                </motion.div>
+              ) : (
+                <motion.div
+                  key="empty"
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  className="flex flex-col items-center justify-center text-center py-24"
+                >
+                  <Users className="w-10 h-10 text-white/[0.04] mb-4" />
+                  <p className="text-xs text-white/15 uppercase tracking-[0.15em] font-headline font-bold">Select a team</p>
+                  <p className="text-[11px] text-white/10 mt-1 max-w-[200px]">Pick a team from the left to manage members and workspaces.</p>
+                </motion.div>
+              )}
+            </AnimatePresence>
+          </div>
         </div>
-      </div>
-    </motion.div>
+      </motion.div>
 
-    <AlertDialog open={!!confirmAction} onOpenChange={(open) => { if (!open) setConfirmAction(null); }}>
-      <AlertDialogContent className="bg-[#0f0f12] border border-white/10 rounded-2xl shadow-2xl max-w-sm">
-        <AlertDialogHeader>
-          <AlertDialogTitle className="text-white text-sm font-semibold" style={{ fontFamily: 'var(--font-headline)' }}>{confirmAction?.title}</AlertDialogTitle>
-          <AlertDialogDescription className="text-white/35 text-xs leading-relaxed">{confirmAction?.description}</AlertDialogDescription>
-        </AlertDialogHeader>
-        <AlertDialogFooter className="gap-2">
-          <AlertDialogCancel className="bg-white/5 border-white/8 text-white/50 hover:bg-white/10 hover:text-white rounded-lg text-xs h-9">Cancel</AlertDialogCancel>
-          <AlertDialogAction
-            onClick={async () => { try { await confirmAction?.action(); setConfirmAction(null); } catch (err) { toast({ title: "Error", description: err instanceof Error ? err.message : "Action failed", variant: "destructive" }); } }}
-            className="bg-red-500/15 border border-red-500/25 text-red-400 hover:bg-red-500/25 rounded-lg text-xs h-9"
-          >Confirm</AlertDialogAction>
-        </AlertDialogFooter>
-      </AlertDialogContent>
-    </AlertDialog>
+      {/* ─── Confirm Dialog ─── */}
+      <AlertDialog open={!!confirmAction} onOpenChange={(open) => { if (!open) setConfirmAction(null); }}>
+        <AlertDialogContent className="bg-[#111] border border-white/[0.08] rounded-xl shadow-2xl max-w-sm">
+          <AlertDialogHeader>
+            <AlertDialogTitle className="text-white text-sm font-semibold" style={{ fontFamily: "var(--font-headline)" }}>
+              {confirmAction?.title}
+            </AlertDialogTitle>
+            <AlertDialogDescription className="text-white/30 text-xs leading-relaxed">
+              {confirmAction?.description}
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter className="gap-2 mt-2">
+            <AlertDialogCancel className="bg-white/[0.03] border-white/[0.06] text-white/40 hover:bg-white/[0.06] hover:text-white rounded-lg text-xs h-9">
+              Cancel
+            </AlertDialogCancel>
+            <AlertDialogAction
+              onClick={async () => {
+                try { await confirmAction?.action(); setConfirmAction(null); }
+                catch (err) { toast({ title: "Error", description: err instanceof Error ? err.message : "Failed", variant: "destructive" }); }
+              }}
+              className="bg-red-500/10 border border-red-500/20 text-red-400 hover:bg-red-500/20 rounded-lg text-xs h-9"
+            >
+              Confirm
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </>
   );
 }
