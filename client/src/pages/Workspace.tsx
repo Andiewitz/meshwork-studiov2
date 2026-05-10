@@ -108,6 +108,8 @@ import {
     FileJson,
     Link2,
     Maximize2,
+    Minimize2,
+    Keyboard,
 } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { useAuth } from '@/hooks/use-auth';
@@ -129,6 +131,7 @@ import { calculateContainment, calculateGlobalPosition } from "@/features/worksp
 import { usePresence } from "@/hooks/use-presence";
 import { CollaboratorCursors, PresenceIndicator } from "@/components/canvas/CollaboratorCursors";
 import { exportAsPng, exportAsSvg, exportAsJson, importFromJson } from "@/features/workspace/utils/exportCanvas";
+import { KeyboardShortcutsModal } from "@/features/workspace/components/KeyboardShortcutsModal";
 
 function WorkspaceView() {
     const { id } = useParams();
@@ -246,6 +249,48 @@ function WorkspaceView() {
             }
         } catch { toast({ title: 'Failed to get invite code', variant: 'destructive' }); }
     }, [teamId, toast]);
+
+    // ── Keyboard shortcuts modal + fullscreen ──
+    const [shortcutsOpen, setShortcutsOpen] = useState(false);
+    const [isFullscreen, setIsFullscreen] = useState(false);
+
+    const handleToggleFullscreen = useCallback(() => {
+        if (!document.fullscreenElement) {
+            document.documentElement.requestFullscreen().catch(() => {});
+            setIsFullscreen(true);
+        } else {
+            document.exitFullscreen().catch(() => {});
+            setIsFullscreen(false);
+        }
+    }, []);
+
+    // Listen for ? and F11 keys
+    useEffect(() => {
+        const handler = (e: KeyboardEvent) => {
+            // Ignore if typing in an input
+            const tag = (e.target as HTMLElement)?.tagName;
+            if (tag === 'INPUT' || tag === 'TEXTAREA') return;
+
+            if (e.key === '?') {
+                e.preventDefault();
+                setShortcutsOpen(prev => !prev);
+            }
+            if (e.key === 'F11') {
+                e.preventDefault();
+                handleToggleFullscreen();
+            }
+        };
+        window.addEventListener('keydown', handler);
+
+        // Sync fullscreen state on external changes (e.g. Esc)
+        const fsHandler = () => setIsFullscreen(!!document.fullscreenElement);
+        document.addEventListener('fullscreenchange', fsHandler);
+
+        return () => {
+            window.removeEventListener('keydown', handler);
+            document.removeEventListener('fullscreenchange', fsHandler);
+        };
+    }, [handleToggleFullscreen]);
 
     // ── Real-time collaboration (cursors & presence) ──
     const isRemoteUpdate = useRef(false);
@@ -1127,6 +1172,16 @@ function WorkspaceView() {
                                                         <input ref={importFileRef} type="file" accept=".json" onChange={handleImportJson} className="hidden" />
                                                     </>
                                                 )}
+                                                <div className="h-px bg-white/[0.06] my-1" />
+                                                {/* ── View ── */}
+                                                <button onClick={handleToggleFullscreen} className="w-full flex items-center gap-2.5 px-3 py-2 rounded-lg text-[12px] text-white/60 hover:text-white hover:bg-white/[0.07] transition-all">
+                                                    {isFullscreen ? <Minimize2 className="w-3.5 h-3.5" /> : <Maximize2 className="w-3.5 h-3.5" />}
+                                                    {isFullscreen ? 'Exit Fullscreen' : 'Fullscreen'}
+                                                </button>
+                                                <button onClick={() => setShortcutsOpen(true)} className="w-full flex items-center gap-2.5 px-3 py-2 rounded-lg text-[12px] text-white/60 hover:text-white hover:bg-white/[0.07] transition-all">
+                                                    <Keyboard className="w-3.5 h-3.5" />
+                                                    Keyboard Shortcuts
+                                                </button>
                                                 {/* ── Danger zone ── */}
                                                 {canDelete && (
                                                     <>
@@ -1629,6 +1684,7 @@ function WorkspaceView() {
                             </ReactFlow>
                         <MoshZoneOverlay />
                         <AiChatDrawer />
+                        <KeyboardShortcutsModal open={shortcutsOpen} onClose={() => setShortcutsOpen(false)} />
                     </motion.main>
 
                     {/* ── Right properties panel ── overlays canvas, z-40 above sidebar ── */}
