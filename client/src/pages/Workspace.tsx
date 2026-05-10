@@ -172,13 +172,13 @@ function WorkspaceView() {
     const lastNodeMoveSent = useRef(0);
     const canvasWrapperRef = useRef<HTMLDivElement>(null);
 
-    // Throttled cursor broadcast on mouse move
-    const handleCanvasMouseMove = useCallback((e: React.MouseEvent) => {
+    // Throttled cursor broadcast on mouse move (uses React Flow's native event)
+    const handlePaneMouseMove = useCallback((event: React.MouseEvent) => {
         const now = Date.now();
         if (now - lastCursorSent.current < 50) return; // Throttle to ~20fps
         lastCursorSent.current = now;
         try {
-            const pos = screenToFlowPosition({ x: e.clientX, y: e.clientY });
+            const pos = screenToFlowPosition({ x: event.clientX, y: event.clientY });
             sendCursor(pos.x, pos.y);
         } catch {
             // screenToFlowPosition may throw if ReactFlow isn't ready
@@ -881,7 +881,6 @@ function WorkspaceView() {
 
                 <motion.main
                     ref={canvasWrapperRef}
-                    onMouseMove={handleCanvasMouseMove}
                     initial={{ opacity: 0 }}
                     animate={{ opacity: 1 }}
                     transition={{ duration: 0.6, ease: [0.16, 1, 0.3, 1] }}
@@ -938,6 +937,7 @@ function WorkspaceView() {
                                 selectionMode={SelectionMode.Partial}
                                 nodesDraggable={drawingMode === 'pan'}
                                 elementsSelectable={true}
+                                onMouseMove={handlePaneMouseMove}
                             >
                                 <Controls position="bottom-left" className="!bg-[#161616]/90 !backdrop-blur-2xl !border-white/[0.06] !text-white/50 !shadow-[0_8px_40px_rgba(0,0,0,0.7)] !rounded-2xl overflow-hidden !m-6 [&_button]:!bg-transparent [&_button]:!border-white/[0.05] [&_button]:hover:!bg-white/10 [&_button_svg]:!fill-white/70" />
                                 <MiniMap position="bottom-right" className="!bg-[#161616]/90 !backdrop-blur-2xl !border-white/[0.06] !shadow-[0_8px_40px_rgba(0,0,0,0.7)] !rounded-2xl !mr-6 !mb-6 overflow-hidden [&_.react-flow__minimap-mask]:!fill-white/80" />
