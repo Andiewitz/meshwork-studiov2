@@ -1,4 +1,5 @@
 import React, { useEffect, useRef, useState } from "react";
+import { useReactFlow } from "@xyflow/react";
 import type { PresenceUser } from "@/hooks/use-presence";
 
 // ─── Cursor SVG ──────────────────────────────────────────────────────
@@ -25,6 +26,8 @@ function CursorArrow({ color }: { color: string }) {
 }
 
 // ─── Single Collaborator Cursor ──────────────────────────────────────
+// Renders at flow coordinates (not screen coordinates).
+// The parent ViewportCursors component handles the viewport transform.
 
 interface CollaboratorCursorProps {
   user: PresenceUser;
@@ -71,7 +74,7 @@ function CollaboratorCursor({ user }: CollaboratorCursorProps) {
 
   return (
     <div
-      className="pointer-events-none absolute z-[100] transition-opacity duration-300"
+      className="pointer-events-none absolute transition-opacity duration-300"
       style={{
         left: pos.x,
         top: pos.y,
@@ -93,20 +96,55 @@ function CollaboratorCursor({ user }: CollaboratorCursorProps) {
   );
 }
 
-// ─── Overlay Component ───────────────────────────────────────────────
+// ─── Viewport-Aware Cursor Overlay ───────────────────────────────────
+// This component reads the React Flow viewport (pan + zoom) and
+// transforms the cursor container so cursors follow the canvas.
 
 interface CollaboratorCursorsProps {
   collaborators: PresenceUser[];
 }
 
 export function CollaboratorCursors({ collaborators }: CollaboratorCursorsProps) {
+  const { getViewport } = useReactFlow();
+  const [viewport, setViewport] = useState({ x: 0, y: 0, zoom: 1 });
+  const animFrameRef = useRef<number>();
+
+  // Continuously read the viewport to keep cursors in sync with pan/zoom
+  useEffect(() => {
+    const update = () => {
+      const vp = getViewport();
+      setViewport((prev) => {
+        if (prev.x === vp.x && prev.y === vp.y && prev.zoom === vp.zoom) return prev;
+        return vp;
+      });
+      animFrameRef.current = requestAnimationFrame(update);
+    };
+    animFrameRef.current = requestAnimationFrame(update);
+    return () => {
+      if (animFrameRef.current) cancelAnimationFrame(animFrameRef.current);
+    };
+  }, [getViewport]);
+
   if (collaborators.length === 0) return null;
 
   return (
-    <div className="pointer-events-none absolute inset-0 z-[100] overflow-hidden">
-      {collaborators.map((user) => (
-        <CollaboratorCursor key={user.userId} user={user} />
-      ))}
+    <div
+      className="pointer-events-none absolute inset-0 overflow-hidden"
+      style={{ zIndex: 100 }}
+    >
+      <div
+        style={{
+          transform: `translate(${viewport.x}px, ${viewport.y}px) scale(${viewport.zoom})`,
+          transformOrigin: "0 0",
+          position: "absolute",
+          top: 0,
+          left: 0,
+        }}
+      >
+        {collaborators.map((user) => (
+          <CollaboratorCursor key={user.userId} user={user} />
+        ))}
+      </div>
     </div>
   );
 }
