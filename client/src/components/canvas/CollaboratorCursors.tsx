@@ -1,4 +1,5 @@
 import React, { useEffect, useRef, useState } from "react";
+import { ViewportPortal } from "@xyflow/react";
 import type { PresenceUser } from "@/hooks/use-presence";
 
 // ─── Cursor SVG ──────────────────────────────────────────────────────
@@ -25,9 +26,8 @@ function CursorArrow({ color }: { color: string }) {
 }
 
 // ─── Single Collaborator Cursor ──────────────────────────────────────
-// Uses flow coordinates directly. When rendered as a child of <ReactFlow>,
-// React Flow's viewport transform (translate + scale) is applied automatically
-// — exactly like nodes.
+// Uses flow coordinates directly. Rendered inside <ViewportPortal>,
+// which places elements in the SAME transform layer as nodes.
 
 interface CollaboratorCursorProps {
   user: PresenceUser;
@@ -64,8 +64,9 @@ function CollaboratorCursor({ user }: CollaboratorCursorProps) {
 
   return (
     <div
-      className="pointer-events-none absolute"
+      className="pointer-events-none"
       style={{
+        position: "absolute",
         transform: `translate(${pos.x}px, ${pos.y}px)`,
         zIndex: 9999,
         willChange: "transform",
@@ -83,8 +84,9 @@ function CollaboratorCursor({ user }: CollaboratorCursorProps) {
 }
 
 // ─── Cursors Container ───────────────────────────────────────────────
-// Render this as a CHILD of <ReactFlow> so it lives inside the viewport
-// transform layer — identical to how nodes are positioned.
+// Uses <ViewportPortal> to render directly in the viewport transform
+// layer — the EXACT same DOM layer as nodes. This guarantees
+// pixel-perfect accuracy because the same CSS transform applies.
 
 interface CollaboratorCursorsProps {
   collaborators: PresenceUser[];
@@ -94,11 +96,11 @@ export function CollaboratorCursors({ collaborators }: CollaboratorCursorsProps)
   if (collaborators.length === 0) return null;
 
   return (
-    <>
+    <ViewportPortal>
       {collaborators.map((user) => (
         <CollaboratorCursor key={user.userId} user={user} />
       ))}
-    </>
+    </ViewportPortal>
   );
 }
 
