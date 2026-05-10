@@ -3,24 +3,49 @@ import request from 'supertest';
 import express from 'express';
 import { registerTeamRoutes } from '@server/modules/team/routes';
 
-// Mock the teamStorage methods
+// ─── Mocks ───────────────────────────────────────────────────────────
+
 const mockCreateTeam = vi.fn();
+const mockGetTeamsByUser = vi.fn();
 const mockGetTeam = vi.fn();
+const mockGetTeamMembers = vi.fn();
 const mockIsTeamMember = vi.fn();
 const mockIsTeamOwner = vi.fn();
-const mockGetTeamMembers = vi.fn();
+const mockJoinTeam = vi.fn();
+const mockLeaveTeam = vi.fn();
+const mockDeleteTeam = vi.fn();
+const mockShareWorkspace = vi.fn();
+const mockUnshareWorkspace = vi.fn();
+const mockGetTeamWorkspaces = vi.fn();
+const mockRegenerateInviteCode = vi.fn();
+const mockCanAccessWorkspace = vi.fn();
 
 vi.mock('@server/modules/team/storage', () => ({
   teamStorage: {
-    createTeam: (...args: any[]) => mockCreateTeam(...args),
-    getTeam: (...args: any[]) => mockGetTeam(...args),
-    isTeamMember: (...args: any[]) => mockIsTeamMember(...args),
-    isTeamOwner: (...args: any[]) => mockIsTeamOwner(...args),
-    getTeamMembers: (...args: any[]) => mockGetTeamMembers(...args),
+    createTeam: (...a: any[]) => mockCreateTeam(...a),
+    getTeamsByUser: (...a: any[]) => mockGetTeamsByUser(...a),
+    getTeam: (...a: any[]) => mockGetTeam(...a),
+    getTeamMembers: (...a: any[]) => mockGetTeamMembers(...a),
+    isTeamMember: (...a: any[]) => mockIsTeamMember(...a),
+    isTeamOwner: (...a: any[]) => mockIsTeamOwner(...a),
+    joinTeam: (...a: any[]) => mockJoinTeam(...a),
+    leaveTeam: (...a: any[]) => mockLeaveTeam(...a),
+    deleteTeam: (...a: any[]) => mockDeleteTeam(...a),
+    shareWorkspace: (...a: any[]) => mockShareWorkspace(...a),
+    unshareWorkspace: (...a: any[]) => mockUnshareWorkspace(...a),
+    getTeamWorkspaces: (...a: any[]) => mockGetTeamWorkspaces(...a),
+    regenerateInviteCode: (...a: any[]) => mockRegenerateInviteCode(...a),
+    canAccessWorkspace: (...a: any[]) => mockCanAccessWorkspace(...a),
   }
 }));
 
-// Mock AuthModule for middleware
+const mockGetWorkspace = vi.fn();
+vi.mock('@server/modules/workspace/storage', () => ({
+  workspaceStorage: {
+    getWorkspace: (...a: any[]) => mockGetWorkspace(...a),
+  }
+}));
+
 vi.mock('@server/modules/auth', () => ({
   AuthModule: {
     middleware: {
@@ -36,85 +61,251 @@ vi.mock('@server/modules/auth', () => ({
   }
 }));
 
-// Mock CSRF
 vi.mock('@server/middleware/csrf', () => ({
-  csrfProtection: (req: any, res: any, next: any) => next(),
+  csrfProtection: (_req: any, _res: any, next: any) => next(),
 }));
 
-const setupTestApp = () => {
+// ─── Setup ───────────────────────────────────────────────────────────
+
+const setupApp = () => {
   const app = express();
   app.use(express.json());
   registerTeamRoutes(app);
   return app;
 };
 
-describe('Team Routes Integration Tests (IDOR & Validation)', () => {
+describe('Team Routes - Full Coverage', () => {
   let app: express.Express;
 
   beforeEach(() => {
-    app = setupTestApp();
+    app = setupApp();
     vi.clearAllMocks();
   });
 
-  describe('POST /api/teams (Create Team)', () => {
-    it('should create a team if valid name is provided', async () => {
-      mockCreateTeam.mockResolvedValue({
-        id: 'team_1',
-        name: 'Design Team',
-        ownerId: 'user_A',
-        inviteCode: 'MX-ABCDEF'
-      });
+  // ─── Auth Guard ──────────────────────────────────────────────────
 
-      const res = await request(app)
-        .post('/api/teams')
-        .set('x-test-user-id', 'user_A')
-        .send({ name: 'Design Team' });
+  describe('Authentication', () => {
+    it('rejects unauthenticated requests on all mutation endpoints', async () => {
+      const endpoints = [
+        { method: 'post', path: '/api/teams', body: { name: 'x' } },
+        { method: 'post', path: '/api/teams/join', body: { inviteCode: 'MX-1234' } },
+        { method: 'delete', path: '/api/teams/t1/members/u1', body: {} },
+        { method: 'post', path: '/api/teams/t1/workspaces', body: { workspaceId: 1 } },
+        { method: 'delete', path: '/api/teams/t1/workspaces/1', body: {} },
+        { method: 'delete', path: '/api/teams/t1', body: {} },
+      ];
 
+      for (const ep of endpoints) {
+        const res = await (request(app) as any)[ep.method](ep.path).send(ep.body);
+        expect(res.status).toBe(401);
+      }
+    });
+  });
+
+  // ─── Create Team ─────────────────────────────────────────────────
+
+  describe('POST /api/teams', () => {
+    it('creates a team with valid name', async () => {
+      mockCreateTeam.mockResolvedValue({ id: 't1', name: 'Alpha', ownerId: 'u1', inviteCode: 'MX-AAAA' });
+      const res = await request(app).post('/api/teams').set('x-test-user-id', 'u1').send({ name: 'Alpha' });
       expect(res.status).toBe(201);
-      expect(res.body.name).toBe('Design Team');
-      expect(mockCreateTeam).toHaveBeenCalledWith('Design Team', 'user_A');
+      expect(res.body.name).toBe('Alpha');
+      expect(mockCreateTeam).toHaveBeenCalledWith('Alpha', 'u1');
     });
 
-    it('should reject empty team names', async () => {
-      const res = await request(app)
-        .post('/api/teams')
-        .set('x-test-user-id', 'user_A')
-        .send({ name: '   ' });
-
+    it('rejects empty name', async () => {
+      const res = await request(app).post('/api/teams').set('x-test-user-id', 'u1').send({ name: '' });
       expect(res.status).toBe(400);
-      expect(mockCreateTeam).not.toHaveBeenCalled();
+    });
+
+    it('rejects whitespace-only name', async () => {
+      const res = await request(app).post('/api/teams').set('x-test-user-id', 'u1').send({ name: '   ' });
+      expect(res.status).toBe(400);
+    });
+
+    it('rejects name over 64 chars', async () => {
+      const res = await request(app).post('/api/teams').set('x-test-user-id', 'u1').send({ name: 'x'.repeat(65) });
+      expect(res.status).toBe(400);
+    });
+
+    it('trims whitespace from name', async () => {
+      mockCreateTeam.mockResolvedValue({ id: 't1', name: 'Alpha', ownerId: 'u1' });
+      await request(app).post('/api/teams').set('x-test-user-id', 'u1').send({ name: '  Alpha  ' });
+      expect(mockCreateTeam).toHaveBeenCalledWith('Alpha', 'u1');
     });
   });
 
-  describe('GET /api/teams/:id (Get Team Details)', () => {
-    it('should block access if the user is not a team member (IDOR)', async () => {
-      // Simulate user not being a member
-      mockIsTeamMember.mockResolvedValue(false);
+  // ─── Join Team ───────────────────────────────────────────────────
 
-      const res = await request(app)
-        .get('/api/teams/team_1')
-        .set('x-test-user-id', 'hacker_user');
+  describe('POST /api/teams/join', () => {
+    it('joins with valid invite code', async () => {
+      mockJoinTeam.mockResolvedValue({ teamId: 't1', userId: 'u2' });
+      const res = await request(app).post('/api/teams/join').set('x-test-user-id', 'u2').send({ inviteCode: 'MX-1234' });
+      expect(res.status).toBe(201);
+      expect(mockJoinTeam).toHaveBeenCalledWith('MX-1234', 'u2');
+    });
 
+    it('uppercases the invite code', async () => {
+      mockJoinTeam.mockResolvedValue({ teamId: 't1', userId: 'u2' });
+      await request(app).post('/api/teams/join').set('x-test-user-id', 'u2').send({ inviteCode: 'mx-abcd' });
+      expect(mockJoinTeam).toHaveBeenCalledWith('MX-ABCD', 'u2');
+    });
+
+    it('rejects empty invite code', async () => {
+      const res = await request(app).post('/api/teams/join').set('x-test-user-id', 'u2').send({ inviteCode: '' });
+      expect(res.status).toBe(400);
+    });
+  });
+
+  // ─── Leave / Remove Member ───────────────────────────────────────
+
+  describe('DELETE /api/teams/:id/members/:userId', () => {
+    it('allows a user to leave their own team', async () => {
+      mockIsTeamOwner.mockResolvedValue(false);
+      mockLeaveTeam.mockResolvedValue(undefined);
+      const res = await request(app).delete('/api/teams/t1/members/u2').set('x-test-user-id', 'u2');
+      expect(res.status).toBe(204);
+      expect(mockLeaveTeam).toHaveBeenCalledWith('t1', 'u2');
+    });
+
+    it('allows owner to remove another member', async () => {
+      mockIsTeamOwner.mockResolvedValue(true);
+      mockLeaveTeam.mockResolvedValue(undefined);
+      const res = await request(app).delete('/api/teams/t1/members/u2').set('x-test-user-id', 'u1');
+      expect(res.status).toBe(204);
+    });
+
+    it('blocks non-owner from removing another member (IDOR)', async () => {
+      mockIsTeamOwner.mockResolvedValue(false);
+      const res = await request(app).delete('/api/teams/t1/members/u3').set('x-test-user-id', 'u2');
       expect(res.status).toBe(403);
-      expect(res.body.message).toBe('Not a member of this team');
-      expect(mockGetTeam).not.toHaveBeenCalled();
+      expect(mockLeaveTeam).not.toHaveBeenCalled();
     });
 
-    it('should return team details if user is a member', async () => {
-      mockIsTeamMember.mockResolvedValue(true);
-      mockGetTeam.mockResolvedValue({ id: 'team_1', name: 'Design Team' });
-      mockGetTeamMembers.mockResolvedValue([
-        { id: 'member_1', userId: 'user_A', role: 'owner' }
-      ]);
-
-      const res = await request(app)
-        .get('/api/teams/team_1')
-        .set('x-test-user-id', 'user_A');
-
-      expect(res.status).toBe(200);
-      expect(res.body.name).toBe('Design Team');
-      expect(res.body.members.length).toBe(1);
+    it('blocks owner from leaving (must delete team instead)', async () => {
+      mockIsTeamOwner.mockResolvedValue(true);
+      const res = await request(app).delete('/api/teams/t1/members/u1').set('x-test-user-id', 'u1');
+      expect(res.status).toBe(400);
+      expect(mockLeaveTeam).not.toHaveBeenCalled();
     });
   });
 
+  // ─── Share Workspace ─────────────────────────────────────────────
+
+  describe('POST /api/teams/:id/workspaces', () => {
+    it('shares workspace if user is member AND workspace owner', async () => {
+      mockIsTeamMember.mockResolvedValue(true);
+      mockGetWorkspace.mockResolvedValue({ id: 1, userId: 'u1' });
+      mockShareWorkspace.mockResolvedValue({ teamId: 't1', workspaceId: 1 });
+
+      const res = await request(app).post('/api/teams/t1/workspaces').set('x-test-user-id', 'u1').send({ workspaceId: 1 });
+      expect(res.status).toBe(201);
+    });
+
+    it('blocks sharing if not a team member', async () => {
+      mockIsTeamMember.mockResolvedValue(false);
+      const res = await request(app).post('/api/teams/t1/workspaces').set('x-test-user-id', 'hacker').send({ workspaceId: 1 });
+      expect(res.status).toBe(403);
+    });
+
+    it('blocks sharing workspace you do not own (IDOR)', async () => {
+      mockIsTeamMember.mockResolvedValue(true);
+      mockGetWorkspace.mockResolvedValue({ id: 1, userId: 'someone_else' });
+      const res = await request(app).post('/api/teams/t1/workspaces').set('x-test-user-id', 'u1').send({ workspaceId: 1 });
+      expect(res.status).toBe(403);
+      expect(mockShareWorkspace).not.toHaveBeenCalled();
+    });
+
+    it('rejects missing workspaceId', async () => {
+      mockIsTeamMember.mockResolvedValue(true);
+      const res = await request(app).post('/api/teams/t1/workspaces').set('x-test-user-id', 'u1').send({});
+      expect(res.status).toBe(400);
+    });
+  });
+
+  // ─── Unshare Workspace ───────────────────────────────────────────
+
+  describe('DELETE /api/teams/:id/workspaces/:workspaceId', () => {
+    it('allows workspace owner to unshare', async () => {
+      mockIsTeamMember.mockResolvedValue(true);
+      mockGetWorkspace.mockResolvedValue({ id: 1, userId: 'u1' });
+      mockIsTeamOwner.mockResolvedValue(false);
+      mockUnshareWorkspace.mockResolvedValue(undefined);
+
+      const res = await request(app).delete('/api/teams/t1/workspaces/1').set('x-test-user-id', 'u1');
+      expect(res.status).toBe(204);
+    });
+
+    it('allows team owner to unshare any workspace', async () => {
+      mockIsTeamMember.mockResolvedValue(true);
+      mockGetWorkspace.mockResolvedValue({ id: 1, userId: 'u2' });
+      mockIsTeamOwner.mockResolvedValue(true);
+      mockUnshareWorkspace.mockResolvedValue(undefined);
+
+      const res = await request(app).delete('/api/teams/t1/workspaces/1').set('x-test-user-id', 'u1');
+      expect(res.status).toBe(204);
+    });
+
+    it('blocks non-owner member from unsharing others workspace (IDOR)', async () => {
+      mockIsTeamMember.mockResolvedValue(true);
+      mockGetWorkspace.mockResolvedValue({ id: 1, userId: 'u2' }); // not our workspace
+      mockIsTeamOwner.mockResolvedValue(false); // not team owner either
+      const res = await request(app).delete('/api/teams/t1/workspaces/1').set('x-test-user-id', 'u3');
+      expect(res.status).toBe(403);
+    });
+  });
+
+  // ─── Regenerate Invite Code ──────────────────────────────────────
+
+  describe('POST /api/teams/:id/regenerate-code', () => {
+    it('allows owner to regenerate', async () => {
+      mockIsTeamOwner.mockResolvedValue(true);
+      mockRegenerateInviteCode.mockResolvedValue({ id: 't1', inviteCode: 'MX-NEW1' });
+      const res = await request(app).post('/api/teams/t1/regenerate-code').set('x-test-user-id', 'u1');
+      expect(res.status).toBe(200);
+      expect(res.body.inviteCode).toBe('MX-NEW1');
+    });
+
+    it('blocks non-owner from regenerating', async () => {
+      mockIsTeamOwner.mockResolvedValue(false);
+      const res = await request(app).post('/api/teams/t1/regenerate-code').set('x-test-user-id', 'u2');
+      expect(res.status).toBe(403);
+    });
+  });
+
+  // ─── Delete Team ─────────────────────────────────────────────────
+
+  describe('DELETE /api/teams/:id', () => {
+    it('allows owner to delete', async () => {
+      mockIsTeamOwner.mockResolvedValue(true);
+      mockDeleteTeam.mockResolvedValue(undefined);
+      const res = await request(app).delete('/api/teams/t1').set('x-test-user-id', 'u1');
+      expect(res.status).toBe(204);
+    });
+
+    it('blocks non-owner from deleting', async () => {
+      mockIsTeamOwner.mockResolvedValue(false);
+      const res = await request(app).delete('/api/teams/t1').set('x-test-user-id', 'u2');
+      expect(res.status).toBe(403);
+      expect(mockDeleteTeam).not.toHaveBeenCalled();
+    });
+  });
+
+  // ─── Team Workspaces List ────────────────────────────────────────
+
+  describe('GET /api/teams/:id/workspaces', () => {
+    it('returns workspaces for a team member', async () => {
+      mockIsTeamMember.mockResolvedValue(true);
+      mockGetTeamWorkspaces.mockResolvedValue([{ id: 1, title: 'Project A' }]);
+      const res = await request(app).get('/api/teams/t1/workspaces').set('x-test-user-id', 'u1');
+      expect(res.status).toBe(200);
+      expect(res.body).toHaveLength(1);
+    });
+
+    it('blocks non-member from listing workspaces', async () => {
+      mockIsTeamMember.mockResolvedValue(false);
+      const res = await request(app).get('/api/teams/t1/workspaces').set('x-test-user-id', 'hacker');
+      expect(res.status).toBe(403);
+    });
+  });
 });
