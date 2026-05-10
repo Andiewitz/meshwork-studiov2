@@ -901,8 +901,6 @@ function WorkspaceView() {
                                     />
                                 )}
                             </AnimatePresence>
-                            {/* Collaborator cursor overlay */}
-                            <CollaboratorCursors collaborators={collaborators} />
                             <ReactFlow
                                 nodes={nodes}
                                 edges={edges}
@@ -944,6 +942,9 @@ function WorkspaceView() {
                                 <Controls position="bottom-left" className="!bg-[#161616]/90 !backdrop-blur-2xl !border-white/[0.06] !text-white/50 !shadow-[0_8px_40px_rgba(0,0,0,0.7)] !rounded-2xl overflow-hidden !m-6 [&_button]:!bg-transparent [&_button]:!border-white/[0.05] [&_button]:hover:!bg-white/10 [&_button_svg]:!fill-white/70" />
                                 <MiniMap position="bottom-right" className="!bg-[#161616]/90 !backdrop-blur-2xl !border-white/[0.06] !shadow-[0_8px_40px_rgba(0,0,0,0.7)] !rounded-2xl !mr-6 !mb-6 overflow-hidden [&_.react-flow__minimap-mask]:!fill-white/80" />
                                 <Background variant={'dots' as any} gap={20} size={1.2} color="#ffffff22" />
+
+                                {/* Collaborator cursors — inside ReactFlow so they follow the viewport like nodes */}
+                                <CollaboratorCursors collaborators={collaborators} />
 
                                 {/* ── Top-left panel — inside ReactFlow so it tracks canvas not root ── */}
                                 <Panel position="top-left" className={`transition-all duration-300 my-5 ${sidebarCollapsed ? 'ml-[76px]' : 'ml-[280px]'}`}>

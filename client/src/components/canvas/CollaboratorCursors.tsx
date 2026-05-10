@@ -1,5 +1,4 @@
 import React, { useEffect, useRef, useState } from "react";
-import { useReactFlow } from "@xyflow/react";
 import type { PresenceUser } from "@/hooks/use-presence";
 
 // ─── Cursor SVG ──────────────────────────────────────────────────────
@@ -26,8 +25,9 @@ function CursorArrow({ color }: { color: string }) {
 }
 
 // ─── Single Collaborator Cursor ──────────────────────────────────────
-// Renders at flow coordinates (not screen coordinates).
-// The parent ViewportCursors component handles the viewport transform.
+// Uses flow coordinates directly. When rendered as a child of <ReactFlow>,
+// React Flow's viewport transform (translate + scale) is applied automatically
+// — exactly like nodes.
 
 interface CollaboratorCursorProps {
   user: PresenceUser;
@@ -38,7 +38,6 @@ function CollaboratorCursor({ user }: CollaboratorCursorProps) {
   const targetRef = useRef(user.cursor || { x: 0, y: 0 });
   const animFrameRef = useRef<number>();
 
-  // Smooth lerp animation for cursor movement
   useEffect(() => {
     if (user.cursor) {
       targetRef.current = user.cursor;
@@ -50,20 +49,11 @@ function CollaboratorCursor({ user }: CollaboratorCursorProps) {
       setPos((prev) => {
         const dx = targetRef.current.x - prev.x;
         const dy = targetRef.current.y - prev.y;
-
-        // If close enough, snap
-        if (Math.abs(dx) < 0.5 && Math.abs(dy) < 0.5) {
-          return targetRef.current;
-        }
-
-        return {
-          x: prev.x + dx * 0.15,
-          y: prev.y + dy * 0.15,
-        };
+        if (Math.abs(dx) < 0.5 && Math.abs(dy) < 0.5) return targetRef.current;
+        return { x: prev.x + dx * 0.15, y: prev.y + dy * 0.15 };
       });
       animFrameRef.current = requestAnimationFrame(lerp);
     };
-
     animFrameRef.current = requestAnimationFrame(lerp);
     return () => {
       if (animFrameRef.current) cancelAnimationFrame(animFrameRef.current);
@@ -74,21 +64,17 @@ function CollaboratorCursor({ user }: CollaboratorCursorProps) {
 
   return (
     <div
-      className="pointer-events-none absolute transition-opacity duration-300"
+      className="pointer-events-none absolute"
       style={{
-        left: pos.x,
-        top: pos.y,
-        willChange: "left, top",
+        transform: `translate(${pos.x}px, ${pos.y}px)`,
+        zIndex: 9999,
+        willChange: "transform",
       }}
     >
       <CursorArrow color={user.color} />
-      {/* Name label */}
       <div
         className="absolute left-4 top-4 px-2 py-0.5 rounded-md text-[10px] font-bold uppercase tracking-widest whitespace-nowrap shadow-lg"
-        style={{
-          backgroundColor: user.color,
-          color: "#000",
-        }}
+        style={{ backgroundColor: user.color, color: "#000" }}
       >
         {user.name}
       </div>
@@ -96,56 +82,23 @@ function CollaboratorCursor({ user }: CollaboratorCursorProps) {
   );
 }
 
-// ─── Viewport-Aware Cursor Overlay ───────────────────────────────────
-// This component reads the React Flow viewport (pan + zoom) and
-// transforms the cursor container so cursors follow the canvas.
+// ─── Cursors Container ───────────────────────────────────────────────
+// Render this as a CHILD of <ReactFlow> so it lives inside the viewport
+// transform layer — identical to how nodes are positioned.
 
 interface CollaboratorCursorsProps {
   collaborators: PresenceUser[];
 }
 
 export function CollaboratorCursors({ collaborators }: CollaboratorCursorsProps) {
-  const { getViewport } = useReactFlow();
-  const [viewport, setViewport] = useState({ x: 0, y: 0, zoom: 1 });
-  const animFrameRef = useRef<number>();
-
-  // Continuously read the viewport to keep cursors in sync with pan/zoom
-  useEffect(() => {
-    const update = () => {
-      const vp = getViewport();
-      setViewport((prev) => {
-        if (prev.x === vp.x && prev.y === vp.y && prev.zoom === vp.zoom) return prev;
-        return vp;
-      });
-      animFrameRef.current = requestAnimationFrame(update);
-    };
-    animFrameRef.current = requestAnimationFrame(update);
-    return () => {
-      if (animFrameRef.current) cancelAnimationFrame(animFrameRef.current);
-    };
-  }, [getViewport]);
-
   if (collaborators.length === 0) return null;
 
   return (
-    <div
-      className="pointer-events-none absolute inset-0 overflow-hidden"
-      style={{ zIndex: 100 }}
-    >
-      <div
-        style={{
-          transform: `translate(${viewport.x}px, ${viewport.y}px) scale(${viewport.zoom})`,
-          transformOrigin: "0 0",
-          position: "absolute",
-          top: 0,
-          left: 0,
-        }}
-      >
-        {collaborators.map((user) => (
-          <CollaboratorCursor key={user.userId} user={user} />
-        ))}
-      </div>
-    </div>
+    <>
+      {collaborators.map((user) => (
+        <CollaboratorCursor key={user.userId} user={user} />
+      ))}
+    </>
   );
 }
 
@@ -161,14 +114,11 @@ export function PresenceIndicator({ collaborators, isConnected }: PresenceIndica
 
   return (
     <div className="flex items-center gap-1.5 px-3 py-1.5 glass-card rounded-full">
-      {/* Connection dot */}
       <div
         className={`w-1.5 h-1.5 rounded-full ${
           isConnected ? "bg-emerald-400 shadow-[0_0_6px_rgba(52,211,153,0.6)]" : "bg-red-400"
         }`}
       />
-
-      {/* Collaborator avatars */}
       <div className="flex -space-x-1.5">
         {collaborators.slice(0, 5).map((user) => (
           <div
@@ -185,13 +135,11 @@ export function PresenceIndicator({ collaborators, isConnected }: PresenceIndica
           </div>
         ))}
       </div>
-
       {collaborators.length > 5 && (
         <span className="text-[10px] text-white/40 font-bold">
           +{collaborators.length - 5}
         </span>
       )}
-
       <span className="text-[10px] text-white/30 font-bold uppercase tracking-widest ml-1">
         Live
       </span>
