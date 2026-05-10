@@ -26,7 +26,7 @@ import {
 
 import '@xyflow/react/dist/style.css';
 import { useCanvas, saveCanvasToLocalCache, getCanvasFromLocalCache } from '@/hooks/use-canvas';
-import { useWorkspace, useDeleteWorkspace, useWorkspaceRole, useWorkspaceMembers, useUpdateMemberRole, type WorkspaceRole } from '@/hooks/use-workspaces';
+import { useWorkspace, useDeleteWorkspace, useWorkspaceRole, useWorkspaceMembers, useUpdateMemberRole, useUpdateWorkspace, useDuplicateWorkspace, type WorkspaceRole } from '@/hooks/use-workspaces';
 import { useParams, Link, useLocation } from 'wouter';
 import {
     Download,
@@ -106,6 +106,8 @@ import {
     FileDown,
     FileUp,
     FileJson,
+    Link2,
+    Maximize2,
 } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { useAuth } from '@/hooks/use-auth';
@@ -141,6 +143,8 @@ function WorkspaceView() {
     const { screenToFlowPosition, fitView, zoomIn, zoomOut, getViewport, setViewport } = useReactFlow();
     const [, setLocation] = useLocation();
     const deleteWorkspace = useDeleteWorkspace();
+    const updateWorkspace = useUpdateWorkspace();
+    const duplicateWorkspace = useDuplicateWorkspace();
 
     const [nodes, setNodes, onNodesChange] = useNodesState<Node>([]);
     const [edges, setEdges, onEdgesChange] = useEdgesState<Edge>([]);
@@ -204,6 +208,44 @@ function WorkspaceView() {
         }
         e.target.value = ''; // Reset file input
     }, [setNodes, setEdges, toast]);
+
+    // ── Rename state ──
+    const [isRenaming, setIsRenaming] = useState(false);
+    const [renameValue, setRenameValue] = useState('');
+
+    const handleStartRename = useCallback(() => {
+        setRenameValue(workspace?.title || '');
+        setIsRenaming(true);
+    }, [workspace?.title]);
+
+    const handleRename = useCallback(() => {
+        const trimmed = renameValue.trim();
+        if (!trimmed || trimmed === workspace?.title) { setIsRenaming(false); return; }
+        updateWorkspace.mutate({ id: workspaceId, title: trimmed }, {
+            onSuccess: () => { toast({ title: 'Renamed' }); setIsRenaming(false); },
+            onError: (e: any) => { toast({ title: 'Rename failed', description: e.message, variant: 'destructive' }); },
+        });
+    }, [renameValue, workspace?.title, workspaceId, updateWorkspace, toast]);
+
+    const handleDuplicate = useCallback(() => {
+        duplicateWorkspace.mutate({ id: workspaceId, title: `Copy of ${workspace?.title || 'Untitled'}` }, {
+            onSuccess: (ws: any) => { toast({ title: `Duplicated as "${ws.title}"` }); },
+            onError: () => { toast({ title: 'Duplicate failed', variant: 'destructive' }); },
+        });
+    }, [workspaceId, workspace?.title, duplicateWorkspace, toast]);
+
+    const handleCopyInvite = useCallback(async () => {
+        if (!teamId) { toast({ title: 'Not shared with a team' }); return; }
+        // Fetch team details to get invite code
+        try {
+            const res = await fetch(`/api/teams/${teamId}`, { credentials: 'include' });
+            const team = await res.json();
+            if (team.inviteCode) {
+                await navigator.clipboard.writeText(team.inviteCode);
+                toast({ title: 'Invite code copied!', description: team.inviteCode });
+            }
+        } catch { toast({ title: 'Failed to get invite code', variant: 'destructive' }); }
+    }, [teamId, toast]);
 
     // ── Real-time collaboration (cursors & presence) ──
     const isRemoteUpdate = useRef(false);
@@ -1028,6 +1070,39 @@ function WorkspaceView() {
                                                         Back to Library
                                                     </button>
                                                 </Link>
+                                                <div className="h-px bg-white/[0.06] my-1" />
+                                                {/* ── Quick actions ── */}
+                                                {canEdit && (
+                                                    isRenaming ? (
+                                                        <div className="px-2 py-1">
+                                                            <input
+                                                                autoFocus
+                                                                value={renameValue}
+                                                                onChange={(e) => setRenameValue(e.target.value)}
+                                                                onKeyDown={(e) => { if (e.key === 'Enter') handleRename(); if (e.key === 'Escape') setIsRenaming(false); }}
+                                                                onBlur={handleRename}
+                                                                maxLength={16}
+                                                                className="w-full px-2.5 py-1.5 rounded-lg bg-white/[0.06] border border-white/[0.12] text-[12px] text-white/90 outline-none focus:border-white/25 transition-all"
+                                                                placeholder="Project name..."
+                                                            />
+                                                        </div>
+                                                    ) : (
+                                                        <button onClick={handleStartRename} className="w-full flex items-center gap-2.5 px-3 py-2 rounded-lg text-[12px] text-white/60 hover:text-white hover:bg-white/[0.07] transition-all">
+                                                            <Pen className="w-3.5 h-3.5" />
+                                                            Rename Project
+                                                        </button>
+                                                    )
+                                                )}
+                                                {canEdit && (
+                                                    <button onClick={handleDuplicate} className="w-full flex items-center gap-2.5 px-3 py-2 rounded-lg text-[12px] text-white/60 hover:text-white hover:bg-white/[0.07] transition-all">
+                                                        <Download className="w-3.5 h-3.5" />
+                                                        Duplicate Project
+                                                    </button>
+                                                )}
+                                                <button onClick={handleCopyInvite} className="w-full flex items-center gap-2.5 px-3 py-2 rounded-lg text-[12px] text-white/60 hover:text-white hover:bg-white/[0.07] transition-all">
+                                                    <Link2 className="w-3.5 h-3.5" />
+                                                    Share (Invite Code)
+                                                </button>
                                                 <div className="h-px bg-white/[0.06] my-1" />
                                                 {/* ── Export ── */}
                                                 <button onClick={handleExportPng} className="w-full flex items-center gap-2.5 px-3 py-2 rounded-lg text-[12px] text-white/60 hover:text-white hover:bg-white/[0.07] transition-all">
