@@ -26,7 +26,7 @@ import {
 
 import '@xyflow/react/dist/style.css';
 import { useCanvas, saveCanvasToLocalCache, getCanvasFromLocalCache } from '@/hooks/use-canvas';
-import { useWorkspace, useDeleteWorkspace } from '@/hooks/use-workspaces';
+import { useWorkspace, useDeleteWorkspace, useWorkspaceRole, type WorkspaceRole } from '@/hooks/use-workspaces';
 import { useParams, Link, useLocation } from 'wouter';
 import {
     Download,
@@ -96,6 +96,12 @@ import {
     Redo2,
     Menu,
     LogOut,
+    ShieldCheck,
+    Eye,
+    Pen,
+    Crown,
+    Users,
+    ChevronUp,
 } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { useAuth } from '@/hooks/use-auth';
@@ -143,6 +149,13 @@ function WorkspaceView() {
     const [hasArrow, setHasArrow] = useState(false);
     const [drawingMode, setDrawingMode] = useState<'select' | 'pan' | 'annotation' | 'infrastructure'>('select');
     const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
+
+    // ── Role-based access control ──
+    const { data: roleData } = useWorkspaceRole(workspaceId);
+    const userRole: WorkspaceRole = roleData?.role || 'none';
+    const canEdit = userRole === 'workspace-owner' || userRole === 'owner' || userRole === 'admin' || userRole === 'editor';
+    const canManage = userRole === 'workspace-owner' || userRole === 'owner' || userRole === 'admin';
+    const canDelete = userRole === 'workspace-owner' || userRole === 'owner' || userRole === 'admin';
 
     // ── Real-time collaboration (cursors & presence) ──
     const isRemoteUpdate = useRef(false);
@@ -876,7 +889,7 @@ function WorkspaceView() {
 
     return (
         <div className="h-screen w-screen overflow-hidden font-sans text-sm selection:bg-white/10 technical-gradient text-white relative">
-            <NodeLibrarySidebar onDragStart={onDragStart} collapsed={sidebarCollapsed} setCollapsed={setSidebarCollapsed} />
+            {canEdit && <NodeLibrarySidebar onDragStart={onDragStart} collapsed={sidebarCollapsed} setCollapsed={setSidebarCollapsed} />}
 
 
                 <motion.main
@@ -935,8 +948,8 @@ function WorkspaceView() {
                                 panOnDrag={drawingMode === 'pan' ? true : [1, 2]}
                                 selectionOnDrag={drawingMode === 'select' || drawingMode === 'infrastructure' || drawingMode === 'annotation'}
                                 selectionMode={SelectionMode.Partial}
-                                nodesDraggable={drawingMode === 'pan'}
-                                elementsSelectable={true}
+                                nodesDraggable={canEdit && drawingMode === 'pan'}
+                                elementsSelectable={canEdit}
                                 onMouseMove={handlePaneMouseMove}
                             >
                                 <Controls position="bottom-left" className="!bg-[#161616]/90 !backdrop-blur-2xl !border-white/[0.06] !text-white/50 !shadow-[0_8px_40px_rgba(0,0,0,0.7)] !rounded-2xl overflow-hidden !m-6 [&_button]:!bg-transparent [&_button]:!border-white/[0.05] [&_button]:hover:!bg-white/10 [&_button_svg]:!fill-white/70" />
@@ -968,13 +981,15 @@ function WorkspaceView() {
                                                     </button>
                                                 </Link>
                                                 <div className="h-px bg-white/[0.06] my-1" />
-                                                <button
-                                                    onClick={() => { if (confirm('Delete this project?')) deleteWorkspace.mutate(workspaceId, { onSuccess: () => { toast({ title: 'Deleted' }); setLocation('/'); } }); }}
-                                                    className="w-full flex items-center gap-2.5 px-3 py-2 rounded-lg text-[12px] text-red-400/70 hover:text-red-400 hover:bg-red-500/10 transition-all"
-                                                >
-                                                    <Trash2 className="w-3.5 h-3.5" />
-                                                    Delete Project
-                                                </button>
+                                                {canDelete && (
+                                                    <button
+                                                        onClick={() => { if (confirm('Delete this project?')) deleteWorkspace.mutate(workspaceId, { onSuccess: () => { toast({ title: 'Deleted' }); setLocation('/'); } }); }}
+                                                        className="w-full flex items-center gap-2.5 px-3 py-2 rounded-lg text-[12px] text-red-400/70 hover:text-red-400 hover:bg-red-500/10 transition-all"
+                                                    >
+                                                        <Trash2 className="w-3.5 h-3.5" />
+                                                        Delete Project
+                                                    </button>
+                                                )}
                                             </PopoverContent>
                                         </Popover>
                                         <div className="w-px h-4 bg-white/[0.08]" />
@@ -1009,29 +1024,109 @@ function WorkspaceView() {
                                         transition={{ duration: 0.5, ease: [0.16, 1, 0.3, 1], delay: 0.1 }}
                                         className="flex items-center gap-2"
                                     >
-                                        {/* Presence indicator */}
-                                        {collaborators.length > 0 && (
-                                            <PresenceIndicator collaborators={collaborators} isConnected={isPresenceConnected} />
+                                        {/* Members & Presence dropdown */}
+                                        <Popover>
+                                            <PopoverTrigger asChild>
+                                                <button className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-xl bg-[#121214]/80 backdrop-blur-xl border border-white/[0.08] shadow-[inset_0_1px_0_rgba(255,255,255,0.1),0_4px_12px_rgba(0,0,0,0.5)] hover:bg-white/[0.06] transition-all">
+                                                    {/* Connection dot */}
+                                                    <div className={`w-1.5 h-1.5 rounded-full ${isPresenceConnected ? 'bg-emerald-400 shadow-[0_0_6px_rgba(52,211,153,0.6)]' : 'bg-red-400'}`} />
+                                                    {/* Collaborator avatars */}
+                                                    <div className="flex -space-x-1.5">
+                                                        {collaborators.slice(0, 4).map((u) => (
+                                                            <div key={u.userId} className="w-5 h-5 rounded-full border-2 flex items-center justify-center text-[7px] font-bold" style={{ borderColor: u.color, backgroundColor: `${u.color}20`, color: u.color }}>
+                                                                {u.name[0]?.toUpperCase()}
+                                                            </div>
+                                                        ))}
+                                                    </div>
+                                                    {collaborators.length > 0 && <span className="text-[10px] text-white/30 font-bold">{collaborators.length + 1}</span>}
+                                                    <Users className="w-3 h-3 text-white/30" />
+                                                </button>
+                                            </PopoverTrigger>
+                                            <PopoverContent className="w-64 p-0 bg-[#121214]/95 backdrop-blur-2xl border border-white/[0.08] rounded-2xl shadow-[0_12px_48px_rgba(0,0,0,0.8)] z-[200]" side="bottom" align="end" sideOffset={8}>
+                                                <div className="px-3 py-2.5 border-b border-white/[0.06]">
+                                                    <span className="text-[11px] font-bold text-white/50 uppercase tracking-widest">Team Members</span>
+                                                </div>
+                                                {/* Current user */}
+                                                <div className="px-3 py-2 flex items-center gap-2.5 border-b border-white/[0.04]">
+                                                    <div className="w-6 h-6 rounded-full bg-gradient-to-br from-white/20 to-white/5 flex items-center justify-center text-[9px] font-bold text-white/80 border border-white/10">
+                                                        {user?.firstName?.[0]?.toUpperCase() || '?'}
+                                                    </div>
+                                                    <div className="flex-1 min-w-0">
+                                                        <div className="text-[11px] font-semibold text-white/80 truncate">{user?.firstName || 'You'} <span className="text-white/30">(you)</span></div>
+                                                    </div>
+                                                    {(() => {
+                                                        const roleIcon = userRole === 'workspace-owner' || userRole === 'owner'
+                                                            ? <Crown className="w-3 h-3 text-amber-400" />
+                                                            : userRole === 'admin'
+                                                            ? <ShieldCheck className="w-3 h-3 text-blue-400" />
+                                                            : userRole === 'editor'
+                                                            ? <Pen className="w-3 h-3 text-emerald-400" />
+                                                            : <Eye className="w-3 h-3 text-white/30" />;
+                                                        const roleLabel = userRole === 'workspace-owner' ? 'Owner' : userRole === 'owner' ? 'Owner' : userRole === 'admin' ? 'Admin' : userRole === 'editor' ? 'Editor' : 'Viewer';
+                                                        const roleColor = userRole === 'workspace-owner' || userRole === 'owner' ? 'text-amber-400/80' : userRole === 'admin' ? 'text-blue-400/80' : userRole === 'editor' ? 'text-emerald-400/80' : 'text-white/30';
+                                                        return (
+                                                            <div className={`flex items-center gap-1 px-1.5 py-0.5 rounded-md bg-white/[0.04] ${roleColor}`}>
+                                                                {roleIcon}
+                                                                <span className="text-[9px] font-bold uppercase tracking-wider">{roleLabel}</span>
+                                                            </div>
+                                                        );
+                                                    })()}
+                                                </div>
+                                                {/* Other collaborators */}
+                                                <div className="max-h-[200px] overflow-y-auto">
+                                                    {collaborators.length === 0 ? (
+                                                        <div className="px-3 py-4 text-center text-[11px] text-white/20">No other members online</div>
+                                                    ) : (
+                                                        collaborators.map((collab) => (
+                                                            <div key={collab.userId} className="px-3 py-2 flex items-center gap-2.5 hover:bg-white/[0.03] transition-colors">
+                                                                <div className="w-6 h-6 rounded-full flex items-center justify-center text-[9px] font-bold border-2" style={{ borderColor: collab.color, backgroundColor: `${collab.color}15`, color: collab.color }}>
+                                                                    {collab.name[0]?.toUpperCase()}
+                                                                </div>
+                                                                <div className="flex-1 min-w-0">
+                                                                    <div className="text-[11px] font-medium text-white/70 truncate">{collab.name}</div>
+                                                                </div>
+                                                                <div className="w-1.5 h-1.5 rounded-full bg-emerald-400 shadow-[0_0_4px_rgba(52,211,153,0.5)]" title="Online" />
+                                                            </div>
+                                                        ))
+                                                    )}
+                                                </div>
+                                            </PopoverContent>
+                                        </Popover>
+
+                                        {/* Undo/Redo/Simulate — editors+ only */}
+                                        {canEdit && (
+                                            <div className="flex items-center gap-0.5 px-1 py-1 rounded-xl bg-[#121214]/80 backdrop-blur-xl border border-white/[0.08] shadow-[inset_0_1px_0_rgba(255,255,255,0.1),0_4px_12px_rgba(0,0,0,0.5)]">
+                                                <button onClick={undo} className="w-8 h-8 flex items-center justify-center rounded-lg text-white/35 hover:text-white/80 hover:bg-white/[0.07] transition-all" title="Undo"><Undo2 className="w-3.5 h-3.5" /></button>
+                                                <button onClick={redo} className="w-8 h-8 flex items-center justify-center rounded-lg text-white/35 hover:text-white/80 hover:bg-white/[0.07] transition-all" title="Redo"><Redo2 className="w-3.5 h-3.5" /></button>
+                                                <div className="w-px h-4 bg-white/[0.08] mx-0.5" />
+                                                <button
+                                                    onClick={() => setIsSimulating(!isSimulating)}
+                                                    className={`w-8 h-8 flex items-center justify-center rounded-lg transition-all ${isSimulating ? 'bg-green-500/20 text-green-400' : 'text-white/35 hover:text-white/80 hover:bg-white/[0.07]'}`}
+                                                    title={isSimulating ? 'Stop' : 'Simulate'}
+                                                >
+                                                    <Play className={`w-3.5 h-3.5 ${isSimulating ? 'fill-green-400' : ''}`} />
+                                                </button>
+                                            </div>
                                         )}
-                                        <div className="flex items-center gap-0.5 px-1 py-1 rounded-xl bg-[#121214]/80 backdrop-blur-xl border border-white/[0.08] shadow-[inset_0_1px_0_rgba(255,255,255,0.1),0_4px_12px_rgba(0,0,0,0.5)]">
-                                            <button onClick={undo} className="w-8 h-8 flex items-center justify-center rounded-lg text-white/35 hover:text-white/80 hover:bg-white/[0.07] transition-all" title="Undo"><Undo2 className="w-3.5 h-3.5" /></button>
-                                            <button onClick={redo} className="w-8 h-8 flex items-center justify-center rounded-lg text-white/35 hover:text-white/80 hover:bg-white/[0.07] transition-all" title="Redo"><Redo2 className="w-3.5 h-3.5" /></button>
-                                            <div className="w-px h-4 bg-white/[0.08] mx-0.5" />
+
+                                        {/* Save — editors+ only */}
+                                        {canEdit && (
                                             <button
-                                                onClick={() => setIsSimulating(!isSimulating)}
-                                                className={`w-8 h-8 flex items-center justify-center rounded-lg transition-all ${isSimulating ? 'bg-green-500/20 text-green-400' : 'text-white/35 hover:text-white/80 hover:bg-white/[0.07]'}`}
-                                                title={isSimulating ? 'Stop' : 'Simulate'}
+                                                onClick={handleSave}
+                                                className="h-9 px-4 flex items-center gap-1.5 rounded-xl bg-green-500 hover:bg-green-400 text-white text-[12px] font-semibold transition-all shadow-[0_2px_12px_rgba(22,163,74,0.35)] active:scale-[0.97]"
                                             >
-                                                <Play className={`w-3.5 h-3.5 ${isSimulating ? 'fill-green-400' : ''}`} />
+                                                {saveStatus === 'saving' ? <CloudUpload className="w-3.5 h-3.5 animate-pulse" /> : saveStatus === 'saved' ? <CheckCircle2 className="w-3.5 h-3.5" /> : <Save className="w-3.5 h-3.5" />}
+                                                {saveStatus === 'saving' ? 'Saving…' : saveStatus === 'saved' ? 'Saved' : 'Save'}
                                             </button>
-                                        </div>
-                                        <button
-                                            onClick={handleSave}
-                                            className="h-9 px-4 flex items-center gap-1.5 rounded-xl bg-green-500 hover:bg-green-400 text-white text-[12px] font-semibold transition-all shadow-[0_2px_12px_rgba(22,163,74,0.35)] active:scale-[0.97]"
-                                        >
-                                            {saveStatus === 'saving' ? <CloudUpload className="w-3.5 h-3.5 animate-pulse" /> : saveStatus === 'saved' ? <CheckCircle2 className="w-3.5 h-3.5" /> : <Save className="w-3.5 h-3.5" />}
-                                            {saveStatus === 'saving' ? 'Saving…' : saveStatus === 'saved' ? 'Saved' : 'Save'}
-                                        </button>
+                                        )}
+
+                                        {/* Viewer badge */}
+                                        {!canEdit && (
+                                            <div className="h-9 px-4 flex items-center gap-1.5 rounded-xl bg-[#121214]/80 backdrop-blur-xl border border-white/[0.08] text-white/40 text-[12px] font-semibold">
+                                                <Eye className="w-3.5 h-3.5" />
+                                                View Only
+                                            </div>
+                                        )}
                                     </motion.div>
                                 </Panel>
                                 <div 

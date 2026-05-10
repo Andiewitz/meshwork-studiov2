@@ -134,7 +134,7 @@ export const teamMembers = pgTable("team_members", {
   id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
   teamId: varchar("team_id").notNull().references(() => teams.id, { onDelete: "cascade" }),
   userId: varchar("user_id").notNull().references(() => users.id, { onDelete: "cascade" }),
-  role: varchar("role", { length: 16 }).notNull().default("member"), // "owner" | "member"
+  role: varchar("role", { length: 16 }).notNull().default("editor"), // "owner" | "admin" | "editor" | "viewer"
   color: varchar("color", { length: 7 }).notNull(), // hex cursor color
   joinedAt: timestamp("joined_at").defaultNow(),
 }, (table) => [
@@ -201,6 +201,13 @@ export const insertTeamWorkspaceSchema = createInsertSchema(teamWorkspaces).omit
 
 export const joinTeamSchema = z.object({
   inviteCode: z.string().min(1, "Invite code is required").max(8),
+});
+
+export const TEAM_ROLES = ["owner", "admin", "editor", "viewer"] as const;
+export type TeamRole = typeof TEAM_ROLES[number];
+
+export const updateMemberRoleSchema = z.object({
+  role: z.enum(["admin", "editor", "viewer"]), // can't set to 'owner' via API
 });
 
 export type Collection = typeof collections.$inferSelect;

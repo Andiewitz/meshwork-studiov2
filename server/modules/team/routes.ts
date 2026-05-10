@@ -2,7 +2,7 @@ import type { Express } from "express";
 import { teamStorage } from "./storage";
 import { workspaceStorage } from "../workspace/storage";
 import { AuthModule } from "../auth";
-import { joinTeamSchema } from "@shared/schema";
+import { joinTeamSchema, updateMemberRoleSchema } from "@shared/schema";
 import { csrfProtection } from "../../middleware/csrf";
 import { z } from "zod";
 
@@ -167,5 +167,53 @@ export function registerTeamRoutes(app: Express) {
 
         await teamStorage.deleteTeam(teamId);
         res.status(204).send();
+    });
+
+    // ── Update member role (owner/admin only) ────────────────────────
+    app.patch("/api/teams/:id/members/:userId/role", csrfProtection, isAuthenticated, async (req, res) => {
+        const teamId = Array.isArray(req.params.id) ? req.params.id[0] : req.params.id;
+        const targetUserId = Array.isArray(req.params.userId) ? req.params.userId[0] : req.params.userId;
+        const actorId = req.user!.id;
+
+        try {
+            // Validate body
+            const { role: newRole } = updateMemberRoleSchema.parse(req.body);
+
+            // Check actor is owner or admin
+            const actorRole = await teamStorage.getMemberRole(teamId, actorId);
+            if (!actorRole || (actorRole !== 'owner' && actorRole !== 'admin')) {
+                return res.status(403).json({ message: "Only owners and admins can change roles" });
+            }
+
+            // Can't change the owner's role
+            const targetRole = await teamStorage.getMemberRole(teamId, targetUserId);
+            if (targetRole === 'owner') {
+                return res.status(403).json({ message: "Cannot change the owner's role" });
+            }
+
+            // Admins can't promote to admin (only owner can)
+            if (actorRole === 'admin' && newRole === 'admin') {
+                return res.status(403).json({ message: "Only the owner can promote to admin" });
+            }
+
+            const updated = await teamStorage.updateMemberRole(teamId, targetUserId, newRole);
+            res.json(updated);
+        } catch (err) {
+            if (err instanceof z.ZodError) {
+                return res.status(400).json({ message: err.errors[0]?.message || "Invalid role" });
+            }
+            res.status(400).json({ message: err instanceof Error ? err.message : "Failed to update role" });
+        }
+    });
+
+    // ── Get user's role for a workspace ──────────────────────────────
+    app.get("/api/workspaces/:id/role", isAuthenticated, async (req, res) => {
+        const workspaceId = Number(req.params.id);
+        const userId = req.user!.id;
+
+        if (isNaN(workspaceId)) return res.status(400).json({ message: "Invalid workspace ID" });
+
+        const role = await teamStorage.getWorkspaceRole(workspaceId, userId);
+        res.json({ role: role || 'none' });
     });
 }

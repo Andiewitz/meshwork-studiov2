@@ -139,3 +139,18 @@ export function useDuplicateWorkspace() {
     },
   });
 }
+
+// Hook to fetch user's role for a workspace
+export type WorkspaceRole = 'workspace-owner' | 'owner' | 'admin' | 'editor' | 'viewer' | 'none';
+
+export function useWorkspaceRole(workspaceId: number | null) {
+  return useQuery<{ role: WorkspaceRole }>({
+    queryKey: ['workspace-role', workspaceId],
+    queryFn: async () => {
+      const res = await fetch(getApiUrl(`/api/workspaces/${workspaceId}/role`), { credentials: "include" });
+      if (!res.ok) return { role: 'none' as WorkspaceRole };
+      return res.json();
+    },
+    enabled: !!workspaceId,
+  });
+}

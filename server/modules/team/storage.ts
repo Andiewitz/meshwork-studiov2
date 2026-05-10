@@ -10,6 +10,7 @@ import {
     type TeamMember,
     type TeamWorkspace,
     type Workspace,
+    type TeamRole,
 } from "@shared/schema";
 import { eq, and, inArray } from "drizzle-orm";
 import crypto from "crypto";
@@ -59,6 +60,9 @@ export interface ITeamStorage {
     isTeamMember(teamId: string, userId: string): Promise<boolean>;
     isTeamOwner(teamId: string, userId: string): Promise<boolean>;
     getTeamsForWorkspace(workspaceId: number): Promise<Team[]>;
+    updateMemberRole(teamId: string, targetUserId: string, newRole: TeamRole): Promise<TeamMember>;
+    getMemberRole(teamId: string, userId: string): Promise<TeamRole | null>;
+    getWorkspaceRole(workspaceId: number, userId: string): Promise<TeamRole | 'workspace-owner' | null>;
 }
 
 export class TeamDatabaseStorage implements ITeamStorage {
@@ -283,6 +287,48 @@ export class TeamDatabaseStorage implements ITeamStorage {
             ));
 
         return !!membership;
+    }
+
+    async updateMemberRole(teamId: string, targetUserId: string, newRole: TeamRole): Promise<TeamMember> {
+        const [updated] = await db
+            .update(teamMembers)
+            .set({ role: newRole })
+            .where(and(eq(teamMembers.teamId, teamId), eq(teamMembers.userId, targetUserId)))
+            .returning();
+        return updated;
+    }
+
+    async getMemberRole(teamId: string, userId: string): Promise<TeamRole | null> {
+        const [member] = await db
+            .select({ role: teamMembers.role })
+            .from(teamMembers)
+            .where(and(eq(teamMembers.teamId, teamId), eq(teamMembers.userId, userId)));
+        return (member?.role as TeamRole) || null;
+    }
+
+    async getWorkspaceRole(workspaceId: number, userId: string): Promise<TeamRole | 'workspace-owner' | null> {
+        // 1. Check if user owns the workspace directly
+        const [workspace] = await db.select().from(workspaces).where(eq(workspaces.id, workspaceId));
+        if (workspace?.userId === userId) return 'workspace-owner';
+
+        // 2. Find the team this workspace is shared with, get user's role in that team
+        const shared = await db
+            .select({ teamId: teamWorkspaces.teamId })
+            .from(teamWorkspaces)
+            .where(eq(teamWorkspaces.workspaceId, workspaceId));
+
+        if (shared.length === 0) return null;
+
+        const teamIds = shared.map(s => s.teamId);
+        const [membership] = await db
+            .select({ role: teamMembers.role })
+            .from(teamMembers)
+            .where(and(
+                eq(teamMembers.userId, userId),
+                inArray(teamMembers.teamId, teamIds)
+            ));
+
+        return (membership?.role as TeamRole) || null;
     }
 }
 
