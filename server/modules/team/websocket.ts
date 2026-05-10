@@ -92,7 +92,7 @@ async function resolveSession(req: IncomingMessage): Promise<{ id: string; email
     try {
         const cookieHeader = req.headers.cookie || "";
         const cookies = cookie.parse(cookieHeader);
-        const sid = cookies["meshwork.sid"];
+        const sid = cookies["connect.sid"];
         if (!sid) return null;
 
         // Decode the connect.sid cookie (format: s:<id>.<signature>)
