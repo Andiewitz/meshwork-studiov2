@@ -10,7 +10,7 @@ export interface PresenceUser {
 }
 
 interface ServerMessage {
-  type: "presence" | "cursor" | "joined" | "left" | "error" | "node-move";
+  type: "presence" | "cursor" | "joined" | "left" | "error" | "node-move" | "canvas-saved";
   users?: PresenceUser[];
   userId?: string;
   name?: string;
@@ -26,10 +26,16 @@ interface ServerMessage {
 
 // ─── Hook ────────────────────────────────────────────────────────────
 
-export function usePresence(workspaceId: number | null, onNodeMove?: (nodeId: string, x: number, y: number, parentId?: string | null) => void) {
+export function usePresence(
+  workspaceId: number | null,
+  onNodeMove?: (nodeId: string, x: number, y: number, parentId?: string | null) => void,
+  onCanvasSaved?: () => void,
+) {
   const wsRef = useRef<WebSocket | null>(null);
   const onNodeMoveRef = useRef(onNodeMove);
   onNodeMoveRef.current = onNodeMove;
+  const onCanvasSavedRef = useRef(onCanvasSaved);
+  onCanvasSavedRef.current = onCanvasSaved;
   const [collaborators, setCollaborators] = useState<Map<string, PresenceUser>>(new Map());
   const [isConnected, setIsConnected] = useState(false);
   const reconnectTimer = useRef<ReturnType<typeof setTimeout>>();
@@ -123,6 +129,11 @@ export function usePresence(workspaceId: number | null, onNodeMove?: (nodeId: st
             }
             break;
           }
+
+          case "canvas-saved": {
+            onCanvasSavedRef.current?.();
+            break;
+          }
         }
       } catch {
         // Ignore malformed messages
@@ -170,10 +181,17 @@ export function usePresence(workspaceId: number | null, onNodeMove?: (nodeId: st
     }
   }, []);
 
+  const sendCanvasSaved = useCallback(() => {
+    if (wsRef.current?.readyState === WebSocket.OPEN) {
+      wsRef.current.send(JSON.stringify({ type: "canvas-saved" }));
+    }
+  }, []);
+
   return {
     collaborators: Array.from(collaborators.values()),
     isConnected,
     sendCursor,
     sendNodeMove,
+    sendCanvasSaved,
   };
 }
