@@ -391,10 +391,20 @@ function WorkspaceView() {
         }
     }, [canvasData, workspaceId, setNodes, setEdges, toast]);
 
+    // ── Fast WS broadcast (500ms) — syncs to peers immediately ──
+    const syncBroadcastRef = useRef<ReturnType<typeof setTimeout>>();
+
     useEffect(() => {
         if (isInitialLoad.current) return;
         if (isRemoteUpdate.current) return;
-        
+
+        // Fast broadcast to peers via WS (500ms debounce)
+        if (syncBroadcastRef.current) clearTimeout(syncBroadcastRef.current);
+        syncBroadcastRef.current = setTimeout(() => {
+            sendCanvasSync(nodes, edges);
+        }, 500);
+
+        // Slow persist to DB (3s debounce)
         saveCanvasToLocalCache(workspaceId, nodes, edges);
         setSaveStatus('unsaved');
 
@@ -407,7 +417,6 @@ function WorkspaceView() {
             sync({ nodes, edges }, {
                 onSuccess: () => {
                     setSaveStatus('saved');
-                    sendCanvasSync(nodes, edges);
                 },
                 onError: (err: any) => {
                     setSaveStatus('offline_saved');
@@ -422,8 +431,9 @@ function WorkspaceView() {
 
         return () => {
             if (saveTimeoutRef.current) clearTimeout(saveTimeoutRef.current);
+            if (syncBroadcastRef.current) clearTimeout(syncBroadcastRef.current);
         };
-    }, [nodes, edges, workspaceId, sync, toast]);
+    }, [nodes, edges, workspaceId, sync, toast, sendCanvasSync]);
 
     useEffect(() => {
         setEdges((eds) =>
