@@ -32,7 +32,7 @@ COPY --from=builder /app/drizzle.config.ts ./
 COPY --from=builder /app/shared ./shared
 
 # Install production deps + drizzle-kit for schema sync
-RUN npm install --omit=dev && npm install drizzle-kit
+RUN npm cache clean --force && npm ci --omit=dev && npm install drizzle-kit --no-save
 
 # Set environment variables
 ENV NODE_ENV=production
