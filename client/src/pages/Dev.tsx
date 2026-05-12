@@ -76,8 +76,8 @@ function PatternSvg({ pattern }: { pattern: string }) {
 const blogPosts: BlogPost[] = [
   {
     id: 1,
-    title: "Deep Dive: Canvas Engine Pipeline",
-    subtitle: "Understanding our Render & Math Layer, Strict Mode Interactions, and Upsert Diffing Protocol.",
+    title: "Canvas Engine Pipeline & Architecture",
+    subtitle: "Render math, DAG layouts, interaction modes, and PostgreSQL diffing strategies.",
     date: "May 10, 2026",
     category: "Engineering",
     readTime: "12 min read",
@@ -85,29 +85,29 @@ const blogPosts: BlogPost[] = [
     imagePattern: "nodes",
     author: "Meshwork Engineering",
     content: `
-Comprehensive technical specifications, persistence strategies, and security models governing the Meshwork canvas engine.
-
 ## Render & Math Layer
 
-Canvas operations map React Flow's node and edge state arrays to standard DOM elements. Instead of relying on absolute positioning, we utilize custom spatial containment mathematics to calculate relative \`(x, y)\` coordinate offsets when nodes are dragged inside other parent nodes, achieving infinite nesting capabilities without Z-index conflicts.
+The canvas maps React Flow node/edge arrays to DOM elements. Absolute positioning is avoided for nested nodes. Instead, spatial containment math calculates relative \`(x, y)\` coordinate offsets when nodes are dragged inside parent nodes. This enables infinite nesting without Z-index conflicts.
 
-Auto-layout is driven by a localized implementation of \`dagre\`. Top-to-bottom and left-to-right graphs are generated dynamically by parsing the edges array into a directed acyclic graph, running the layout algorithm, and dispatching coordinate updates back to the state store via optimistic UI updates.
+Auto-layout uses a localized \`dagre\` implementation. Top-to-bottom and left-to-right graphs are generated dynamically by parsing edges into a directed acyclic graph (DAG), running the layout algorithm, and dispatching coordinates to the state store via optimistic UI updates.
 
 ## Strict Mode Interactions
 
-To prevent accidental destructive behavior, interaction states are strictly decoupled. **Select Mode** explicitly sets \`nodesDraggable=false\` to prevent unintended layout destruction during box-selection. **Pan Mode** explicitly sets \`elementsSelectable=false\` and \`panOnDrag=true\`, allowing the user to navigate the infinite canvas without accidentally grabbing node infrastructure.
+Interaction states are explicitly decoupled to prevent layout destruction:
+- **Select Mode**: Sets \`nodesDraggable=false\` to prevent movement during box-selection.
+- **Pan Mode**: Sets \`elementsSelectable=false\` and \`panOnDrag=true\` for safe viewport navigation.
 
 ## Upsert Diffing Protocol
 
-To minimize database I/O, the client calculates a deterministic hash of the initial canvas state upon load. When an autosave interval triggers, the engine diffs the current state against the initial hash. Only nodes or edges that yield a delta are packaged into the API payload.
+The client calculates a deterministic hash of the initial canvas state. On autosave, the engine diffs the current state against the hash. Only modified nodes/edges are sent to the API.
 
-The backend receives this partial payload and executes PostgreSQL \`ON CONFLICT (id) DO UPDATE\` queries. This strategy bypasses standard row-deletion/re-insertion anti-patterns, significantly reducing PostgreSQL lock contention and minimizing payload size by up to 98% on large documents.
+The backend executes PostgreSQL \`ON CONFLICT (id) DO UPDATE\` queries with this partial payload. This avoids row-deletion/re-insertion, reducing lock contention and decreasing payload size by up to 98% for large documents.
     `
   },
   {
     id: 2,
-    title: "Mosh AI Integration Architecture",
-    subtitle: "Building fault-tolerant event streaming, key management, and backoff resilience.",
+    title: "AI Integration Architecture",
+    subtitle: "SSE streaming, BYOK key management, and exponential backoff.",
     date: "May 8, 2026",
     category: "Technical",
     readTime: "8 min read",
@@ -115,27 +115,25 @@ The backend receives this partial payload and executes PostgreSQL \`ON CONFLICT 
     imagePattern: "code",
     author: "Meshwork Engineering",
     content: `
-Technical specifications for the AI integration layer in Meshwork Studio.
-
 ## Key Management (BYOK)
 
-To support Bring Your Own Key (BYOK) without risking credential leakage, user API keys are encrypted at rest using AES-256-GCM. A randomly generated initialization vector (IV) is prefixed to the ciphertext for every write. Decryption occurs exclusively in-memory on the Node.js backend when actively proxying requests to external provider APIs. The raw key material is never exposed back to the client application payload.
+User API keys are encrypted at rest via AES-256-GCM. A randomly generated IV is prefixed to the ciphertext on every write. Decryption occurs exclusively in-memory on the Node.js backend when proxying requests to external provider APIs. Raw key material is never exposed to the client.
 
 ## Fault-Tolerant Event Streaming
 
-When a user initiates an AI architecture generation, the server opens a standard Server-Sent Events (SSE) stream. As the LLM generates the JSON structure, the backend buffers the chunks and streams them to the client.
+AI architecture generation uses Server-Sent Events (SSE). The backend buffers LLM JSON chunks and streams them to the client.
 
-Because streaming JSON is inherently malformed until complete, the client utilizes a fault-tolerant parser that strips trailing commas and unclosed brackets before attempting a \`JSON.parse()\`. If parsing succeeds, temporary "pseudo-nodes" are mounted on the canvas to visually allocate coordinate space in real-time, giving the user immediate structural feedback before the final data mapping occurs.
+Since streaming JSON is malformed until completion, the client uses a fault-tolerant parser that strips trailing commas and unclosed brackets before calling \`JSON.parse()\`. Upon successful parsing, temporary "pseudo-nodes" mount on the canvas to allocate coordinate space, providing immediate structural feedback before final data mapping.
 
 ## Exponential Backoff Resilience
 
-LLM providers exhibit high failure rates under load. Meshwork handles HTTP 429 (Too Many Requests) and HTTP 503 (Service Unavailable) status codes natively. Upon detecting these codes, the client immediately pauses the stream and enters a retry loop using the standard equation: \`wait_time = base_delay * (2 ^ attempt_count)\`. A jitter variable is applied to prevent thundering herd problems on our proxy servers.
+LLM providers return HTTP 429 and 503 frequently under load. Meshwork handles these natively. The client pauses the stream and enters a retry loop using: \`wait_time = base_delay * (2 ^ attempt_count)\`. Jitter is applied to prevent thundering herd problems on proxy servers.
     `
   },
   {
     id: 3,
-    title: "Enterprise Security Posture",
-    subtitle: "How we manage API boundaries, rate limiting, and secure log sanitization.",
+    title: "Security Posture & API Defenses",
+    subtitle: "Middleware boundaries, Redis lockouts, and recursive log sanitization.",
     date: "May 5, 2026",
     category: "Engineering",
     readTime: "6 min read",
@@ -143,25 +141,25 @@ LLM providers exhibit high failure rates under load. Meshwork handles HTTP 429 (
     imagePattern: "eye",
     author: "Meshwork Security Team",
     content: `
-Overview of the security models and defenses governing the Meshwork infrastructure stack.
-
 ## API & Validation Boundaries
 
-All HTTP requests route through a multi-layered middleware stack. Helmet.js assigns strict HTTP headers (HSTS, NoSniff, FrameGuard). Authentication state is managed via \`express-session\` utilizing a Redis store, entirely avoiding stateless JWT vulnerabilities. State-changing requests mandate CSRF double-submit validation. Finally, request bodies are strictly mapped against Zod schemas before reaching the controller, preventing Prototype Pollution and NoSQL/SQL injection attacks at the boundary.
+All HTTP requests route through multi-layered middleware. Helmet.js enforces strict HTTP headers (HSTS, NoSniff, FrameGuard). Authentication state uses \`express-session\` via a Redis store, avoiding stateless JWT vulnerabilities. 
+
+State-changing requests require CSRF double-submit validation. Request bodies are mapped against Zod schemas prior to reaching the controller, preventing Prototype Pollution and injection attacks.
 
 ## Rate Limiting & Lockouts
 
-General API endpoints enforce standard sliding-window rate limits (e.g., 100 requests per 15 minutes). Sensitive endpoints (like \`/api/auth/login\`) utilize a Redis-backed progressive timeout mechanism. Successive failures trigger exponential lockout periods mapped to both the requester's IP address and the targeted username to aggressively mitigate credential stuffing and distributed brute-force attacks.
+API endpoints enforce sliding-window rate limits (e.g., 100 requests / 15 min). Sensitive endpoints (e.g., \`/api/auth/login\`) use a Redis-backed progressive timeout. Successive failures trigger exponential lockout periods mapped to both the requester's IP and the target username to mitigate credential stuffing and brute-force attacks.
 
 ## Log Sanitization
 
-To maintain SOC2 compliance readiness, our application logger utilizes a recursive redaction transport. Before any payload writes to standard output, it is scanned for configured keys (e.g., \`password\`, \`token\`, \`email\`, \`apiKey\`). The values of these keys are replaced with an irreversible \`[REDACTED]\` string, ensuring zero PII or credentials enter the aggregated log pipeline.
+The application logger uses a recursive redaction transport. Before payloads write to standard output, they are scanned for sensitive keys (e.g., \`password\`, \`token\`, \`email\`, \`apiKey\`). Values are replaced with an irreversible \`[REDACTED]\` string, ensuring zero credentials enter the log pipeline.
     `
   },
   {
     id: 4,
-    title: "Building the Meshwork Design System",
-    subtitle: "A deep dive into our Tailwind utility foundation, variable opacity mapping, and accessible primitives.",
+    title: "Design System Implementation",
+    subtitle: "Tailwind utility architecture, opacity mapping, and accessible primitives.",
     date: "May 2, 2026",
     category: "Design",
     readTime: "5 min read",
@@ -169,19 +167,17 @@ To maintain SOC2 compliance readiness, our application logger utilizes a recursi
     imagePattern: "stairs",
     author: "Meshwork Design",
     content: `
-A look into the aesthetic and functional decisions behind our UI architecture.
-
 ## Tailwind Utility Foundation
 
-Meshwork employs Tailwind CSS explicitly without the use of \`@apply\` directives in standard CSS files, preserving exact specificity and preventing unexpected cascading overrides. The design aesthetic enforces strict brutalist geometry via \`rounded-none\` utilities across structural components, while floating elements utilize \`backdrop-blur-xl\` utilities over semi-transparent backgrounds to achieve depth without relying on generic drop-shadows.
+Meshwork uses Tailwind CSS explicitly without \`@apply\` directives in CSS files. This preserves specificity and prevents cascading overrides. The design enforces brutalist geometry via \`rounded-none\` on structural components, while floating elements use \`backdrop-blur-xl\` over semi-transparent backgrounds to achieve depth without drop-shadows.
 
 ## Variable Opacity Mapping
 
-Root theme implementation maps semantic color variables (like \`--primary\`) to raw HSL values rather than absolute hex codes. This strict standard enables arbitrary opacity modifiers directly in Tailwind classes (e.g., \`bg-primary/10\`) without requiring manual RGBA color definitions for every potential alpha step, ensuring seamless light and dark mode transitions while strictly adhering to WCAG contrast ratio requirements.
+The root theme maps semantic color variables (\`--primary\`) to raw HSL values rather than hex codes. This enables arbitrary opacity modifiers in Tailwind classes (e.g., \`bg-primary/10\`) without requiring manual RGBA color definitions for every alpha step. This ensures clean light/dark mode transitions and strict adherence to WCAG contrast requirements.
 
 ## Accessible React Primitives
 
-Complex interactive components (Dialogs, Dropdowns, Tooltips, Accordions) are constructed utilizing Radix UI primitives. This delegates focus management, keyboard navigation (Escape, Arrow keys), and screen-reader ARIA attribute assignment to the primitive layer. Our tooltip architecture specifically renders descriptions via React portals, guaranteeing tooltips escape hidden overflow boundaries while maintaining context to the targeted canvas node.
+Interactive components (Dialogs, Dropdowns, Tooltips, Accordions) use Radix UI primitives. This delegates focus management, keyboard navigation (Escape, Arrow keys), and ARIA attribute assignment to the primitive layer. Tooltips render descriptions via React portals to escape hidden overflow boundaries while maintaining context to the targeted node.
     `
   }
 ];
