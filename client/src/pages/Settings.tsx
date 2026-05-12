@@ -35,6 +35,7 @@ export default function Settings() {
   const [isDeletingData, setIsDeletingData] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
   const [showNewPassword, setShowNewPassword] = useState(false);
+  const [activeTab, setActiveTab] = useState<"profile" | "appearance" | "ai" | "security" | "data">("profile");
 
   const [firstName, setFirstName] = useState(user?.firstName || "");
   const [lastName, setLastName] = useState(user?.lastName || "");
@@ -230,7 +231,7 @@ export default function Settings() {
   };
 
   return (
-    <div className="max-w-3xl mx-auto pb-12 relative">
+    <div className="max-w-5xl mx-auto pb-12 relative">
       {/* Background - negative margins to break out of parent padding */}
       <div className="fixed inset-0 -z-10 overflow-hidden pointer-events-none">
         <div className="absolute inset-0 bg-[linear-gradient(45deg,transparent_49.5%,currentColor_49.5%,currentColor_50.5%,transparent_50.5%),linear-gradient(-45deg,transparent_49.5%,currentColor_49.5%,currentColor_50.5%,transparent_50.5%)] [background-size:40px_40px] opacity-[0.02]" />
@@ -239,7 +240,7 @@ export default function Settings() {
       </div>
 
       {/* Header */}
-      <div className="mb-8">
+      <div className="mb-8 px-4 md:px-0 mt-8">
         <h1 className="text-3xl md:text-4xl font-headline font-semibold tracking-tight text-foreground mb-2">
           Settings
         </h1>
@@ -248,8 +249,31 @@ export default function Settings() {
         </p>
       </div>
 
-      <div className="space-y-6">
-        {/* AI API Keys */}
+      <div className="flex flex-col md:flex-row gap-8 px-4 md:px-0">
+        {/* Sidebar Navigation */}
+        <nav className="w-full md:w-64 flex-shrink-0 space-y-1">
+          <button onClick={() => setActiveTab('profile')} className={cn("w-full flex items-center gap-3 px-4 py-2.5 rounded-xl text-sm font-medium transition-all", activeTab === 'profile' ? "bg-white/[0.08] text-white" : "text-white/60 hover:text-white hover:bg-white/[0.04]")}>
+            <User className="w-4 h-4" /> Profile
+          </button>
+          <button onClick={() => setActiveTab('appearance')} className={cn("w-full flex items-center gap-3 px-4 py-2.5 rounded-xl text-sm font-medium transition-all", activeTab === 'appearance' ? "bg-white/[0.08] text-white" : "text-white/60 hover:text-white hover:bg-white/[0.04]")}>
+            <Sun className="w-4 h-4" /> Appearance
+          </button>
+          <button onClick={() => setActiveTab('ai')} className={cn("w-full flex items-center gap-3 px-4 py-2.5 rounded-xl text-sm font-medium transition-all", activeTab === 'ai' ? "bg-white/[0.08] text-white" : "text-white/60 hover:text-white hover:bg-white/[0.04]")}>
+            <Key className="w-4 h-4" /> AI API Keys
+          </button>
+          {user?.authProvider === "email" && (
+            <button onClick={() => setActiveTab('security')} className={cn("w-full flex items-center gap-3 px-4 py-2.5 rounded-xl text-sm font-medium transition-all", activeTab === 'security' ? "bg-white/[0.08] text-white" : "text-white/60 hover:text-white hover:bg-white/[0.04]")}>
+              <Lock className="w-4 h-4" /> Security
+            </button>
+          )}
+          <button onClick={() => setActiveTab('data')} className={cn("w-full flex items-center gap-3 px-4 py-2.5 rounded-xl text-sm font-medium transition-all text-red-400 hover:text-red-300", activeTab === 'data' ? "bg-red-500/10" : "hover:bg-red-500/5")}>
+            <Trash2 className="w-4 h-4" /> Data & Privacy
+          </button>
+        </nav>
+
+        {/* Main Content Area */}
+        <div className="flex-1 min-w-0">
+          {activeTab === 'ai' && (
         <Card className="bg-[#121214]/60 backdrop-blur-xl border border-white/[0.08] shadow-[inset_0_1px_0_rgba(255,255,255,0.1),0_8px_32px_rgba(0,0,0,0.5)] rounded-2xl">
           <CardHeader className="pb-4">
             <div className="flex items-center gap-3">
@@ -348,8 +372,10 @@ export default function Settings() {
             )}
           </CardContent>
         </Card>
+          )}
 
         {/* Appearance */}
+        {activeTab === 'appearance' && (
         <Card className="bg-[#121214]/60 backdrop-blur-xl border border-white/[0.08] shadow-[inset_0_1px_0_rgba(255,255,255,0.1),0_8px_32px_rgba(0,0,0,0.5)] rounded-2xl">
           <CardHeader className="pb-4">
             <div className="flex items-center gap-3">
@@ -380,8 +406,10 @@ export default function Settings() {
             </div>
           </CardContent>
         </Card>
+        )}
 
         {/* Profile */}
+        {activeTab === 'profile' && (
         <Card className="bg-[#121214]/60 backdrop-blur-xl border border-white/[0.08] shadow-[inset_0_1px_0_rgba(255,255,255,0.1),0_8px_32px_rgba(0,0,0,0.5)] rounded-2xl">
           <CardHeader className="pb-4">
             <div className="flex items-center gap-3">
@@ -424,9 +452,10 @@ export default function Settings() {
             </Button>
           </CardContent>
         </Card>
+        )}
 
         {/* Security */}
-        {user?.authProvider === "email" && (
+        {activeTab === 'security' && user?.authProvider === "email" && (
           <Card className="bg-[#121214]/60 backdrop-blur-xl border border-white/[0.08] shadow-[inset_0_1px_0_rgba(255,255,255,0.1),0_8px_32px_rgba(0,0,0,0.5)] rounded-2xl">
             <CardHeader className="pb-4">
               <div className="flex items-center gap-3">
@@ -513,6 +542,7 @@ export default function Settings() {
         )}
 
         {/* Data & Privacy */}
+        {activeTab === 'data' && (
         <Card className="bg-[#121214]/60 backdrop-blur-xl border border-white/[0.08] shadow-[inset_0_1px_0_rgba(255,255,255,0.1),0_8px_32px_rgba(0,0,0,0.5)] rounded-2xl">
           <CardHeader className="pb-4">
             <div className="flex items-center gap-3">
@@ -584,7 +614,9 @@ export default function Settings() {
               </AlertDialog>
             </div>
           </CardContent>
-        </Card>
+          </Card>
+        )}
+        </div>
       </div>
     </div>
   );
