@@ -13,7 +13,8 @@ import {
   LogOut,
   X,
   Github,
-  ArrowUpRight
+  ArrowUpRight,
+  Newspaper
 } from "lucide-react";
 import { useAuth } from "@/hooks/use-auth";
 import { MeshworkLogo } from "@/components/MeshworkLogo";
@@ -35,7 +36,8 @@ export function DashboardLayout({ children }: { children: ReactNode }) {
 
   const isOverview  = location === "/home";
   const isProjects  = location === "/workspaces";
-  const isDocs      = location === "/docs" || location === "/dev";
+  const isDocs      = location === "/docs";
+  const isDev       = location === "/dev";
   const isTeam      = location === "/team";
 
   const readIds   = (user?.readNotificationIds as number[]) || [];
@@ -98,6 +100,7 @@ export function DashboardLayout({ children }: { children: ReactNode }) {
           {([
             ["/home",       isOverview, LayoutDashboard, "Overview"],
             ["/workspaces", isProjects, Package,          "Projects"],
+            ["/dev",        isDev,      Newspaper,        "Blog"],
             ["/docs",       isDocs,     BookOpen,         "Docs"],
             ["/team",       isTeam,     Users,            "Team"],
           ] as const).map(([href, active, Icon, label]) => (
