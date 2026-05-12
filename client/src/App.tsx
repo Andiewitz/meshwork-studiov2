@@ -17,7 +17,6 @@ import Register from "@/pages/auth/Register";
 import Settings from "@/pages/Settings";
 import Workspace from "@/pages/Workspace";
 import Dev from "@/pages/Dev";
-import Docs from "@/pages/Docs"; // Redesign route
 import Team from "@/pages/Team"; // Redesign route
 import Templates from "@/pages/Templates"; // Redesign route
 import { DashboardLayout } from "@/components/layout/DashboardLayout";
@@ -166,9 +165,6 @@ function Router() {
             </Route>
             <Route path="/settings">
               <ProtectedRoute component={Settings} />
-            </Route>
-            <Route path="/docs">
-              <ProtectedRoute component={Docs} />
             </Route>
             <Route path="/team">
               <ProtectedRoute component={Team} />

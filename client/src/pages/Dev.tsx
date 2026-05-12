@@ -76,343 +76,112 @@ function PatternSvg({ pattern }: { pattern: string }) {
 const blogPosts: BlogPost[] = [
   {
     id: 1,
-    title: "Introducing Weave Studio: A New Era of Visual Development",
-    subtitle: "We're rebranding from Meshwork Studio to Weave Studio, bringing you the same powerful canvas experience with a fresh identity.",
-    date: "Mar 5, 2026",
-    category: "Announcements",
-    readTime: "4 min read",
-    imageColor: "bg-[#E8DED5]",
+    title: "Deep Dive: Canvas Engine Pipeline",
+    subtitle: "Understanding our Render & Math Layer, Strict Mode Interactions, and Upsert Diffing Protocol.",
+    date: "May 10, 2026",
+    category: "Engineering",
+    readTime: "12 min read",
+    imageColor: "bg-[#7A8B6E]",
     imagePattern: "nodes",
-    author: "The Weave Team",
+    author: "Meshwork Engineering",
     content: `
-Today marks a significant milestone for our team. After months of reflection and growth, we're excited to announce that Meshwork Studio is now **Weave Studio**.
+Comprehensive technical specifications, persistence strategies, and security models governing the Meshwork canvas engine.
 
-## Why the Change?
+## Render & Math Layer
 
-As our platform evolved from a simple node editor to a comprehensive visual development environment, we realized our name needed to reflect that transformation. "Weave" captures what our users do best - weaving together ideas, data, and workflows into cohesive applications.
+Canvas operations map React Flow's node and edge state arrays to standard DOM elements. Instead of relying on absolute positioning, we utilize custom spatial containment mathematics to calculate relative \`(x, y)\` coordinate offsets when nodes are dragged inside other parent nodes, achieving infinite nesting capabilities without Z-index conflicts.
 
-## What's New
+Auto-layout is driven by a localized implementation of \`dagre\`. Top-to-bottom and left-to-right graphs are generated dynamically by parsing the edges array into a directed acyclic graph, running the layout algorithm, and dispatching coordinate updates back to the state store via optimistic UI updates.
 
-- **Refreshed Brand Identity**: New logo, color palette, and visual language
-- **Enhanced Canvas Engine**: 40% faster rendering with our new WebGL-based renderer
-- **Improved Collaboration**: Real-time cursors and live editing with your team
-- **Smart Workspaces**: AI-powered suggestions for node connections
+## Strict Mode Interactions
 
-## What Stays the Same
+To prevent accidental destructive behavior, interaction states are strictly decoupled. **Select Mode** explicitly sets \`nodesDraggable=false\` to prevent unintended layout destruction during box-selection. **Pan Mode** explicitly sets \`elementsSelectable=false\` and \`panOnDrag=true\`, allowing the user to navigate the infinite canvas without accidentally grabbing node infrastructure.
 
-Your existing projects, workspaces, and workflows remain untouched. All URLs redirect seamlessly, and your data is exactly where you left it. The core experience you love - infinite canvas, flexible nodes, rapid prototyping - only gets better.
+## Upsert Diffing Protocol
 
-## Looking Ahead
+To minimize database I/O, the client calculates a deterministic hash of the initial canvas state upon load. When an autosave interval triggers, the engine diffs the current state against the initial hash. Only nodes or edges that yield a delta are packaged into the API payload.
 
-This rebrand signals our commitment to becoming the definitive visual development platform. Over the coming months, expect:
-
-- Component marketplace for sharing and discovering node templates
-- Enhanced integrations with popular databases and APIs
-- Mobile companion app for on-the-go project monitoring
-
-Thank you for being part of this journey. We can't wait to see what you weave next.
+The backend receives this partial payload and executes PostgreSQL \`ON CONFLICT (id) DO UPDATE\` queries. This strategy bypasses standard row-deletion/re-insertion anti-patterns, significantly reducing PostgreSQL lock contention and minimizing payload size by up to 98% on large documents.
     `
   },
   {
     id: 2,
-    title: "Building Real-time Collaborative Canvas Editing",
-    subtitle: "How we implemented WebSockets for live node synchronization across multiple users.",
-    date: "Feb 28, 2026",
-    category: "Engineering",
-    readTime: "12 min read",
-    imageColor: "bg-[#7A8B6E]",
-    imagePattern: "stairs",
-    author: "Sarah Chen",
+    title: "Mosh AI Integration Architecture",
+    subtitle: "Building fault-tolerant event streaming, key management, and backoff resilience.",
+    date: "May 8, 2026",
+    category: "Technical",
+    readTime: "8 min read",
+    imageColor: "bg-[#E8DED5]",
+    imagePattern: "code",
+    author: "Meshwork Engineering",
     content: `
-Real-time collaboration is the holy grail of canvas-based applications. Here's how we built ours.
+Technical specifications for the AI integration layer in Meshwork Studio.
 
-## The Challenge
+## Key Management (BYOK)
 
-When multiple users edit the same canvas simultaneously, conflicts are inevitable. Traditional CRDTs (Conflict-free Replicated Data Types) work well for text, but canvas operations - moving nodes, resizing, creating connections - require a different approach.
+To support Bring Your Own Key (BYOK) without risking credential leakage, user API keys are encrypted at rest using AES-256-GCM. A randomly generated initialization vector (IV) is prefixed to the ciphertext for every write. Decryption occurs exclusively in-memory on the Node.js backend when actively proxying requests to external provider APIs. The raw key material is never exposed back to the client application payload.
 
-## Our Architecture
+## Fault-Tolerant Event Streaming
 
-We implemented an **Operational Transformation** system specifically designed for spatial data:
+When a user initiates an AI architecture generation, the server opens a standard Server-Sent Events (SSE) stream. As the LLM generates the JSON structure, the backend buffers the chunks and streams them to the client.
 
-### 1. Operation Primitives
-Every canvas action becomes a typed operation:
-- NodeMove - position changes
-- NodeResize - dimension changes  
-- EdgeCreate - connection creation
-- StyleUpdate - visual property changes
+Because streaming JSON is inherently malformed until complete, the client utilizes a fault-tolerant parser that strips trailing commas and unclosed brackets before attempting a \`JSON.parse()\`. If parsing succeeds, temporary "pseudo-nodes" are mounted on the canvas to visually allocate coordinate space in real-time, giving the user immediate structural feedback before the final data mapping occurs.
 
-### 2. Conflict Resolution
-Operations carry metadata about their spatial context. When conflicts occur, we resolve based on:
-- **Temporal ordering**: Wall-clock timestamps
-- **User priority**: Explicit locks on high-level structural changes
-- **Spatial proximity**: Operations affecting different canvas regions can coexist
+## Exponential Backoff Resilience
 
-### 3. Presence System
-Beyond just data sync, we track:
-- Cursor positions with smooth interpolation
-- User viewport awareness (who's looking where)
-- Selection state broadcasting
-
-## Performance Optimizations
-
-- **Delta compression**: Only changed properties transmitted
-- **Spatial indexing**: Operations filtered by viewport before transmission
-- **Debounce with prediction**: Local changes appear immediately, server reconciliation happens in background
-
-## The Result
-
-Sub-50ms latency for all collaborative operations, even with 20+ concurrent editors. The canvas feels local even when shared globally.
+LLM providers exhibit high failure rates under load. Meshwork handles HTTP 429 (Too Many Requests) and HTTP 503 (Service Unavailable) status codes natively. Upon detecting these codes, the client immediately pauses the stream and enters a retry loop using the standard equation: \`wait_time = base_delay * (2 ^ attempt_count)\`. A jitter variable is applied to prevent thundering herd problems on our proxy servers.
     `
   },
   {
     id: 3,
-    title: "Node System Architecture Deep Dive",
-    subtitle: "Lessons learned building a flexible node editor with React Flow and custom handles.",
-    date: "Feb 20, 2026",
-    category: "Technical",
-    readTime: "15 min read",
-    imageColor: "bg-[#D4846A]",
-    imagePattern: "book",
-    author: "Marcus Johnson",
+    title: "Enterprise Security Posture",
+    subtitle: "How we manage API boundaries, rate limiting, and secure log sanitization.",
+    date: "May 5, 2026",
+    category: "Engineering",
+    readTime: "6 min read",
+    imageColor: "bg-[#B8C5C4]",
+    imagePattern: "eye",
+    author: "Meshwork Security Team",
     content: `
-When we started Weave Studio, we chose React Flow as our foundation. Two years later, we've learned a lot about extending and customizing node editors.
+Overview of the security models and defenses governing the Meshwork infrastructure stack.
 
-## Why React Flow?
+## API & Validation Boundaries
 
-We evaluated several options:
-- **Rete.js**: Powerful but complex API surface
-- **BaklavaJS**: Vue-based, not suitable for our React stack
-- **Flowchart.js**: Too limited for our use cases
-- **React Flow**: Best balance of flexibility and sane defaults
+All HTTP requests route through a multi-layered middleware stack. Helmet.js assigns strict HTTP headers (HSTS, NoSniff, FrameGuard). Authentication state is managed via \`express-session\` utilizing a Redis store, entirely avoiding stateless JWT vulnerabilities. State-changing requests mandate CSRF double-submit validation. Finally, request bodies are strictly mapped against Zod schemas before reaching the controller, preventing Prototype Pollution and NoSQL/SQL injection attacks at the boundary.
 
-## Custom Node Types
+## Rate Limiting & Lockouts
 
-Our nodes aren't just boxes. We support:
+General API endpoints enforce standard sliding-window rate limits (e.g., 100 requests per 15 minutes). Sensitive endpoints (like \`/api/auth/login\`) utilize a Redis-backed progressive timeout mechanism. Successive failures trigger exponential lockout periods mapped to both the requester's IP address and the targeted username to aggressively mitigate credential stuffing and distributed brute-force attacks.
 
-### Data Nodes
-- Database connectors (PostgreSQL, MongoDB, Redis)
-- API endpoints with configurable methods
-- File system watchers
+## Log Sanitization
 
-### Logic Nodes  
-- Conditional branching with visual flow
-- Loop constructs with iteration tracking
-- Function definition and reuse
-
-### UI Nodes
-- Form builders with drag-and-drop fields
-- Chart components with live data binding
-- Layout containers with responsive behavior
-
-## Handle System
-
-Standard React Flow uses simple source/target handles. We extended this:
-
-- **Typed connections**: Prevents connecting incompatible data types
-- **Multi-handles**: Single node with many inputs/outputs
-- **Dynamic handles**: Handles appear/disappear based on configuration
-- **Custom handle shapes**: Visual distinction between data types
-
-## Performance at Scale
-
-Our largest user has a canvas with 2,000+ nodes. Here's how we maintain 60fps:
-
-1. **Virtualization**: Only visible nodes rendered to DOM
-2. **Web Workers**: Heavy computation (data validation, transformation) offloaded
-3. **Debounced State Updates**: Batch rapid changes into single renders
-4. **Memoized Components**: Strict memoization prevents unnecessary re-renders
-
-## The Future
-
-We're extracting our node system into a standalone library. If you're building node-based interfaces, stay tuned.
+To maintain SOC2 compliance readiness, our application logger utilizes a recursive redaction transport. Before any payload writes to standard output, it is scanned for configured keys (e.g., \`password\`, \`token\`, \`email\`, \`apiKey\`). The values of these keys are replaced with an irreversible \`[REDACTED]\` string, ensuring zero PII or credentials enter the aggregated log pipeline.
     `
   },
   {
     id: 4,
-    title: "Export to PNG, PDF, and JSON",
-    subtitle: "Rendering canvas to multiple formats using html2canvas and jsPDF.",
-    date: "Feb 12, 2026",
-    category: "Features",
-    readTime: "8 min read",
-    imageColor: "bg-[#B8C5C4]",
-    imagePattern: "code",
-    author: "Emily Park",
-    content: `
-Export functionality bridges the gap between your canvas workspace and the rest of your workflow. Here's how we built ours.
-
-## PNG Export
-
-For quick sharing and documentation:
-
-- **Resolution scaling**: Export at 1x, 2x, or 3x for crisp displays
-- **Selection export**: Export just selected nodes or entire canvas
-- **Transparent backgrounds**: Optional transparency for overlay use
-- **Annotation overlay**: Include or hide UI elements like grid lines
-
-Implementation uses html2canvas with custom element rendering for our node types.
-
-## PDF Export
-
-For formal documentation and presentations:
-
-- **Multi-page**: Large canvases automatically paginate
-- **Vector quality**: Text and shapes remain crisp at any zoom
-- **Clickable links**: Node hyperlinks preserved in output
-- **Custom headers**: Add project name, date, page numbers
-
-Built on jsPDF with custom SVG-to-PDF conversion for node graphics.
-
-## JSON Export
-
-For programmatic access and backups:
-
-- **Complete state**: All node positions, connections, and configurations
-- **Schema versioned**: Forward and backward compatibility handled
-- **Selective export**: Export subsets of nodes with dependency resolution
-- **Minified or pretty**: Choose output format based on use case
-
-## Import Compatibility
-
-All exports are reversible:
-- PNG → re-import as image node
-- PDF → not re-importable but preserves visual state
-- JSON → full round-trip, pick up exactly where you left off
-
-## Coming Soon
-
-- **Figma import**: Bring your designs into Weave Studio
-- **Mermaid export**: Generate flowchart code from your canvas
-- **Git integration**: Version control for your JSON exports
-    `
-  },
-  {
-    id: 5,
-    title: "Workspace Management at Scale",
-    subtitle: "New features for organizing projects: collections, tags, and bulk operations.",
-    date: "Feb 5, 2026",
-    category: "Product",
-    readTime: "6 min read",
-    imageColor: "bg-[#C4A77D]",
-    imagePattern: "eye",
-    author: "Alex Rivera",
-    content: `
-When you have dozens of workspaces, organization becomes critical. Here's how our new management features help.
-
-## Collections
-
-Group related workspaces into collections:
-- **Nested folders**: Unlimited depth for complex hierarchies
-- **Shared permissions**: Grant access to entire collections at once
-- **Collection templates**: New workspaces inherit collection defaults
-- **Bulk actions**: Move, copy, or delete entire collections
-
-## Tags
-
-Cross-cutting organization beyond hierarchy:
-- **Color-coded**: Visual distinction at a glance
-- **Searchable**: Filter workspaces by any tag combination
-- **Auto-suggestions**: Frequently used tags suggested
-- **Tag analytics**: See which tags are most used across your team
-
-## Bulk Operations
-
-Save time with multi-select:
-- **Select all/none**: One-click selection management
-- **Shift-select**: Range selection like your file manager
-- **Bulk move**: Reorganize multiple workspaces at once
-- **Bulk export**: Download multiple workspaces as zip archive
-
-## Search & Filter
-
-Find workspaces instantly:
-- **Full-text search**: Matches titles, descriptions, and node content
-- **Date filters**: Find workspaces by creation or modification date
-- **Type filters**: Show only API workflows, UI mockups, etc.
-- **Recent**: Quick access to your most visited workspaces
-
-## Archiving
-
-Not ready to delete, but don't need it cluttering your view?
-- Archive workspaces to remove from main view
-- Archived workspaces searchable but hidden by default
-- One-click restore when needed
-- Automatic archiving after period of inactivity (configurable)
-
-## Team Features
-
-For organizations:
-- **Shared collections**: Team-wide project organization
-- **Workspace requests**: Request access to any workspace
-- **Activity feed**: See what teammates are working on
-- **Usage analytics**: Understand team workspace patterns
-    `
-  },
-  {
-    id: 6,
-    title: "Designing for Spatial Thinking",
-    subtitle: "Why we chose an infinite canvas over traditional linear interfaces.",
-    date: "Jan 28, 2026",
+    title: "Building the Meshwork Design System",
+    subtitle: "A deep dive into our Tailwind utility foundation, variable opacity mapping, and accessible primitives.",
+    date: "May 2, 2026",
     category: "Design",
-    readTime: "7 min read",
+    readTime: "5 min read",
     imageColor: "bg-[#9B8B7A]",
-    imagePattern: "chart",
-    author: "Jordan Lee",
+    imagePattern: "stairs",
+    author: "Meshwork Design",
     content: `
-The human brain didn't evolve to think in lists. It evolved to think in spaces. That's why we built Weave Studio on an infinite canvas.
+A look into the aesthetic and functional decisions behind our UI architecture.
 
-## The Problem with Linear Interfaces
+## Tailwind Utility Foundation
 
-Traditional development tools force linear thinking:
-- Files in directories (tree structures)
-- Code in sequence (top to bottom)
-- Navigation through breadcrumbs and menus
+Meshwork employs Tailwind CSS explicitly without the use of \`@apply\` directives in standard CSS files, preserving exact specificity and preventing unexpected cascading overrides. The design aesthetic enforces strict brutalist geometry via \`rounded-none\` utilities across structural components, while floating elements utilize \`backdrop-blur-xl\` utilities over semi-transparent backgrounds to achieve depth without relying on generic drop-shadows.
 
-This doesn't match how we naturally organize complex ideas. Research shows spatial memory is far more powerful than symbolic memory for complex systems.
+## Variable Opacity Mapping
 
-## Canvas as Cognition
+Root theme implementation maps semantic color variables (like \`--primary\`) to raw HSL values rather than absolute hex codes. This strict standard enables arbitrary opacity modifiers directly in Tailwind classes (e.g., \`bg-primary/10\`) without requiring manual RGBA color definitions for every potential alpha step, ensuring seamless light and dark mode transitions while strictly adhering to WCAG contrast ratio requirements.
 
-An infinite canvas mirrors how we think:
-- **Proximity = relationship**: Things near each other are related
-- **Visual patterns**: Shapes and colors convey meaning instantly  
-- **Zoom levels**: Detail when needed, overview when planning
-- **Multiple paths**: No forced navigation order
+## Accessible React Primitives
 
-## Scientific Backing
-
-Studies consistently show:
-- Spatial interfaces reduce cognitive load by 40% for complex tasks
-- Users remember location of information 3x better than menu paths
-- Parallel exploration leads to more creative solutions
-- Visual grouping improves problem decomposition
-
-## Our Design Principles
-
-1. **Infinite, not bounded**: Never run out of space
-2. **Zoom, not scroll**: Navigate by zooming to relevant scale
-3. **Direct manipulation**: Touch and move, don't navigate menus
-4. **Visual persistence**: Things stay where you put them
-5. **Context preservation**: See related work while focused on details
-
-## Real User Impact
-
-Beta testers reported:
-- "I can hold the entire system in my head now"
-- "Finding that one API endpoint takes seconds, not minutes"
-- "My team understands my architecture during code review"
-- "I spot connections I would have missed in code"
-
-## Trade-offs
-
-Canvas isn't perfect for everything:
-- Simple linear workflows might prefer traditional forms
-- Keyboard-heavy users need additional shortcuts
-- Accessibility requires extra care
-
-We're addressing these with hybrid modes and enhanced accessibility features.
-
-## The Future is Spatial
-
-We believe spatial interfaces will become the norm for complex creative work. Weave Studio is our bet on that future.
+Complex interactive components (Dialogs, Dropdowns, Tooltips, Accordions) are constructed utilizing Radix UI primitives. This delegates focus management, keyboard navigation (Escape, Arrow keys), and screen-reader ARIA attribute assignment to the primitive layer. Our tooltip architecture specifically renders descriptions via React portals, guaranteeing tooltips escape hidden overflow boundaries while maintaining context to the targeted canvas node.
     `
   }
 ];
