@@ -445,76 +445,81 @@ export default function Dev() {
           className="min-h-screen relative"
         >
           {/* Blog post background */}
-          <div className="fixed inset-0 -z-10 overflow-hidden pointer-events-none">
+          <div className="fixed inset-0 -z-10 overflow-hidden pointer-events-none bg-[#0A0A0A]">
             <div className="absolute inset-0 bg-[repeating-linear-gradient(0deg,transparent,transparent_31px,currentColor_31px,currentColor_32px)] opacity-[0.02]" />
-            <div className="absolute top-1/4 right-0 w-[500px] h-[500px] bg-gradient-radial from-indigo-500/5 via-transparent to-transparent rounded-full blur-3xl" />
+            <div className="absolute top-0 right-0 w-[800px] h-[800px] bg-gradient-radial from-primary/5 via-transparent to-transparent rounded-full blur-3xl opacity-50" />
+            <div className="absolute bottom-0 left-0 w-[600px] h-[600px] bg-gradient-radial from-indigo-500/5 via-transparent to-transparent rounded-full blur-3xl opacity-50" />
           </div>
 
-          <div className="max-w-4xl mx-auto">
+          <div className="max-w-4xl mx-auto px-4 md:px-0 py-12">
             {/* Back button */}
-            <Button 
-              variant="ghost" 
-              className="mb-8 -ml-4 text-muted-foreground hover:text-foreground"
+            <button 
+              className="mb-12 flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-medium text-white/50 hover:text-white hover:bg-white/[0.05] transition-all border border-transparent hover:border-white/[0.08]"
               onClick={() => setSelectedPost(null)}
             >
-              <ArrowLeft className="w-4 h-4 mr-2" />
-              Back to blog
-            </Button>
+              <ArrowLeft className="w-4 h-4" />
+              Back to articles
+            </button>
 
             {/* Article header */}
-            <article className="space-y-8">
-              <div className="space-y-4">
-                <div className="flex items-center gap-4 text-sm text-muted-foreground">
-                  <span className="px-3 py-1 bg-primary/10 text-primary rounded-full font-medium">
+            <article className="space-y-12">
+              <div className="space-y-8 text-center max-w-3xl mx-auto">
+                <div className="flex items-center justify-center gap-4 text-sm font-medium tracking-wide">
+                  <span className="px-3 py-1 bg-white/[0.05] border border-white/[0.08] text-white/80 rounded-full">
                     {selectedPost.category}
                   </span>
-                  <span className="flex items-center gap-1">
-                    <Calendar className="w-4 h-4" />
+                  <span className="flex items-center gap-1.5 text-white/40">
+                    <Calendar className="w-4 h-4 text-white/30" />
                     {selectedPost.date}
                   </span>
-                  <span className="flex items-center gap-1">
-                    <Clock className="w-4 h-4" />
+                  <span className="flex items-center gap-1.5 text-white/40">
+                    <Clock className="w-4 h-4 text-white/30" />
                     {selectedPost.readTime}
                   </span>
                 </div>
                 
-                <h1 className="text-4xl md:text-5xl font-bold font-headline leading-tight">
+                <h1 className="text-5xl md:text-6xl font-bold font-headline leading-tight tracking-tight text-white drop-shadow-lg">
                   {selectedPost.title}
                 </h1>
                 
-                <p className="text-xl text-muted-foreground leading-relaxed">
+                <p className="text-xl md:text-2xl text-white/60 leading-relaxed font-sans font-light">
                   {selectedPost.subtitle}
                 </p>
 
               {selectedPost.author && (
-                <div className="flex items-center gap-3 pt-4">
-                  <div className="w-10 h-10 rounded-full bg-primary/20 flex items-center justify-center font-semibold text-primary">
+                <div className="flex items-center justify-center gap-4 pt-4">
+                  <div className="w-12 h-12 rounded-full bg-white/[0.08] border border-white/[0.1] flex items-center justify-center font-semibold text-white/90 shadow-lg">
                     {selectedPost.author.split(' ').map(n => n[0]).join('')}
                   </div>
-                  <div>
-                    <p className="font-medium">{selectedPost.author}</p>
-                    <p className="text-sm text-muted-foreground">Weave Studio Team</p>
+                  <div className="text-left">
+                    <p className="font-medium text-white/90">{selectedPost.author}</p>
+                    <p className="text-sm text-white/40">Weave Studio Team</p>
                   </div>
                 </div>
               )}
             </div>
 
             {/* Featured image */}
-            <div className={cn("w-full h-64 md:h-96 rounded-2xl", selectedPost.imageColor)} />
+            <div className="relative w-full aspect-[2/1] rounded-3xl overflow-hidden shadow-[inset_0_1px_0_rgba(255,255,255,0.2),0_24px_64px_rgba(0,0,0,0.8)] border border-white/[0.08] group">
+              <div className={cn("absolute inset-0 transition-transform duration-700 group-hover:scale-105", selectedPost.imageColor)}>
+                 {selectedPost.imagePattern && <PatternSvg pattern={selectedPost.imagePattern} />}
+              </div>
+              <div className="absolute inset-0 bg-gradient-to-t from-[#0A0A0A]/80 via-transparent to-transparent opacity-60" />
+            </div>
 
             {/* Article content */}
-            <div className="prose prose-lg dark:prose-invert max-w-none">
-              <div className="space-y-6 text-foreground/90 leading-relaxed whitespace-pre-wrap">
+            <div className="prose prose-invert prose-lg md:prose-xl max-w-3xl mx-auto">
+              <div className="space-y-8 text-white/80 leading-relaxed font-sans font-light">
                 {selectedPost.content?.split('\n\n').map((paragraph, idx) => {
                   if (paragraph.startsWith('## ')) {
-                    return <h2 key={idx} className="text-2xl font-bold mt-12 mb-4">{paragraph.replace('## ', '')}</h2>;
+                    return <h2 key={idx} className="text-3xl font-bold font-headline mt-16 mb-6 text-white">{paragraph.replace('## ', '')}</h2>;
                   }
                   if (paragraph.startsWith('### ')) {
-                    return <h3 key={idx} className="text-xl font-semibold mt-8 mb-3">{paragraph.replace('### ', '')}</h3>;
+                    return <h3 key={idx} className="text-2xl font-semibold font-headline mt-12 mb-4 text-white/90">{paragraph.replace('### ', '')}</h3>;
                   }
                   if (paragraph.startsWith('- ')) {
                     return (
-                      <ul key={idx} className="list-disc list-inside space-y-2 ml-4">
+                      <ul key={idx} className="list-disc list-outside space-y-3 ml-6 text-white/70">
                         {paragraph.split('\n').map((item, i) => (
                           <li key={i}>{item.replace('- ', '')}</li>
                         ))}
@@ -523,7 +528,7 @@ export default function Dev() {
                   }
                   if (paragraph.startsWith('1. ')) {
                     return (
-                      <ol key={idx} className="list-decimal list-inside space-y-2 ml-4">
+                      <ol key={idx} className="list-decimal list-outside space-y-3 ml-6 text-white/70">
                         {paragraph.split('\n').map((item, i) => (
                           <li key={i}>{item.replace(/^\d+\. /, '')}</li>
                         ))}
@@ -531,14 +536,14 @@ export default function Dev() {
                     );
                   }
                   if (paragraph.startsWith('**') && paragraph.endsWith('**')) {
-                    return <p key={idx} className="font-semibold text-lg">{paragraph.replace(/\*\*/g, '')}</p>;
+                    return <p key={idx} className="font-semibold text-xl text-white/90">{paragraph.replace(/\*\*/g, '')}</p>;
                   }
                   if (paragraph.includes('`')) {
                     return (
                       <p key={idx}>
                         {paragraph.split('`').map((part, i) => 
                           i % 2 === 1 ? (
-                            <code key={i} className="px-2 py-1 bg-muted rounded text-sm font-mono">{part}</code>
+                            <code key={i} className="px-2 py-1 bg-white/[0.05] border border-white/[0.08] rounded text-[0.9em] font-mono text-blue-300">{part}</code>
                           ) : part
                         )}
                       </p>
@@ -550,21 +555,21 @@ export default function Dev() {
             </div>
 
             {/* Share section */}
-            <div className="border-t pt-8 mt-12">
-              <div className="flex items-center justify-between">
+            <div className="border-t border-white/[0.08] pt-8 mt-16 max-w-3xl mx-auto">
+              <div className="flex flex-col sm:flex-row items-center justify-between gap-6">
                 <div className="flex items-center gap-4">
-                  <Button variant="outline" size="sm" className="gap-2">
+                  <button className="flex items-center gap-2 px-4 py-2 bg-white/[0.03] hover:bg-white/[0.08] border border-white/[0.08] rounded-xl text-sm font-medium text-white/70 hover:text-white transition-all shadow-[inset_0_1px_0_rgba(255,255,255,0.1)]">
                     <Share2 className="w-4 h-4" />
-                    Share
-                  </Button>
-                  <Button variant="outline" size="sm" className="gap-2">
+                    Share on X
+                  </button>
+                  <button className="flex items-center gap-2 px-4 py-2 bg-white/[0.03] hover:bg-white/[0.08] border border-white/[0.08] rounded-xl text-sm font-medium text-white/70 hover:text-white transition-all shadow-[inset_0_1px_0_rgba(255,255,255,0.1)]">
                     <Link2 className="w-4 h-4" />
                     Copy link
-                  </Button>
+                  </button>
                 </div>
-                <Button variant="ghost" onClick={() => setSelectedPost(null)}>
+                <button className="text-sm font-medium text-white/40 hover:text-white transition-colors" onClick={() => setSelectedPost(null)}>
                   Back to all posts
-                </Button>
+                </button>
               </div>
             </div>
           </article>
@@ -585,34 +590,35 @@ export default function Dev() {
         className="min-h-[calc(100vh-4rem)] relative"
       >
         {/* Dev blog background - fixed to cover full viewport */}
-        <div className="fixed inset-0 -z-10 overflow-hidden pointer-events-none">
+        <div className="fixed inset-0 -z-10 overflow-hidden pointer-events-none bg-[#0A0A0A]">
           <div className="absolute inset-0 bg-[repeating-linear-gradient(0deg,transparent,transparent_31px,currentColor_31px,currentColor_32px)] opacity-[0.02]" />
-          <div className="absolute top-1/4 right-0 w-[500px] h-[500px] bg-gradient-radial from-indigo-500/5 via-transparent to-transparent rounded-full blur-3xl" />
-          <div className="absolute bottom-1/4 left-1/4 w-[300px] h-[300px] bg-gradient-radial from-emerald-500/5 via-transparent to-transparent rounded-full blur-3xl" />
+          <div className="absolute top-1/4 right-0 w-[500px] h-[500px] bg-gradient-radial from-indigo-500/5 via-transparent to-transparent rounded-full blur-3xl opacity-50" />
+          <div className="absolute bottom-1/4 left-1/4 w-[300px] h-[300px] bg-gradient-radial from-emerald-500/5 via-transparent to-transparent rounded-full blur-3xl opacity-50" />
         </div>
 
+      <div className="max-w-6xl mx-auto px-4 md:px-6 pt-12 pb-24">
       {/* Header with search */}
-      <div className="mb-8">
-        <div className="flex items-center justify-between gap-4 mb-6">
-          <div className="flex-1 max-w-xl">
-            <div className="relative">
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-              <Input
+      <div className="mb-12">
+        <div className="flex flex-col md:flex-row items-center justify-between gap-6 mb-8">
+          <div className="flex-1 w-full max-w-xl">
+            <div className="relative group">
+              <Search className="absolute left-4 top-1/2 -translate-y-1/2 h-4 w-4 text-white/40 group-focus-within:text-white/80 transition-colors" />
+              <input
                 type="text"
                 placeholder="Search articles..."
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
-                className="pl-10 bg-card border-border"
+                className="w-full pl-12 pr-4 py-3 bg-[#121214]/60 backdrop-blur-xl border border-white/[0.08] text-white placeholder:text-white/30 rounded-2xl focus:outline-none focus:ring-1 focus:ring-white/[0.2] transition-all shadow-[inset_0_1px_0_rgba(255,255,255,0.1),0_8px_32px_rgba(0,0,0,0.5)]"
               />
             </div>
           </div>
           
-          <div className="flex items-center gap-2 bg-card rounded-lg p-1">
+          <div className="flex items-center gap-2 bg-[#121214]/60 backdrop-blur-xl border border-white/[0.08] rounded-xl p-1.5 shadow-[inset_0_1px_0_rgba(255,255,255,0.1)]">
             <button
               onClick={() => setViewMode("grid")}
               className={cn(
-                "p-2 rounded-md transition-colors",
-                viewMode === "grid" ? "bg-muted" : "hover:bg-muted/50"
+                "p-2.5 rounded-lg transition-colors",
+                viewMode === "grid" ? "bg-white/[0.08] text-white shadow-sm" : "text-white/50 hover:text-white hover:bg-white/[0.04]"
               )}
             >
               <Grid3X3 className="w-4 h-4" />
@@ -620,8 +626,8 @@ export default function Dev() {
             <button
               onClick={() => setViewMode("list")}
               className={cn(
-                "p-2 rounded-md transition-colors",
-                viewMode === "list" ? "bg-muted" : "hover:bg-muted/50"
+                "p-2.5 rounded-lg transition-colors",
+                viewMode === "list" ? "bg-white/[0.08] text-white shadow-sm" : "text-white/50 hover:text-white hover:bg-white/[0.04]"
               )}
             >
               <List className="w-4 h-4" />
@@ -630,22 +636,22 @@ export default function Dev() {
         </div>
       </div>
 
-      <div className="flex gap-8">
+      <div className="flex flex-col lg:flex-row gap-12">
         {/* Sidebar Filters */}
-        <aside className="w-48 shrink-0 hidden lg:block">
-          <div className="space-y-6">
+        <aside className="w-full lg:w-56 shrink-0 hidden lg:block">
+          <div className="space-y-8 sticky top-8">
             <div>
-              <h4 className="text-sm font-semibold mb-4 font-sans">Categories</h4>
-              <div className="space-y-2">
+              <h4 className="text-sm font-medium tracking-wider uppercase text-white/40 mb-6 font-sans">Categories</h4>
+              <div className="space-y-1.5">
                 {categories.map((category) => (
                   <button
                     key={category}
                     onClick={() => setSelectedCategory(category)}
                     className={cn(
-                      "w-full text-left px-3 py-2 rounded-lg text-sm transition-colors",
+                      "w-full text-left px-4 py-2.5 rounded-xl text-sm font-medium transition-all duration-200",
                       selectedCategory === category 
-                        ? "bg-primary/10 text-primary font-medium" 
-                        : "hover:bg-muted text-muted-foreground"
+                        ? "bg-white/[0.08] text-white shadow-[inset_0_1px_0_rgba(255,255,255,0.1)]" 
+                        : "text-white/60 hover:text-white hover:bg-white/[0.04]"
                     )}
                   >
                     {category}
@@ -666,31 +672,36 @@ export default function Dev() {
                 animate={{ opacity: 1, y: 0 }}
                 exit={{ opacity: 0, y: -8 }}
                 transition={{ duration: 0.2, ease: [0.25, 0.1, 0.25, 1] }}
-                className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6"
+                className="grid grid-cols-1 md:grid-cols-2 gap-8"
               >
                 {filteredPosts.map((post) => (
                   <article
                     key={post.id}
                     onClick={() => setSelectedPost(post)}
-                    className="group cursor-pointer bg-card rounded-xl overflow-hidden border border-border hover:border-primary/50 transition-all hover:shadow-lg"
+                    className="group cursor-pointer bg-[#121214]/60 backdrop-blur-xl border border-white/[0.08] hover:border-white/[0.15] rounded-3xl overflow-hidden transition-all duration-300 hover:bg-white/[0.02] hover:shadow-[0_16px_48px_rgba(0,0,0,0.8),inset_0_1px_0_rgba(255,255,255,0.1)] flex flex-col"
                   >
-                    <div className={cn("h-48 w-full flex items-center justify-center p-8", post.imageColor)}>
+                    <div className={cn("h-56 w-full flex items-center justify-center p-8 transition-transform duration-500 group-hover:scale-105 shrink-0", post.imageColor)}>
                       {post.imagePattern && <PatternSvg pattern={post.imagePattern} />}
                     </div>
-                    <div className="p-5 space-y-3">
-                      <div className="flex items-center gap-2 text-xs text-muted-foreground">
-                        <Tag className="w-3 h-3" />
-                        {post.category}
+                    <div className="p-8 space-y-4 relative bg-[#121214]/40 flex-1 flex flex-col">
+                      <div className="flex items-center gap-3 text-xs font-medium text-white/50 tracking-wide uppercase">
+                        <span className="flex items-center gap-1">
+                          <Tag className="w-3.5 h-3.5" />
+                          {post.category}
+                        </span>
                         <span>·</span>
-                        {post.readTime}
+                        <span className="flex items-center gap-1">
+                          <Clock className="w-3.5 h-3.5" />
+                          {post.readTime}
+                        </span>
                       </div>
-                      <h3 className="font-headline font-semibold text-lg group-hover:text-primary transition-colors line-clamp-2">
+                      <h3 className="font-headline font-semibold text-2xl text-white group-hover:text-blue-400 transition-colors line-clamp-2 leading-snug">
                         {post.title}
                       </h3>
-                      <p className="text-sm text-muted-foreground line-clamp-2">
+                      <p className="text-white/60 line-clamp-2 leading-relaxed font-light">
                         {post.subtitle}
                       </p>
-                      <p className="text-xs text-muted-foreground pt-2">
+                      <p className="text-sm font-medium text-white/40 pt-2 mt-auto">
                         {post.date}
                       </p>
                     </div>
@@ -704,30 +715,40 @@ export default function Dev() {
                 animate={{ opacity: 1, y: 0 }}
                 exit={{ opacity: 0, y: -8 }}
                 transition={{ duration: 0.2, ease: [0.25, 0.1, 0.25, 1] }}
-                className="space-y-4"
+                className="space-y-6"
               >
                 {filteredPosts.map((post) => (
                   <div 
                     key={post.id} 
                     onClick={() => setSelectedPost(post)}
-                    className="flex gap-4 p-4 bg-card rounded-xl group cursor-pointer hover:bg-muted/50 transition-colors border border-border hover:border-primary/50"
+                    className="flex flex-col sm:flex-row gap-6 p-4 bg-[#121214]/60 backdrop-blur-xl border border-white/[0.08] hover:border-white/[0.15] hover:bg-white/[0.02] rounded-3xl group cursor-pointer transition-all duration-300 hover:shadow-[0_16px_48px_rgba(0,0,0,0.8),inset_0_1px_0_rgba(255,255,255,0.1)]"
                   >
-                    <div className={cn("w-32 h-24 rounded-lg shrink-0 flex items-center justify-center p-4", post.imageColor)}>
-                      {post.imagePattern && <PatternSvg pattern={post.imagePattern} />}
-                    </div>
-                    <div className="flex-1 space-y-1">
-                      <div className="flex items-center gap-2 text-xs text-muted-foreground">
-                        <Tag className="w-3 h-3" />
-                        {post.category}
-                        <span>·</span>
-                        {post.date}
-                        <span>·</span>
-                        {post.readTime}
+                    <div className={cn("w-full sm:w-64 h-48 sm:h-auto rounded-2xl shrink-0 flex items-center justify-center p-6 overflow-hidden", post.imageColor)}>
+                      <div className="transition-transform duration-500 group-hover:scale-105 w-full h-full flex items-center justify-center">
+                        {post.imagePattern && <PatternSvg pattern={post.imagePattern} />}
                       </div>
-                      <h3 className="font-headline font-semibold group-hover:text-primary transition-colors">
+                    </div>
+                    <div className="flex-1 space-y-4 py-4 pr-4">
+                      <div className="flex items-center gap-3 text-xs font-medium text-white/50 tracking-wide uppercase">
+                        <span className="flex items-center gap-1">
+                          <Tag className="w-3.5 h-3.5" />
+                          {post.category}
+                        </span>
+                        <span>·</span>
+                        <span className="flex items-center gap-1">
+                          <Calendar className="w-3.5 h-3.5" />
+                          {post.date}
+                        </span>
+                        <span>·</span>
+                        <span className="flex items-center gap-1">
+                          <Clock className="w-3.5 h-3.5" />
+                          {post.readTime}
+                        </span>
+                      </div>
+                      <h3 className="font-headline font-semibold text-2xl text-white group-hover:text-blue-400 transition-colors leading-snug">
                         {post.title}
                       </h3>
-                      <p className="text-sm text-muted-foreground font-sans line-clamp-2">
+                      <p className="text-lg text-white/60 font-sans font-light line-clamp-2">
                         {post.subtitle}
                       </p>
                     </div>
@@ -738,11 +759,12 @@ export default function Dev() {
           </AnimatePresence>
           
           {filteredPosts.length === 0 && (
-            <div className="text-center py-16">
-              <p className="text-muted-foreground">No articles found matching your search.</p>
+            <div className="text-center py-24 bg-white/[0.02] border border-white/[0.05] rounded-3xl backdrop-blur-xl">
+              <p className="text-white/50 text-lg">No articles found matching your search.</p>
             </div>
           )}
         </div>
+      </div>
       </div>
       </motion.div>
     </AnimatePresence>
