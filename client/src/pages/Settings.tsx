@@ -250,7 +250,7 @@ export default function Settings() {
 
       <div className="space-y-6">
         {/* AI API Keys */}
-        <Card className="border border-border/50 shadow-sm">
+        <Card className="bg-[#121214]/60 backdrop-blur-xl border border-white/[0.08] shadow-[inset_0_1px_0_rgba(255,255,255,0.1),0_8px_32px_rgba(0,0,0,0.5)] rounded-2xl">
           <CardHeader className="pb-4">
             <div className="flex items-center gap-3">
               <div className="w-10 h-10 rounded-lg bg-primary/10 flex items-center justify-center">
@@ -269,7 +269,7 @@ export default function Settings() {
                 <select
                   value={newKeyProvider}
                   onChange={(e) => setNewKeyProvider(e.target.value)}
-                  className="h-10 rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
+                  className="h-10 rounded-xl border border-white/[0.08] bg-white/[0.03] px-3 py-2 text-sm text-white/90 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-white/[0.15] focus-visible:bg-white/[0.05]"
                 >
                   {providers.map((p) => (
                     <option key={p.id} value={p.id}>{p.name}</option>
@@ -281,7 +281,7 @@ export default function Settings() {
                     value={newKeyValue}
                     onChange={(e) => setNewKeyValue(e.target.value)}
                     placeholder="Enter API key"
-                    className="pr-10"
+                    className="pr-10 bg-white/[0.03] border-white/[0.08] text-white/90 focus-visible:ring-white/[0.15] focus-visible:bg-white/[0.05] rounded-xl"
                   />
                   <button
                     onClick={() => setShowNewKey(!showNewKey)}
@@ -311,7 +311,7 @@ export default function Settings() {
                 {apiKeys.map((key) => (
                   <div
                     key={key.id}
-                    className="flex items-center justify-between p-3 rounded-lg border border-border bg-muted/50"
+                    className="flex items-center justify-between p-3 rounded-xl border border-white/[0.06] bg-white/[0.03]"
                   >
                     <div className="flex items-center gap-3">
                       <div className="w-8 h-8 rounded-md bg-primary/10 flex items-center justify-center">
@@ -337,7 +337,7 @@ export default function Settings() {
                         variant="ghost"
                         size="sm"
                         onClick={() => handleDeleteKey(key.id)}
-                        className="text-destructive hover:text-destructive hover:bg-destructive/10"
+                        className="text-red-400 hover:text-red-300 hover:bg-red-500/10"
                       >
                         <Trash2 className="w-4 h-4" />
                       </Button>
@@ -350,7 +350,7 @@ export default function Settings() {
         </Card>
 
         {/* Appearance */}
-        <Card className="border border-border/50 shadow-sm">
+        <Card className="bg-[#121214]/60 backdrop-blur-xl border border-white/[0.08] shadow-[inset_0_1px_0_rgba(255,255,255,0.1),0_8px_32px_rgba(0,0,0,0.5)] rounded-2xl">
           <CardHeader className="pb-4">
             <div className="flex items-center gap-3">
               <div className="w-10 h-10 rounded-lg bg-primary/10 flex items-center justify-center">
@@ -363,14 +363,14 @@ export default function Settings() {
             </div>
           </CardHeader>
           <CardContent className="pt-0">
-            <div className="flex gap-1 p-1 bg-muted rounded-lg w-fit">
+            <div className="flex gap-1 p-1 bg-white/[0.03] border border-white/[0.06] rounded-xl w-fit">
               {themeButtons.map(({ value, icon: Icon, label }) => (
                 <button
                   key={value}
                   onClick={() => setTheme(value)}
                   className={cn(
                     "flex items-center gap-2 px-3 py-2 rounded-md text-sm font-medium transition-all",
-                    theme === value ? "bg-card text-foreground shadow-sm" : "text-muted-foreground hover:text-foreground"
+                    theme === value ? "bg-[#121214]/80 text-white shadow-[0_2px_8px_rgba(0,0,0,0.5)] border border-white/[0.08]" : "text-white/40 hover:text-white/80"
                   )}
                 >
                   <Icon className="w-4 h-4" />
@@ -382,7 +382,7 @@ export default function Settings() {
         </Card>
 
         {/* Profile */}
-        <Card className="border border-border/50 shadow-sm">
+        <Card className="bg-[#121214]/60 backdrop-blur-xl border border-white/[0.08] shadow-[inset_0_1px_0_rgba(255,255,255,0.1),0_8px_32px_rgba(0,0,0,0.5)] rounded-2xl">
           <CardHeader className="pb-4">
             <div className="flex items-center gap-3">
               <div className="w-10 h-10 rounded-lg bg-primary/10 flex items-center justify-center">
@@ -396,7 +396,7 @@ export default function Settings() {
           </CardHeader>
           <CardContent className="pt-0 space-y-6">
             <div className="flex items-center gap-4">
-              <Avatar className="w-14 h-14 border border-border">
+              <Avatar className="w-14 h-14 border border-white/[0.08]">
                 <AvatarImage src={user?.profileImageUrl || undefined} />
                 <AvatarFallback className="bg-muted text-foreground font-semibold">
                   {user?.firstName?.[0] || user?.email?.[0] || "U"}
@@ -411,11 +411,11 @@ export default function Settings() {
             <div className="grid grid-cols-2 gap-4">
               <div className="space-y-2">
                 <Label htmlFor="firstName">First name</Label>
-                <Input id="firstName" value={firstName} onChange={(e) => setFirstName(e.target.value)} placeholder="John" />
+                <Input id="firstName" value={firstName} onChange={(e) => setFirstName(e.target.value)} placeholder="John" className="bg-white/[0.03] border-white/[0.08] text-white/90 focus-visible:ring-white/[0.15] focus-visible:bg-white/[0.05] rounded-xl" />
               </div>
               <div className="space-y-2">
                 <Label htmlFor="lastName">Last name</Label>
-                <Input id="lastName" value={lastName} onChange={(e) => setLastName(e.target.value)} placeholder="Doe" />
+                <Input id="lastName" value={lastName} onChange={(e) => setLastName(e.target.value)} placeholder="Doe" className="bg-white/[0.03] border-white/[0.08] text-white/90 focus-visible:ring-white/[0.15] focus-visible:bg-white/[0.05] rounded-xl" />
               </div>
             </div>
 
@@ -427,7 +427,7 @@ export default function Settings() {
 
         {/* Security */}
         {user?.authProvider === "email" && (
-          <Card className="border border-border/50 shadow-sm">
+          <Card className="bg-[#121214]/60 backdrop-blur-xl border border-white/[0.08] shadow-[inset_0_1px_0_rgba(255,255,255,0.1),0_8px_32px_rgba(0,0,0,0.5)] rounded-2xl">
             <CardHeader className="pb-4">
               <div className="flex items-center gap-3">
                 <div className="w-10 h-10 rounded-lg bg-primary/10 flex items-center justify-center">
@@ -449,7 +449,7 @@ export default function Settings() {
                     value={currentPassword}
                     onChange={(e) => setCurrentPassword(e.target.value)}
                     placeholder="Enter current password"
-                    className="pr-10"
+                    className="pr-10 bg-white/[0.03] border-white/[0.08] text-white/90 focus-visible:ring-white/[0.15] focus-visible:bg-white/[0.05] rounded-xl"
                   />
                   <button type="button" onClick={() => setShowPassword(!showPassword)} className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground">
                     {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
@@ -466,7 +466,7 @@ export default function Settings() {
                     value={newPassword}
                     onChange={(e) => setNewPassword(e.target.value)}
                     placeholder={`At least ${PASSWORD_POLICY.minLength} characters`}
-                    className="pr-10"
+                    className="pr-10 bg-white/[0.03] border-white/[0.08] text-white/90 focus-visible:ring-white/[0.15] focus-visible:bg-white/[0.05] rounded-xl"
                   />
                   <button type="button" onClick={() => setShowNewPassword(!showNewPassword)} className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground">
                     {showNewPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
@@ -502,7 +502,7 @@ export default function Settings() {
 
               <div className="space-y-2">
                 <Label htmlFor="confirmPassword">Confirm new password</Label>
-                <Input id="confirmPassword" type="password" value={confirmPassword} onChange={(e) => setConfirmPassword(e.target.value)} placeholder="Re-enter new password" />
+                <Input id="confirmPassword" type="password" value={confirmPassword} onChange={(e) => setConfirmPassword(e.target.value)} placeholder="Re-enter new password" className="bg-white/[0.03] border-white/[0.08] text-white/90 focus-visible:ring-white/[0.15] focus-visible:bg-white/[0.05] rounded-xl" />
               </div>
 
               <Button onClick={handleChangePassword} disabled={isChangingPassword || !currentPassword || !newPassword || !confirmPassword} className="w-full">
@@ -513,7 +513,7 @@ export default function Settings() {
         )}
 
         {/* Data & Privacy */}
-        <Card className="border border-border/50 shadow-sm">
+        <Card className="bg-[#121214]/60 backdrop-blur-xl border border-white/[0.08] shadow-[inset_0_1px_0_rgba(255,255,255,0.1),0_8px_32px_rgba(0,0,0,0.5)] rounded-2xl">
           <CardHeader className="pb-4">
             <div className="flex items-center gap-3">
               <div className="w-10 h-10 rounded-lg bg-primary/10 flex items-center justify-center">
@@ -526,7 +526,7 @@ export default function Settings() {
             </div>
           </CardHeader>
           <CardContent className="pt-0 space-y-3">
-            <div className="flex items-center justify-between p-3 rounded-lg bg-muted/50">
+            <div className="flex items-center justify-between p-3 rounded-xl border border-white/[0.06] bg-white/[0.03]">
               <div>
                 <h3 className="font-medium text-sm">Export your data</h3>
                 <p className="text-xs text-muted-foreground">Download all your workspaces and projects</p>
@@ -534,7 +534,7 @@ export default function Settings() {
               <Button onClick={handleExportData} variant="outline" size="sm"><Download className="w-4 h-4 mr-2" />Export</Button>
             </div>
 
-            <div className="flex items-center justify-between p-3 rounded-lg bg-destructive/5 border border-destructive/20">
+            <div className="flex items-center justify-between p-3 rounded-xl bg-red-500/5 border border-red-500/20">
               <div>
                 <h3 className="font-medium text-sm text-destructive">Delete all data</h3>
                 <p className="text-xs text-muted-foreground">Remove all workspaces. Account stays active.</p>
@@ -543,12 +543,12 @@ export default function Settings() {
                 <AlertDialogTrigger asChild>
                   <Button variant="destructive" size="sm"><Trash2 className="w-4 h-4 mr-2" />Delete</Button>
                 </AlertDialogTrigger>
-                <AlertDialogContent>
+                <AlertDialogContent className="bg-[#121214]/95 backdrop-blur-2xl border border-white/[0.08] shadow-[inset_0_1px_0_rgba(255,255,255,0.1),0_24px_80px_rgba(0,0,0,0.8)] rounded-2xl">
                   <AlertDialogHeader>
                     <AlertDialogTitle className="flex items-center gap-2 text-destructive"><AlertTriangle className="w-5 h-5" />Delete all data?</AlertDialogTitle>
                     <AlertDialogDescription className="text-sm">This will permanently delete all your workspaces and projects. Your account will remain active.<br /><br />Type <strong>DELETE ALL</strong> to confirm.</AlertDialogDescription>
                   </AlertDialogHeader>
-                  <Input value={deleteDataConfirmText} onChange={(e) => setDeleteDataConfirmText(e.target.value)} placeholder="DELETE ALL" className="border-destructive/50" />
+                  <Input value={deleteDataConfirmText} onChange={(e) => setDeleteDataConfirmText(e.target.value)} placeholder="DELETE ALL" className="border-red-500/30 bg-red-500/5 text-white/90 focus-visible:ring-red-500/20 rounded-xl" />
                   <AlertDialogFooter>
                     <AlertDialogCancel onClick={() => setDeleteDataConfirmText("")}>Cancel</AlertDialogCancel>
                     <AlertDialogAction onClick={handleDeleteAllData} disabled={isDeletingData || deleteDataConfirmText !== "DELETE ALL"} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">
@@ -559,7 +559,7 @@ export default function Settings() {
               </AlertDialog>
             </div>
 
-            <div className="flex items-center justify-between p-3 rounded-lg bg-destructive/10 border border-destructive/30">
+            <div className="flex items-center justify-between p-3 rounded-xl bg-red-500/10 border border-red-500/30">
               <div>
                 <h3 className="font-medium text-sm text-destructive">Delete account</h3>
                 <p className="text-xs text-muted-foreground">Permanently delete your account and all data</p>
@@ -568,12 +568,12 @@ export default function Settings() {
                 <AlertDialogTrigger asChild>
                   <Button variant="destructive" size="sm"><Trash2 className="w-4 h-4 mr-2" />Delete</Button>
                 </AlertDialogTrigger>
-                <AlertDialogContent>
+                <AlertDialogContent className="bg-[#121214]/95 backdrop-blur-2xl border border-white/[0.08] shadow-[inset_0_1px_0_rgba(255,255,255,0.1),0_24px_80px_rgba(0,0,0,0.8)] rounded-2xl">
                   <AlertDialogHeader>
                     <AlertDialogTitle className="flex items-center gap-2 text-destructive"><AlertTriangle className="w-5 h-5" />Delete account?</AlertDialogTitle>
                     <AlertDialogDescription className="text-sm">This cannot be undone. Your account and all data will be permanently removed.<br /><br />Type <strong>DELETE</strong> to confirm.</AlertDialogDescription>
                   </AlertDialogHeader>
-                  <Input value={deleteConfirmText} onChange={(e) => setDeleteConfirmText(e.target.value)} placeholder="DELETE" className="border-destructive/50" />
+                  <Input value={deleteConfirmText} onChange={(e) => setDeleteConfirmText(e.target.value)} placeholder="DELETE" className="border-red-500/30 bg-red-500/5 text-white/90 focus-visible:ring-red-500/20 rounded-xl" />
                   <AlertDialogFooter>
                     <AlertDialogCancel onClick={() => setDeleteConfirmText("")}>Cancel</AlertDialogCancel>
                     <AlertDialogAction onClick={handleDeleteAccount} disabled={isDeletingAccount || deleteConfirmText !== "DELETE"} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">
