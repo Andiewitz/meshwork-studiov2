@@ -4,6 +4,7 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { motion, AnimatePresence } from "framer-motion";
+import { useToast } from "@/hooks/use-toast";
 
 interface BlogPost {
   id: number;
@@ -222,6 +223,23 @@ export default function Dev() {
     exit: { opacity: 0, y: -20, scale: 0.96 }
   };
 
+  const { toast } = useToast();
+
+  const handleShareOnX = () => {
+    if (!selectedPost) return;
+    const text = encodeURIComponent(`Check out this article on Weave Studio: ${selectedPost.title}`);
+    const url = encodeURIComponent(window.location.href);
+    window.open(`https://twitter.com/intent/tweet?text=${text}&url=${url}`, '_blank');
+  };
+
+  const handleCopyLink = () => {
+    navigator.clipboard.writeText(window.location.href);
+    toast({
+      title: "Link Copied",
+      description: "Article link copied to clipboard.",
+    });
+  };
+
   const filteredPosts = blogPosts.filter((post) => {
     const matchesSearch = 
       post.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -355,11 +373,17 @@ export default function Dev() {
             <div className="border-t border-white/[0.08] pt-8 mt-16 max-w-3xl mx-auto">
               <div className="flex flex-col sm:flex-row items-center justify-between gap-6">
                 <div className="flex items-center gap-4">
-                  <button className="flex items-center gap-2 px-4 py-2 bg-white/[0.03] hover:bg-white/[0.08] border border-white/[0.08] rounded-xl text-sm font-medium text-white/70 hover:text-white transition-all shadow-[inset_0_1px_0_rgba(255,255,255,0.1)]">
+                  <button 
+                    onClick={handleShareOnX}
+                    className="flex items-center gap-2 px-4 py-2 bg-white/[0.03] hover:bg-white/[0.08] border border-white/[0.08] rounded-xl text-sm font-medium text-white/70 hover:text-white transition-all shadow-[inset_0_1px_0_rgba(255,255,255,0.1)]"
+                  >
                     <Share2 className="w-4 h-4" />
                     Share on X
                   </button>
-                  <button className="flex items-center gap-2 px-4 py-2 bg-white/[0.03] hover:bg-white/[0.08] border border-white/[0.08] rounded-xl text-sm font-medium text-white/70 hover:text-white transition-all shadow-[inset_0_1px_0_rgba(255,255,255,0.1)]">
+                  <button 
+                    onClick={handleCopyLink}
+                    className="flex items-center gap-2 px-4 py-2 bg-white/[0.03] hover:bg-white/[0.08] border border-white/[0.08] rounded-xl text-sm font-medium text-white/70 hover:text-white transition-all shadow-[inset_0_1px_0_rgba(255,255,255,0.1)]"
+                  >
                     <Link2 className="w-4 h-4" />
                     Copy link
                   </button>
@@ -393,9 +417,14 @@ export default function Dev() {
           <div className="absolute bottom-1/4 left-1/4 w-[300px] h-[300px] bg-gradient-radial from-emerald-500/5 via-transparent to-transparent rounded-full blur-3xl opacity-50" />
         </div>
 
-      <div className="max-w-6xl mx-auto px-4 md:px-6 pt-12 pb-24">
+      <motion.div 
+        variants={containerVariants}
+        initial="hidden"
+        animate="show"
+        className="max-w-6xl mx-auto px-4 md:px-6 pt-12 pb-24"
+      >
       {/* Header with search */}
-      <div className="mb-12">
+      <motion.div variants={itemVariants} className="mb-12">
         <div className="flex flex-col md:flex-row items-center justify-between gap-6 mb-8">
           <div className="flex-1 w-full max-w-xl">
             <div className="relative group">
@@ -431,11 +460,11 @@ export default function Dev() {
             </button>
           </div>
         </div>
-      </div>
+      </motion.div>
 
       <div className="flex flex-col lg:flex-row gap-12">
         {/* Sidebar Filters */}
-        <aside className="w-full lg:w-56 shrink-0 hidden lg:block">
+        <motion.aside variants={itemVariants} className="w-full lg:w-56 shrink-0 hidden lg:block">
           <div className="space-y-8 sticky top-8">
             <div>
               <h4 className="text-sm font-medium tracking-wider uppercase text-white/40 mb-6 font-sans">Categories</h4>
@@ -457,7 +486,7 @@ export default function Dev() {
               </div>
             </div>
           </div>
-        </aside>
+        </motion.aside>
 
         {/* Blog Grid/List with smooth transition */}
         <div className="flex-1">
@@ -475,8 +504,6 @@ export default function Dev() {
                   <motion.article
                     key={post.id}
                     variants={itemVariants}
-                    whileHover={{ y: -6, scale: 1.01 }}
-                    whileTap={{ scale: 0.98 }}
                     onClick={() => setSelectedPost(post)}
                     className="group cursor-pointer bg-[#121214]/60 backdrop-blur-xl border border-white/[0.08] hover:border-white/[0.2] rounded-3xl overflow-hidden transition-all duration-500 hover:bg-white/[0.05] hover:shadow-[0_24px_64px_rgba(0,0,0,0.9),inset_0_1px_0_rgba(255,255,255,0.1)] flex flex-col relative"
                   >
@@ -522,8 +549,6 @@ export default function Dev() {
                   <motion.div 
                     key={post.id} 
                     variants={itemVariants}
-                    whileHover={{ x: 8 }}
-                    whileTap={{ scale: 0.99 }}
                     onClick={() => setSelectedPost(post)}
                     className="relative flex flex-col sm:flex-row gap-6 p-4 bg-[#121214]/60 backdrop-blur-xl border border-white/[0.08] hover:border-white/[0.2] hover:bg-white/[0.05] rounded-3xl group cursor-pointer transition-all duration-500 hover:shadow-[0_24px_64px_rgba(0,0,0,0.9),inset_0_1px_0_rgba(255,255,255,0.1)]"
                   >
@@ -570,7 +595,7 @@ export default function Dev() {
           )}
         </div>
       </div>
-      </div>
+      </motion.div>
       </motion.div>
     </AnimatePresence>
   );
