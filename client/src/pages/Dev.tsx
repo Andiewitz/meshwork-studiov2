@@ -190,6 +190,38 @@ export default function Dev() {
 
   const categories = ["All", "Announcements", "Engineering", "Technical", "Features", "Product", "Design"];
 
+  const containerVariants = {
+    hidden: { opacity: 0 },
+    show: {
+      opacity: 1,
+      transition: {
+        staggerChildren: 0.1,
+      },
+    },
+    exit: {
+      opacity: 0,
+      transition: {
+        staggerChildren: 0.05,
+        staggerDirection: -1
+      }
+    }
+  };
+
+  const itemVariants = {
+    hidden: { opacity: 0, y: 20, scale: 0.96 },
+    show: { 
+      opacity: 1, 
+      y: 0, 
+      scale: 1,
+      transition: { 
+        type: "spring", 
+        stiffness: 300, 
+        damping: 24 
+      }
+    },
+    exit: { opacity: 0, y: -20, scale: 0.96 }
+  };
+
   const filteredPosts = blogPosts.filter((post) => {
     const matchesSearch = 
       post.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -433,22 +465,26 @@ export default function Dev() {
             {viewMode === "grid" ? (
               <motion.div
                 key="grid"
-                initial={{ opacity: 0, y: 8 }}
-                animate={{ opacity: 1, y: 0 }}
-                exit={{ opacity: 0, y: -8 }}
-                transition={{ duration: 0.2, ease: [0.25, 0.1, 0.25, 1] }}
+                variants={containerVariants}
+                initial="hidden"
+                animate="show"
+                exit="exit"
                 className="grid grid-cols-1 md:grid-cols-2 gap-8"
               >
                 {filteredPosts.map((post) => (
-                  <article
+                  <motion.article
                     key={post.id}
+                    variants={itemVariants}
+                    whileHover={{ y: -6, scale: 1.01 }}
+                    whileTap={{ scale: 0.98 }}
                     onClick={() => setSelectedPost(post)}
-                    className="group cursor-pointer bg-[#121214]/60 backdrop-blur-xl border border-white/[0.08] hover:border-white/[0.15] rounded-3xl overflow-hidden transition-all duration-300 hover:bg-white/[0.02] hover:shadow-[0_16px_48px_rgba(0,0,0,0.8),inset_0_1px_0_rgba(255,255,255,0.1)] flex flex-col"
+                    className="group cursor-pointer bg-[#121214]/60 backdrop-blur-xl border border-white/[0.08] hover:border-white/[0.2] rounded-3xl overflow-hidden transition-all duration-500 hover:bg-white/[0.05] hover:shadow-[0_24px_64px_rgba(0,0,0,0.9),inset_0_1px_0_rgba(255,255,255,0.1)] flex flex-col relative"
                   >
-                    <div className={cn("h-56 w-full flex items-center justify-center p-8 transition-transform duration-500 group-hover:scale-105 shrink-0", post.imageColor)}>
+                    <div className="absolute inset-0 bg-gradient-to-tr from-white/[0.0] to-white/[0.05] opacity-0 group-hover:opacity-100 transition-opacity duration-700 pointer-events-none" />
+                    <div className={cn("h-56 w-full flex items-center justify-center p-8 transition-transform duration-700 group-hover:scale-[1.03] shrink-0", post.imageColor)}>
                       {post.imagePattern && <PatternSvg pattern={post.imagePattern} />}
                     </div>
-                    <div className="p-8 space-y-4 relative bg-[#121214]/40 flex-1 flex flex-col">
+                    <div className="p-8 space-y-4 relative bg-[#121214]/40 flex-1 flex flex-col z-10">
                       <div className="flex items-center gap-3 text-xs font-medium text-white/50 tracking-wide uppercase">
                         <span className="flex items-center gap-1">
                           <Tag className="w-3.5 h-3.5" />
@@ -470,30 +506,34 @@ export default function Dev() {
                         {post.date}
                       </p>
                     </div>
-                  </article>
+                  </motion.article>
                 ))}
               </motion.div>
             ) : (
               <motion.div
                 key="list"
-                initial={{ opacity: 0, y: 8 }}
-                animate={{ opacity: 1, y: 0 }}
-                exit={{ opacity: 0, y: -8 }}
-                transition={{ duration: 0.2, ease: [0.25, 0.1, 0.25, 1] }}
+                variants={containerVariants}
+                initial="hidden"
+                animate="show"
+                exit="exit"
                 className="space-y-6"
               >
                 {filteredPosts.map((post) => (
-                  <div 
+                  <motion.div 
                     key={post.id} 
+                    variants={itemVariants}
+                    whileHover={{ x: 8 }}
+                    whileTap={{ scale: 0.99 }}
                     onClick={() => setSelectedPost(post)}
-                    className="flex flex-col sm:flex-row gap-6 p-4 bg-[#121214]/60 backdrop-blur-xl border border-white/[0.08] hover:border-white/[0.15] hover:bg-white/[0.02] rounded-3xl group cursor-pointer transition-all duration-300 hover:shadow-[0_16px_48px_rgba(0,0,0,0.8),inset_0_1px_0_rgba(255,255,255,0.1)]"
+                    className="relative flex flex-col sm:flex-row gap-6 p-4 bg-[#121214]/60 backdrop-blur-xl border border-white/[0.08] hover:border-white/[0.2] hover:bg-white/[0.05] rounded-3xl group cursor-pointer transition-all duration-500 hover:shadow-[0_24px_64px_rgba(0,0,0,0.9),inset_0_1px_0_rgba(255,255,255,0.1)]"
                   >
-                    <div className={cn("w-full sm:w-64 h-48 sm:h-auto rounded-2xl shrink-0 flex items-center justify-center p-6 overflow-hidden", post.imageColor)}>
-                      <div className="transition-transform duration-500 group-hover:scale-105 w-full h-full flex items-center justify-center">
+                    <div className="absolute inset-0 rounded-3xl bg-gradient-to-r from-transparent to-white/[0.03] opacity-0 group-hover:opacity-100 transition-opacity duration-700 pointer-events-none" />
+                    <div className={cn("w-full sm:w-64 h-48 sm:h-auto rounded-2xl shrink-0 flex items-center justify-center p-6 overflow-hidden z-10", post.imageColor)}>
+                      <div className="transition-transform duration-700 group-hover:scale-[1.03] w-full h-full flex items-center justify-center">
                         {post.imagePattern && <PatternSvg pattern={post.imagePattern} />}
                       </div>
                     </div>
-                    <div className="flex-1 space-y-4 py-4 pr-4">
+                    <div className="flex-1 space-y-4 py-4 pr-4 z-10">
                       <div className="flex items-center gap-3 text-xs font-medium text-white/50 tracking-wide uppercase">
                         <span className="flex items-center gap-1">
                           <Tag className="w-3.5 h-3.5" />
@@ -517,7 +557,7 @@ export default function Dev() {
                         {post.subtitle}
                       </p>
                     </div>
-                  </div>
+                  </motion.div>
                 ))}
               </motion.div>
             )}
