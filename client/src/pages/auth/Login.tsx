@@ -1,13 +1,14 @@
 import { useState } from "react";
-import { useLocation } from "wouter";
+import { useLocation, Link } from "wouter";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/use-toast";
-import { Loader2, Chrome, Box, Eye, EyeOff } from "lucide-react";
+import { Loader2, Chrome, Eye, EyeOff } from "lucide-react";
 import { MeshworkLogo } from "@/components/MeshworkLogo";
 import { apiRequest } from "@/lib/queryClient";
 import { queryClient } from "@/lib/queryClient";
+import { motion } from "framer-motion";
 
 export default function Login() {
   const [, setLocation] = useLocation();
@@ -35,7 +36,6 @@ export default function Login() {
           title: "Welcome back!",
           description: `Logged in as ${data.user.email}`,
         });
-        // Set user data directly to avoid loading screen
         queryClient.setQueryData(["/api/auth/me"], data.user);
         setLocation("/home");
       } else {
@@ -61,122 +61,126 @@ export default function Login() {
   };
 
   return (
-    <div className="min-h-screen bg-background flex items-center justify-center p-4 relative overflow-hidden">
-      {/* Orange Wavy Background */}
-      <div className="absolute inset-0 overflow-hidden pointer-events-none">
-        <svg
-          className="absolute w-[200%] h-[200%] -top-1/2 -left-1/2"
-          viewBox="0 0 100 100"
-          preserveAspectRatio="none"
-        >
-          <defs>
-            <pattern id="waves" x="0" y="0" width="100" height="20" patternUnits="userSpaceOnUse">
-              <path
-                d="M0 10 Q 12.5 0, 25 10 T 50 10 T 75 10 T 100 10"
-                fill="none"
-                stroke="#FF9B47"
-                strokeWidth="0.3"
-                opacity="0.4"
-              />
-              <path
-                d="M0 15 Q 12.5 5, 25 15 T 50 15 T 75 15 T 100 15"
-                fill="none"
-                stroke="#FF9B47"
-                strokeWidth="0.2"
-                opacity="0.3"
-              />
-            </pattern>
-          </defs>
-          <rect x="0" y="0" width="100" height="100" fill="url(#waves)" transform="rotate(-15 50 50)" />
-        </svg>
+    <div className="min-h-screen w-full flex bg-background font-sans">
+      
+      {/* LEFT COLUMN: Visual Hero (Hidden on Mobile) */}
+      <div className="hidden lg:flex w-1/2 flex-col justify-center px-16 xl:px-24 relative overflow-hidden bg-[#0A0A0A] border-r border-white/5">
         
-        <svg
-          className="absolute w-full h-full"
-          viewBox="0 0 1440 900"
-          preserveAspectRatio="none"
-        >
-          <line x1="-200" y1="1000" x2="400" y2="-100" stroke="#FF9B47" strokeWidth="1" opacity="0.15" />
-          <line x1="0" y1="1100" x2="600" y2="-100" stroke="#FF9B47" strokeWidth="1" opacity="0.1" />
-          <line x1="200" y1="1200" x2="800" y2="-100" stroke="#FF9B47" strokeWidth="1" opacity="0.12" />
-          <line x1="400" y1="1300" x2="1000" y2="-100" stroke="#FF9B47" strokeWidth="1" opacity="0.08" />
-          <line x1="600" y1="1400" x2="1200" y2="-100" stroke="#FF9B47" strokeWidth="1" opacity="0.1" />
-          <line x1="800" y1="1500" x2="1400" y2="-100" stroke="#FF9B47" strokeWidth="1" opacity="0.15" />
-        </svg>
-      </div>
-
-      <div className="w-full max-w-md relative z-10">
-        {/* Logo */}
-        <div className="flex items-center justify-center mb-8">
-          <div className="w-12 h-12 flex items-center justify-center shrink-0">
-            <MeshworkLogo />
-          </div>
-          <span className="ml-3 text-2xl font-black uppercase tracking-tighter">
-            Meshwork Studio
-          </span>
+        {/* Dynamic Abstract Nodes Collage */}
+        <div className="absolute inset-0 pointer-events-none overflow-hidden">
+           <motion.div 
+             animate={{ y: [0, -20, 0], rotate: [0, 5, 0] }}
+             transition={{ duration: 8, repeat: Infinity, ease: "easeInOut" }}
+             className="absolute top-[15%] right-[10%] w-32 h-32 rounded-3xl bg-white/[0.03] border border-white/[0.1] backdrop-blur-3xl shadow-[0_20px_40px_rgba(0,0,0,0.5)]" 
+           />
+           <motion.div 
+             animate={{ y: [0, 30, 0], rotate: [0, -10, 0] }}
+             transition={{ duration: 12, repeat: Infinity, ease: "easeInOut" }}
+             className="absolute bottom-[20%] left-[15%] w-48 h-48 rounded-[2rem] bg-gradient-to-br from-primary/20 to-purple-500/10 border border-white/[0.1] backdrop-blur-2xl shadow-[0_20px_40px_rgba(0,0,0,0.5)]" 
+           />
+           <motion.div 
+             animate={{ scale: [1, 1.05, 1], opacity: [0.5, 0.8, 0.5] }}
+             transition={{ duration: 6, repeat: Infinity, ease: "easeInOut" }}
+             className="absolute top-[40%] left-[30%] w-24 h-24 rounded-full bg-white/[0.05] border border-white/[0.2] backdrop-blur-lg flex items-center justify-center" 
+           >
+              <div className="w-8 h-8 rounded-full bg-primary/80 blur-[2px]" />
+           </motion.div>
+           
+           {/* Connecting Lines */}
+           <svg className="absolute inset-0 w-full h-full" stroke="rgba(255,255,255,0.05)" strokeWidth="1" fill="none">
+             <path d="M 15% 80% Q 30% 40% 30% 40%" strokeDasharray="4 4" />
+             <path d="M 30% 40% Q 70% 30% 90% 15%" strokeDasharray="4 4" />
+           </svg>
         </div>
 
-        <div className="brutal-card bg-card p-6 border-2 border-foreground">
-          <h1 className="text-xl font-black uppercase tracking-tighter mb-6 text-center">
-            Sign In
-          </h1>
+        <div className="relative z-10 max-w-xl">
+            <Link href="/" className="inline-flex items-center gap-3 mb-16 cursor-figma-pointer group">
+                <div className="w-10 h-10 flex items-center justify-center bg-white/[0.05] border border-white/10 rounded-xl group-hover:bg-white/[0.1] transition-all">
+                    <MeshworkLogo />
+                </div>
+                <span className="font-bold tracking-tight text-white/80 group-hover:text-white transition-colors">Meshwork Studio</span>
+            </Link>
 
-          <form onSubmit={handleEmailLogin} className="space-y-4">
+            <h1 className="text-[3.5rem] xl:text-[4.5rem] leading-[1.05] font-bold text-white tracking-tight mb-6">
+                Design the cloud architecture <br/>
+                <span className="text-transparent bg-clip-text bg-gradient-to-r from-primary to-orange-300">made for you.</span>
+            </h1>
+            
+            <p className="text-white/50 text-lg md:text-xl font-medium tracking-tight max-w-md leading-relaxed">
+                Map, configure, and instantly deploy over 100+ cloud infrastructure primitives in a visual workspace.
+            </p>
+        </div>
+      </div>
+
+      {/* RIGHT COLUMN: Auth Form */}
+      <div className="w-full lg:w-1/2 flex items-center justify-center p-6 sm:p-12 relative">
+          
+        {/* Subtle background glow for right side */}
+        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] bg-primary/5 rounded-full blur-[100px] pointer-events-none" />
+
+        <div className="w-full max-w-[420px] relative z-10 bg-white/[0.02] border border-white/[0.05] p-8 sm:p-10 rounded-[2rem] shadow-2xl backdrop-blur-3xl">
+          
+          <div className="flex flex-col items-center mb-10 lg:hidden">
+             <div className="w-12 h-12 flex items-center justify-center bg-white/[0.05] border border-white/10 rounded-xl mb-4">
+                 <MeshworkLogo />
+             </div>
+          </div>
+
+          <div className="text-center mb-8">
+              <h2 className="text-3xl font-bold tracking-tight text-white mb-2">Welcome Back</h2>
+              <p className="text-white/50 font-medium tracking-tight">Log in to your workspace.</p>
+          </div>
+
+          <form onSubmit={handleEmailLogin} className="space-y-5">
             <div className="space-y-2">
-              <Label htmlFor="email" className="font-bold uppercase text-xs tracking-widest">
+              <Label htmlFor="email" className="font-bold text-xs tracking-wider text-white/70 uppercase">
                 Email
               </Label>
               <div className="relative">
                 <Input
                   id="email"
                   type="email"
-                  placeholder="you@example.com"
+                  placeholder="name@company.com"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
                   onBlur={() => setTouched(prev => ({ ...prev, email: true }))}
                   required
-                  className={`border-2 transition-all duration-200 ${
+                  className={`h-12 bg-black/40 border transition-all duration-200 rounded-xl px-4 ${
                     touched.email && isEmailValid
-                      ? "border-green-500 bg-green-50/30" 
+                      ? "border-green-500/50 focus:border-green-500" 
                       : touched.email && email.length > 0 && !isEmailValid
-                      ? "border-red-400 bg-red-50/30"
-                      : "border-foreground focus:border-primary"
-                  }`}
+                      ? "border-red-400/50 focus:border-red-400"
+                      : "border-white/10 focus:border-primary/50 focus:bg-black/60"
+                  } text-white placeholder:text-white/20`}
                 />
-                {touched.email && isEmailValid && (
-                  <div className="absolute right-3 top-1/2 -translate-y-1/2">
-                    <svg className="w-5 h-5 text-green-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-                    </svg>
-                  </div>
-                )}
               </div>
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="password" className="font-bold uppercase text-xs tracking-widest">
+              <Label htmlFor="password" className="font-bold text-xs tracking-wider text-white/70 uppercase">
                 Password
               </Label>
               <div className="relative">
                 <Input
                   id="password"
                   type={showPassword ? "text" : "password"}
-                  placeholder="••••••••"
+                  placeholder="••••••••••••"
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                   onBlur={() => setTouched(prev => ({ ...prev, password: true }))}
                   required
-                  className={`border-2 pr-10 transition-all duration-200 ${
+                  className={`h-12 bg-black/40 border pr-10 transition-all duration-200 rounded-xl px-4 ${
                     touched.password && isPasswordValid
-                      ? "border-green-500 bg-green-50/30" 
+                      ? "border-green-500/50 focus:border-green-500" 
                       : touched.password && password.length > 0 && !isPasswordValid
-                      ? "border-red-400 bg-red-50/30"
-                      : "border-foreground focus:border-primary"
-                  }`}
+                      ? "border-red-400/50 focus:border-red-400"
+                      : "border-white/10 focus:border-primary/50 focus:bg-black/60"
+                  } text-white placeholder:text-white/20`}
                 />
                 <button
                   type="button"
                   onClick={() => setShowPassword(!showPassword)}
-                  className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors p-1"
+                  className="absolute right-4 top-1/2 -translate-y-1/2 text-white/30 hover:text-white transition-colors"
                 >
                   {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
                 </button>
@@ -185,7 +189,7 @@ export default function Login() {
 
             <Button
               type="submit"
-              className="w-full accent-btn"
+              className="w-full h-12 mt-2 bg-white text-black hover:bg-white/90 font-bold tracking-tight rounded-xl transition-all shadow-[0_0_20px_rgba(255,255,255,0.1)]"
               disabled={isLoading}
             >
               {isLoading ? (
@@ -200,34 +204,30 @@ export default function Login() {
           </form>
 
           {/* Google Login */}
-          <div className="mt-6">
-            <div className="relative">
-              <div className="absolute inset-0 flex items-center">
-                <span className="w-full border-t border-foreground/20" />
-              </div>
-              <div className="relative flex justify-center text-xs uppercase">
-                <span className="bg-card px-2 text-muted-foreground font-bold">
-                  Or continue with
-                </span>
-              </div>
+          <div className="mt-8">
+            <div className="relative flex items-center justify-center mb-6">
+              <span className="absolute w-full border-t border-white/10" />
+              <span className="relative bg-[#0A0A0A] px-4 text-xs font-bold tracking-widest text-white/30 uppercase rounded-full">
+                or
+              </span>
             </div>
 
             <Button
               onClick={handleGoogleLogin}
               variant="outline"
-              className="w-full mt-4 border-2 border-foreground font-bold"
+              className="w-full h-12 border border-white/10 bg-white/[0.02] hover:bg-white/[0.08] hover:text-white font-bold tracking-tight rounded-xl transition-all"
             >
               <Chrome className="mr-2 h-4 w-4" />
-              Google
+              Sign in with Google
             </Button>
           </div>
 
-          <div className="mt-6 text-center">
-            <p className="text-sm text-muted-foreground">
-              Don&apos;t have an account?{" "}
-              <a href="/auth/register" className="font-bold text-foreground hover:underline">
+          <div className="mt-8 text-center">
+            <p className="text-sm font-medium tracking-tight text-white/50">
+              Don't have an account?{" "}
+              <Link href="/auth/register" className="text-white hover:text-primary transition-colors underline underline-offset-4">
                 Register
-              </a>
+              </Link>
             </p>
           </div>
         </div>
