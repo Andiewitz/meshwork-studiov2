@@ -8,9 +8,9 @@ import { Helmet } from "react-helmet-async";
 import { MeshworkLogo } from "@/components/MeshworkLogo";
 
 const BASE_CARDS = [
-  { src: "/auth-hero.png", alt: "Dark UI Design", isShader: false },
+  { src: "/assets/carousel-1.png", alt: "Dark UI Design", isShader: false },
   { src: "/assets/b6742e11ca2a99437f098e4a931acca0.png", alt: "Visual Workflow", isShader: true },
-  { src: "/auth-hero.png", alt: "Infrastructure Context", isShader: false },
+  { src: "/assets/carousel-1.png", alt: "Infrastructure Context", isShader: false },
   { src: "/assets/b6742e11ca2a99437f098e4a931acca0.png", alt: "Auto-Routing Algorithms", isShader: false },
 ];
 
