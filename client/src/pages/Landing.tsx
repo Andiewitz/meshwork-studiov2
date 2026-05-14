@@ -76,7 +76,7 @@ const Home = () => {
     };
 
     return (
-        <div ref={containerRef} className="relative font-sans text-white min-h-screen flex flex-col bg-[#080808]">
+        <div ref={containerRef} className="relative font-sans text-white min-h-screen flex flex-col bg-background">
             <Helmet>
                 <title>Meshwork Studio</title>
                 <meta name="description" content="Design, visualize, and auto-sync your cloud architecture with Meshwork Studio. Fast, local-first, and beautifully brutal." />
@@ -272,7 +272,7 @@ const Home = () => {
             </section>
 
              {/* FOOTER */}
-             <footer className="w-full bg-[#050505] py-16 px-6 border-t border-white/5 relative z-10">
+             <footer className="w-full bg-background py-16 px-6 border-t border-white/5 relative z-10">
                 <div className="max-w-7xl mx-auto">
                     <div className="flex flex-col md:flex-row justify-between items-start gap-12 md:gap-8 border-b border-white/5 pb-12">
                         <div className="flex flex-col gap-4 max-w-sm">
