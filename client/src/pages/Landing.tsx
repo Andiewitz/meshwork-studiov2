@@ -8,10 +8,10 @@ import { Helmet } from "react-helmet-async";
 import { MeshworkLogo } from "@/components/MeshworkLogo";
 
 const BASE_CARDS = [
-  { src: "/carousel_1.png", alt: "Dark UI Design", isShader: false },
-  { src: "/carousel_2.png", alt: "Visual Workflow", isShader: true },
-  { src: "/carousel_1.png", alt: "Infrastructure Context", isShader: false },
-  { src: "/carousel_2.png", alt: "Auto-Routing Algorithms", isShader: false },
+  { src: "/auth-hero.png", alt: "Dark UI Design", isShader: false },
+  { src: "/assets/b6742e11ca2a99437f098e4a931acca0.png", alt: "Visual Workflow", isShader: true },
+  { src: "/auth-hero.png", alt: "Infrastructure Context", isShader: false },
+  { src: "/assets/b6742e11ca2a99437f098e4a931acca0.png", alt: "Auto-Routing Algorithms", isShader: false },
 ];
 
 const CARDS = Array.from({ length: 16 }).map((_, i) => ({
@@ -112,7 +112,7 @@ const Home = () => {
                         <div className="w-9 h-9 flex items-center justify-center transition-all group-hover:drop-shadow-[0_0_12px_rgba(255,61,0,0.5)]">
                             <MeshworkLogo />
                         </div>
-                        <span className="text-lg font-headline font-black tracking-tighter uppercase hidden sm:block text-white">Meshwork Studio</span>
+                        <span className="text-lg font-sans font-bold tracking-tight hidden sm:block text-white">Meshwork Studio</span>
                     </Link>
                     <div className="hidden md:flex items-center gap-8">
                         <a href="#features" className="text-sm font-bold uppercase tracking-wider text-white/50 hover:text-white transition-colors">Features</a>
@@ -141,7 +141,7 @@ const Home = () => {
                 >
                     <motion.h1 
                         variants={itemVariants}
-                        className="text-[3.5rem] sm:text-[4.5rem] lg:text-[6rem] font-bold font-headline text-white leading-[1.05] tracking-tight mb-8 max-w-[1000px] drop-shadow-2xl"
+                        className="text-[3.5rem] sm:text-[4.5rem] lg:text-[6rem] font-bold font-sans text-white leading-[1.05] tracking-tight mb-8 max-w-[1000px] drop-shadow-2xl"
                     >
                         How you design, <br className="hidden md:block" />
                         <span className="text-transparent bg-clip-text bg-gradient-to-r from-primary via-purple-500 to-[#1abcfe]">
@@ -158,7 +158,7 @@ const Home = () => {
 
                     <motion.div variants={itemVariants} className="flex flex-col sm:flex-row items-center justify-center gap-4">
                         <Link href="/auth/register">
-                            <Button size="lg" className="w-full sm:w-auto px-10 border border-primary shadow-[0_0_30px_rgba(255,61,0,0.3)] hover:shadow-[0_0_40px_rgba(255,61,0,0.5)] bg-primary text-black font-headline tracking-widest uppercase flex items-center group">
+                            <Button size="lg" className="w-full sm:w-auto px-10 bg-white/[0.08] backdrop-blur-lg border border-white/[0.15] hover:bg-white/[0.15] hover:border-white/[0.25] text-white shadow-[0_8px_32px_rgba(255,255,255,0.05)] hover:shadow-[0_8px_32px_rgba(255,255,255,0.1)] transition-all duration-300 font-sans font-bold tracking-widest uppercase flex items-center group">
                                 Start Building Free <ArrowRight className="ml-2 w-5 h-5 group-hover:translate-x-1 transition-transform" />
                             </Button>
                         </Link>
@@ -194,7 +194,7 @@ const Home = () => {
                                     }}
                                     transition={{ duration: 0.7, ease: [0.32, 0.72, 0, 1] }}
                                 >
-                                    <div className="relative w-full h-full rounded-[2.5rem] overflow-hidden shadow-[0_25px_60px_-15px_rgba(0,0,0,0.8)] bg-white/[0.02] border border-white/[0.08] backdrop-blur-xl">
+                                    <div className="relative w-full h-full rounded-[2.5rem] overflow-hidden shadow-[0_25px_60px_-15px_rgba(0,0,0,0.8)] bg-white/[0.05] border border-white/[0.15] backdrop-blur-2xl">
                                         <img src={card.src} alt={card.alt} className="absolute inset-0 w-full h-full object-cover opacity-80" />
                                         <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent pointer-events-none" />
                                     </div>
@@ -208,11 +208,11 @@ const Home = () => {
                                                 exit={{ opacity: 0, y: 15 }}
                                                 transition={{ delay: 0.2, duration: 0.5 }}
                                             >
-                                                <div className="bg-white/[0.03] backdrop-blur-2xl rounded-[2.5rem] p-12 shadow-[0_40px_100px_-20px_rgba(0,0,0,0.9)] border border-white/[0.1]">
-                                                    <h3 className="text-[3rem] font-bold tracking-tight text-white mb-8 leading-[1.05] font-headline">
+                                                <div className="bg-white/[0.08] backdrop-blur-3xl rounded-[2.5rem] p-12 shadow-[0_40px_100px_-20px_rgba(0,0,0,0.9)] border border-white/[0.2]">
+                                                    <h3 className="text-[3rem] font-bold tracking-tight text-white mb-8 leading-[1.05] font-sans">
                                                         Auto-routing pipelines that just work
                                                     </h3>
-                                                    <button className="bg-primary text-black px-8 py-5 rounded-2xl font-bold text-lg hover:brightness-110 transition-all shadow-[0_0_30px_rgba(255,61,0,0.3)]">
+                                                    <button className="bg-white/[0.1] text-white px-8 py-5 rounded-2xl font-bold text-lg hover:bg-white/[0.15] border border-white/[0.2] transition-all shadow-[0_8px_32px_rgba(255,255,255,0.05)]">
                                                         Explore Canvas
                                                     </button>
                                                 </div>
@@ -255,14 +255,14 @@ const Home = () => {
                             </div>
                         </motion.div>
 
-                        <h2 className="font-headline text-5xl md:text-8xl font-bold tracking-tight text-white leading-[0.85] mb-8">
+                        <h2 className="font-sans text-5xl md:text-8xl font-bold tracking-tight text-white leading-[0.85] mb-8">
                             <span className="block opacity-60">Stop Drawing.</span>
                             <span className="block text-transparent bg-clip-text bg-gradient-to-r from-primary to-orange-400">Start Building.</span>
                         </h2>
 
                         <div className="flex flex-col sm:flex-row items-center justify-center gap-4 pt-8">
                             <Link href="/auth/register">
-                                <Button size="lg" className="w-full sm:w-auto px-10 h-14 bg-primary text-black hover:brightness-110 border border-primary/50 shadow-[0_0_30px_rgba(255,61,0,0.3)] font-headline tracking-widest uppercase">
+                                <Button size="lg" className="w-full sm:w-auto px-10 h-14 bg-white/[0.08] backdrop-blur-lg border border-white/[0.15] hover:bg-white/[0.15] hover:border-white/[0.25] text-white shadow-[0_8px_32px_rgba(255,255,255,0.05)] hover:shadow-[0_8px_32px_rgba(255,255,255,0.1)] transition-all duration-300 font-sans tracking-widest uppercase">
                                     Get Meshwork Free
                                 </Button>
                             </Link>
@@ -278,7 +278,7 @@ const Home = () => {
                         <div className="flex flex-col gap-4 max-w-sm">
                             <div className="flex items-center gap-3">
                                 <div className="w-9 h-9 flex items-center justify-center"><MeshworkLogo /></div>
-                                <span className="font-bold font-headline tracking-tight text-xl text-white">Meshwork Studio</span>
+                                <span className="font-bold font-sans tracking-tight text-xl text-white">Meshwork Studio</span>
                             </div>
                             <p className="text-white/30 text-sm font-medium leading-relaxed">
                                 The visual workspace for mapping, connecting, and sharing your cloud infrastructure.
