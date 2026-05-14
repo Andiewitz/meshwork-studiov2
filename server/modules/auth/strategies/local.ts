@@ -69,14 +69,14 @@ export function createLocalStrategy() {
         if (!user) {
           // SECURITY: Record failed attempt and prevent email enumeration
           await recordFailedAttempt(email);
-          return done(null, false, { message: "Invalid email or password" });
+          return done(null, false, { message: "No account found with this email" });
         }
 
         // Check if user has a password (email auth)
         if (!user.passwordHash) {
           // SECURITY: Record failed attempt
           await recordFailedAttempt(email);
-          return done(null, false, { message: "Invalid email or password" });
+          return done(null, false, { message: "This account uses Google Login. Please sign in with Google." });
         }
 
         // Verify password
@@ -88,8 +88,8 @@ export function createLocalStrategy() {
           
           // Inform user if they're about to be locked
           const message = failureInfo.locked 
-            ? `Invalid email or password. Account locked due to too many failed attempts.`
-            : `Invalid email or password.`;
+            ? `Incorrect password. Account locked due to too many failed attempts.`
+            : `Incorrect password. Please try again.`;
           
           return done(null, false, { 
             message,

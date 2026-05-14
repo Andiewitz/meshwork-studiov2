@@ -27,6 +27,7 @@ export default function Register() {
   });
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+  const [formErrors, setFormErrors] = useState<{email?: string, password?: string, confirmPassword?: string, general?: string}>({});
   const [touched, setTouched] = useState({
     email: false,
     password: false,
@@ -41,22 +42,15 @@ export default function Register() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    setFormErrors({});
 
     if (formData.password !== formData.confirmPassword) {
-      toast({
-        title: "Passwords don't match",
-        description: "Please make sure your passwords match.",
-        variant: "destructive",
-      });
+      setFormErrors({ confirmPassword: "Passwords do not match." });
       return;
     }
 
     if (!isPasswordValid) {
-      toast({
-        title: "Password does not meet requirements",
-        description: passwordValidation.errors[0] || "Please check your password.",
-        variant: "destructive",
-      });
+      setFormErrors({ password: passwordValidation.errors[0] || "Please check your password." });
       return;
     }
     
@@ -89,11 +83,19 @@ export default function Register() {
         });
         setLocation("/auth/login");
       } else {
-        toast({
-          title: "Registration failed",
-          description: data.message || "Something went wrong",
-          variant: "destructive",
-        });
+        const errorMsg = data.message || "Something went wrong";
+        if (errorMsg.toLowerCase().includes("email")) {
+            setFormErrors({ email: errorMsg });
+        } else if (errorMsg.toLowerCase().includes("password")) {
+            setFormErrors({ password: errorMsg });
+        } else {
+            setFormErrors({ general: errorMsg });
+            toast({
+              title: "Registration failed",
+              description: errorMsg,
+              variant: "destructive",
+            });
+        }
         if (recaptchaRef.current) recaptchaRef.current.reset();
         setCaptchaToken("");
       }
@@ -181,6 +183,12 @@ export default function Register() {
               <p className="text-white/50 font-medium tracking-tight">Set up your workspace.</p>
           </div>
 
+            {formErrors.general && (
+              <div className="p-3 mb-6 rounded-xl bg-red-500/10 border border-red-500/20 text-red-400 text-sm font-medium">
+                {formErrors.general}
+              </div>
+            )}
+
           <form onSubmit={handleSubmit} className="space-y-5">
             <div className="grid grid-cols-2 gap-4">
               <div className="space-y-2">
@@ -209,7 +217,10 @@ export default function Register() {
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="email" className="font-bold text-xs tracking-wider text-white/70 uppercase">Email *</Label>
+              <div className="flex justify-between">
+                <Label htmlFor="email" className={`font-bold text-xs tracking-wider uppercase ${formErrors.email ? 'text-red-400' : 'text-white/70'}`}>Email *</Label>
+                {formErrors.email && <span className="text-xs text-red-400 font-medium">{formErrors.email}</span>}
+              </div>
               <div className="relative">
                 <Input
                   id="email"
@@ -220,7 +231,9 @@ export default function Register() {
                   onBlur={() => setTouched(prev => ({ ...prev, email: true }))}
                   required
                   className={`h-12 bg-black/40 border transition-all duration-200 rounded-xl px-4 ${
-                    touched.email && isEmailValid
+                    formErrors.email
+                      ? "border-red-500 focus:border-red-400"
+                      : touched.email && isEmailValid
                       ? "border-green-500/50 focus:border-green-500" 
                       : touched.email && formData.email.length > 0 && !isEmailValid
                       ? "border-red-400/50 focus:border-red-400"
@@ -231,7 +244,10 @@ export default function Register() {
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="password" className="font-bold text-xs tracking-wider text-white/70 uppercase">Password *</Label>
+              <div className="flex justify-between">
+                <Label htmlFor="password" className={`font-bold text-xs tracking-wider uppercase ${formErrors.password ? 'text-red-400' : 'text-white/70'}`}>Password *</Label>
+                {formErrors.password && <span className="text-xs text-red-400 font-medium">{formErrors.password}</span>}
+              </div>
               <div className="relative">
                 <Input
                   id="password"
@@ -243,7 +259,9 @@ export default function Register() {
                   required
                   minLength={PASSWORD_POLICY.minLength}
                   className={`h-12 bg-black/40 border pr-10 transition-all duration-200 rounded-xl px-4 ${
-                    touched.password && isPasswordValid
+                    formErrors.password
+                      ? "border-red-500 focus:border-red-400"
+                      : touched.password && isPasswordValid
                       ? "border-green-500/50 focus:border-green-500" 
                       : touched.password && formData.password.length > 0 && !isPasswordValid
                       ? "border-red-400/50 focus:border-red-400"
@@ -286,7 +304,10 @@ export default function Register() {
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="confirmPassword" className="font-bold text-xs tracking-wider text-white/70 uppercase">Confirm Password *</Label>
+              <div className="flex justify-between">
+                <Label htmlFor="confirmPassword" className={`font-bold text-xs tracking-wider uppercase ${formErrors.confirmPassword ? 'text-red-400' : 'text-white/70'}`}>Confirm Password *</Label>
+                {formErrors.confirmPassword && <span className="text-xs text-red-400 font-medium">{formErrors.confirmPassword}</span>}
+              </div>
               <div className="relative">
                 <Input
                   id="confirmPassword"
@@ -297,7 +318,9 @@ export default function Register() {
                   onBlur={() => setTouched(prev => ({ ...prev, confirmPassword: true }))}
                   required
                   className={`h-12 bg-black/40 border pr-10 transition-all duration-200 rounded-xl px-4 ${
-                    touched.confirmPassword && isConfirmPasswordValid
+                    formErrors.confirmPassword
+                      ? "border-red-500 focus:border-red-400"
+                      : touched.confirmPassword && isConfirmPasswordValid
                       ? "border-green-500/50 focus:border-green-500" 
                       : touched.confirmPassword && formData.confirmPassword.length > 0 && !isConfirmPasswordValid
                       ? "border-red-400/50 focus:border-red-400"

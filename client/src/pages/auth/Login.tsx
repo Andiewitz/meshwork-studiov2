@@ -18,6 +18,7 @@ export default function Login() {
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [touched, setTouched] = useState({ email: false, password: false });
+  const [formErrors, setFormErrors] = useState<{email?: string, password?: string, general?: string}>({});
 
   // Validation
   const isEmailValid = email.length > 0 && /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
@@ -26,6 +27,7 @@ export default function Login() {
   const handleEmailLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsLoading(true);
+    setFormErrors({});
 
     try {
       const res = await apiRequest("POST", "/api/auth/login", { email, password });
@@ -39,11 +41,21 @@ export default function Login() {
         queryClient.setQueryData(["/api/auth/me"], data.user);
         setLocation("/home");
       } else {
-        toast({
-          title: "Login failed",
-          description: data.message || "Invalid credentials",
-          variant: "destructive",
-        });
+        const errorMsg = data.message || "Invalid credentials";
+        
+        // Create UX around specific errors
+        if (errorMsg.toLowerCase().includes("email") || errorMsg.toLowerCase().includes("account")) {
+            setFormErrors({ email: errorMsg });
+        } else if (errorMsg.toLowerCase().includes("password")) {
+            setFormErrors({ password: errorMsg });
+        } else {
+            setFormErrors({ general: errorMsg });
+            toast({
+              title: "Login failed",
+              description: errorMsg,
+              variant: "destructive",
+            });
+        }
       }
     } catch (err: any) {
       toast({
@@ -131,11 +143,20 @@ export default function Login() {
               <p className="text-white/50 font-medium tracking-tight">Log in to your workspace.</p>
           </div>
 
+            {formErrors.general && (
+              <div className="p-3 mb-6 rounded-xl bg-red-500/10 border border-red-500/20 text-red-400 text-sm font-medium">
+                {formErrors.general}
+              </div>
+            )}
+
           <form onSubmit={handleEmailLogin} className="space-y-5">
             <div className="space-y-2">
-              <Label htmlFor="email" className="font-bold text-xs tracking-wider text-white/70 uppercase">
-                Email
-              </Label>
+              <div className="flex justify-between">
+                <Label htmlFor="email" className={`font-bold text-xs tracking-wider uppercase ${formErrors.email ? 'text-red-400' : 'text-white/70'}`}>
+                  Email
+                </Label>
+                {formErrors.email && <span className="text-xs text-red-400 font-medium">{formErrors.email}</span>}
+              </div>
               <div className="relative">
                 <Input
                   id="email"
@@ -146,7 +167,9 @@ export default function Login() {
                   onBlur={() => setTouched(prev => ({ ...prev, email: true }))}
                   required
                   className={`h-12 bg-black/40 border transition-all duration-200 rounded-xl px-4 ${
-                    touched.email && isEmailValid
+                    formErrors.email 
+                      ? "border-red-500 focus:border-red-400"
+                      : touched.email && isEmailValid
                       ? "border-green-500/50 focus:border-green-500" 
                       : touched.email && email.length > 0 && !isEmailValid
                       ? "border-red-400/50 focus:border-red-400"
@@ -157,9 +180,12 @@ export default function Login() {
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="password" className="font-bold text-xs tracking-wider text-white/70 uppercase">
-                Password
-              </Label>
+              <div className="flex justify-between">
+                <Label htmlFor="password" className={`font-bold text-xs tracking-wider uppercase ${formErrors.password ? 'text-red-400' : 'text-white/70'}`}>
+                  Password
+                </Label>
+                {formErrors.password && <span className="text-xs text-red-400 font-medium">{formErrors.password}</span>}
+              </div>
               <div className="relative">
                 <Input
                   id="password"
@@ -170,7 +196,9 @@ export default function Login() {
                   onBlur={() => setTouched(prev => ({ ...prev, password: true }))}
                   required
                   className={`h-12 bg-black/40 border pr-10 transition-all duration-200 rounded-xl px-4 ${
-                    touched.password && isPasswordValid
+                    formErrors.password
+                      ? "border-red-500 focus:border-red-400"
+                      : touched.password && isPasswordValid
                       ? "border-green-500/50 focus:border-green-500" 
                       : touched.password && password.length > 0 && !isPasswordValid
                       ? "border-red-400/50 focus:border-red-400"
