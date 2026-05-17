@@ -135,10 +135,36 @@ const Home = () => {
             </nav>
 
             {/* Hero Section */}
-            <main className="container mx-auto px-4 text-center relative z-10 pt-32 pb-12 md:pt-48 md:pb-24 flex-1">
-                {/* Hero / 3D Carousel Section */}
+            <main className="container mx-auto px-4 text-center relative z-10 pt-20 pb-12 md:pt-32 md:pb-24 flex-1">
+                {/* Dotted Background Grid */}
+                <div className="absolute inset-0 z-[-1] bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-blue-900/10 via-[#09090b] to-[#09090b]">
+                    <div className="absolute inset-0 bg-[url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMjAiIGhlaWdodD0iMjAiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+PGNpcmNsZSBjeD0iMSIgY3k9IjEiIHI9IjEiIGZpbGw9InJnYmEoMjU1LDI1NSwyNTUsMC4wNSkiLz48L3N2Zz4=')] [mask-image:radial-gradient(ellipse_at_center,black_40%,transparent_80%)]" />
+                </div>
+
+                {/* Independent Hero Header */}
+                <motion.div 
+                    variants={containerVariants}
+                    initial="hidden"
+                    animate="visible"
+                    className="flex flex-col items-center mb-16"
+                >
+                    <motion.h1 
+                        variants={itemVariants}
+                        className="text-[3rem] sm:text-[4rem] lg:text-[4.5rem] font-medium font-sans text-white leading-[1.1] tracking-tight mb-4 drop-shadow-md"
+                    >
+                        Build with Meshwork Studio
+                    </motion.h1>
+                    <motion.p 
+                        variants={itemVariants}
+                        className="text-[1rem] sm:text-[1.125rem] text-white/60 font-medium tracking-wide max-w-[600px]"
+                    >
+                        Go from prompt to production with automated infrastructure, seamless scaling, and more.
+                    </motion.p>
+                </motion.div>
+
+                {/* 3D Carousel Section */}
                 <div className="w-full flex flex-col items-center mt-6">
-                    <div className="relative w-full h-[750px] flex items-center justify-center mb-16 overflow-visible"
+                    <div className="relative w-full h-[600px] flex items-center justify-center mb-16 overflow-visible"
                          onMouseEnter={() => setIsPaused(true)}
                          onMouseLeave={() => setIsPaused(false)}
                     >
@@ -150,23 +176,28 @@ const Home = () => {
                             if (Math.abs(distance) > 4) return null;
 
                             const isActive = distance === 0;
-                            const offset = distance * 504; // 480px width + 24px gap
+                            const offset = distance * 400; // 380px width + 20px gap
                             
                             return (
                                 <motion.div 
                                     key={card.id}
-                                    className="absolute w-[480px] shrink-0 origin-center"
+                                    className="absolute w-[380px] shrink-0 origin-center"
                                     initial={false}
                                     animate={{ 
                                         x: offset,
-                                        height: isActive ? 750 : 620,
-                                        y: isActive ? 0 : 65, // Center vertically
-                                        opacity: isActive ? 1 : 0.6,
-                                        zIndex: 0 // All cards are in background
+                                        height: isActive ? 480 : 420,
+                                        y: isActive ? 0 : 30, // Center vertically
+                                        opacity: isActive ? 1 : 0.4,
+                                        zIndex: isActive ? 10 : 0
                                     }}
                                     transition={{ type: "spring", stiffness: 150, damping: 20, mass: 0.8 }}
                                 >
-                                    <div className="relative w-full h-full overflow-hidden shadow-[0_25px_60px_-15px_rgba(0,0,0,0.8)] bg-white/[0.05] border border-white/[0.15] backdrop-blur-2xl">
+                                    <div 
+                                        className="relative w-full h-full rounded-[1.5rem] overflow-hidden bg-white/[0.05] border border-white/[0.05]"
+                                        style={{
+                                            boxShadow: isActive ? '0 0 100px rgba(59, 130, 246, 0.5)' : 'none'
+                                        }}
+                                    >
                                         <img 
                                             src={card.src} 
                                             alt={card.alt} 
@@ -178,38 +209,37 @@ const Home = () => {
                                 </motion.div>
                             );
                         })}
-                        
-                        {/* Central Floating Hero Overlay */}
-                        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 z-20 pointer-events-none w-full px-4">
+                        {/* Anchored Prompt Overlay */}
+                        <div className="absolute top-[80%] left-1/2 -translate-x-1/2 z-20 pointer-events-auto">
                             <motion.div 
                                 variants={containerVariants}
                                 initial="hidden"
                                 animate="visible"
-                                className="bg-[#1a1a1a]/95 backdrop-blur-3xl rounded-[1.5rem] p-10 sm:p-14 shadow-[0_30px_80px_-15px_rgba(0,0,0,1)] border border-white/5 pointer-events-auto max-w-[680px] w-full mx-auto text-center flex flex-col items-center"
+                                className="bg-[#202124] rounded-[1rem] p-5 sm:p-6 shadow-[0_20px_40px_rgba(0,0,0,0.8)] border border-white/5 w-[500px] text-left flex flex-col justify-between"
                             >
-                                <motion.h1 
-                                    variants={itemVariants}
-                                    className="text-[2.75rem] sm:text-[3.5rem] lg:text-[4rem] font-extrabold font-sans text-white leading-[1.1] tracking-tight mb-5 drop-shadow-lg"
-                                >
-                                    How you design, <br className="hidden sm:block" />
-                                    <span className="text-primary">deploy,</span> <span className="text-[#3b82f6]">and scale.</span>
-                                </motion.h1>
-
-                                <motion.p 
-                                    variants={itemVariants}
-                                    className="text-[1rem] sm:text-[1.125rem] text-white/70 max-w-[450px] mb-8 font-medium leading-relaxed"
-                                >
-                                    The visual workspace for mapping, connecting, and sharing your cloud infrastructure. Built explicitly for teams who think in systems.
-                                </motion.p>
-
-                                <motion.div variants={itemVariants} className="w-full mt-2">
+                                <p className="text-[1.125rem] text-white font-sans mb-8">
+                                    Create a collaborative live particle art<span className="animate-pulse text-blue-500">|</span>
+                                </p>
+                                <div className="flex justify-end">
                                     <Link href="/auth/register">
-                                        <button className="w-full bg-[#2a2a2a] hover:bg-[#333333] border border-white/10 text-white rounded-xl py-4 px-8 shadow-[0_8px_32px_rgba(0,0,0,0.5)] transition-all duration-300 font-sans font-bold tracking-widest uppercase flex items-center justify-center group text-sm">
-                                            Start Building Free <span className="ml-2 group-hover:translate-x-1 transition-transform">→</span>
+                                        <button className="bg-[#3b82f6] hover:bg-[#2563eb] text-white rounded-lg py-2.5 px-5 transition-colors font-sans font-medium flex items-center justify-center text-sm">
+                                            <ArrowRight className="mr-2 w-4 h-4" /> Get started
                                         </button>
                                     </Link>
-                                </motion.div>
+                                </div>
                             </motion.div>
+
+                            {/* Pagination Controls */}
+                            <div className="flex justify-center mt-6">
+                                <div className="bg-[#202124] rounded-full flex items-center p-1 border border-white/5">
+                                    <button onClick={() => setIsPaused(true)} className="p-2 hover:bg-white/10 rounded-full text-white/50 hover:text-white transition-colors">
+                                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="m15 18-6-6 6-6"/></svg>
+                                    </button>
+                                    <button onClick={() => setIsPaused(true)} className="p-2 hover:bg-white/10 rounded-full text-white/50 hover:text-white transition-colors">
+                                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="m9 18 6-6-6-6"/></svg>
+                                    </button>
+                                </div>
+                            </div>
                         </div>
                     </div>
                 </div>
