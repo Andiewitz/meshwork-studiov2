@@ -135,7 +135,7 @@ const Home = () => {
             </nav>
 
             {/* Hero Section */}
-            <main className="w-full relative z-10 pt-20 pb-12 md:pt-32 md:pb-24 flex-1 overflow-hidden">
+            <main className="w-full relative z-10 pt-20 pb-12 md:pt-32 md:pb-24 flex-1 overflow-x-hidden">
                 {/* Dotted Background Grid */}
                 <div className="absolute inset-0 z-[-1] bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-blue-900/10 via-[#09090b] to-[#09090b]">
                     <div className="absolute inset-0 bg-[url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMjAiIGhlaWdodD0iMjAiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+PGNpcmNsZSBjeD0iMSIgY3k9IjEiIHI9IjEiIGZpbGw9InJnYmEoMjU1LDI1NSwyNTUsMC4wNSkiLz48L3N2Zz4=')] bg-[length:24px_24px] bg-repeat [mask-image:radial-gradient(ellipse_at_top,black_40%,transparent_70%)] opacity-70" />
