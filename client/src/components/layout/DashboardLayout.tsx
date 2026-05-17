@@ -8,7 +8,6 @@ import {
   Users,
   Settings,
   HelpCircle,
-  Radio,
   Bell,
   LogOut,
   X,
@@ -120,12 +119,14 @@ export function DashboardLayout({ children }: { children: ReactNode }) {
         </nav>
 
         <div className="flex flex-col items-center gap-6 mt-auto">
-          <motion.a variants={itemVariants} href="#" className="text-[#777575] hover:text-white transition-colors" title="Help">
+          <motion.a variants={itemVariants} href="https://github.com/Andiewitz/Meshwork-Studio_" target="_blank" rel="noopener noreferrer" className="text-[#777575] hover:text-white transition-colors" title="Help">
             <HelpCircle className="w-5 h-5" />
           </motion.a>
-          <motion.a variants={itemVariants} href="#" className="text-[#777575] hover:text-white transition-colors" title="Radio">
-            <Radio className="w-5 h-5" />
-          </motion.a>
+          <Link href="/dev">
+            <motion.span variants={itemVariants} className="text-[#777575] hover:text-white transition-colors block" title="Blog">
+              <Newspaper className="w-5 h-5" />
+            </motion.span>
+          </Link>
           <div className="relative group">
             <motion.div variants={itemVariants} className="w-8 h-8 rounded-full overflow-hidden bg-[#1a1a1a] border border-white/10 flex items-center justify-center text-xs font-bold text-white cursor-pointer">
               {user?.profileImageUrl

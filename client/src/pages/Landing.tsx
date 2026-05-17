@@ -486,27 +486,27 @@ const Home = () => {
                         <div className="grid grid-cols-2 md:grid-cols-4 gap-10 md:gap-14">
                             <div className="flex flex-col gap-3">
                                 <h4 className="font-sans font-semibold text-white text-sm mb-1">Platform</h4>
-                                <a href="#" className="text-white/40 hover:text-white transition-colors text-sm">Canvas</a>
-                                <a href="#" className="text-white/40 hover:text-white transition-colors text-sm">Templates</a>
-                                <a href="#" className="text-white/40 hover:text-white transition-colors text-sm">AI Assistant</a>
+                                <a href="#features" className="text-white/40 hover:text-white transition-colors text-sm">Canvas</a>
+                                <Link href="/templates"><span className="text-white/40 hover:text-white transition-colors text-sm cursor-pointer">Templates</span></Link>
+                                <a href="#features" className="text-white/40 hover:text-white transition-colors text-sm">AI Assistant</a>
                             </div>
                             <div className="flex flex-col gap-3">
                                 <h4 className="font-sans font-semibold text-white text-sm mb-1">Product</h4>
-                                <a href="#" className="text-white/40 hover:text-white transition-colors text-sm">Features</a>
-                                <a href="#" className="text-white/40 hover:text-white transition-colors text-sm">Pricing</a>
-                                <a href="#" className="text-white/40 hover:text-white transition-colors text-sm">Documentation</a>
-                                <a href="#" className="text-white/40 hover:text-white transition-colors text-sm">Changelog</a>
+                                <a href="#features" className="text-white/40 hover:text-white transition-colors text-sm">Features</a>
+                                <a href="#how-it-works" className="text-white/40 hover:text-white transition-colors text-sm">How It Works</a>
+                                <a href="https://github.com/Andiewitz/Meshwork-Studio_" target="_blank" rel="noopener noreferrer" className="text-white/40 hover:text-white transition-colors text-sm">Documentation</a>
+                                <a href="https://github.com/Andiewitz/Meshwork-Studio_/commits/main" target="_blank" rel="noopener noreferrer" className="text-white/40 hover:text-white transition-colors text-sm">Changelog</a>
                             </div>
                             <div className="flex flex-col gap-3">
                                 <h4 className="font-sans font-semibold text-white text-sm mb-1">Resources</h4>
-                                <a href="#" className="text-white/40 hover:text-white transition-colors text-sm">Blog</a>
-                                <a href="#" className="text-white/40 hover:text-white transition-colors text-sm">Community</a>
-                                <a href="#" className="text-white/40 hover:text-white transition-colors text-sm">Case studies</a>
+                                <Link href="/dev"><span className="text-white/40 hover:text-white transition-colors text-sm cursor-pointer">Blog</span></Link>
+                                <a href="https://github.com/Andiewitz/Meshwork-Studio_/discussions" target="_blank" rel="noopener noreferrer" className="text-white/40 hover:text-white transition-colors text-sm">Community</a>
+                                <a href="#case-studies" className="text-white/40 hover:text-white transition-colors text-sm">Case studies</a>
                             </div>
                             <div className="flex flex-col gap-3">
                                 <h4 className="font-sans font-semibold text-white text-sm mb-1">Legal</h4>
-                                <a href="#" className="text-white/40 hover:text-white transition-colors text-sm">Privacy</a>
-                                <a href="#" className="text-white/40 hover:text-white transition-colors text-sm">Terms</a>
+                                <span className="text-white/20 text-sm cursor-default">Privacy</span>
+                                <span className="text-white/20 text-sm cursor-default">Terms</span>
                             </div>
                         </div>
                     </div>

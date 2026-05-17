@@ -66,8 +66,8 @@ export default function AuthPage() {
                 <div className="relative z-10 flex justify-between text-[10px] font-bold uppercase tracking-widest text-white/20">
                     <p>© 2026 Meshwork Studio.</p>
                     <div className="flex gap-6">
-                        <a href="#" className="hover:text-primary transition-colors">Privacy</a>
-                        <a href="#" className="hover:text-primary transition-colors">Legal</a>
+                        <span className="text-white/20 cursor-default">Privacy</span>
+                        <span className="text-white/20 cursor-default">Legal</span>
                     </div>
                 </div>
             </div>
@@ -126,7 +126,7 @@ export default function AuthPage() {
 
                     <div className="text-center">
                         <p className="text-white/20 text-xs font-bold uppercase tracking-widest">
-                            Need an account? <a href="#" className="text-primary hover:underline transition-all">Request Invitation</a>
+                            Need an account? <Link href="/auth/register"><span className="text-primary hover:underline transition-all cursor-pointer">Create one</span></Link>
                         </p>
                     </div>
                 </div>
