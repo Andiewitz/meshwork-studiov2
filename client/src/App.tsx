@@ -1,3 +1,4 @@
+import React, { Suspense } from "react";
 import { Switch, Route, Redirect, useLocation, Router as WouterRouter } from "wouter";
 import { queryClient } from "./lib/queryClient";
 import { QueryClientProvider } from "@tanstack/react-query";
@@ -9,18 +10,20 @@ import { useCsrfTokenInitializer } from "@/lib/csrf-init";
 import { RedirectingScreen } from "@/components/ui/loading-screen";
 import { AnimatePresence, motion } from "framer-motion";
 import { cn } from "@/lib/utils";
-import NotFound from "@/pages/not-found";
-import Home from "@/pages/Home";
-import Landing from "@/pages/Landing";
-import Login from "@/pages/auth/Login";
-import Register from "@/pages/auth/Register";
-import Settings from "@/pages/Settings";
-import Workspace from "@/pages/Workspace";
-import Dev from "@/pages/Dev";
-import Team from "@/pages/Team"; // Redesign route
-import Templates from "@/pages/Templates"; // Redesign route
 import { DashboardLayout } from "@/components/layout/DashboardLayout";
 import { HelmetProvider } from "react-helmet-async";
+
+// Route-level code splitting via React.lazy
+const NotFound = React.lazy(() => import("@/pages/not-found"));
+const Home = React.lazy(() => import("@/pages/Home"));
+const Landing = React.lazy(() => import("@/pages/Landing"));
+const Login = React.lazy(() => import("@/pages/auth/Login"));
+const Register = React.lazy(() => import("@/pages/auth/Register"));
+const Settings = React.lazy(() => import("@/pages/Settings"));
+const Workspace = React.lazy(() => import("@/pages/Workspace"));
+const Dev = React.lazy(() => import("@/pages/Dev"));
+const Team = React.lazy(() => import("@/pages/Team"));
+const Templates = React.lazy(() => import("@/pages/Templates"));
 
 function ProtectedRoute({ component: Component }: { component: React.ComponentType }) {
   const { user, isLoading, isRedirecting } = useAuth();
@@ -196,7 +199,9 @@ function App() {
           <WouterRouter>
             <TooltipProvider>
               <Toaster />
-              <Router />
+              <Suspense fallback={<RedirectingScreen />}>
+                <Router />
+              </Suspense>
             </TooltipProvider>
           </WouterRouter>
         </ThemeProvider>
