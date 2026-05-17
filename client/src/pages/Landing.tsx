@@ -138,7 +138,7 @@ const Home = () => {
             <main className="container mx-auto px-4 text-center relative z-10 pt-32 pb-12 md:pt-48 md:pb-24 flex-1">
                 {/* Hero / 3D Carousel Section */}
                 <div className="w-full flex flex-col items-center mt-6">
-                    <div className="relative w-full h-[600px] flex items-center justify-center mb-16 overflow-visible"
+                    <div className="relative w-full h-[750px] flex items-center justify-center mb-16 overflow-visible"
                          onMouseEnter={() => setIsPaused(true)}
                          onMouseLeave={() => setIsPaused(false)}
                     >
@@ -150,17 +150,17 @@ const Home = () => {
                             if (Math.abs(distance) > 4) return null;
 
                             const isActive = distance === 0;
-                            const offset = distance * 424; // 400px width + 24px gap
+                            const offset = distance * 504; // 480px width + 24px gap
                             
                             return (
                                 <motion.div 
                                     key={card.id}
-                                    className="absolute w-[400px] shrink-0 origin-center"
+                                    className="absolute w-[480px] shrink-0 origin-center"
                                     initial={false}
                                     animate={{ 
                                         x: offset,
-                                        height: isActive ? 560 : 460,
-                                        y: isActive ? 0 : 50, // Center vertically
+                                        height: isActive ? 750 : 620,
+                                        y: isActive ? 0 : 65, // Center vertically
                                         opacity: isActive ? 1 : 0.6,
                                         zIndex: 0 // All cards are in background
                                     }}
@@ -185,16 +185,14 @@ const Home = () => {
                                 variants={containerVariants}
                                 initial="hidden"
                                 animate="visible"
-                                className="bg-black/70 backdrop-blur-3xl rounded-[1.5rem] p-8 sm:p-12 shadow-[0_30px_80px_-15px_rgba(0,0,0,0.8)] border border-white/10 pointer-events-auto max-w-[550px] w-full mx-auto text-center flex flex-col items-center"
+                                className="bg-[#1a1a1a]/95 backdrop-blur-3xl rounded-[1.5rem] p-10 sm:p-14 shadow-[0_30px_80px_-15px_rgba(0,0,0,1)] border border-white/5 pointer-events-auto max-w-[680px] w-full mx-auto text-center flex flex-col items-center"
                             >
                                 <motion.h1 
                                     variants={itemVariants}
-                                    className="text-[2.25rem] sm:text-[2.75rem] font-bold font-sans text-white leading-[1.1] tracking-tight mb-5 drop-shadow-lg"
+                                    className="text-[2.75rem] sm:text-[3.5rem] lg:text-[4rem] font-extrabold font-sans text-white leading-[1.1] tracking-tight mb-5 drop-shadow-lg"
                                 >
                                     How you design, <br className="hidden sm:block" />
-                                    <span className="text-transparent bg-clip-text bg-gradient-to-r from-primary via-purple-500 to-[#1abcfe]">
-                                        deploy, and scale.
-                                    </span>
+                                    <span className="text-primary">deploy,</span> <span className="text-[#3b82f6]">and scale.</span>
                                 </motion.h1>
 
                                 <motion.p 
@@ -204,11 +202,11 @@ const Home = () => {
                                     The visual workspace for mapping, connecting, and sharing your cloud infrastructure. Built explicitly for teams who think in systems.
                                 </motion.p>
 
-                                <motion.div variants={itemVariants} className="w-full">
+                                <motion.div variants={itemVariants} className="w-full mt-2">
                                     <Link href="/auth/register">
-                                        <Button size="lg" className="w-full bg-white/[0.08] backdrop-blur-lg border border-white/[0.15] hover:bg-white/[0.15] hover:border-white/[0.25] text-white shadow-[0_8px_32px_rgba(255,255,255,0.05)] transition-all duration-300 font-sans font-bold tracking-widest uppercase flex items-center justify-center group">
-                                            Start Building Free <ArrowRight className="ml-2 w-5 h-5 group-hover:translate-x-1 transition-transform" />
-                                        </Button>
+                                        <button className="w-full bg-[#2a2a2a] hover:bg-[#333333] border border-white/10 text-white rounded-xl py-4 px-8 shadow-[0_8px_32px_rgba(0,0,0,0.5)] transition-all duration-300 font-sans font-bold tracking-widest uppercase flex items-center justify-center group text-sm">
+                                            Start Building Free <span className="ml-2 group-hover:translate-x-1 transition-transform">→</span>
+                                        </button>
                                     </Link>
                                 </motion.div>
                             </motion.div>
