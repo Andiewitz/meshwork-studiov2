@@ -57,17 +57,21 @@ export const NodeLibrarySidebar: React.FC<NodeLibrarySidebarProps> = ({ onDragSt
 
     if (collapsed) {
         return (
-            <motion.button
-                initial={{ opacity: 0, scale: 0.8 }}
-                animate={{ opacity: 1, scale: 1 }}
-                exit={{ opacity: 0, scale: 0.8 }}
-                transition={{ duration: 0.15, ease: [0.16, 1, 0.3, 1] }}
-                onClick={() => setCollapsed(false)}
-                className="absolute top-4 left-4 z-40 w-9 h-9 flex items-center justify-center rounded-xl bg-[#121214]/80 backdrop-blur-xl border border-white/[0.08] text-white/40 hover:text-white/80 hover:bg-[#1a1a1e] shadow-[0_4px_12px_rgba(0,0,0,0.5)] transition-all"
-                title="Open component library"
+            <motion.div
+                initial={{ width: 0, opacity: 0 }}
+                animate={{ width: 56, opacity: 1 }}
+                exit={{ width: 0, opacity: 0 }}
+                transition={{ duration: 0.2, ease: [0.16, 1, 0.3, 1] }}
+                className="absolute top-0 left-0 bottom-0 z-40 flex flex-col items-center pt-4 gap-2 bg-[#121214]/80 backdrop-blur-xl border-r border-white/[0.08] shadow-[inset_-1px_0_0_rgba(255,255,255,0.05),4px_0_24px_rgba(0,0,0,0.5)]"
             >
-                <PanelLeftOpen className="w-4 h-4" />
-            </motion.button>
+                <button
+                    onClick={() => setCollapsed(false)}
+                    className="w-8 h-8 flex items-center justify-center rounded-lg text-white/30 hover:text-white/70 hover:bg-white/[0.06] transition-all"
+                    title="Open sidebar"
+                >
+                    <PanelLeftOpen className="w-4 h-4" />
+                </button>
+            </motion.div>
         );
     }
 

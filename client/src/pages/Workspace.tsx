@@ -1098,7 +1098,7 @@ function WorkspaceView() {
                                 <CollaboratorCursors collaborators={collaborators} />
 
                                 {/* ── Top-left panel — inside ReactFlow so it tracks canvas not root ── */}
-                                <Panel position="top-left" className={`transition-all duration-300 my-5 ${sidebarCollapsed ? 'ml-[56px]' : 'ml-[280px]'}`}>
+                                <Panel position="top-left" className={`transition-all duration-300 my-5 ${sidebarCollapsed ? 'ml-[76px]' : 'ml-[280px]'}`}>
                                     <motion.div
                                         initial={{ opacity: 0, y: -16 }}
                                         animate={{ opacity: 1, y: 0 }}
