@@ -1,4 +1,4 @@
-import { ReactNode, useState, useRef, useEffect } from "react";
+import { ReactNode, useState, useRef, useEffect, Suspense } from "react";
 import { Link, useLocation } from "wouter";
 import { motion, AnimatePresence } from "framer-motion";
 import {
@@ -312,7 +312,25 @@ export function DashboardLayout({ children }: { children: ReactNode }) {
       {/* Main content */}
       <main className="pl-20 pt-16 min-h-screen technical-gradient w-full">
         <div className="w-full h-full p-12">
-          {children}
+          <Suspense
+            fallback={
+              <div className="flex flex-col items-center justify-center h-[60vh] gap-6">
+                <div className="w-8 h-8">
+                  <MeshworkLogo />
+                </div>
+                <div className="w-24 h-[2px] bg-white/[0.06] rounded-full overflow-hidden">
+                  <motion.div
+                    className="h-full bg-primary rounded-full"
+                    initial={{ x: "-100%" }}
+                    animate={{ x: "100%" }}
+                    transition={{ duration: 1, repeat: Infinity, ease: "easeInOut" }}
+                  />
+                </div>
+              </div>
+            }
+          >
+            {children}
+          </Suspense>
         </div>
       </main>
     </div>
