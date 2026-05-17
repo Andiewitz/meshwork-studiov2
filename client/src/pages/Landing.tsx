@@ -9,14 +9,17 @@ import { MeshworkLogo } from "@/components/MeshworkLogo";
 
 const BASE_CARDS = [
   { src: "/assets/carousel-1.png", alt: "Dark UI Design", isShader: false },
-  { src: "/assets/b6742e11ca2a99437f098e4a931acca0.png", alt: "Visual Workflow", isShader: true },
-  { src: "/assets/carousel-1.png", alt: "Infrastructure Context", isShader: false },
-  { src: "/assets/b6742e11ca2a99437f098e4a931acca0.png", alt: "Auto-Routing Algorithms", isShader: false },
+  { src: "/assets/carousel-2.png", alt: "Visual Workflow", isShader: false },
+  { src: "/assets/carousel-3.png", alt: "Infrastructure Context", isShader: false },
+  { src: "/assets/carousel-4.png", alt: "Auto-Routing Algorithms", isShader: false },
+  { src: "/assets/carousel-5.png", alt: "Deployment Dashboard", isShader: false },
+  { src: "/assets/carousel-6.png", alt: "Architecture Map", isShader: false },
+  { src: "/assets/carousel-7.png", alt: "Cloud Integration", isShader: false },
 ];
 
-const CARDS = Array.from({ length: 16 }).map((_, i) => ({
+const CARDS = Array.from({ length: 14 }).map((_, i) => ({
   id: i,
-  ...BASE_CARDS[i % 4],
+  ...BASE_CARDS[i % 7],
 }));
 
 const Home = () => {
