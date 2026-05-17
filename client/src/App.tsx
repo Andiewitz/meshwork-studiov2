@@ -8,6 +8,7 @@ import { useAuth } from "@/hooks/use-auth";
 import { useTheme, ThemeProvider } from "@/hooks/use-theme";
 import { useCsrfTokenInitializer } from "@/lib/csrf-init";
 import { RedirectingScreen } from "@/components/ui/loading-screen";
+import { MobileGate } from "@/components/ui/mobile-gate";
 import { AnimatePresence, motion } from "framer-motion";
 import { cn } from "@/lib/utils";
 import { DashboardLayout } from "@/components/layout/DashboardLayout";
@@ -27,6 +28,14 @@ const Templates = React.lazy(() => import("@/pages/Templates"));
 
 function ProtectedRoute({ component: Component }: { component: React.ComponentType }) {
   const { user, isLoading, isRedirecting } = useAuth();
+  const [isMobile, setIsMobile] = React.useState(false);
+
+  React.useEffect(() => {
+    const check = () => setIsMobile(window.innerWidth < 1024);
+    check();
+    window.addEventListener("resize", check);
+    return () => window.removeEventListener("resize", check);
+  }, []);
 
   if (isLoading || isRedirecting) {
     return <RedirectingScreen />;
@@ -34,6 +43,10 @@ function ProtectedRoute({ component: Component }: { component: React.ComponentTy
 
   if (!user) {
     return <Redirect to="/auth/login" />;
+  }
+
+  if (isMobile) {
+    return <MobileGate />;
   }
 
   return <Component />;
