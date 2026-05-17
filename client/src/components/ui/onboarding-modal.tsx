@@ -1,145 +1,278 @@
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { MeshworkLogo } from "@/components/MeshworkLogo";
-import { X } from "lucide-react";
+import { useAuth } from "@/hooks/use-auth";
+import { secureFetch } from "@/lib/secure-fetch";
+import { useQueryClient } from "@tanstack/react-query";
 
 const ONBOARDING_KEY = "meshwork_onboarding_complete";
 
-const steps = [
-  {
-    title: "Welcome to Meshwork Studio",
-    body: "Design and visualize your cloud infrastructure in a drag-and-drop canvas. Map microservices, databases, load balancers — everything in one place.",
-  },
-  {
-    title: "Workspaces",
-    body: "Each workspace is a separate canvas. Create one for each project or environment. You can share workspaces with your team for real-time collaboration.",
-  },
-  {
-    title: "Nested Canvases",
-    body: "Double-click any container node (VPC, Docker, Kubernetes) to zoom into its internal architecture. Navigate back with the breadcrumb trail.",
-  },
+const API_BASE_URL = import.meta.env.VITE_API_URL || "";
+
+const ROLES = [
+  { id: "developer", label: "Developer" },
+  { id: "devops", label: "DevOps / SRE" },
+  { id: "architect", label: "Solutions Architect" },
+  { id: "engineering-manager", label: "Engineering Manager" },
+  { id: "designer", label: "Designer" },
+  { id: "student", label: "Student" },
+  { id: "other", label: "Other" },
 ];
 
-export function OnboardingModal() {
-  const [isOpen, setIsOpen] = useState(false);
+const REFERRAL_SOURCES = [
+  { id: "github", label: "GitHub" },
+  { id: "twitter", label: "Twitter / X" },
+  { id: "reddit", label: "Reddit" },
+  { id: "search", label: "Google / Search" },
+  { id: "friend", label: "Friend or colleague" },
+  { id: "youtube", label: "YouTube" },
+  { id: "other", label: "Other" },
+];
+
+const USE_CASES = [
+  { id: "personal", label: "Personal projects" },
+  { id: "work", label: "Work / Company" },
+  { id: "learning", label: "Learning & education" },
+  { id: "open-source", label: "Open source" },
+];
+
+export function OnboardingFlow() {
+  const { user } = useAuth();
+  const queryClient = useQueryClient();
   const [step, setStep] = useState(0);
+  const [firstName, setFirstName] = useState(user?.firstName || "");
+  const [lastName, setLastName] = useState(user?.lastName || "");
+  const [role, setRole] = useState("");
+  const [source, setSource] = useState("");
+  const [useCase, setUseCase] = useState("");
+  const [isSaving, setIsSaving] = useState(false);
 
-  useEffect(() => {
-    const done = localStorage.getItem(ONBOARDING_KEY);
-    if (!done) setIsOpen(true);
-  }, []);
+  const complete = async () => {
+    setIsSaving(true);
+    try {
+      // Save name to server if changed
+      if (firstName !== user?.firstName || lastName !== user?.lastName) {
+        await secureFetch(`${API_BASE_URL}/api/user/profile`, {
+          method: "PATCH",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ firstName, lastName }),
+        });
+        // Update local cache
+        queryClient.setQueryData(["/api/auth/me"], (old: any) =>
+          old ? { ...old, firstName, lastName } : old
+        );
+      }
 
-  const complete = () => {
-    localStorage.setItem(ONBOARDING_KEY, "true");
-    setIsOpen(false);
+      // Save survey data locally
+      localStorage.setItem(
+        "meshwork_onboarding_data",
+        JSON.stringify({ role, source, useCase, completedAt: new Date().toISOString() })
+      );
+      localStorage.setItem(ONBOARDING_KEY, "true");
+    } catch (err) {
+      console.error("Failed to save onboarding data:", err);
+      // Still mark as complete so user isn't stuck
+      localStorage.setItem(ONBOARDING_KEY, "true");
+    }
+    setIsSaving(false);
+    // Force re-render by triggering state change in parent
+    window.dispatchEvent(new Event("onboarding-complete"));
+  };
+
+  const canProceed = () => {
+    if (step === 0) return firstName.trim().length > 0;
+    if (step === 1) return role !== "";
+    if (step === 2) return source !== "";
+    if (step === 3) return useCase !== "";
+    return true;
   };
 
   const next = () => {
-    if (step < steps.length - 1) {
-      setStep(step + 1);
-    } else {
-      complete();
-    }
+    if (step < 3) setStep(step + 1);
+    else complete();
   };
 
-  if (!isOpen) return null;
+  const steps = [
+    // Step 0: Name
+    <div key="name" className="space-y-6">
+      <div>
+        <h2 className="text-xl font-semibold text-white mb-1" style={{ fontFamily: "var(--font-headline)" }}>
+          What should we call you?
+        </h2>
+        <p className="text-sm text-white/30">This is how you'll appear to your team.</p>
+      </div>
+      <div className="grid grid-cols-2 gap-3">
+        <div>
+          <label className="text-[11px] text-white/40 font-medium uppercase tracking-wider mb-1.5 block">
+            First name
+          </label>
+          <input
+            value={firstName}
+            onChange={(e) => setFirstName(e.target.value)}
+            placeholder="Jane"
+            autoFocus
+            className="w-full bg-white/[0.03] border border-white/[0.08] rounded-lg px-4 py-3 text-sm text-white placeholder:text-white/15 focus:outline-none focus:border-primary/40 transition-colors"
+          />
+        </div>
+        <div>
+          <label className="text-[11px] text-white/40 font-medium uppercase tracking-wider mb-1.5 block">
+            Last name
+          </label>
+          <input
+            value={lastName}
+            onChange={(e) => setLastName(e.target.value)}
+            placeholder="Doe"
+            className="w-full bg-white/[0.03] border border-white/[0.08] rounded-lg px-4 py-3 text-sm text-white placeholder:text-white/15 focus:outline-none focus:border-primary/40 transition-colors"
+          />
+        </div>
+      </div>
+    </div>,
 
-  const current = steps[step];
+    // Step 1: Role
+    <div key="role" className="space-y-6">
+      <div>
+        <h2 className="text-xl font-semibold text-white mb-1" style={{ fontFamily: "var(--font-headline)" }}>
+          What's your role?
+        </h2>
+        <p className="text-sm text-white/30">Help us personalize your experience.</p>
+      </div>
+      <div className="grid grid-cols-1 gap-2">
+        {ROLES.map((r) => (
+          <button
+            key={r.id}
+            onClick={() => setRole(r.id)}
+            className={`text-left px-4 py-3 rounded-lg border text-sm transition-all ${
+              role === r.id
+                ? "border-primary/40 bg-primary/[0.06] text-white"
+                : "border-white/[0.06] bg-white/[0.015] text-white/50 hover:border-white/[0.12] hover:text-white/70"
+            }`}
+          >
+            {r.label}
+          </button>
+        ))}
+      </div>
+    </div>,
+
+    // Step 2: Referral source
+    <div key="source" className="space-y-6">
+      <div>
+        <h2 className="text-xl font-semibold text-white mb-1" style={{ fontFamily: "var(--font-headline)" }}>
+          How did you find us?
+        </h2>
+        <p className="text-sm text-white/30">We'd love to know how you discovered Meshwork.</p>
+      </div>
+      <div className="grid grid-cols-1 gap-2">
+        {REFERRAL_SOURCES.map((s) => (
+          <button
+            key={s.id}
+            onClick={() => setSource(s.id)}
+            className={`text-left px-4 py-3 rounded-lg border text-sm transition-all ${
+              source === s.id
+                ? "border-primary/40 bg-primary/[0.06] text-white"
+                : "border-white/[0.06] bg-white/[0.015] text-white/50 hover:border-white/[0.12] hover:text-white/70"
+            }`}
+          >
+            {s.label}
+          </button>
+        ))}
+      </div>
+    </div>,
+
+    // Step 3: Use case
+    <div key="usecase" className="space-y-6">
+      <div>
+        <h2 className="text-xl font-semibold text-white mb-1" style={{ fontFamily: "var(--font-headline)" }}>
+          What will you use Meshwork for?
+        </h2>
+        <p className="text-sm text-white/30">This helps us build the right features for you.</p>
+      </div>
+      <div className="grid grid-cols-1 gap-2">
+        {USE_CASES.map((u) => (
+          <button
+            key={u.id}
+            onClick={() => setUseCase(u.id)}
+            className={`text-left px-4 py-3 rounded-lg border text-sm transition-all ${
+              useCase === u.id
+                ? "border-primary/40 bg-primary/[0.06] text-white"
+                : "border-white/[0.06] bg-white/[0.015] text-white/50 hover:border-white/[0.12] hover:text-white/70"
+            }`}
+          >
+            {u.label}
+          </button>
+        ))}
+      </div>
+    </div>,
+  ];
 
   return (
-    <AnimatePresence>
-      {isOpen && (
-        <>
-          {/* Backdrop */}
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            className="fixed inset-0 z-[200] bg-black/70 backdrop-blur-sm"
-          />
+    <div className="fixed inset-0 z-[200] bg-[#0a0a0a] flex items-center justify-center">
+      <div className="w-full max-w-md px-6">
+        {/* Logo + progress */}
+        <div className="flex items-center justify-between mb-10">
+          <div className="w-8 h-8">
+            <MeshworkLogo />
+          </div>
+          <div className="flex items-center gap-1.5">
+            {[0, 1, 2, 3].map((i) => (
+              <div
+                key={i}
+                className={`h-1 rounded-full transition-all duration-300 ${
+                  i <= step ? "bg-primary w-6" : "bg-white/10 w-4"
+                }`}
+              />
+            ))}
+          </div>
+        </div>
 
-          {/* Modal */}
+        {/* Step content */}
+        <AnimatePresence mode="wait">
           <motion.div
-            initial={{ opacity: 0, scale: 0.95, y: 20 }}
-            animate={{ opacity: 1, scale: 1, y: 0 }}
-            exit={{ opacity: 0, scale: 0.95, y: 20 }}
-            transition={{ duration: 0.25, ease: [0.16, 1, 0.3, 1] }}
-            className="fixed inset-0 z-[201] flex items-center justify-center p-6"
+            key={step}
+            initial={{ opacity: 0, x: 20 }}
+            animate={{ opacity: 1, x: 0 }}
+            exit={{ opacity: 0, x: -20 }}
+            transition={{ duration: 0.2 }}
           >
-            <div className="w-full max-w-md bg-[#111] border border-white/[0.06] rounded-2xl shadow-2xl overflow-hidden">
-              {/* Header */}
-              <div className="flex items-center justify-between px-6 pt-6 pb-0">
-                <div className="w-8 h-8">
-                  <MeshworkLogo />
-                </div>
-                <button
-                  onClick={complete}
-                  className="w-7 h-7 flex items-center justify-center rounded-lg text-white/20 hover:text-white/50 hover:bg-white/[0.05] transition-all"
-                >
-                  <X className="w-3.5 h-3.5" />
-                </button>
-              </div>
-
-              {/* Content */}
-              <div className="px-6 pt-5 pb-6">
-                <AnimatePresence mode="wait">
-                  <motion.div
-                    key={step}
-                    initial={{ opacity: 0, x: 20 }}
-                    animate={{ opacity: 1, x: 0 }}
-                    exit={{ opacity: 0, x: -20 }}
-                    transition={{ duration: 0.2 }}
-                  >
-                    <h2
-                      className="text-lg font-semibold text-white mb-2"
-                      style={{ fontFamily: "var(--font-headline)" }}
-                    >
-                      {current.title}
-                    </h2>
-                    <p className="text-sm text-white/40 leading-relaxed">
-                      {current.body}
-                    </p>
-                  </motion.div>
-                </AnimatePresence>
-              </div>
-
-              {/* Footer */}
-              <div className="flex items-center justify-between px-6 py-4 border-t border-white/[0.05]">
-                {/* Step dots */}
-                <div className="flex items-center gap-1.5">
-                  {steps.map((_, i) => (
-                    <div
-                      key={i}
-                      className={`w-1.5 h-1.5 rounded-full transition-colors ${
-                        i === step ? "bg-primary" : "bg-white/10"
-                      }`}
-                    />
-                  ))}
-                </div>
-
-                {/* Actions */}
-                <div className="flex items-center gap-3">
-                  {step < steps.length - 1 && (
-                    <button
-                      onClick={complete}
-                      className="text-xs text-white/30 hover:text-white/50 transition-colors"
-                    >
-                      Skip
-                    </button>
-                  )}
-                  <button
-                    onClick={next}
-                    className="px-4 py-2 text-xs font-semibold bg-primary text-black rounded-lg hover:bg-primary/90 transition-colors"
-                    style={{ fontFamily: "var(--font-headline)" }}
-                  >
-                    {step === steps.length - 1 ? "Get started" : "Next"}
-                  </button>
-                </div>
-              </div>
-            </div>
+            {steps[step]}
           </motion.div>
-        </>
-      )}
-    </AnimatePresence>
+        </AnimatePresence>
+
+        {/* Footer */}
+        <div className="flex items-center justify-between mt-8">
+          <div>
+            {step > 0 && (
+              <button
+                onClick={() => setStep(step - 1)}
+                className="text-xs text-white/30 hover:text-white/50 transition-colors"
+              >
+                Back
+              </button>
+            )}
+          </div>
+          <div className="flex items-center gap-3">
+            {step > 0 && (
+              <button
+                onClick={complete}
+                className="text-xs text-white/20 hover:text-white/40 transition-colors"
+              >
+                Skip all
+              </button>
+            )}
+            <button
+              onClick={next}
+              disabled={!canProceed() || isSaving}
+              className="px-5 py-2.5 text-sm font-semibold bg-primary text-black rounded-lg hover:bg-primary/90 transition-colors disabled:opacity-30 disabled:cursor-not-allowed"
+              style={{ fontFamily: "var(--font-headline)" }}
+            >
+              {isSaving ? "Saving..." : step === 3 ? "Get started" : "Continue"}
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
   );
+}
+
+export function useOnboardingComplete() {
+  return localStorage.getItem(ONBOARDING_KEY) === "true";
 }

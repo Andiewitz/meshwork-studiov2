@@ -19,7 +19,7 @@ import { useAuth } from "@/hooks/use-auth";
 import { MeshworkLogo } from "@/components/MeshworkLogo";
 import Lenis from "lenis";
 import "lenis/dist/lenis.css";
-import { OnboardingModal } from "@/components/ui/onboarding-modal";
+import { OnboardingFlow, useOnboardingComplete } from "@/components/ui/onboarding-modal";
 
 const sidebarVariants = {
   hidden: { opacity: 0, x: -20 },
@@ -48,6 +48,14 @@ export function DashboardLayout({ children }: { children: ReactNode }) {
   const [flyStart,     setFlyStart]     = useState({ x: 0, y: 0 });
   const [flyTarget,    setFlyTarget]    = useState({ x: 0, y: 0 });
   const bellRef = useRef<HTMLButtonElement>(null);
+
+  // Onboarding gate
+  const [onboardingComplete, setOnboardingComplete] = useState(useOnboardingComplete);
+  useEffect(() => {
+    const handler = () => setOnboardingComplete(true);
+    window.addEventListener("onboarding-complete", handler);
+    return () => window.removeEventListener("onboarding-complete", handler);
+  }, []);
 
   const dismiss = () => updatePreferences({ readNotificationIds: [1] });
 
@@ -321,8 +329,8 @@ export function DashboardLayout({ children }: { children: ReactNode }) {
         </div>
       </main>
 
-      {/* Onboarding */}
-      <OnboardingModal />
+      {/* Onboarding — blocks entire layout until complete */}
+      {!onboardingComplete && <OnboardingFlow />}
     </div>
   );
 }
