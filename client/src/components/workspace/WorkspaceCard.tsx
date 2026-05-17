@@ -235,11 +235,11 @@ export function WorkspaceCard({
                      if (e.key === 'Escape') { setIsRenaming(false); setTitle(workspace.title); }
                    }}
                    onClick={(e) => e.stopPropagation()}
-                   className="bg-transparent font-headline font-semibold text-white border-b border-primary outline-none py-0 w-full mb-3"
+                   className="bg-transparent font-sans font-semibold text-white border-b border-primary outline-none py-0 w-full mb-3"
                  />
                ) : (
                  <h4 className={cn(
-                   "font-headline font-semibold text-white group-hover:text-primary transition-colors",
+                   "font-sans font-semibold text-white group-hover:text-primary transition-colors",
                    viewMode === "grid" ? "text-lg mb-3" : "text-lg mb-1"
                  )}>
                    {workspace.title || "Untitled"}

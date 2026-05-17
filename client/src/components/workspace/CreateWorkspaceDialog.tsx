@@ -115,7 +115,7 @@ export function CreateWorkspaceDialog({ open, onOpenChange }: CreateWorkspaceDia
               <MeshworkLogo />
             </div>
             <div>
-              <h3 className="text-base font-semibold text-white mb-1.5" style={{ fontFamily: 'var(--font-headline)' }}>
+              <h3 className="text-base font-semibold text-white mb-1.5" style={{ fontFamily: 'var(--font-sans)' }}>
                 Workspace limit reached
               </h3>
               <p className="text-sm text-white/35 leading-relaxed max-w-xs mx-auto">
@@ -155,7 +155,7 @@ export function CreateWorkspaceDialog({ open, onOpenChange }: CreateWorkspaceDia
                     placeholder="Workspace name"
                     autoFocus
                     className={cn(
-                      "w-full bg-transparent border-none p-0 font-headline font-bold text-[17px] text-white",
+                      "w-full bg-transparent border-none p-0 font-sans font-bold text-[17px] text-white",
                       "placeholder:text-[#555] placeholder:font-normal",
                       "focus:outline-none caret-primary",
                     )}

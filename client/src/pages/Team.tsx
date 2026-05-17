@@ -125,7 +125,7 @@ export default function Team() {
         <motion.div variants={itemVariants} className="mb-12">
           <h1
             className="text-3xl font-bold tracking-tight text-white leading-none"
-            style={{ fontFamily: "var(--font-headline)" }}
+            style={{ fontFamily: "var(--font-sans)" }}
           >
             Teams
           </h1>
@@ -182,7 +182,7 @@ export default function Team() {
               style={{ overflow: "hidden" }}
             >
               <div className="bg-white/[0.02] border border-primary/15 rounded-xl p-6">
-                <p className="text-[10px] font-bold uppercase tracking-[0.15em] text-white/25 mb-4 font-headline">
+                <p className="text-[10px] font-bold uppercase tracking-[0.15em] text-white/25 mb-4 font-sans">
                   New Team
                 </p>
                 <div className="flex gap-3">
@@ -215,7 +215,7 @@ export default function Team() {
 
           {/* ─── Left: Team List ─── */}
           <motion.div variants={itemVariants} className="lg:col-span-4">
-            <h3 className="text-xs font-bold font-headline tracking-[0.2em] uppercase text-[#555] mb-6">
+            <h3 className="text-xs font-bold font-sans tracking-[0.2em] uppercase text-[#555] mb-6">
               Your Teams
             </h3>
 
@@ -228,7 +228,7 @@ export default function Team() {
                 <div className="w-12 h-12 rounded-xl bg-white/[0.02] border border-white/[0.06] flex items-center justify-center mx-auto mb-4">
                   <Users className="w-5 h-5 text-white/10" />
                 </div>
-                <p className="text-sm text-white/25 font-medium" style={{ fontFamily: "var(--font-headline)" }}>No teams yet</p>
+                <p className="text-sm text-white/25 font-medium" style={{ fontFamily: "var(--font-sans)" }}>No teams yet</p>
                 <p className="text-xs text-white/15 mt-1.5 max-w-[220px] mx-auto leading-relaxed">
                   Create a team to start sharing workspaces and collaborating with others.
                 </p>
@@ -250,7 +250,7 @@ export default function Team() {
                     <div className="flex items-center justify-between">
                       <div className="min-w-0 flex-1">
                         <div className="flex items-center gap-2">
-                          <span className="text-sm font-semibold text-white truncate" style={{ fontFamily: "var(--font-headline)" }}>
+                          <span className="text-sm font-semibold text-white truncate" style={{ fontFamily: "var(--font-sans)" }}>
                             {team.name}
                           </span>
                           {team.ownerId === user?.id && <Crown className="w-3 h-3 text-primary/60 flex-shrink-0" />}
@@ -302,7 +302,7 @@ export default function Team() {
                   {/* Team Name + Meta */}
                   <div className="flex items-start justify-between mb-8">
                     <div>
-                      <h2 className="text-2xl font-extrabold tracking-tight text-white" style={{ fontFamily: "var(--font-headline)" }}>
+                      <h2 className="text-2xl font-extrabold tracking-tight text-white" style={{ fontFamily: "var(--font-sans)" }}>
                         {teamDetail.name}
                       </h2>
                       <div className="flex items-center gap-3 mt-2">
@@ -358,7 +358,7 @@ export default function Team() {
 
                   {/* Members Section */}
                   <div className="mb-12">
-                    <h3 className="text-xs font-bold font-headline tracking-[0.2em] uppercase text-[#555] mb-4 flex items-center gap-2">
+                    <h3 className="text-xs font-bold font-sans tracking-[0.2em] uppercase text-[#555] mb-4 flex items-center gap-2">
                       <Users className="w-3.5 h-3.5" /> Members
                     </h3>
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
@@ -407,7 +407,7 @@ export default function Team() {
 
                   {/* Shared Workspaces Section */}
                   <div className="mb-12">
-                    <h3 className="text-xs font-bold font-headline tracking-[0.2em] uppercase text-[#555] mb-4 flex items-center gap-2">
+                    <h3 className="text-xs font-bold font-sans tracking-[0.2em] uppercase text-[#555] mb-4 flex items-center gap-2">
                       <Share2 className="w-3.5 h-3.5" /> Shared Workspaces
                     </h3>
                     {teamWorkspaces && teamWorkspaces.length > 0 ? (
@@ -444,7 +444,7 @@ export default function Team() {
                   {/* Share Picker */}
                   {unsharedWorkspaces.length > 0 && (
                     <div>
-                      <h3 className="text-xs font-bold font-headline tracking-[0.2em] uppercase text-[#555] mb-4 flex items-center gap-2">
+                      <h3 className="text-xs font-bold font-sans tracking-[0.2em] uppercase text-[#555] mb-4 flex items-center gap-2">
                         <Plus className="w-3.5 h-3.5" /> Share a Workspace
                       </h3>
                       <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
@@ -472,7 +472,7 @@ export default function Team() {
                   className="flex flex-col items-center justify-center text-center py-24"
                 >
                   <Users className="w-10 h-10 text-white/[0.04] mb-4" />
-                  <p className="text-xs text-white/15 uppercase tracking-[0.15em] font-headline font-bold">Select a team</p>
+                  <p className="text-xs text-white/15 uppercase tracking-[0.15em] font-sans font-bold">Select a team</p>
                   <p className="text-[11px] text-white/10 mt-1 max-w-[200px]">Pick a team from the left to manage members and workspaces.</p>
                 </motion.div>
               )}
@@ -485,7 +485,7 @@ export default function Team() {
       <AlertDialog open={!!confirmAction} onOpenChange={(open) => { if (!open) setConfirmAction(null); }}>
         <AlertDialogContent className="bg-[#111] border border-white/[0.08] rounded-xl shadow-2xl max-w-sm">
           <AlertDialogHeader>
-            <AlertDialogTitle className="text-white text-sm font-semibold" style={{ fontFamily: "var(--font-headline)" }}>
+            <AlertDialogTitle className="text-white text-sm font-semibold" style={{ fontFamily: "var(--font-sans)" }}>
               {confirmAction?.title}
             </AlertDialogTitle>
             <AlertDialogDescription className="text-white/30 text-xs leading-relaxed">

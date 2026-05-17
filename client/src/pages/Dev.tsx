@@ -293,7 +293,7 @@ export default function Dev() {
                   </span>
                 </div>
                 
-                <h1 className="text-5xl md:text-6xl font-bold font-headline leading-tight tracking-tight text-white drop-shadow-lg">
+                <h1 className="text-5xl md:text-6xl font-bold font-sans leading-tight tracking-tight text-white drop-shadow-lg">
                   {selectedPost.title}
                 </h1>
                 
@@ -327,10 +327,10 @@ export default function Dev() {
               <div className="space-y-8 text-white/80 leading-relaxed font-sans font-light">
                 {selectedPost.content?.split('\n\n').map((paragraph, idx) => {
                   if (paragraph.startsWith('## ')) {
-                    return <h2 key={idx} className="text-3xl font-bold font-headline mt-16 mb-6 text-white">{paragraph.replace('## ', '')}</h2>;
+                    return <h2 key={idx} className="text-3xl font-bold font-sans mt-16 mb-6 text-white">{paragraph.replace('## ', '')}</h2>;
                   }
                   if (paragraph.startsWith('### ')) {
-                    return <h3 key={idx} className="text-2xl font-semibold font-headline mt-12 mb-4 text-white/90">{paragraph.replace('### ', '')}</h3>;
+                    return <h3 key={idx} className="text-2xl font-semibold font-sans mt-12 mb-4 text-white/90">{paragraph.replace('### ', '')}</h3>;
                   }
                   if (paragraph.startsWith('- ')) {
                     return (
@@ -523,7 +523,7 @@ export default function Dev() {
                           {post.readTime}
                         </span>
                       </div>
-                      <h3 className="font-headline font-semibold text-2xl text-white group-hover:text-blue-400 transition-colors line-clamp-2 leading-snug">
+                      <h3 className="font-sans font-semibold text-2xl text-white group-hover:text-blue-400 transition-colors line-clamp-2 leading-snug">
                         {post.title}
                       </h3>
                       <p className="text-white/60 line-clamp-2 leading-relaxed font-light">
@@ -575,7 +575,7 @@ export default function Dev() {
                           {post.readTime}
                         </span>
                       </div>
-                      <h3 className="font-headline font-semibold text-2xl text-white group-hover:text-blue-400 transition-colors leading-snug">
+                      <h3 className="font-sans font-semibold text-2xl text-white group-hover:text-blue-400 transition-colors leading-snug">
                         {post.title}
                       </h3>
                       <p className="text-lg text-white/60 font-sans font-light line-clamp-2">

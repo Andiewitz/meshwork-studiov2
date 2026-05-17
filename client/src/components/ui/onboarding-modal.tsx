@@ -96,7 +96,7 @@ export function OnboardingFlow() {
     // Step 0: Name
     <div key="name" className="space-y-6">
       <div>
-        <h2 className="text-xl font-semibold text-white mb-1" style={{ fontFamily: "var(--font-headline)" }}>
+        <h2 className="text-xl font-semibold text-white mb-1" style={{ fontFamily: "var(--font-sans)" }}>
           What should we call you?
         </h2>
         <p className="text-sm text-white/30">This is how you'll appear to your team.</p>
@@ -131,7 +131,7 @@ export function OnboardingFlow() {
     // Step 1: Role
     <div key="role" className="space-y-6">
       <div>
-        <h2 className="text-xl font-semibold text-white mb-1" style={{ fontFamily: "var(--font-headline)" }}>
+        <h2 className="text-xl font-semibold text-white mb-1" style={{ fontFamily: "var(--font-sans)" }}>
           What's your role?
         </h2>
         <p className="text-sm text-white/30">Help us personalize your experience.</p>
@@ -156,7 +156,7 @@ export function OnboardingFlow() {
     // Step 2: Referral source
     <div key="source" className="space-y-6">
       <div>
-        <h2 className="text-xl font-semibold text-white mb-1" style={{ fontFamily: "var(--font-headline)" }}>
+        <h2 className="text-xl font-semibold text-white mb-1" style={{ fontFamily: "var(--font-sans)" }}>
           How did you find us?
         </h2>
         <p className="text-sm text-white/30">We'd love to know how you discovered Meshwork.</p>
@@ -181,7 +181,7 @@ export function OnboardingFlow() {
     // Step 3: Use case
     <div key="usecase" className="space-y-6">
       <div>
-        <h2 className="text-xl font-semibold text-white mb-1" style={{ fontFamily: "var(--font-headline)" }}>
+        <h2 className="text-xl font-semibold text-white mb-1" style={{ fontFamily: "var(--font-sans)" }}>
           What will you use Meshwork for?
         </h2>
         <p className="text-sm text-white/30">This helps us build the right features for you.</p>
@@ -262,7 +262,7 @@ export function OnboardingFlow() {
               onClick={next}
               disabled={!canProceed() || isSaving}
               className="px-5 py-2.5 text-sm font-semibold bg-primary text-black rounded-lg hover:bg-primary/90 transition-colors disabled:opacity-30 disabled:cursor-not-allowed"
-              style={{ fontFamily: "var(--font-headline)" }}
+              style={{ fontFamily: "var(--font-sans)" }}
             >
               {isSaving ? "Saving..." : step === 3 ? "Get started" : "Continue"}
             </button>

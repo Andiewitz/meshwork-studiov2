@@ -208,7 +208,7 @@ export function DashboardLayout({ children }: { children: ReactNode }) {
               {/* Header */}
               <div className="flex items-center justify-between px-5 py-4 border-b border-white/[0.05]">
                 <div className="flex items-center gap-2.5">
-                  <span className="text-sm font-semibold text-white" style={{ fontFamily: 'var(--font-headline)' }}>
+                  <span className="text-sm font-semibold text-white" style={{ fontFamily: 'var(--font-sans)' }}>
                     Notifications
                   </span>
                   {isUnread && (
@@ -256,7 +256,7 @@ export function DashboardLayout({ children }: { children: ReactNode }) {
                     {/* Content */}
                     <div className="flex-1 min-w-0">
                       <div className="flex items-center justify-between mb-1">
-                        <span className="text-xs font-semibold text-white/70" style={{ fontFamily: 'var(--font-headline)' }}>
+                        <span className="text-xs font-semibold text-white/70" style={{ fontFamily: 'var(--font-sans)' }}>
                           Welcome to Meshwork Studio
                         </span>
                         <span className="text-[10px] text-white/20 shrink-0 ml-3">Today</span>
@@ -281,7 +281,7 @@ export function DashboardLayout({ children }: { children: ReactNode }) {
 
               {/* Footer */}
               <div className="px-5 py-3 border-t border-white/[0.04]">
-                <p className="text-[10px] text-white/15 text-center" style={{ fontFamily: 'var(--font-headline)' }}>
+                <p className="text-[10px] text-white/15 text-center" style={{ fontFamily: 'var(--font-sans)' }}>
                   Meshwork Studio · Open Source
                 </p>
               </div>

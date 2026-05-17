@@ -19,7 +19,7 @@ export default function Templates() {
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.5, delay: 0.2 }}
       >
-        <h1 className="text-4xl md:text-5xl font-extrabold tracking-tighter text-white font-headline mb-4 uppercase">
+        <h1 className="text-4xl md:text-5xl font-extrabold tracking-tighter text-white font-sans mb-4 uppercase">
           Template Marketplace
         </h1>
         <p className="text-outline text-lg max-w-md mx-auto mb-10 font-body">
@@ -27,11 +27,11 @@ export default function Templates() {
         </p>
 
         <div className="flex items-center justify-center gap-6">
-          <div className="px-4 py-2 rounded-full border border-primary/20 bg-primary/5 text-primary text-[10px] font-headline font-bold uppercase tracking-widest">
+          <div className="px-4 py-2 rounded-full border border-primary/20 bg-primary/5 text-primary text-[10px] font-sans font-bold uppercase tracking-widest">
             Coming Soon
           </div>
           <Link href="/home">
-            <button className="flex items-center gap-2 text-white/60 hover:text-white transition-colors text-sm font-headline uppercase tracking-widest cursor-figma-pointer">
+            <button className="flex items-center gap-2 text-white/60 hover:text-white transition-colors text-sm font-sans uppercase tracking-widest cursor-figma-pointer">
               <ArrowLeft className="w-4 h-4" /> Go Back
             </button>
           </Link>

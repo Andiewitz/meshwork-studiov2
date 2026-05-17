@@ -158,7 +158,7 @@ const Home = () => {
                 >
                     <motion.h1 
                         variants={itemVariants}
-                        className="text-[3rem] sm:text-[4rem] lg:text-[4.5rem] font-medium font-headline text-white leading-[1.1] tracking-tight mb-4 drop-shadow-md"
+                        className="text-[3rem] sm:text-[4rem] lg:text-[4.5rem] font-medium font-sans text-white leading-[1.1] tracking-tight mb-4 drop-shadow-md"
                     >
                         Build with Meshwork Studio
                     </motion.h1>
@@ -263,7 +263,7 @@ const Home = () => {
             <section className="w-full relative z-10 py-24 border-t border-white/5">
                 <div className="max-w-6xl mx-auto px-6">
                     <div className="text-center mb-14">
-                        <h2 className="font-headline text-4xl md:text-5xl font-bold text-white tracking-tight">
+                        <h2 className="font-sans text-4xl md:text-5xl font-bold text-white tracking-tight">
                             Templates ready to Remix
                         </h2>
                         
@@ -379,7 +379,7 @@ const Home = () => {
                         transition={{ duration: 0.8, ease: [0.16, 1, 0.3, 1] }}
                         viewport={{ once: true, margin: "-15%" }}
                     >
-                        <h2 className="font-headline text-4xl md:text-[3.5rem] font-medium text-white tracking-tight leading-tight mb-12">
+                        <h2 className="font-sans text-4xl md:text-[3.5rem] font-medium text-white tracking-tight leading-tight mb-12">
                             Bring your ideas to life
                         </h2>
 
@@ -415,7 +415,7 @@ const Home = () => {
             {/* CASE STUDIES */}
             <section className="w-full relative z-10 py-24 border-t border-white/5">
                 <div className="max-w-6xl mx-auto px-6">
-                    <h2 className="font-headline text-3xl md:text-[2.5rem] font-medium text-white tracking-tight leading-tight mb-14">
+                    <h2 className="font-sans text-3xl md:text-[2.5rem] font-medium text-white tracking-tight leading-tight mb-14">
                         How developers build with<br />Meshwork Studio
                     </h2>
 
@@ -472,7 +472,7 @@ const Home = () => {
                     <div className="flex flex-col md:flex-row justify-between items-start gap-14">
                         {/* Left CTA */}
                         <div className="flex flex-col gap-5 max-w-xs">
-                            <h3 className="font-headline text-xl font-medium text-white leading-snug">
+                            <h3 className="font-sans text-xl font-medium text-white leading-snug">
                                 Start exploring and building<br />with Meshwork Studio.
                             </h3>
                             <Link href="/auth/register">
@@ -515,7 +515,7 @@ const Home = () => {
                 {/* Giant brand wordmark */}
                 <div className="w-full overflow-hidden pb-8 pt-4">
                     <div className="max-w-6xl mx-auto px-6">
-                        <h2 className="font-headline font-bold text-[clamp(3rem,10vw,8rem)] text-white/[0.06] leading-none tracking-tighter select-none" aria-hidden="true">
+                        <h2 className="font-sans font-bold text-[clamp(3rem,10vw,8rem)] text-white/[0.06] leading-none tracking-tighter select-none" aria-hidden="true">
                             Meshwork Studio
                         </h2>
                     </div>

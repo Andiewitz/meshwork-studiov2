@@ -31,7 +31,7 @@ export default function AuthPage() {
                         transition={{ duration: 0.8 }}
                         className="space-y-6"
                     >
-                        <h2 className="text-5xl font-headline font-black tracking-tighter text-white leading-tight">
+                        <h2 className="text-5xl font-sans font-black tracking-tighter text-white leading-tight">
                             Build. <br />
                             <span className="text-primary">Connect.</span> <br />
                             Secure.
@@ -83,7 +83,7 @@ export default function AuthPage() {
                         >
                             Meshwork Gateway
                         </motion.div>
-                        <h1 className="text-4xl font-headline font-black tracking-tighter text-white">
+                        <h1 className="text-4xl font-sans font-black tracking-tighter text-white">
                             Welcome Back
                         </h1>
                         <p className="text-white/40 font-medium">

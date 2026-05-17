@@ -241,7 +241,7 @@ export default function Settings() {
 
       {/* Header */}
       <div className="mb-8 px-4 md:px-0 mt-8">
-        <h1 className="text-3xl md:text-4xl font-headline font-semibold tracking-tight text-foreground mb-2">
+        <h1 className="text-3xl md:text-4xl font-sans font-semibold tracking-tight text-foreground mb-2">
           Settings
         </h1>
         <p className="text-muted-foreground">

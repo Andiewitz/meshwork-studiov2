@@ -123,7 +123,7 @@ export default function Home() {
             >
               {/* Hero Section */}
               <motion.section variants={fadeUpVariants} className="flex flex-col items-center text-center mt-16 md:mt-24 mb-32">
-                <h2 className="text-4xl md:text-6xl lg:text-7xl font-extrabold font-headline tracking-tighter text-white mb-12">
+                <h2 className="text-4xl md:text-6xl lg:text-7xl font-extrabold font-sans tracking-tighter text-white mb-12">
                   {getGreeting()}, {userName}.
                 </h2>
                 
@@ -164,7 +164,7 @@ export default function Home() {
                         {/* Dynamic Projects Suggestion */}
                         {filteredWorkspaces.length > 0 && (
                           <div className="p-2 border-b border-outline-variant/10">
-                            <div className="px-3 py-2 text-[10px] font-headline font-bold text-outline tracking-widest uppercase">Projects {searchTerm ? 'Matching Search' : 'Recent'}</div>
+                            <div className="px-3 py-2 text-[10px] font-sans font-bold text-outline tracking-widest uppercase">Projects {searchTerm ? 'Matching Search' : 'Recent'}</div>
                             {filteredWorkspaces.slice(0, 5).map(ws => (
                               <Link key={ws.id} href={`/workspace/${ws.id}`}>
                                 <div className="flex items-center gap-3 px-3 py-2.5 rounded-lg hover:bg-surface-container-high cursor-figma-pointer transition-colors group/item">
@@ -181,7 +181,7 @@ export default function Home() {
                         )}
 
                         <div className="p-2">
-                          <div className="px-3 py-2 text-[10px] font-headline font-bold text-outline tracking-widest uppercase">Commands</div>
+                          <div className="px-3 py-2 text-[10px] font-sans font-bold text-outline tracking-widest uppercase">Commands</div>
                           <div onClick={() => setIsCreateOpen(true)} className="flex items-center gap-3 px-3 py-2.5 rounded-lg hover:bg-surface-container-high cursor-figma-pointer transition-colors group/item">
                             <Terminal className="w-4 h-4 text-outline group-hover/item:text-white transition-colors" />
                             <span className="text-sm text-[#E5E2E1] group-hover/item:text-white transition-colors">Create new workspace</span>
@@ -205,7 +205,7 @@ export default function Home() {
                     onClick={() => setIsCreateOpen(true)}
                     whileHover={{ scale: 1.02, y: -2 }}
                     whileTap={{ scale: 0.98 }}
-                    className="px-10 py-5 bg-primary text-black font-headline font-black uppercase tracking-[0.2em] rounded-2xl shadow-[0_20px_60px_rgba(255,102,0,0.3)] hover:shadow-[0_20px_80px_rgba(255,102,0,0.5)] transition-all duration-500"
+                    className="px-10 py-5 bg-primary text-black font-sans font-black uppercase tracking-[0.2em] rounded-2xl shadow-[0_20px_60px_rgba(255,102,0,0.3)] hover:shadow-[0_20px_80px_rgba(255,102,0,0.5)] transition-all duration-500"
                   >
                     New Workspace
                   </motion.button>
@@ -216,9 +216,9 @@ export default function Home() {
               <div className="w-full max-w-5xl mx-auto">
                 <motion.section variants={containerVariants} className="w-full">
                   <motion.div variants={fadeUpVariants} className="flex items-center justify-between mb-10">
-                    <h3 className="text-xs font-bold font-headline tracking-[0.2em] uppercase text-outline">Recent Projects</h3>
+                    <h3 className="text-xs font-bold font-sans tracking-[0.2em] uppercase text-outline">Recent Projects</h3>
                     <Link href="/workspaces">
-                      <span className="text-[10px] font-headline tracking-widest text-primary hover:underline underline-offset-4 uppercase cursor-figma-pointer">View Archive</span>
+                      <span className="text-[10px] font-sans tracking-widest text-primary hover:underline underline-offset-4 uppercase cursor-figma-pointer">View Archive</span>
                     </Link>
                   </motion.div>
                   <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-10">
@@ -234,8 +234,8 @@ export default function Home() {
                   {displayWorkspaces.length === 0 && !searchTerm && (
                     <motion.div variants={fadeUpVariants} className="bg-white/[0.02] backdrop-blur-xl border border-dashed border-white/10 rounded-xl p-16 flex flex-col items-center justify-center text-center shadow-[0_8px_30px_rgba(0,0,0,0.12)]">
                       <Package className="w-12 h-12 text-outline/30 mb-4" />
-                      <p className="text-outline font-headline">No recent projects found.</p>
-                      <button onClick={() => setIsCreateOpen(true)} className="text-primary hover:text-white mt-2 font-headline font-bold text-sm transition-colors cursor-figma-pointer">Create your first</button>
+                      <p className="text-outline font-sans">No recent projects found.</p>
+                      <button onClick={() => setIsCreateOpen(true)} className="text-primary hover:text-white mt-2 font-sans font-bold text-sm transition-colors cursor-figma-pointer">Create your first</button>
                     </motion.div>
                   )}
                 </motion.section>
@@ -254,7 +254,7 @@ export default function Home() {
               className="w-full max-w-5xl mx-auto"
             >
               <motion.div variants={fadeUpVariants} className="flex items-center justify-between mb-10">
-                <h2 className="text-2xl font-extrabold tracking-tighter text-white font-headline uppercase">All Projects</h2>
+                <h2 className="text-2xl font-extrabold tracking-tighter text-white font-sans uppercase">All Projects</h2>
                 <div className="flex items-center gap-4">
                   {/* Local mini search for workspace tab */}
                   <div className="relative group">
