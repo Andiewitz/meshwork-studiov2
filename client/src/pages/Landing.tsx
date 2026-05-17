@@ -56,7 +56,7 @@ const Home = () => {
         if (!isPaused) {
             timerRef.current = setInterval(() => {
                 setCurrentIndex((prev) => (prev + 1) % CARDS.length);
-            }, 4000);
+            }, 2500);
         }
         return () => {
             if (timerRef.current) clearInterval(timerRef.current);
@@ -195,7 +195,7 @@ const Home = () => {
                                         opacity: isActive ? 1 : 0.2,
                                         zIndex: isActive ? 10 : 0
                                     }}
-                                    transition={{ duration: 0.7, ease: [0.32, 0.72, 0, 1] }}
+                                    transition={{ type: "spring", stiffness: 150, damping: 20, mass: 0.8 }}
                                 >
                                     <div className="relative w-full h-full rounded-[2.5rem] overflow-hidden shadow-[0_25px_60px_-15px_rgba(0,0,0,0.8)] bg-white/[0.05] border border-white/[0.15] backdrop-blur-2xl">
                                         <img 
