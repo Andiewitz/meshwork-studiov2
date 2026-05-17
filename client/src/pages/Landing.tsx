@@ -210,7 +210,7 @@ const Home = () => {
                             );
                         })}
                         {/* Anchored Prompt Overlay */}
-                        <div className="absolute top-[80%] left-1/2 -translate-x-1/2 z-20 pointer-events-auto">
+                        <div className="absolute top-[62%] left-1/2 -translate-x-1/2 z-20 pointer-events-auto w-full max-w-[500px] flex flex-col items-center">
                             <motion.div 
                                 variants={containerVariants}
                                 initial="hidden"
