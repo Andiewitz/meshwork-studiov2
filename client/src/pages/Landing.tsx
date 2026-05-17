@@ -224,7 +224,7 @@ const Home = () => {
                             );
                         })}
                         {/* Anchored Prompt Overlay */}
-                        <div className={`absolute left-1/2 -translate-x-1/2 z-20 pointer-events-auto w-full max-w-[500px] flex flex-col items-center px-4 ${isMobile ? 'top-[75%]' : 'top-[65%]'}`}>
+                        <div className={`absolute left-1/2 -translate-x-1/2 z-20 pointer-events-auto w-full max-w-[500px] flex flex-col items-center px-4 ${isMobile ? 'top-[65%]' : 'top-[55%]'}`}>
                             <motion.div 
                                 variants={containerVariants}
                                 initial="hidden"
