@@ -117,6 +117,7 @@
     "happy-dom": "^20.8.8",
     "playwright": "^1.59.0",
     "postcss": "^8.4.47",
+    "sharp": "^0.34.5",
     "supertest": "^7.2.2",
     "tailwindcss": "^3.4.17",
     "tsx": "^4.20.5",

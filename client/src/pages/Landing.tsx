@@ -8,13 +8,13 @@ import { Helmet } from "react-helmet-async";
 import { MeshworkLogo } from "@/components/MeshworkLogo";
 
 const BASE_CARDS = [
-  { src: "/assets/carousel-1.png", alt: "Dark UI Design", isShader: false },
-  { src: "/assets/carousel-2.png", alt: "Visual Workflow", isShader: false },
-  { src: "/assets/carousel-3.png", alt: "Infrastructure Context", isShader: false },
-  { src: "/assets/carousel-4.png", alt: "Auto-Routing Algorithms", isShader: false },
-  { src: "/assets/carousel-5.png", alt: "Deployment Dashboard", isShader: false },
-  { src: "/assets/carousel-6.png", alt: "Architecture Map", isShader: false },
-  { src: "/assets/carousel-7.png", alt: "Cloud Integration", isShader: false },
+  { src: "/assets/carousel-1.webp", alt: "Dark UI Design", isShader: false },
+  { src: "/assets/carousel-2.webp", alt: "Visual Workflow", isShader: false },
+  { src: "/assets/carousel-3.webp", alt: "Infrastructure Context", isShader: false },
+  { src: "/assets/carousel-4.webp", alt: "Auto-Routing Algorithms", isShader: false },
+  { src: "/assets/carousel-5.webp", alt: "Deployment Dashboard", isShader: false },
+  { src: "/assets/carousel-6.webp", alt: "Architecture Map", isShader: false },
+  { src: "/assets/carousel-7.webp", alt: "Cloud Integration", isShader: false },
 ];
 
 const CARDS = Array.from({ length: 14 }).map((_, i) => ({
@@ -198,7 +198,13 @@ const Home = () => {
                                     transition={{ duration: 0.7, ease: [0.32, 0.72, 0, 1] }}
                                 >
                                     <div className="relative w-full h-full rounded-[2.5rem] overflow-hidden shadow-[0_25px_60px_-15px_rgba(0,0,0,0.8)] bg-white/[0.05] border border-white/[0.15] backdrop-blur-2xl">
-                                        <img src={card.src} alt={card.alt} className="absolute inset-0 w-full h-full object-cover opacity-80" />
+                                        <img 
+                                            src={card.src} 
+                                            alt={card.alt} 
+                                            className="absolute inset-0 w-full h-full object-cover opacity-80" 
+                                            loading={Math.abs(distance) <= 1 ? "eager" : "lazy"}
+                                            decoding="async"
+                                        />
                                         <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent pointer-events-none" />
                                     </div>
 
