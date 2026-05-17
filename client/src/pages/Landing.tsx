@@ -173,7 +173,7 @@ const Home = () => {
                 {/* 3D Carousel Section */}
                 <div className="w-full flex flex-col items-center mt-6">
                     <div className="relative w-full flex items-center justify-center mb-16 overflow-visible"
-                         style={{ height: isMobile ? 600 : 850 }}
+                         style={{ height: isMobile ? 600 : 700 }}
                          onMouseEnter={() => setIsPaused(true)}
                          onMouseLeave={() => setIsPaused(false)}
                     >
@@ -185,10 +185,10 @@ const Home = () => {
                             if (Math.abs(distance) > 4) return null;
 
                             const isActive = distance === 0;
-                            const cardWidth = isMobile ? 280 : 450;
+                            const cardWidth = isMobile ? 280 : 400;
                             const cardGap = isMobile ? 16 : 30;
-                            const activeHeight = isMobile ? 400 : 600;
-                            const inactiveHeight = isMobile ? 320 : 520;
+                            const activeHeight = isMobile ? 400 : 540;
+                            const inactiveHeight = isMobile ? 320 : 460;
                             const offset = distance * (cardWidth + cardGap);
                             
                             return (
@@ -224,7 +224,7 @@ const Home = () => {
                             );
                         })}
                         {/* Anchored Prompt Overlay */}
-                        <div className={`absolute left-1/2 -translate-x-1/2 z-20 pointer-events-auto w-full max-w-[500px] flex flex-col items-center px-4 ${isMobile ? 'top-[75%]' : 'top-[72%]'}`}>
+                        <div className={`absolute left-1/2 -translate-x-1/2 z-20 pointer-events-auto w-full max-w-[500px] flex flex-col items-center px-4 ${isMobile ? 'top-[75%]' : 'top-[65%]'}`}>
                             <motion.div 
                                 variants={containerVariants}
                                 initial="hidden"
