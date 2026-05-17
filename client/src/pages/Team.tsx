@@ -124,13 +124,13 @@ export default function Team() {
         {/* ─── Page Header ─── */}
         <motion.div variants={itemVariants} className="mb-12">
           <h1
-            className="text-4xl font-extrabold tracking-tight text-white leading-none"
+            className="text-3xl font-bold tracking-tight text-white leading-none"
             style={{ fontFamily: "var(--font-headline)" }}
           >
             Teams
           </h1>
-          <p className="text-sm text-[#555] mt-2 max-w-md" style={{ fontFamily: "var(--font-body)" }}>
-            Share workspaces and collaborate with real-time presence.
+          <p className="text-sm text-white/30 mt-2 max-w-md">
+            Manage your teams, invite members, and share workspaces.
           </p>
         </motion.div>
 
@@ -224,10 +224,14 @@ export default function Team() {
                 <Loader2 className="w-5 h-5 animate-spin text-white/15" />
               </div>
             ) : !teams || teams.length === 0 ? (
-              <div className="border border-dashed border-white/[0.06] rounded-xl p-12 text-center">
-                <Users className="w-8 h-8 text-white/[0.06] mx-auto mb-3" />
-                <p className="text-xs text-white/20">No teams yet</p>
-                <p className="text-[10px] text-white/10 mt-1">Create or join a team above.</p>
+              <div className="py-16 text-center">
+                <div className="w-12 h-12 rounded-xl bg-white/[0.02] border border-white/[0.06] flex items-center justify-center mx-auto mb-4">
+                  <Users className="w-5 h-5 text-white/10" />
+                </div>
+                <p className="text-sm text-white/25 font-medium" style={{ fontFamily: "var(--font-headline)" }}>No teams yet</p>
+                <p className="text-xs text-white/15 mt-1.5 max-w-[220px] mx-auto leading-relaxed">
+                  Create a team to start sharing workspaces and collaborating with others.
+                </p>
               </div>
             ) : (
               <div className="space-y-2">
@@ -306,25 +310,30 @@ export default function Team() {
                           <Calendar className="w-3 h-3" />
                           {new Date(teamDetail.createdAt || Date.now()).toLocaleDateString()}
                         </span>
-                        <button
-                          onClick={() => handleCopyCode(teamDetail.inviteCode)}
-                          className="text-[10px] font-mono text-primary/50 hover:text-primary tracking-wider transition-colors flex items-center gap-1"
-                        >
-                          {teamDetail.inviteCode}
-                          {copiedCode === teamDetail.inviteCode ? <Check className="w-2.5 h-2.5 text-emerald-400" /> : <Copy className="w-2.5 h-2.5" />}
-                        </button>
                       </div>
                     </div>
-                    <div className="flex gap-2">
-                      {teamDetail.ownerId === user?.id && (
+
+                    <div className="flex items-center gap-2">
+                      {/* Invite code bar */}
+                      <div className="flex items-center gap-2 px-3 py-2 bg-white/[0.02] border border-white/[0.06] rounded-lg">
+                        <code className="text-xs font-mono text-primary/70 tracking-widest">{teamDetail.inviteCode}</code>
                         <button
-                          onClick={() => regenerateCode.mutate(selectedTeamId)}
-                          className="p-2 rounded-lg text-white/15 hover:text-white hover:bg-white/[0.04] transition-all"
-                          title="Regenerate invite code"
+                          onClick={() => handleCopyCode(teamDetail.inviteCode)}
+                          className="p-1.5 rounded text-white/20 hover:text-white hover:bg-white/[0.04] transition-all"
+                          title="Copy invite code"
                         >
-                          <RefreshCw className={`w-4 h-4 ${regenerateCode.isPending ? "animate-spin" : ""}`} />
+                          {copiedCode === teamDetail.inviteCode ? <Check className="w-3.5 h-3.5 text-emerald-400" /> : <Copy className="w-3.5 h-3.5" />}
                         </button>
-                      )}
+                        {teamDetail.ownerId === user?.id && (
+                          <button
+                            onClick={() => regenerateCode.mutate(selectedTeamId)}
+                            className="p-1.5 rounded text-white/20 hover:text-white hover:bg-white/[0.04] transition-all"
+                            title="Regenerate invite code"
+                          >
+                            <RefreshCw className={`w-3.5 h-3.5 ${regenerateCode.isPending ? "animate-spin" : ""}`} />
+                          </button>
+                        )}
+                      </div>
                       <button
                         onClick={() => {
                           const isOwner = teamDetail.ownerId === user?.id;
