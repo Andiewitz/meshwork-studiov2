@@ -412,45 +412,112 @@ const Home = () => {
                 </div>
             </section>
 
-             {/* FOOTER */}
-             <footer className="w-full bg-background py-16 px-6 border-t border-white/5 relative z-10">
-                <div className="max-w-7xl mx-auto">
-                    <div className="flex flex-col md:flex-row justify-between items-start gap-12 md:gap-8 border-b border-white/5 pb-12">
-                        <div className="flex flex-col gap-4 max-w-sm">
-                            <div className="flex items-center gap-3">
-                                <div className="w-9 h-9 flex items-center justify-center"><MeshworkLogo /></div>
-                                <span className="font-bold font-sans tracking-tight text-xl text-white">Meshwork Studio</span>
+            {/* CASE STUDIES */}
+            <section className="w-full relative z-10 py-24 border-t border-white/5">
+                <div className="max-w-6xl mx-auto px-6">
+                    <h2 className="font-sans text-3xl md:text-[2.5rem] font-medium text-white tracking-tight leading-tight mb-14">
+                        How developers build with<br />Meshwork Studio
+                    </h2>
+
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                        {/* Card 1 */}
+                        <div className="group cursor-pointer">
+                            <div className="relative aspect-[4/3] rounded-xl overflow-hidden bg-[#0f1114] border border-white/[0.06] mb-5 transition-all duration-300 group-hover:border-white/15 group-hover:-translate-y-1">
+                                <div className="absolute inset-0 bg-gradient-to-br from-emerald-600/20 via-emerald-500/10 to-transparent" />
+                                <div className="absolute inset-0 flex items-center justify-center">
+                                    <span className="text-white/80 font-sans font-bold text-2xl tracking-tight">[Partner]</span>
+                                </div>
                             </div>
-                            <p className="text-white/30 text-sm font-medium leading-relaxed">
-                                The visual workspace for mapping, connecting, and sharing your cloud infrastructure.
-                            </p>
+                            <h3 className="text-white font-semibold text-lg mb-1.5">[Company Name]</h3>
+                            <a href="#" className="text-primary text-sm font-medium flex items-center gap-1.5 group-hover:gap-2.5 transition-all">
+                                Read case study <ArrowRight className="w-3.5 h-3.5" />
+                            </a>
                         </div>
-                        <div className="grid grid-cols-2 md:grid-cols-3 gap-8 md:gap-16">
+
+                        {/* Card 2 */}
+                        <div className="group cursor-pointer">
+                            <div className="relative aspect-[4/3] rounded-xl overflow-hidden bg-[#0f1114] border border-white/[0.06] mb-5 transition-all duration-300 group-hover:border-white/15 group-hover:-translate-y-1">
+                                <div className="absolute inset-0 bg-gradient-to-br from-slate-600/20 via-slate-500/10 to-transparent" />
+                                <div className="absolute inset-0 flex items-center justify-center">
+                                    <span className="text-white/80 font-sans font-bold text-2xl tracking-tight">[Partner]</span>
+                                </div>
+                            </div>
+                            <h3 className="text-white font-semibold text-lg mb-1.5">[Company Name]</h3>
+                            <a href="#" className="text-primary text-sm font-medium flex items-center gap-1.5 group-hover:gap-2.5 transition-all">
+                                Read case study <ArrowRight className="w-3.5 h-3.5" />
+                            </a>
+                        </div>
+
+                        {/* Card 3 */}
+                        <div className="group cursor-pointer">
+                            <div className="relative aspect-[4/3] rounded-xl overflow-hidden bg-[#0f1114] border border-white/[0.06] mb-5 transition-all duration-300 group-hover:border-white/15 group-hover:-translate-y-1">
+                                <div className="absolute inset-0 bg-gradient-to-br from-cyan-600/20 via-cyan-500/10 to-transparent" />
+                                <div className="absolute inset-0 flex items-center justify-center">
+                                    <span className="text-white/80 font-sans font-bold text-2xl tracking-tight">[Partner]</span>
+                                </div>
+                            </div>
+                            <h3 className="text-white font-semibold text-lg mb-1.5">[Company Name]</h3>
+                            <a href="#" className="text-primary text-sm font-medium flex items-center gap-1.5 group-hover:gap-2.5 transition-all">
+                                Read case study <ArrowRight className="w-3.5 h-3.5" />
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            {/* FOOTER */}
+            <footer className="w-full bg-background relative z-10 border-t border-white/5">
+                {/* Upper footer */}
+                <div className="max-w-6xl mx-auto px-6 py-16">
+                    <div className="flex flex-col md:flex-row justify-between items-start gap-14">
+                        {/* Left CTA */}
+                        <div className="flex flex-col gap-5 max-w-xs">
+                            <h3 className="font-sans text-xl font-medium text-white leading-snug">
+                                Start exploring and building<br />with Meshwork Studio.
+                            </h3>
+                            <Link href="/auth/register">
+                                <button className="text-white text-sm font-medium border border-white/20 rounded-full px-6 py-2.5 hover:bg-white/[0.06] transition-all w-fit">
+                                    Sign up and get started
+                                </button>
+                            </Link>
+                        </div>
+
+                        {/* Link columns */}
+                        <div className="grid grid-cols-2 md:grid-cols-4 gap-10 md:gap-14">
                             <div className="flex flex-col gap-3">
-                                <h4 className="font-bold text-white uppercase tracking-widest text-xs mb-2">Product</h4>
-                                <a href="#" className="text-white/40 hover:text-white transition-colors text-sm font-medium">Features</a>
-                                <a href="#" className="text-white/40 hover:text-white transition-colors text-sm font-medium">Pricing</a>
-                                <a href="#" className="text-white/40 hover:text-white transition-colors text-sm font-medium">Changelog</a>
+                                <h4 className="font-sans font-semibold text-white text-sm mb-1">Platform</h4>
+                                <a href="#" className="text-white/40 hover:text-white transition-colors text-sm">Canvas</a>
+                                <a href="#" className="text-white/40 hover:text-white transition-colors text-sm">Templates</a>
+                                <a href="#" className="text-white/40 hover:text-white transition-colors text-sm">AI Assistant</a>
                             </div>
                             <div className="flex flex-col gap-3">
-                                <h4 className="font-bold text-white uppercase tracking-widest text-xs mb-2">Resources</h4>
-                                <a href="#" className="text-white/40 hover:text-white transition-colors text-sm font-medium">Documentation</a>
-                                <a href="#" className="text-white/40 hover:text-white transition-colors text-sm font-medium">Blog</a>
-                                <a href="#" className="text-white/40 hover:text-white transition-colors text-sm font-medium">Community</a>
+                                <h4 className="font-sans font-semibold text-white text-sm mb-1">Product</h4>
+                                <a href="#" className="text-white/40 hover:text-white transition-colors text-sm">Features</a>
+                                <a href="#" className="text-white/40 hover:text-white transition-colors text-sm">Pricing</a>
+                                <a href="#" className="text-white/40 hover:text-white transition-colors text-sm">Documentation</a>
+                                <a href="#" className="text-white/40 hover:text-white transition-colors text-sm">Changelog</a>
                             </div>
-                            <div className="flex flex-col gap-3 col-span-2 md:col-span-1">
-                                <h4 className="font-bold text-white uppercase tracking-widest text-xs mb-2">Legal</h4>
-                                <a href="#" className="text-white/40 hover:text-white transition-colors text-sm font-medium">Privacy Policy</a>
-                                <a href="#" className="text-white/40 hover:text-white transition-colors text-sm font-medium">Terms of Service</a>
+                            <div className="flex flex-col gap-3">
+                                <h4 className="font-sans font-semibold text-white text-sm mb-1">Resources</h4>
+                                <a href="#" className="text-white/40 hover:text-white transition-colors text-sm">Blog</a>
+                                <a href="#" className="text-white/40 hover:text-white transition-colors text-sm">Community</a>
+                                <a href="#" className="text-white/40 hover:text-white transition-colors text-sm">Case studies</a>
+                            </div>
+                            <div className="flex flex-col gap-3">
+                                <h4 className="font-sans font-semibold text-white text-sm mb-1">Legal</h4>
+                                <a href="#" className="text-white/40 hover:text-white transition-colors text-sm">Privacy</a>
+                                <a href="#" className="text-white/40 hover:text-white transition-colors text-sm">Terms</a>
                             </div>
                         </div>
                     </div>
-                    <div className="pt-8 flex flex-col md:flex-row items-center justify-between gap-4">
-                        <p className="text-white/20 text-xs font-mono">© 2026 Meshwork Studio. All rights reserved.</p>
-                        <div className="flex items-center gap-2">
-                            <div className="w-2 h-2 rounded-full bg-green-500" />
-                            <span className="text-xs font-mono text-green-500/70">All systems operational</span>
-                        </div>
+                </div>
+
+                {/* Giant brand wordmark */}
+                <div className="w-full overflow-hidden pb-8 pt-4">
+                    <div className="max-w-6xl mx-auto px-6">
+                        <h2 className="font-sans font-bold text-[clamp(3rem,10vw,8rem)] text-white/[0.06] leading-none tracking-tighter select-none" aria-hidden="true">
+                            Meshwork Studio
+                        </h2>
                     </div>
                 </div>
             </footer>
