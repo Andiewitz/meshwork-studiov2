@@ -136,39 +136,7 @@ const Home = () => {
 
             {/* Hero Section */}
             <main className="container mx-auto px-4 text-center relative z-10 pt-32 pb-12 md:pt-48 md:pb-24 flex-1">
-                <motion.div
-                    variants={containerVariants}
-                    initial="hidden"
-                    animate="visible"
-                    className="flex flex-col items-center mb-16"
-                >
-                    <motion.h1 
-                        variants={itemVariants}
-                        className="text-[3.5rem] sm:text-[4.5rem] lg:text-[6rem] font-bold font-sans text-white leading-[1.05] tracking-tight mb-8 max-w-[1000px] drop-shadow-2xl"
-                    >
-                        How you design, <br className="hidden md:block" />
-                        <span className="text-transparent bg-clip-text bg-gradient-to-r from-primary via-purple-500 to-[#1abcfe]">
-                            deploy, and scale.
-                        </span>
-                    </motion.h1>
-
-                    <motion.p 
-                        variants={itemVariants}
-                        className="text-[1.125rem] sm:text-[1.25rem] text-white/60 max-w-[600px] mb-10 font-medium leading-relaxed"
-                    >
-                        The visual workspace for mapping, connecting, and sharing your cloud infrastructure. Built explicitly for teams who think in systems.
-                    </motion.p>
-
-                    <motion.div variants={itemVariants} className="flex flex-col sm:flex-row items-center justify-center gap-4">
-                        <Link href="/auth/register">
-                            <Button size="lg" className="w-full sm:w-auto px-10 bg-white/[0.08] backdrop-blur-lg border border-white/[0.15] hover:bg-white/[0.15] hover:border-white/[0.25] text-white shadow-[0_8px_32px_rgba(255,255,255,0.05)] hover:shadow-[0_8px_32px_rgba(255,255,255,0.1)] transition-all duration-300 font-sans font-bold tracking-widest uppercase flex items-center group">
-                                Start Building Free <ArrowRight className="ml-2 w-5 h-5 group-hover:translate-x-1 transition-transform" />
-                            </Button>
-                        </Link>
-                    </motion.div>
-                </motion.div>
-
-                {/* 3D Carousel Section */}
+                {/* Hero / 3D Carousel Section */}
                 <div className="w-full flex flex-col items-center mt-6">
                     <div className="relative w-full h-[600px] flex items-center justify-center mb-16 overflow-visible"
                          onMouseEnter={() => setIsPaused(true)}
@@ -211,18 +179,39 @@ const Home = () => {
                             );
                         })}
                         
-                        {/* Central Floating Overlay (Matches Figma Reference) */}
-                        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 z-20 pointer-events-none">
-                            <div className="bg-white rounded-xl p-10 shadow-2xl border border-black/5 pointer-events-auto max-w-[500px] w-full text-left">
-                                <h3 className="text-[2.5rem] font-medium tracking-tight text-black mb-10 leading-[1.1] font-sans">
-                                    Make my cursor reveal an image
-                                </h3>
-                                <div className="flex justify-end mt-4">
-                                    <button className="bg-[#4F46E5] text-white px-6 py-3 rounded-lg font-medium text-[15px] hover:bg-[#4338CA] transition-colors shadow-sm">
-                                        Get started
-                                    </button>
-                                </div>
-                            </div>
+                        {/* Central Floating Hero Overlay */}
+                        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 z-20 pointer-events-none w-full px-4">
+                            <motion.div 
+                                variants={containerVariants}
+                                initial="hidden"
+                                animate="visible"
+                                className="bg-black/60 backdrop-blur-3xl rounded-[2rem] p-10 sm:p-16 shadow-2xl border border-white/10 pointer-events-auto max-w-[1000px] w-full mx-auto text-center flex flex-col items-center"
+                            >
+                                <motion.h1 
+                                    variants={itemVariants}
+                                    className="text-[3rem] sm:text-[4.5rem] lg:text-[5.5rem] font-bold font-sans text-white leading-[1.05] tracking-tight mb-6 drop-shadow-2xl"
+                                >
+                                    How you design, <br className="hidden md:block" />
+                                    <span className="text-transparent bg-clip-text bg-gradient-to-r from-primary via-purple-500 to-[#1abcfe]">
+                                        deploy, and scale.
+                                    </span>
+                                </motion.h1>
+
+                                <motion.p 
+                                    variants={itemVariants}
+                                    className="text-[1.125rem] sm:text-[1.25rem] text-white/70 max-w-[600px] mb-10 font-medium leading-relaxed"
+                                >
+                                    The visual workspace for mapping, connecting, and sharing your cloud infrastructure. Built explicitly for teams who think in systems.
+                                </motion.p>
+
+                                <motion.div variants={itemVariants} className="flex flex-col sm:flex-row items-center justify-center gap-4">
+                                    <Link href="/auth/register">
+                                        <Button size="lg" className="w-full sm:w-auto px-10 bg-white/[0.08] backdrop-blur-lg border border-white/[0.15] hover:bg-white/[0.15] hover:border-white/[0.25] text-white shadow-[0_8px_32px_rgba(255,255,255,0.05)] hover:shadow-[0_8px_32px_rgba(255,255,255,0.1)] transition-all duration-300 font-sans font-bold tracking-widest uppercase flex items-center group">
+                                            Start Building Free <ArrowRight className="ml-2 w-5 h-5 group-hover:translate-x-1 transition-transform" />
+                                        </Button>
+                                    </Link>
+                                </motion.div>
+                            </motion.div>
                         </div>
                     </div>
                 </div>
