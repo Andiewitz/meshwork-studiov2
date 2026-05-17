@@ -185,13 +185,13 @@ const Home = () => {
                                 variants={containerVariants}
                                 initial="hidden"
                                 animate="visible"
-                                className="bg-black/60 backdrop-blur-3xl rounded-[2rem] p-10 sm:p-16 shadow-2xl border border-white/10 pointer-events-auto max-w-[1000px] w-full mx-auto text-center flex flex-col items-center"
+                                className="bg-black/70 backdrop-blur-3xl rounded-[1.5rem] p-8 sm:p-12 shadow-[0_30px_80px_-15px_rgba(0,0,0,0.8)] border border-white/10 pointer-events-auto max-w-[550px] w-full mx-auto text-center flex flex-col items-center"
                             >
                                 <motion.h1 
                                     variants={itemVariants}
-                                    className="text-[3rem] sm:text-[4.5rem] lg:text-[5.5rem] font-bold font-sans text-white leading-[1.05] tracking-tight mb-6 drop-shadow-2xl"
+                                    className="text-[2.25rem] sm:text-[2.75rem] font-bold font-sans text-white leading-[1.1] tracking-tight mb-5 drop-shadow-lg"
                                 >
-                                    How you design, <br className="hidden md:block" />
+                                    How you design, <br className="hidden sm:block" />
                                     <span className="text-transparent bg-clip-text bg-gradient-to-r from-primary via-purple-500 to-[#1abcfe]">
                                         deploy, and scale.
                                     </span>
@@ -199,14 +199,14 @@ const Home = () => {
 
                                 <motion.p 
                                     variants={itemVariants}
-                                    className="text-[1.125rem] sm:text-[1.25rem] text-white/70 max-w-[600px] mb-10 font-medium leading-relaxed"
+                                    className="text-[1rem] sm:text-[1.125rem] text-white/70 max-w-[450px] mb-8 font-medium leading-relaxed"
                                 >
                                     The visual workspace for mapping, connecting, and sharing your cloud infrastructure. Built explicitly for teams who think in systems.
                                 </motion.p>
 
-                                <motion.div variants={itemVariants} className="flex flex-col sm:flex-row items-center justify-center gap-4">
+                                <motion.div variants={itemVariants} className="w-full">
                                     <Link href="/auth/register">
-                                        <Button size="lg" className="w-full sm:w-auto px-10 bg-white/[0.08] backdrop-blur-lg border border-white/[0.15] hover:bg-white/[0.15] hover:border-white/[0.25] text-white shadow-[0_8px_32px_rgba(255,255,255,0.05)] hover:shadow-[0_8px_32px_rgba(255,255,255,0.1)] transition-all duration-300 font-sans font-bold tracking-widest uppercase flex items-center group">
+                                        <Button size="lg" className="w-full bg-white/[0.08] backdrop-blur-lg border border-white/[0.15] hover:bg-white/[0.15] hover:border-white/[0.25] text-white shadow-[0_8px_32px_rgba(255,255,255,0.05)] transition-all duration-300 font-sans font-bold tracking-widest uppercase flex items-center justify-center group">
                                             Start Building Free <ArrowRight className="ml-2 w-5 h-5 group-hover:translate-x-1 transition-transform" />
                                         </Button>
                                     </Link>
