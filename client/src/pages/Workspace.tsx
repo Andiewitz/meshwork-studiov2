@@ -110,6 +110,7 @@ import {
     Maximize2,
     Minimize2,
     Keyboard,
+    PanelLeftOpen,
 } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { useAuth } from '@/hooks/use-auth';
@@ -1098,13 +1099,23 @@ function WorkspaceView() {
                                 <CollaboratorCursors collaborators={collaborators} />
 
                                 {/* ── Top-left panel — inside ReactFlow so it tracks canvas not root ── */}
-                                <Panel position="top-left" className={`transition-all duration-300 my-5 ${sidebarCollapsed ? 'ml-[76px]' : 'ml-[280px]'}`}>
+                                <Panel position="top-left" className={`transition-all duration-300 my-5 ${sidebarCollapsed ? 'ml-5' : 'ml-[280px]'}`}>
                                     <motion.div
                                         initial={{ opacity: 0, y: -16 }}
                                         animate={{ opacity: 1, y: 0 }}
                                         transition={{ duration: 0.5, ease: [0.16, 1, 0.3, 1] }}
                                         className="flex items-center gap-1.5 px-1.5 py-1.5 rounded-xl bg-[#121214]/80 backdrop-blur-xl border border-white/[0.08] shadow-[inset_0_1px_0_rgba(255,255,255,0.1),0_4px_12px_rgba(0,0,0,0.5)]"
                                     >
+                                        {/* Sidebar toggle — shows open icon when collapsed */}
+                                        {canEdit && sidebarCollapsed && (
+                                            <button
+                                                onClick={() => setSidebarCollapsed(false)}
+                                                className="w-8 h-8 flex items-center justify-center rounded-lg text-white/40 hover:text-white/80 hover:bg-white/[0.07] transition-all"
+                                                title="Open component library"
+                                            >
+                                                <PanelLeftOpen className="w-4 h-4" />
+                                            </button>
+                                        )}
                                         <Popover open={menuOpen} onOpenChange={setMenuOpen}>
                                             <PopoverTrigger asChild>
                                                 <button className="w-8 h-8 flex items-center justify-center rounded-lg text-white/40 hover:text-white/80 hover:bg-white/[0.07] transition-all" title="Menu">

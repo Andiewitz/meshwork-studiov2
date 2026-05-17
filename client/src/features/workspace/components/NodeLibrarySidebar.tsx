@@ -57,24 +57,7 @@ export const NodeLibrarySidebar: React.FC<NodeLibrarySidebarProps> = ({ onDragSt
 
     return (
         <AnimatePresence mode="wait">
-            {collapsed ? (
-                <motion.div
-                    key="collapsed"
-                    initial={{ width: 0, opacity: 0 }}
-                    animate={{ width: 56, opacity: 1 }}
-                    exit={{ width: 0, opacity: 0 }}
-                    transition={{ duration: 0.2, ease: [0.16, 1, 0.3, 1] }}
-                    className="absolute top-0 left-0 bottom-0 z-40 flex flex-col items-center pt-4 gap-2 bg-[#121214]/80 backdrop-blur-xl border-r border-white/[0.08] shadow-[inset_-1px_0_0_rgba(255,255,255,0.05),4px_0_24px_rgba(0,0,0,0.5)]"
-                >
-                    <button
-                        onClick={() => setCollapsed(false)}
-                        className="w-8 h-8 flex items-center justify-center rounded-lg text-white/30 hover:text-white/70 hover:bg-white/[0.06] transition-all"
-                        title="Open sidebar"
-                    >
-                        <PanelLeftOpen className="w-4 h-4" />
-                    </button>
-                </motion.div>
-            ) : (
+            {collapsed ? null : (
                 <motion.div
                     key="expanded"
                     initial={{ width: 0, opacity: 0 }}
