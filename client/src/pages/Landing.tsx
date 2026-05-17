@@ -259,6 +259,79 @@ const Home = () => {
                 </div>
             </main>
 
+            {/* TEMPLATES SECTION */}
+            <section className="w-full relative z-10 py-24 border-t border-white/5">
+                <div className="max-w-7xl mx-auto px-4">
+                    <div className="text-center mb-12">
+                        <h2 className="font-sans text-4xl md:text-5xl font-bold text-white mb-4">
+                            Templates ready to Remix
+                        </h2>
+                        
+                        {/* Tabs */}
+                        <div className="flex flex-wrap justify-center gap-4 mt-8">
+                            <button className="bg-[#202124] text-white rounded-full px-6 py-2.5 text-sm font-medium flex items-center gap-2 border border-white/5">
+                                <Sparkles className="w-4 h-4" /> Featured
+                            </button>
+                            <button className="text-white/50 hover:text-white rounded-full px-6 py-2.5 text-sm font-medium flex items-center gap-2 transition-colors">
+                                <Network className="w-4 h-4" /> Cloud Architectures
+                            </button>
+                            <button className="text-white/50 hover:text-white rounded-full px-6 py-2.5 text-sm font-medium flex items-center gap-2 transition-colors">
+                                <FileCode2 className="w-4 h-4" /> Full-Stack
+                            </button>
+                            <button className="text-white/50 hover:text-white rounded-full px-6 py-2.5 text-sm font-medium flex items-center gap-2 transition-colors">
+                                <GitBranch className="w-4 h-4" /> Data Pipelines
+                            </button>
+                        </div>
+                    </div>
+
+                    {/* Grid */}
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+                        {/* Card 1 */}
+                        <div className="group cursor-pointer">
+                            <div className="relative aspect-video rounded-2xl overflow-hidden bg-white/[0.03] border border-white/10 mb-4 transition-all duration-300 group-hover:border-white/20">
+                                <div className="absolute inset-0 bg-gradient-to-br from-blue-500/10 to-purple-500/10" />
+                                <div className="absolute inset-0 flex items-center justify-center text-white/20 font-mono text-sm">
+                                    [Template Preview]
+                                </div>
+                            </div>
+                            <h3 className="text-white font-bold text-lg mb-1 group-hover:text-primary transition-colors">Multi-Region VPC</h3>
+                            <p className="text-white/50 text-sm leading-relaxed">Deploy a highly available VPC across multiple regions with automatic failover.</p>
+                        </div>
+
+                        {/* Card 2 */}
+                        <div className="group cursor-pointer">
+                            <div className="relative aspect-video rounded-2xl overflow-hidden bg-white/[0.03] border border-white/10 mb-4 transition-all duration-300 group-hover:border-white/20">
+                                <div className="absolute inset-0 bg-gradient-to-br from-green-500/10 to-teal-500/10" />
+                                <div className="absolute inset-0 flex items-center justify-center text-white/20 font-mono text-sm">
+                                    [Template Preview]
+                                </div>
+                            </div>
+                            <h3 className="text-white font-bold text-lg mb-1 group-hover:text-primary transition-colors">Next.js + FastAPI</h3>
+                            <p className="text-white/50 text-sm leading-relaxed">Full-stack template with Next.js frontend and FastAPI backend.</p>
+                        </div>
+
+                        {/* Card 3 */}
+                        <div className="group cursor-pointer">
+                            <div className="relative aspect-video rounded-2xl overflow-hidden bg-white/[0.03] border border-white/10 mb-4 transition-all duration-300 group-hover:border-white/20">
+                                <div className="absolute inset-0 bg-gradient-to-br from-orange-500/10 to-red-500/10" />
+                                <div className="absolute inset-0 flex items-center justify-center text-white/20 font-mono text-sm">
+                                    [Template Preview]
+                                </div>
+                            </div>
+                            <h3 className="text-white font-bold text-lg mb-1 group-hover:text-primary transition-colors">Event-Driven Pipeline</h3>
+                            <p className="text-white/50 text-sm leading-relaxed">Serverless data pipeline using SQS, Lambda, and S3.</p>
+                        </div>
+                    </div>
+
+                    {/* Button */}
+                    <div className="flex justify-center mt-12">
+                        <button className="bg-white text-black rounded-full px-8 py-3 text-sm font-bold hover:bg-white/90 transition-colors">
+                            Explore the template gallery
+                        </button>
+                    </div>
+                </div>
+            </section>
+
             {/* CALL TO ACTION */}
             <section className="relative min-h-[60vh] flex items-center justify-center mt-24 border-t border-white/5 overflow-hidden pb-32">
                 <div className="container mx-auto px-4 relative z-20 text-center">
