@@ -126,15 +126,15 @@ const Home = () => {
                         <span className="text-lg font-sans font-bold tracking-tight hidden sm:block text-white">Meshwork Studio</span>
                     </Link>
                     <div className="hidden md:flex items-center gap-8">
-                        <a href="#features" className="text-[15px] font-serif font-medium text-white/70 hover:text-white transition-colors">Features</a>
-                        <a href="#how-it-works" className="text-[15px] font-serif font-medium text-white/70 hover:text-white transition-colors">How It Works</a>
+                        <a href="#features" className="text-sm font-sans font-normal text-white/60 hover:text-white transition-colors">Features</a>
+                        <a href="#how-it-works" className="text-sm font-sans font-normal text-white/60 hover:text-white transition-colors">How It Works</a>
                     </div>
                     <div className="flex items-center gap-5">
                         <Link href="/auth/login">
-                            <button className="font-serif font-medium text-[15px] text-white/70 hover:text-white transition-colors cursor-pointer">Log in</button>
+                            <button className="font-sans font-medium text-sm text-white/60 hover:text-white transition-colors cursor-pointer">Log in</button>
                         </Link>
                         <Link href="/auth/register">
-                            <button className="bg-primary text-black border border-primary/20 py-2.5 px-5 text-sm font-black shadow-[0_0_20px_rgba(255,61,0,0.3)] hover:shadow-[0_0_30px_rgba(255,61,0,0.5)] hover:brightness-110 transition-all cursor-pointer">
+                            <button className="bg-primary text-black rounded-lg py-2 px-5 text-sm font-bold hover:brightness-110 transition-all cursor-pointer">
                                 Get Started
                             </button>
                         </Link>
