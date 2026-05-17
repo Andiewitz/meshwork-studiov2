@@ -366,45 +366,47 @@ const Home = () => {
             </section>
 
             {/* CALL TO ACTION */}
-            <section className="relative min-h-[60vh] flex items-center justify-center mt-24 border-t border-white/5 overflow-hidden pb-32">
-                <div className="container mx-auto px-4 relative z-20 text-center">
-                    <motion.div
-                        initial={{ opacity: 0, y: 50, scale: 0.95 }}
-                        whileInView={{ opacity: 1, y: 0, scale: 1 }}
-                        transition={{ duration: 0.8, ease: [0.16, 1, 0.3, 1] }}
-                        viewport={{ once: true, margin: "-20%" }}
-                        className="max-w-4xl mx-auto"
-                    >
-                        <motion.div
-                            initial={{ opacity: 0, y: 30, scale: 0.95 }}
-                            whileInView={{ opacity: 1, y: 0, scale: 1 }}
-                            transition={{ delay: 0.2, duration: 0.7 }}
-                            viewport={{ once: true }}
-                            className="max-w-xs mx-auto mb-10 border border-white/10 bg-black/50 backdrop-blur text-left overflow-hidden rounded-xl"
-                        >
-                            <div className="border-b border-white/5 bg-white/5 px-4 py-2 flex items-center gap-2">
-                                <div className="w-2 h-2 bg-primary rounded-full" />
-                                <span className="font-mono text-[10px] text-white/30 uppercase tracking-wider">Terminal</span>
-                            </div>
-                            <div className="p-4 font-mono text-xs space-y-1.5">
-                                <div><span className="text-primary">$</span> meshwork start</div>
-                                <div className="text-white/30">✓ Workspace loaded — 12ms</div>
-                                <div className="text-white/30">✓ Cloud sync connected</div>
-                                <div className="text-green-500">▸ Canvas ready.</div>
-                            </div>
-                        </motion.div>
+            <section className="relative min-h-[80vh] flex items-center justify-center border-t border-white/5 overflow-hidden">
+                {/* Radial dot background */}
+                <div className="absolute inset-0 z-0">
+                    <div className="absolute inset-0 bg-[url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMjQiIGhlaWdodD0iMjQiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+PGNpcmNsZSBjeD0iMSIgY3k9IjEiIHI9IjEiIGZpbGw9InJnYmEoMjU1LDI1NSwyNTUsMC4wNCkiLz48L3N2Zz4=')] bg-[length:24px_24px] bg-repeat [mask-image:radial-gradient(ellipse_at_center,black_20%,transparent_70%)]" />
+                </div>
 
-                        <h2 className="font-sans text-5xl md:text-8xl font-bold tracking-tight text-white leading-[0.85] mb-8">
-                            <span className="block opacity-60">Stop Drawing.</span>
-                            <span className="block text-transparent bg-clip-text bg-gradient-to-r from-primary to-orange-400">Start Building.</span>
+                <div className="relative z-10 w-full max-w-2xl mx-auto px-6 text-center">
+                    <motion.div
+                        initial={{ opacity: 0, y: 40 }}
+                        whileInView={{ opacity: 1, y: 0 }}
+                        transition={{ duration: 0.8, ease: [0.16, 1, 0.3, 1] }}
+                        viewport={{ once: true, margin: "-15%" }}
+                    >
+                        <h2 className="font-sans text-4xl md:text-[3.5rem] font-medium text-white tracking-tight leading-tight mb-12">
+                            Bring your ideas to life
                         </h2>
 
-                        <div className="flex flex-col sm:flex-row items-center justify-center gap-4 pt-8">
+                        {/* Prompt Input Bar */}
+                        <div className="bg-[#1a1a1d] rounded-xl border border-white/[0.08] flex items-center px-5 py-3.5 gap-3 mb-8">
+                            <span className="text-white/30 text-sm font-sans flex-1 text-left">Describe your infrastructure in a sentence or two</span>
                             <Link href="/auth/register">
-                                <Button size="lg" className="w-full sm:w-auto px-10 h-14 bg-white/[0.08] backdrop-blur-lg border border-white/[0.15] hover:bg-white/[0.15] hover:border-white/[0.25] text-white shadow-[0_8px_32px_rgba(255,255,255,0.05)] hover:shadow-[0_8px_32px_rgba(255,255,255,0.1)] transition-all duration-300 font-sans tracking-widest uppercase">
-                                    Get Meshwork Free
-                                </Button>
+                                <button className="text-white/40 text-sm font-medium whitespace-nowrap hover:text-white/60 transition-colors">
+                                    Get started
+                                </button>
                             </Link>
+                        </div>
+
+                        {/* Suggestion Chips */}
+                        <div className="flex flex-col items-start gap-3 max-w-md mx-auto">
+                            <div className="flex items-center gap-3 text-white/35 text-sm">
+                                <Network className="w-4 h-4 shrink-0" />
+                                <span>A multi-region Kubernetes cluster with auto-scaling</span>
+                            </div>
+                            <div className="flex items-center gap-3 text-white/35 text-sm">
+                                <Sparkles className="w-4 h-4 shrink-0" />
+                                <span>A real-time data pipeline with event-driven triggers</span>
+                            </div>
+                            <div className="flex items-center gap-3 text-white/35 text-sm">
+                                <Terminal className="w-4 h-4 shrink-0" />
+                                <span>Help me design a serverless API gateway</span>
+                            </div>
                         </div>
                     </motion.div>
                 </div>
