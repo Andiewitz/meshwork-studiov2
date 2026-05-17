@@ -193,8 +193,8 @@ const Home = () => {
                                         x: offset,
                                         height: isActive ? 560 : 460,
                                         y: isActive ? 0 : 50, // Center vertically
-                                        opacity: isActive ? 1 : 0.4,
-                                        zIndex: isActive ? 10 : 0
+                                        opacity: isActive ? 1 : 0.6,
+                                        zIndex: 0 // All cards are in background
                                     }}
                                     transition={{ type: "spring", stiffness: 150, damping: 20, mass: 0.8 }}
                                 >
@@ -206,32 +206,24 @@ const Home = () => {
                                             loading={Math.abs(distance) <= 1 ? "eager" : "lazy"}
                                             decoding="async"
                                         />
-                                        <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent pointer-events-none" />
                                     </div>
-
-                                    <AnimatePresence>
-                                        {card.isShader && isActive && (
-                                            <motion.div 
-                                                className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 z-20 w-[125%]"
-                                                initial={{ opacity: 0, y: 20 }}
-                                                animate={{ opacity: 1, y: 0 }}
-                                                exit={{ opacity: 0, y: 15 }}
-                                                transition={{ delay: 0.2, duration: 0.5 }}
-                                            >
-                                                <div className="bg-white/[0.08] backdrop-blur-3xl p-12 shadow-[0_40px_100px_-20px_rgba(0,0,0,0.9)] border border-white/[0.2]">
-                                                    <h3 className="text-[3rem] font-bold tracking-tight text-white mb-8 leading-[1.05] font-sans">
-                                                        Auto-routing pipelines that just work
-                                                    </h3>
-                                                    <button className="bg-white/[0.1] text-white px-8 py-5 font-bold text-lg hover:bg-white/[0.15] border border-white/[0.2] transition-all shadow-[0_8px_32px_rgba(255,255,255,0.05)]">
-                                                        Explore Canvas
-                                                    </button>
-                                                </div>
-                                            </motion.div>
-                                        )}
-                                    </AnimatePresence>
                                 </motion.div>
                             );
                         })}
+                        
+                        {/* Central Floating Overlay (Matches Figma Reference) */}
+                        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 z-20 pointer-events-none">
+                            <div className="bg-white rounded-xl p-10 shadow-2xl border border-black/5 pointer-events-auto max-w-[500px] w-full text-left">
+                                <h3 className="text-[2.5rem] font-medium tracking-tight text-black mb-10 leading-[1.1] font-sans">
+                                    Make my cursor reveal an image
+                                </h3>
+                                <div className="flex justify-end mt-4">
+                                    <button className="bg-[#4F46E5] text-white px-6 py-3 rounded-lg font-medium text-[15px] hover:bg-[#4338CA] transition-colors shadow-sm">
+                                        Get started
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
                     </div>
                 </div>
             </main>
