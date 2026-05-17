@@ -20,6 +20,7 @@ import { useAuth } from "@/hooks/use-auth";
 import { MeshworkLogo } from "@/components/MeshworkLogo";
 import Lenis from "lenis";
 import "lenis/dist/lenis.css";
+import { OnboardingModal } from "@/components/ui/onboarding-modal";
 
 const sidebarVariants = {
   hidden: { opacity: 0, x: -20 },
@@ -318,6 +319,9 @@ export function DashboardLayout({ children }: { children: ReactNode }) {
           </Suspense>
         </div>
       </main>
+
+      {/* Onboarding */}
+      <OnboardingModal />
     </div>
   );
 }
