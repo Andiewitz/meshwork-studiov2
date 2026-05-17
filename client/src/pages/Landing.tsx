@@ -261,71 +261,104 @@ const Home = () => {
 
             {/* TEMPLATES SECTION */}
             <section className="w-full relative z-10 py-24 border-t border-white/5">
-                <div className="max-w-7xl mx-auto px-4">
-                    <div className="text-center mb-12">
-                        <h2 className="font-sans text-4xl md:text-5xl font-bold text-white mb-4">
+                <div className="max-w-6xl mx-auto px-6">
+                    <div className="text-center mb-14">
+                        <h2 className="font-sans text-4xl md:text-5xl font-bold text-white tracking-tight">
                             Templates ready to Remix
                         </h2>
                         
                         {/* Tabs */}
-                        <div className="flex flex-wrap justify-center gap-4 mt-8">
-                            <button className="bg-[#202124] text-white rounded-full px-6 py-2.5 text-sm font-medium flex items-center gap-2 border border-white/5">
-                                <Sparkles className="w-4 h-4" /> Featured
+                        <div className="flex flex-wrap justify-center gap-2 mt-10">
+                            <button className="bg-white/[0.08] text-white rounded-full px-5 py-2 text-[13px] font-medium flex items-center gap-2 border border-white/10 backdrop-blur-sm">
+                                <Sparkles className="w-3.5 h-3.5" /> Featured
                             </button>
-                            <button className="text-white/50 hover:text-white rounded-full px-6 py-2.5 text-sm font-medium flex items-center gap-2 transition-colors">
-                                <Network className="w-4 h-4" /> Cloud Architectures
+                            <button className="text-white/40 hover:text-white/70 hover:bg-white/[0.04] rounded-full px-5 py-2 text-[13px] font-medium flex items-center gap-2 transition-all">
+                                <Network className="w-3.5 h-3.5" /> Cloud Architectures
                             </button>
-                            <button className="text-white/50 hover:text-white rounded-full px-6 py-2.5 text-sm font-medium flex items-center gap-2 transition-colors">
-                                <FileCode2 className="w-4 h-4" /> Full-Stack
+                            <button className="text-white/40 hover:text-white/70 hover:bg-white/[0.04] rounded-full px-5 py-2 text-[13px] font-medium flex items-center gap-2 transition-all">
+                                <FileCode2 className="w-3.5 h-3.5" /> Full-Stack
                             </button>
-                            <button className="text-white/50 hover:text-white rounded-full px-6 py-2.5 text-sm font-medium flex items-center gap-2 transition-colors">
-                                <GitBranch className="w-4 h-4" /> Data Pipelines
+                            <button className="text-white/40 hover:text-white/70 hover:bg-white/[0.04] rounded-full px-5 py-2 text-[13px] font-medium flex items-center gap-2 transition-all">
+                                <GitBranch className="w-3.5 h-3.5" /> Data Pipelines
                             </button>
                         </div>
                     </div>
 
+                    {/* Divider */}
+                    <div className="border-t border-white/[0.06] mb-10" />
+
                     {/* Grid */}
-                    <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                         {/* Card 1 */}
                         <div className="group cursor-pointer">
-                            <div className="relative aspect-video rounded-2xl overflow-hidden bg-white/[0.03] border border-white/10 mb-4 transition-all duration-300 group-hover:border-white/20">
-                                <div className="absolute inset-0 bg-gradient-to-br from-blue-500/10 to-purple-500/10" />
-                                <div className="absolute inset-0 flex items-center justify-center text-white/20 font-mono text-sm">
-                                    [Template Preview]
+                            <div className="relative aspect-[4/3] rounded-xl overflow-hidden bg-[#0f1114] border border-white/[0.06] mb-5 transition-all duration-300 group-hover:border-white/15 group-hover:-translate-y-1 group-hover:shadow-[0_12px_40px_rgba(0,0,0,0.5)]">
+                                <div className="absolute inset-0 bg-gradient-to-br from-indigo-500/[0.07] via-transparent to-purple-600/[0.05]" />
+                                {/* Mock UI */}
+                                <div className="absolute inset-0 p-5 flex flex-col justify-between opacity-40 group-hover:opacity-60 transition-opacity">
+                                    <div className="flex items-center gap-2">
+                                        <div className="w-2 h-2 rounded-full bg-red-400/60" />
+                                        <div className="w-2 h-2 rounded-full bg-yellow-400/60" />
+                                        <div className="w-2 h-2 rounded-full bg-green-400/60" />
+                                    </div>
+                                    <div className="space-y-2">
+                                        <div className="h-1.5 w-3/4 bg-white/10 rounded-full" />
+                                        <div className="h-1.5 w-1/2 bg-white/10 rounded-full" />
+                                        <div className="h-1.5 w-2/3 bg-white/10 rounded-full" />
+                                    </div>
                                 </div>
                             </div>
-                            <h3 className="text-white font-bold text-lg mb-1 group-hover:text-primary transition-colors">Multi-Region VPC</h3>
-                            <p className="text-white/50 text-sm leading-relaxed">Deploy a highly available VPC across multiple regions with automatic failover.</p>
+                            <h3 className="text-white font-semibold text-base mb-1.5 group-hover:text-primary transition-colors">Multi-Region VPC</h3>
+                            <p className="text-white/40 text-sm leading-relaxed">Deploy a highly available VPC across multiple regions with automatic failover and load balancing.</p>
                         </div>
 
                         {/* Card 2 */}
                         <div className="group cursor-pointer">
-                            <div className="relative aspect-video rounded-2xl overflow-hidden bg-white/[0.03] border border-white/10 mb-4 transition-all duration-300 group-hover:border-white/20">
-                                <div className="absolute inset-0 bg-gradient-to-br from-green-500/10 to-teal-500/10" />
-                                <div className="absolute inset-0 flex items-center justify-center text-white/20 font-mono text-sm">
-                                    [Template Preview]
+                            <div className="relative aspect-[4/3] rounded-xl overflow-hidden bg-[#0f1114] border border-white/[0.06] mb-5 transition-all duration-300 group-hover:border-white/15 group-hover:-translate-y-1 group-hover:shadow-[0_12px_40px_rgba(0,0,0,0.5)]">
+                                <div className="absolute inset-0 bg-gradient-to-br from-emerald-500/[0.07] via-transparent to-teal-600/[0.05]" />
+                                {/* Mock UI */}
+                                <div className="absolute inset-0 p-5 flex flex-col justify-between opacity-40 group-hover:opacity-60 transition-opacity">
+                                    <div className="flex items-center gap-2">
+                                        <div className="w-2 h-2 rounded-full bg-red-400/60" />
+                                        <div className="w-2 h-2 rounded-full bg-yellow-400/60" />
+                                        <div className="w-2 h-2 rounded-full bg-green-400/60" />
+                                    </div>
+                                    <div className="space-y-2">
+                                        <div className="h-1.5 w-2/3 bg-white/10 rounded-full" />
+                                        <div className="h-1.5 w-full bg-white/10 rounded-full" />
+                                        <div className="h-1.5 w-1/3 bg-white/10 rounded-full" />
+                                    </div>
                                 </div>
                             </div>
-                            <h3 className="text-white font-bold text-lg mb-1 group-hover:text-primary transition-colors">Next.js + FastAPI</h3>
-                            <p className="text-white/50 text-sm leading-relaxed">Full-stack template with Next.js frontend and FastAPI backend.</p>
+                            <h3 className="text-white font-semibold text-base mb-1.5 group-hover:text-primary transition-colors">Next.js + FastAPI</h3>
+                            <p className="text-white/40 text-sm leading-relaxed">Full-stack template with Next.js frontend and FastAPI backend, pre-configured with auth and database.</p>
                         </div>
 
                         {/* Card 3 */}
                         <div className="group cursor-pointer">
-                            <div className="relative aspect-video rounded-2xl overflow-hidden bg-white/[0.03] border border-white/10 mb-4 transition-all duration-300 group-hover:border-white/20">
-                                <div className="absolute inset-0 bg-gradient-to-br from-orange-500/10 to-red-500/10" />
-                                <div className="absolute inset-0 flex items-center justify-center text-white/20 font-mono text-sm">
-                                    [Template Preview]
+                            <div className="relative aspect-[4/3] rounded-xl overflow-hidden bg-[#0f1114] border border-white/[0.06] mb-5 transition-all duration-300 group-hover:border-white/15 group-hover:-translate-y-1 group-hover:shadow-[0_12px_40px_rgba(0,0,0,0.5)]">
+                                <div className="absolute inset-0 bg-gradient-to-br from-amber-500/[0.07] via-transparent to-orange-600/[0.05]" />
+                                {/* Mock UI */}
+                                <div className="absolute inset-0 p-5 flex flex-col justify-between opacity-40 group-hover:opacity-60 transition-opacity">
+                                    <div className="flex items-center gap-2">
+                                        <div className="w-2 h-2 rounded-full bg-red-400/60" />
+                                        <div className="w-2 h-2 rounded-full bg-yellow-400/60" />
+                                        <div className="w-2 h-2 rounded-full bg-green-400/60" />
+                                    </div>
+                                    <div className="space-y-2">
+                                        <div className="h-1.5 w-1/2 bg-white/10 rounded-full" />
+                                        <div className="h-1.5 w-3/4 bg-white/10 rounded-full" />
+                                        <div className="h-1.5 w-1/4 bg-white/10 rounded-full" />
+                                    </div>
                                 </div>
                             </div>
-                            <h3 className="text-white font-bold text-lg mb-1 group-hover:text-primary transition-colors">Event-Driven Pipeline</h3>
-                            <p className="text-white/50 text-sm leading-relaxed">Serverless data pipeline using SQS, Lambda, and S3.</p>
+                            <h3 className="text-white font-semibold text-base mb-1.5 group-hover:text-primary transition-colors">Event-Driven Pipeline</h3>
+                            <p className="text-white/40 text-sm leading-relaxed">Serverless data pipeline using SQS, Lambda, and S3 with built-in monitoring.</p>
                         </div>
                     </div>
 
                     {/* Button */}
-                    <div className="flex justify-center mt-12">
-                        <button className="bg-white text-black rounded-full px-8 py-3 text-sm font-bold hover:bg-white/90 transition-colors">
+                    <div className="flex justify-center mt-14">
+                        <button className="text-white/70 hover:text-white rounded-full px-7 py-2.5 text-sm font-medium border border-white/10 hover:border-white/20 hover:bg-white/[0.04] transition-all">
                             Explore the template gallery
                         </button>
                     </div>
