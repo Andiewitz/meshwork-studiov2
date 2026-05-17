@@ -30,7 +30,15 @@ const Home = () => {
     // Carousel state
     const [currentIndex, setCurrentIndex] = useState(1);
     const [isPaused, setIsPaused] = useState(false);
+    const [isMobile, setIsMobile] = useState(false);
     const timerRef = useRef<NodeJS.Timeout | null>(null);
+
+    useEffect(() => {
+        const checkMobile = () => setIsMobile(window.innerWidth < 768);
+        checkMobile();
+        window.addEventListener('resize', checkMobile);
+        return () => window.removeEventListener('resize', checkMobile);
+    }, []);
 
     useEffect(() => {
         const onScroll = () => setScrolled(window.scrollY > 20);
@@ -164,7 +172,8 @@ const Home = () => {
 
                 {/* 3D Carousel Section */}
                 <div className="w-full flex flex-col items-center mt-6">
-                    <div className="relative w-full h-[850px] flex items-center justify-center mb-16 overflow-visible"
+                    <div className="relative w-full flex items-center justify-center mb-16 overflow-visible"
+                         style={{ height: isMobile ? 600 : 850 }}
                          onMouseEnter={() => setIsPaused(true)}
                          onMouseLeave={() => setIsPaused(false)}
                     >
@@ -176,17 +185,22 @@ const Home = () => {
                             if (Math.abs(distance) > 4) return null;
 
                             const isActive = distance === 0;
-                            const offset = distance * 480; // 450px width + 30px gap
+                            const cardWidth = isMobile ? 280 : 450;
+                            const cardGap = isMobile ? 16 : 30;
+                            const activeHeight = isMobile ? 400 : 600;
+                            const inactiveHeight = isMobile ? 320 : 520;
+                            const offset = distance * (cardWidth + cardGap);
                             
                             return (
                                 <motion.div 
                                     key={card.id}
-                                    className="absolute w-[450px] shrink-0 origin-center"
+                                    className="absolute shrink-0 origin-center"
+                                    style={{ width: cardWidth }}
                                     initial={false}
                                     animate={{ 
                                         x: offset,
-                                        height: isActive ? 600 : 520,
-                                        y: isActive ? -30 : 0, // Center vertically with slight lift for prompt
+                                        height: isActive ? activeHeight : inactiveHeight,
+                                        y: isActive ? (isMobile ? -20 : -30) : 0,
                                         opacity: isActive ? 1 : 0.4,
                                         zIndex: isActive ? 10 : 0
                                     }}
@@ -210,7 +224,7 @@ const Home = () => {
                             );
                         })}
                         {/* Anchored Prompt Overlay */}
-                        <div className="absolute top-[72%] left-1/2 -translate-x-1/2 z-20 pointer-events-auto w-full max-w-[500px] flex flex-col items-center">
+                        <div className={`absolute left-1/2 -translate-x-1/2 z-20 pointer-events-auto w-full max-w-[500px] flex flex-col items-center px-4 ${isMobile ? 'top-[75%]' : 'top-[72%]'}`}>
                             <motion.div 
                                 variants={containerVariants}
                                 initial="hidden"
