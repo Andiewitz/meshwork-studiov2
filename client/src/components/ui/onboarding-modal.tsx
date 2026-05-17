@@ -273,6 +273,26 @@ export function OnboardingFlow() {
   );
 }
 
-export function useOnboardingComplete() {
-  return localStorage.getItem(ONBOARDING_KEY) === "true";
+export function useOnboardingComplete(user?: { createdAt?: Date | string | null } | null) {
+  // Already completed
+  if (localStorage.getItem(ONBOARDING_KEY) === "true") return true;
+
+  // Auto-skip for existing users whose accounts predate the onboarding feature.
+  // Any account created before this cutoff is grandfathered in.
+  const ONBOARDING_DEPLOY_DATE = new Date("2026-05-17T00:00:00Z");
+  if (user?.createdAt) {
+    const created = new Date(user.createdAt);
+    if (created < ONBOARDING_DEPLOY_DATE) {
+      localStorage.setItem(ONBOARDING_KEY, "true");
+      return true;
+    }
+  }
+
+  // Dev mock user — skip onboarding so the dashboard is usable in dev
+  if (import.meta.env.DEV && user) {
+    localStorage.setItem(ONBOARDING_KEY, "true");
+    return true;
+  }
+
+  return false;
 }

@@ -50,7 +50,7 @@ export function DashboardLayout({ children }: { children: ReactNode }) {
   const bellRef = useRef<HTMLButtonElement>(null);
 
   // Onboarding gate
-  const [onboardingComplete, setOnboardingComplete] = useState(useOnboardingComplete);
+  const [onboardingComplete, setOnboardingComplete] = useState(() => useOnboardingComplete(user));
   useEffect(() => {
     const handler = () => setOnboardingComplete(true);
     window.addEventListener("onboarding-complete", handler);
