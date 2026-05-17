@@ -118,15 +118,15 @@ const Home = () => {
                         <span className="text-lg font-sans font-bold tracking-tight hidden sm:block text-white">Meshwork Studio</span>
                     </Link>
                     <div className="hidden md:flex items-center gap-8">
-                        <a href="#features" className="text-sm font-bold uppercase tracking-wider text-white/50 hover:text-white transition-colors">Features</a>
-                        <a href="#how-it-works" className="text-sm font-bold uppercase tracking-wider text-white/50 hover:text-white transition-colors">How It Works</a>
+                        <a href="#features" className="text-[15px] font-serif font-medium text-white/70 hover:text-white transition-colors">Features</a>
+                        <a href="#how-it-works" className="text-[15px] font-serif font-medium text-white/70 hover:text-white transition-colors">How It Works</a>
                     </div>
-                    <div className="flex items-center gap-3">
+                    <div className="flex items-center gap-5">
                         <Link href="/auth/login">
-                            <button className="font-bold uppercase text-sm text-white/60 hover:text-white transition-colors tracking-wider px-3 py-2 cursor-pointer">Log In</button>
+                            <button className="font-serif font-medium text-[15px] text-white/70 hover:text-white transition-colors cursor-pointer">Log in</button>
                         </Link>
                         <Link href="/auth/register">
-                            <button className="bg-primary text-black border border-primary/20 py-2.5 px-5 text-sm font-black uppercase tracking-widest shadow-[0_0_20px_rgba(255,61,0,0.3)] hover:shadow-[0_0_30px_rgba(255,61,0,0.5)] hover:brightness-110 transition-all cursor-pointer">
+                            <button className="bg-primary text-black border border-primary/20 py-2.5 px-5 text-sm font-black shadow-[0_0_20px_rgba(255,61,0,0.3)] hover:shadow-[0_0_30px_rgba(255,61,0,0.5)] hover:brightness-110 transition-all cursor-pointer">
                                 Get Started
                             </button>
                         </Link>
@@ -182,22 +182,23 @@ const Home = () => {
                             if (Math.abs(distance) > 4) return null;
 
                             const isActive = distance === 0;
-                            const offset = distance * 440; 
+                            const offset = distance * 424; // 400px width + 24px gap
                             
                             return (
                                 <motion.div 
                                     key={card.id}
-                                    className="absolute w-[400px] h-[560px] shrink-0"
+                                    className="absolute w-[400px] shrink-0 origin-center"
                                     initial={false}
                                     animate={{ 
                                         x: offset,
-                                        scale: isActive ? 1.05 : 0.95,
-                                        opacity: isActive ? 1 : 0.2,
+                                        height: isActive ? 560 : 460,
+                                        y: isActive ? 0 : 50, // Center vertically
+                                        opacity: isActive ? 1 : 0.4,
                                         zIndex: isActive ? 10 : 0
                                     }}
                                     transition={{ type: "spring", stiffness: 150, damping: 20, mass: 0.8 }}
                                 >
-                                    <div className="relative w-full h-full rounded-[2.5rem] overflow-hidden shadow-[0_25px_60px_-15px_rgba(0,0,0,0.8)] bg-white/[0.05] border border-white/[0.15] backdrop-blur-2xl">
+                                    <div className="relative w-full h-full overflow-hidden shadow-[0_25px_60px_-15px_rgba(0,0,0,0.8)] bg-white/[0.05] border border-white/[0.15] backdrop-blur-2xl">
                                         <img 
                                             src={card.src} 
                                             alt={card.alt} 
@@ -217,11 +218,11 @@ const Home = () => {
                                                 exit={{ opacity: 0, y: 15 }}
                                                 transition={{ delay: 0.2, duration: 0.5 }}
                                             >
-                                                <div className="bg-white/[0.08] backdrop-blur-3xl rounded-[2.5rem] p-12 shadow-[0_40px_100px_-20px_rgba(0,0,0,0.9)] border border-white/[0.2]">
+                                                <div className="bg-white/[0.08] backdrop-blur-3xl p-12 shadow-[0_40px_100px_-20px_rgba(0,0,0,0.9)] border border-white/[0.2]">
                                                     <h3 className="text-[3rem] font-bold tracking-tight text-white mb-8 leading-[1.05] font-sans">
                                                         Auto-routing pipelines that just work
                                                     </h3>
-                                                    <button className="bg-white/[0.1] text-white px-8 py-5 rounded-2xl font-bold text-lg hover:bg-white/[0.15] border border-white/[0.2] transition-all shadow-[0_8px_32px_rgba(255,255,255,0.05)]">
+                                                    <button className="bg-white/[0.1] text-white px-8 py-5 font-bold text-lg hover:bg-white/[0.15] border border-white/[0.2] transition-all shadow-[0_8px_32px_rgba(255,255,255,0.05)]">
                                                         Explore Canvas
                                                     </button>
                                                 </div>
