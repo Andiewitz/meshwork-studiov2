@@ -20,7 +20,7 @@ export default function AuthPage() {
                     <div className="w-10 h-10 flex items-center justify-center">
                         <MeshworkLogo />
                     </div>
-                    <span className="text-2xl font-black font-display uppercase tracking-tighter text-white">Meshwork Studio</span>
+                    <span className="text-2xl font-black font-headline uppercase tracking-tighter text-white">Meshwork Studio</span>
                 </div>
 
                 {/* Hero Content */}

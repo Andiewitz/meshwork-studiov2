@@ -110,7 +110,7 @@ export default function Login() {
                 <div className="w-10 h-10 flex items-center justify-center bg-white/[0.05] border border-white/10 rounded-xl group-hover:bg-white/[0.1] transition-all">
                     <MeshworkLogo />
                 </div>
-                <span className="font-bold tracking-tight text-white/80 group-hover:text-white transition-colors">Meshwork Studio</span>
+                <span className="font-headline font-bold tracking-tight text-white/80 group-hover:text-white transition-colors">Meshwork Studio</span>
             </Link>
 
             <h1 className="text-[3.5rem] xl:text-[4.5rem] leading-[1.05] font-bold text-white tracking-tight mb-6">
