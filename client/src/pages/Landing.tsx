@@ -164,7 +164,7 @@ const Home = () => {
 
                 {/* 3D Carousel Section */}
                 <div className="w-full flex flex-col items-center mt-6">
-                    <div className="relative w-full h-[600px] flex items-center justify-center mb-16 overflow-visible"
+                    <div className="relative w-full h-[750px] flex items-center justify-center mb-16 overflow-visible"
                          onMouseEnter={() => setIsPaused(true)}
                          onMouseLeave={() => setIsPaused(false)}
                     >
@@ -176,17 +176,17 @@ const Home = () => {
                             if (Math.abs(distance) > 4) return null;
 
                             const isActive = distance === 0;
-                            const offset = distance * 400; // 380px width + 20px gap
+                            const offset = distance * 680; // 640px width + 40px gap
                             
                             return (
                                 <motion.div 
                                     key={card.id}
-                                    className="absolute w-[380px] shrink-0 origin-center"
+                                    className="absolute w-[640px] shrink-0 origin-center"
                                     initial={false}
                                     animate={{ 
                                         x: offset,
-                                        height: isActive ? 480 : 420,
-                                        y: isActive ? 0 : 30, // Center vertically
+                                        height: isActive ? 400 : 320,
+                                        y: isActive ? -40 : -10, // Push up slightly to leave room for the prompt box
                                         opacity: isActive ? 1 : 0.4,
                                         zIndex: isActive ? 10 : 0
                                     }}
@@ -195,7 +195,7 @@ const Home = () => {
                                     <div 
                                         className="relative w-full h-full rounded-[1.5rem] overflow-hidden bg-white/[0.05] border border-white/[0.05]"
                                         style={{
-                                            boxShadow: isActive ? '0 0 100px rgba(59, 130, 246, 0.5)' : 'none'
+                                            boxShadow: isActive ? '0 0 120px rgba(59, 130, 246, 0.4)' : 'none'
                                         }}
                                     >
                                         <img 
@@ -210,7 +210,7 @@ const Home = () => {
                             );
                         })}
                         {/* Anchored Prompt Overlay */}
-                        <div className="absolute top-[62%] left-1/2 -translate-x-1/2 z-20 pointer-events-auto w-full max-w-[500px] flex flex-col items-center">
+                        <div className="absolute top-[65%] left-1/2 -translate-x-1/2 z-20 pointer-events-auto w-full max-w-[500px] flex flex-col items-center">
                             <motion.div 
                                 variants={containerVariants}
                                 initial="hidden"
