@@ -306,7 +306,7 @@ router.get("/providers", isAuthenticated, async (_req: Request, res: Response) =
     { id: "openai", name: "OpenAI", models: ["gpt-4", "gpt-4-turbo", "gpt-3.5-turbo"] },
     { id: "anthropic", name: "Anthropic", models: ["claude-3-5-sonnet", "claude-3-opus"] },
     { id: "google", name: "Google AI", models: ["gemini-pro"] },
-    { id: "openrouter", name: "OpenRouter", models: ["meta-llama/llama-3-8b-instruct:free", "google/gemini-2.5-flash:free"] },
+    { id: "openrouter", name: "OpenRouter", models: ["meta-llama/llama-3-8b-instruct:free", "google/gemini-2.5-flash:free", "deepseek/deepseek-r1:free", "deepseek/deepseek-r1"] },
   ]);
 });
 
