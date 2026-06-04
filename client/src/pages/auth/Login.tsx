@@ -1,10 +1,10 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useLocation, Link } from "wouter";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/use-toast";
-import { Loader2, Chrome, Eye, EyeOff } from "lucide-react";
+import { Loader2, Chrome, Eye, EyeOff, AlertCircle } from "lucide-react";
 import { MeshworkLogo } from "@/components/MeshworkLogo";
 import { apiRequest } from "@/lib/queryClient";
 import { queryClient } from "@/lib/queryClient";
@@ -19,6 +19,18 @@ export default function Login() {
   const [showPassword, setShowPassword] = useState(false);
   const [touched, setTouched] = useState({ email: false, password: false });
   const [formErrors, setFormErrors] = useState<{email?: string, password?: string, general?: string}>({});
+  const [oauthError, setOauthError] = useState<string | null>(null);
+
+  // Show a banner if redirected back from a failed OAuth attempt
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    const err = params.get("error");
+    if (err === "google") {
+      setOauthError("Google sign-in failed. Your account may not be linked, or access was denied. Please try again.");
+      // Clean the query string without a full reload
+      window.history.replaceState({}, "", window.location.pathname);
+    }
+  }, []);;
 
   // Validation
   const isEmailValid = email.length > 0 && /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
@@ -142,6 +154,18 @@ export default function Login() {
               <h2 className="text-3xl font-bold tracking-tight text-white mb-2">Welcome Back</h2>
               <p className="text-white/50 font-medium tracking-tight">Log in to your workspace.</p>
           </div>
+
+            {/* OAuth error banner */}
+            {oauthError && (
+              <motion.div
+                initial={{ opacity: 0, y: -8 }}
+                animate={{ opacity: 1, y: 0 }}
+                className="p-3 mb-6 rounded-xl bg-red-500/10 border border-red-500/20 text-red-400 text-sm font-medium flex items-start gap-2"
+              >
+                <AlertCircle className="w-4 h-4 mt-0.5 flex-shrink-0" />
+                {oauthError}
+              </motion.div>
+            )}
 
             {formErrors.general && (
               <div className="p-3 mb-6 rounded-xl bg-red-500/10 border border-red-500/20 text-red-400 text-sm font-medium">

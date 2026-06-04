@@ -86,7 +86,7 @@ function AvatarGroup({ children, className = '' }: AvatarGroupProps) {
 
   return (
     <AvatarGroupContext.Provider value={{ hoveredIndex, setHoveredIndex, total }}>
-      <div className={`flex items-center flex-row-reverse ${className}`}>
+      <div className={`flex items-center flex-row ${className}`}>
         {childArray.map((child, i) => (
           <AvatarGroupItemWrapper key={i} index={i} total={total}>
             {child}

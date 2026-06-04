@@ -37,7 +37,7 @@ const cspConfig = {
     "script-src": ["'self'", "'unsafe-inline'", "https://www.google.com", "https://www.gstatic.com"],
     "frame-src": ["'self'", "https://www.google.com", "https://recaptcha.google.com"],
     "connect-src": ["'self'", frontendUrl, "https://www.google.com", "https://www.gstatic.com"],
-    "img-src": ["'self'", "data:", "https://www.gstatic.com"],
+    "img-src": ["'self'", "data:", "https://www.gstatic.com", "https://*.googleusercontent.com", "https://lh3.googleusercontent.com", "https://lh4.googleusercontent.com", "https://lh5.googleusercontent.com"],
     "style-src": ["'self'", "'unsafe-inline'", "https://fonts.googleapis.com"],
     "font-src": ["'self'", "https://fonts.gstatic.com", "data:"],
   },

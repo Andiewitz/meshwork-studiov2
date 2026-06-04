@@ -1483,19 +1483,23 @@ function WorkspaceView() {
                                         {teamId && (
                                             <Popover>
                                                 <PopoverTrigger asChild>
-                                                    <button className="flex items-center gap-2 px-2 py-1.5 rounded-xl bg-[#121214]/80 backdrop-blur-xl border border-white/[0.08] shadow-[inset_0_1px_0_rgba(255,255,255,0.1),0_4px_12px_rgba(0,0,0,0.5)] hover:bg-white/[0.06] transition-all">
-                                                        <div className={`w-1.5 h-1.5 rounded-full flex-shrink-0 ${isPresenceConnected ? 'bg-emerald-400 shadow-[0_0_6px_rgba(52,211,153,0.6)]' : 'bg-white/20'}`} />
+                                                    <button className="flex items-center focus:outline-none cursor-pointer hover:opacity-90 transition-opacity">
                                                         <AvatarGroup>
                                                             {/* Current user — always shown */}
-                                                            <Avatar className="size-6 border-2 border-[#121214]">
-                                                                <AvatarImage src={user?.profileImageUrl || ''} />
-                                                                <AvatarFallback className="text-[9px] font-bold bg-indigo-500/30 text-indigo-200">
-                                                                    {(user?.firstName?.[0] || user?.email?.[0] || '?').toUpperCase()}
-                                                                </AvatarFallback>
-                                                                <AvatarGroupTooltip>{user?.firstName || user?.email?.split('@')[0] || 'You'} (you)</AvatarGroupTooltip>
-                                                            </Avatar>
+                                                            <div className="relative">
+                                                                <Avatar className="size-6 border-2 border-[#121214]">
+                                                                    <AvatarImage src={user?.profileImageUrl || ''} />
+                                                                    <AvatarFallback className="text-[9px] font-bold bg-indigo-500/30 text-indigo-200">
+                                                                        {(user?.firstName?.[0] || user?.email?.[0] || '?').toUpperCase()}
+                                                                    </AvatarFallback>
+                                                                    <AvatarGroupTooltip>{user?.firstName || user?.email?.split('@')[0] || 'You'} (you)</AvatarGroupTooltip>
+                                                                </Avatar>
+                                                                {isPresenceConnected && (
+                                                                    <div className="absolute -bottom-0.5 -right-0.5 w-2 h-2 rounded-full bg-emerald-400 border border-[#121214] shadow-[0_0_4px_rgba(52,211,153,0.5)] z-10" />
+                                                                )}
+                                                            </div>
                                                             {/* Live collaborators */}
-                                                            {collaborators.slice(0, 3).map((u) => (
+                                                            {collaborators.filter(c => c.userId !== user?.id).slice(0, 3).map((u) => (
                                                                 <Avatar key={u.userId} className="size-6 border-2 border-[#121214]">
                                                                     <AvatarFallback className="text-[9px] font-bold" style={{ backgroundColor: `${u.color}28`, color: u.color }}>
                                                                         {u.name[0]?.toUpperCase()}
@@ -1504,10 +1508,10 @@ function WorkspaceView() {
                                                                 </Avatar>
                                                             ))}
                                                             {/* Overflow count */}
-                                                            {collaborators.length > 3 && (
+                                                            {collaborators.filter(c => c.userId !== user?.id).length > 3 && (
                                                                 <Avatar className="size-6 border-2 border-[#121214]">
                                                                     <AvatarFallback className="text-[8px] font-bold bg-white/[0.07] text-white/40">
-                                                                        +{collaborators.length - 3}
+                                                                        +{collaborators.filter(c => c.userId !== user?.id).length - 3}
                                                                     </AvatarFallback>
                                                                 </Avatar>
                                                             )}

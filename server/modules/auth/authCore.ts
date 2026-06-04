@@ -47,7 +47,9 @@ const getSession = () => {
     cookie: {
       httpOnly: true,
       secure: process.env.NODE_ENV === "production",
-      sameSite: "strict",
+      // 'lax' is required for OAuth — 'strict' blocks the session cookie on
+      // the redirect back from Google, so Passport can never log the user in
+      sameSite: "lax",
       maxAge: sessionTtl,
     },
   });
