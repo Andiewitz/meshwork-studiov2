@@ -505,8 +505,8 @@ const Home = () => {
                             </div>
                             <div className="flex flex-col gap-3">
                                 <h4 className="font-sans font-semibold text-white text-sm mb-1">Legal</h4>
-                                <span className="text-white/20 text-sm cursor-default">Privacy</span>
-                                <span className="text-white/20 text-sm cursor-default">Terms</span>
+                                <Link href="/privacy"><span className="text-white/40 hover:text-white transition-colors text-sm cursor-pointer">Privacy</span></Link>
+                                <Link href="/terms"><span className="text-white/40 hover:text-white transition-colors text-sm cursor-pointer">Terms</span></Link>
                             </div>
                         </div>
                     </div>

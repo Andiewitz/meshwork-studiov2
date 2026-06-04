@@ -25,6 +25,8 @@ const Workspace = React.lazy(() => import("@/pages/Workspace"));
 const Dev = React.lazy(() => import("@/pages/Dev"));
 const Team = React.lazy(() => import("@/pages/Team"));
 const Templates = React.lazy(() => import("@/pages/Templates"));
+const TermsOfService = React.lazy(() => import("@/pages/TermsOfService"));
+const PrivacyPolicy = React.lazy(() => import("@/pages/PrivacyPolicy"));
 
 function ProtectedRoute({ component: Component }: { component: React.ComponentType }) {
   const { user, isLoading, isRedirecting } = useAuth();
@@ -114,7 +116,7 @@ function Router() {
     return <RedirectingScreen />;
   }
 
-  // Public Landing Page Setup
+  // Public pages (landing, legal)
   if (location === "/") {
     if (user) {
       return <Redirect to="/home" />;
@@ -130,6 +132,30 @@ function Router() {
           className="min-h-screen"
         >
           <Landing />
+        </motion.div>
+      </AnimatePresence>
+    );
+  }
+
+  if (location === "/terms" || location === "/privacy") {
+    return (
+      <AnimatePresence mode="wait">
+        <motion.div
+          key={location}
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          exit={{ opacity: 0 }}
+          transition={{ duration: 0.4 }}
+          className="min-h-screen"
+        >
+          <Switch location={location}>
+            <Route path="/terms">
+              <TermsOfService />
+            </Route>
+            <Route path="/privacy">
+              <PrivacyPolicy />
+            </Route>
+          </Switch>
         </motion.div>
       </AnimatePresence>
     );
