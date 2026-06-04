@@ -3,6 +3,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { Handle, Position, NodeProps, NodeResizer } from '@xyflow/react';
 import { EXPANDABLE_TYPES } from '@/features/workspace/utils/nodeTypes';
 import { fireEnterNode } from '@/features/workspace/utils/canvasEvents';
+import * as Lucide from 'lucide-react';
 import {
     User as UserIcon,
     Type,
@@ -49,7 +50,7 @@ interface NodeBrand {
     label: string;
 }
 
-const nodeBrands: Record<string, NodeBrand> = {
+export const nodeBrands: Record<string, NodeBrand> = {
     // ── Compute ──
     server: { Icon: SiLinux, isReactIcon: true, color: '#1A1A2E', borderColor: '#333355', label: 'SERVER' },
     microservice: { Icon: SiDocker, isReactIcon: true, color: '#2496ED', borderColor: '#1A7BC9', label: 'DOCKER' },
@@ -118,7 +119,7 @@ const providerBrands: Record<string, NodeBrand> = {
     dynamodb: { Icon: SiAmazondynamodb, isReactIcon: true, color: '#4053D6', borderColor: '#3342AB', label: 'DYNAMODB' },
 };
 
-export function SystemNode({ id, data, selected, type, width, height }: NodeProps) {
+export function SystemNode({ id, data, selected, type, width, height, style }: NodeProps & { style?: any }) {
     const [isHovered, setIsHovered] = useState(false);
     const provider = (data.provider as string || '').toLowerCase();
     const isInfrastructure = type === 'vpc' || type === 'region';
@@ -145,6 +146,44 @@ export function SystemNode({ id, data, selected, type, width, height }: NodeProp
     const userAccent = data.accentColor as string | undefined;
     const finalColor = userAccent || statusBrand?.color || brand.color;
     const finalBorder = userAccent || statusBrand?.borderColor || brand.borderColor;
+
+    // Custom properties from style schema
+    const nodeStyle = (style || {}) as any;
+    const customBg = nodeStyle.backgroundColor;
+    const customBorder = nodeStyle.borderColor;
+    const customRadius = nodeStyle.borderRadius;
+    const customOpacity = nodeStyle.opacity;
+    const customFontColor = nodeStyle.fontColor;
+    const customFontSize = nodeStyle.fontSize;
+    const customIconName = nodeStyle.icon;
+    const customTheme = nodeStyle.theme || 'default';
+
+    const finalBorderColor = customBorder || finalBorder;
+    const finalRadius = customRadius !== undefined ? `${customRadius}px` : undefined;
+    const finalOpacity = customOpacity !== undefined ? customOpacity : undefined;
+    const finalFontSize = customFontSize !== undefined ? `${customFontSize}px` : undefined;
+
+    let themeStyles: React.CSSProperties = {};
+    if (customTheme === 'neon') {
+        themeStyles = {
+            boxShadow: `0 0 20px ${finalBorderColor}50, inset 0 1px 0 rgba(255,255,255,0.15)`,
+            border: `1.5px solid ${finalBorderColor}`,
+        };
+    } else if (customTheme === 'glass') {
+        themeStyles = {
+            background: 'rgba(255, 255, 255, 0.03)',
+            backdropFilter: 'blur(20px)',
+            border: '1px solid rgba(255, 255, 255, 0.08)',
+            boxShadow: '0 8px 32px rgba(0, 0, 0, 0.2)',
+        };
+    } else if (customTheme === 'minimal') {
+        themeStyles = {
+            background: 'transparent',
+            border: `1px solid rgba(255,255,255,0.15)`,
+            boxShadow: 'none',
+            backdropFilter: 'none',
+        };
+    }
 
     let K8sResourceIcon: React.ReactNode = null;
     if (isKubernetes) {
@@ -202,10 +241,20 @@ export function SystemNode({ id, data, selected, type, width, height }: NodeProp
                             ${selected ? 'ring-2 ring-blue-500/30 bg-blue-500/5' : 'border border-transparent group-hover:border-white/10'}
                             transition-all cursor-text
                         `}
+                        style={{
+                            backgroundColor: customBg,
+                            border: customBorder ? `1px solid ${customBorder}` : undefined,
+                            borderRadius: finalRadius,
+                            opacity: finalOpacity,
+                            ...themeStyles
+                        }}
                     >
                         <p
-                            className="leading-tight font-medium whitespace-pre-wrap break-all w-full max-w-full text-white/80 font-sans"
-                            style={{ fontSize: `${Math.max(14, Math.floor((width || 160) / 10))}px` }}
+                            className="leading-tight font-medium whitespace-pre-wrap break-all w-full max-w-full font-sans"
+                            style={{
+                                color: customFontColor || 'rgba(255,255,255,0.8)',
+                                fontSize: finalFontSize || `${Math.max(14, Math.floor((width || 160) / 10))}px`
+                            }}
                         >
                             {(data.label as string) || 'Annotation'}
                         </p>
@@ -216,17 +265,24 @@ export function SystemNode({ id, data, selected, type, width, height }: NodeProp
                     <div
                         className={`
                             relative p-4 overflow-hidden w-full h-full flex flex-col rounded-xl
-                            bg-gradient-to-br from-[#FFF9C4] to-[#FFF176] border border-yellow-400/30
                             shadow-lg shadow-black/20
                             ${selected ? 'ring-2 ring-yellow-400/50 shadow-[0_0_20px_rgba(250,204,21,0.15)]' : 'group-hover:shadow-xl group-hover:shadow-black/30'}
                             transition-shadow
                         `}
+                        style={{
+                            background: customBg || 'linear-gradient(135deg, #FFF9C4, #FFF176)',
+                            border: customBorder ? `1px solid ${customBorder}` : '1px solid rgba(250, 204, 21, 0.3)',
+                            borderRadius: finalRadius,
+                            opacity: finalOpacity,
+                            ...themeStyles
+                        }}
                     >
                         <p
-                            className="leading-relaxed font-semibold whitespace-pre-wrap break-all italic w-full max-w-full text-yellow-900/80"
+                            className="leading-relaxed font-semibold whitespace-pre-wrap break-all italic w-full max-w-full"
                             style={{
                                 fontFamily: 'var(--font-serif)',
-                                fontSize: `${Math.max(14, Math.floor((width || 192) / 12))}px`
+                                color: customFontColor || 'rgba(66, 32, 6, 0.8)',
+                                fontSize: finalFontSize || `${Math.max(14, Math.floor((width || 192) / 12))}px`
                             }}
                         >
                             {(data.label as string) || ''}
@@ -242,8 +298,11 @@ export function SystemNode({ id, data, selected, type, width, height }: NodeProp
                             transition-all
                         `}
                         style={{
-                            border: `1.5px dashed ${finalColor}35`,
-                            background: `${finalColor}08`,
+                            border: customBorder ? `1.5px dashed ${customBorder}` : `1.5px dashed ${finalColor}35`,
+                            background: customBg || `${finalColor}08`,
+                            borderRadius: finalRadius,
+                            opacity: finalOpacity,
+                            ...themeStyles
                         }}
                     >
                         {/* Top-left corner label — type + name */}
@@ -251,17 +310,17 @@ export function SystemNode({ id, data, selected, type, width, height }: NodeProp
                             {brand.Icon && (
                                 typeof brand.Icon === 'string'
                                     ? <img src={brand.Icon} style={{ width: zoneLabelSize + 2, height: zoneLabelSize + 2 }} alt="" className="opacity-60" />
-                                    : <brand.Icon size={zoneLabelSize + 2} style={{ color: finalColor, opacity: 0.7 }} />
+                                    : <brand.Icon size={zoneLabelSize + 2} style={{ color: customFontColor || finalColor, opacity: 0.7 }} />
                             )}
                             <span
                                 className="font-bold uppercase tracking-[0.14em] opacity-60"
-                                style={{ fontSize: `${zoneLabelSize}px`, color: finalColor }}
+                                style={{ fontSize: `${zoneLabelSize}px`, color: customFontColor || finalColor }}
                             >
                                 {brand.label}
                             </span>
                             <span
                                 className="font-normal tracking-normal normal-case opacity-40"
-                                style={{ fontSize: `${zoneLabelSize}px`, color: finalColor }}
+                                style={{ fontSize: `${zoneLabelSize}px`, color: customFontColor || finalColor }}
                             >
                                 / {data.label as string}
                             </span>
@@ -295,12 +354,22 @@ export function SystemNode({ id, data, selected, type, width, height }: NodeProp
                             ${selected ? 'ring-2 ring-[#326CE5]/40 shadow-[0_0_30px_rgba(50,108,229,0.1)]' : 'hover:bg-[#326CE5]/[0.05]'}
                             transition-all
                         `}
+                        style={{
+                            backgroundColor: customBg,
+                            border: customBorder ? `1px solid ${customBorder}` : undefined,
+                            borderRadius: finalRadius,
+                            opacity: finalOpacity,
+                            ...themeStyles
+                        }}
                     >
                         {/* Namespace label — pill badge */}
                         <div className="flex items-center gap-2 p-2 self-start">
                             <div
                                 className="px-3 py-1 rounded-full bg-[#326CE5]/80 font-black uppercase tracking-[0.15em] text-white flex items-center gap-1.5"
-                                style={{ fontSize: `${zoneLabelSize}px` }}
+                                style={{
+                                    fontSize: `${zoneLabelSize}px`,
+                                    color: customFontColor || '#ffffff'
+                                }}
                             >
                                 <SiKubernetes
                                     style={{ width: zoneIconSize, height: zoneIconSize }}
@@ -322,19 +391,34 @@ export function SystemNode({ id, data, selected, type, width, height }: NodeProp
                             ${!selected ? 'hover:shadow-[0_12px_40px_rgba(0,0,0,0.5),inset_0_1px_0_rgba(255,255,255,0.15)] hover:bg-[#16161A]/90' : ''}
                             transition-all duration-300 group
                         `}
-                        style={{ border: `1px solid ${finalColor}40` }}
+                        style={{
+                            border: `1px solid ${finalBorderColor}40`,
+                            backgroundColor: customBg,
+                            borderRadius: finalRadius,
+                            opacity: finalOpacity,
+                            ...themeStyles
+                        }}
                     >
-                        <div className="absolute inset-0 opacity-[0.03] group-hover:opacity-[0.06] transition-opacity pointer-events-none" style={{ backgroundImage: `radial-gradient(circle at 50% 0%, ${finalColor}, transparent 70%)` }} />
+                        <div className="absolute inset-0 opacity-[0.03] group-hover:opacity-[0.06] transition-opacity pointer-events-none" style={{ backgroundImage: `radial-gradient(circle at 50% 0%, ${finalBorderColor}, transparent 70%)` }} />
                         <K8sLogo className="absolute right-2 bottom-2 w-8 h-8 object-contain opacity-[0.04] pointer-events-none text-white z-0" />
 
                         <div 
                             className="relative w-9 h-9 rounded-xl flex items-center justify-center flex-shrink-0 shadow-[inset_0_1px_0_rgba(255,255,255,0.2)] z-10"
                             style={{ 
-                                background: `linear-gradient(135deg, ${finalColor}30, ${finalColor}10)`,
-                                border: `1px solid ${finalColor}50` 
+                                background: `linear-gradient(135deg, ${finalBorderColor}30, ${finalBorderColor}10)`,
+                                border: `1px solid ${finalBorderColor}50` 
                             }}
                         >
-                            {brand.Icon && typeof brand.Icon !== 'string' && <brand.Icon size={20} className="text-white/90" />}
+                            {(() => {
+                                if (customIconName && Lucide[customIconName as keyof typeof Lucide]) {
+                                    const IconComponent = Lucide[customIconName as keyof typeof Lucide] as React.ComponentType<any>;
+                                    return <IconComponent size={20} style={{ color: customFontColor || '#ffffffec' }} />;
+                                }
+                                if (brand.Icon && typeof brand.Icon !== 'string') {
+                                    return <brand.Icon size={20} className="text-white/90" />;
+                                }
+                                return null;
+                            })()}
                             {K8sResourceIcon && (
                                 <div className="absolute -bottom-1 -right-1 w-4 h-4 bg-white/10 rounded-sm flex items-center justify-center">
                                     {K8sResourceIcon}
@@ -350,7 +434,13 @@ export function SystemNode({ id, data, selected, type, width, height }: NodeProp
                         </div>
 
                         <div className="flex flex-col min-w-0 flex-1 z-10">
-                            <span className="text-[13px] font-medium tracking-tight line-clamp-2 break-words whitespace-pre-wrap leading-tight text-white/95">
+                            <span
+                                className="text-[13px] font-medium tracking-tight line-clamp-2 break-words whitespace-pre-wrap leading-tight text-white/95"
+                                style={{
+                                    color: customFontColor || 'rgba(255,255,255,0.95)',
+                                    fontSize: finalFontSize || '13px'
+                                }}
+                            >
                                 {data.label as string}
                             </span>
                             <div className="flex gap-1 mt-1.5 flex-wrap">
@@ -395,35 +485,53 @@ export function SystemNode({ id, data, selected, type, width, height }: NodeProp
                             ${!selected ? 'hover:shadow-[0_12px_40px_rgba(0,0,0,0.5),inset_0_1px_0_rgba(255,255,255,0.15)] hover:bg-[#16161A]/90' : ''}
                             transition-all duration-300 group
                         `}
-                        style={{ border: `1px solid ${finalColor}40` }}
+                        style={{
+                            border: `1px solid ${finalBorderColor}40`,
+                            backgroundColor: customBg,
+                            borderRadius: finalRadius,
+                            opacity: finalOpacity,
+                            ...themeStyles
+                        }}
                     >
-                        <div className="absolute inset-0 opacity-[0.03] group-hover:opacity-[0.06] transition-opacity pointer-events-none" style={{ backgroundImage: `radial-gradient(circle at 50% 0%, ${finalColor}, transparent 70%)` }} />
+                        <div className="absolute inset-0 opacity-[0.03] group-hover:opacity-[0.06] transition-opacity pointer-events-none" style={{ backgroundImage: `radial-gradient(circle at 50% 0%, ${finalBorderColor}, transparent 70%)` }} />
                         
                         <div className="relative rounded-xl flex items-center justify-center flex-shrink-0 shadow-[inset_0_1px_0_rgba(255,255,255,0.2)] z-10 w-9 h-9"
                             style={{ 
-                                background: `linear-gradient(135deg, ${finalColor}30, ${finalColor}10)`,
-                                border: `1px solid ${finalColor}50` 
+                                background: `linear-gradient(135deg, ${finalBorderColor}30, ${finalBorderColor}10)`,
+                                border: `1px solid ${finalBorderColor}50` 
                             }}
                         >
-                            {brand.Icon ? (
-                                typeof brand.Icon === 'string' ? (
-                                    <img
-                                        src={brand.Icon}
-                                        className="object-contain w-[18px] h-[18px]"
-                                        alt=""
-                                    />
-                                ) : (
-                                    <brand.Icon size={20} className="text-white/90" />
-                                )
-                            ) : type === 'user' ? (
-                                <UserIcon size={18} strokeWidth={2} className="text-white/90" />
-                            ) : (
-                                <div className="w-4 h-4 bg-white/20 rounded" />
-                            )}
+                            {(() => {
+                                if (customIconName && Lucide[customIconName as keyof typeof Lucide]) {
+                                    const IconComponent = Lucide[customIconName as keyof typeof Lucide] as React.ComponentType<any>;
+                                    return <IconComponent size={20} style={{ color: customFontColor || '#ffffffec' }} />;
+                                }
+                                if (brand.Icon) {
+                                    return typeof brand.Icon === 'string' ? (
+                                        <img
+                                            src={brand.Icon}
+                                            className="object-contain w-[18px] h-[18px]"
+                                            alt=""
+                                        />
+                                    ) : (
+                                        <brand.Icon size={20} className="text-white/90" style={{ color: customFontColor }} />
+                                    );
+                                }
+                                if (type === 'user') {
+                                    return <UserIcon size={18} strokeWidth={2} className="text-white/90" style={{ color: customFontColor }} />;
+                                }
+                                return <div className="w-4 h-4 bg-white/20 rounded" />;
+                            })()}
                         </div>
 
                         <div className="flex flex-col min-w-0 z-10">
-                            <span className="text-[13px] font-medium tracking-tight line-clamp-2 break-words whitespace-pre-wrap leading-tight text-white/95">
+                            <span
+                                className="text-[13px] font-medium tracking-tight line-clamp-2 break-words whitespace-pre-wrap leading-tight text-white/95"
+                                style={{
+                                    color: customFontColor || 'rgba(255,255,255,0.95)',
+                                    fontSize: finalFontSize || '13px'
+                                }}
+                            >
                                 {data.label as string}
                             </span>
                         </div>

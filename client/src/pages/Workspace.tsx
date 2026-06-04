@@ -119,9 +119,11 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
-import { SystemNode } from '@/components/canvas/nodes/SystemNode';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
+import { Sparkles, Tag as LucideTag, X } from 'lucide-react';
+import { SystemNode, nodeBrands } from '@/components/canvas/nodes/SystemNode';
 
-import { nodeTypes, nodeTypesList, DEFAULT_FAVORITES as favoriteNodes, trackNodeUsage, EXPANDABLE_TYPES } from '@/features/workspace/utils/nodeTypes';
+import { nodeTypes, nodeTypesList, DEFAULT_FAVORITES as favoriteNodes, trackNodeUsage, EXPANDABLE_TYPES, NODE_DESCRIPTIONS } from '@/features/workspace/utils/nodeTypes';
 import { registerEnterNodeHandler, unregisterEnterNodeHandler } from '@/features/workspace/utils/canvasEvents';
 import { nodeDimensions } from "@/features/workspace/utils/dimensions";
 import { generateTemplate } from "@/features/workspace/utils/templates";
@@ -154,10 +156,21 @@ function WorkspaceView() {
     const [nodes, setNodes, onNodesChange] = useNodesState<Node>([]);
     const [edges, setEdges, onEdgesChange] = useEdgesState<Edge>([]);
     const [selectedNodeId, setSelectedNodeId] = useState<string | null>(null);
+    const [selectedEdgeId, setSelectedEdgeId] = useState<string | null>(null);
     const [activeTab, setActiveTab] = useState<'layers' | 'properties'>('layers');
     const [isSimulating, setIsSimulating] = useState(false);
     const [searchTerm, setSearchTerm] = useState('');
     const [snapToGrid, setSnapToGrid] = useState(true);
+
+    // Workspace Settings States
+    const [isSettingsOpen, setIsSettingsOpen] = useState(false);
+    const [wsDescription, setWsDescription] = useState('');
+    const [wsAuthor, setWsAuthor] = useState('');
+    const [wsAiContext, setWsAiContext] = useState('');
+    const [wsTags, setWsTags] = useState<string[]>([]);
+    const [newWsTag, setNewWsTag] = useState('');
+    const [wsGroups, setWsGroups] = useState<string[]>([]);
+    const [newWsGroup, setNewWsGroup] = useState('');
     const [edgeType, setEdgeType] = useState<EdgeType>('step');
     const [edgeStyle, setEdgeStyle] = useState<EdgeStyle>('solid');
     const [hasArrow, setHasArrow] = useState(false);
@@ -626,15 +639,34 @@ function WorkspaceView() {
         takeSnapshot();
         const nodeTypeInfo = nodeTypesList.find(n => n.type === type);
         const dim = nodeDimensions[type] || { w: 168, h: 96 };
+        const brand = nodeBrands[type] || { color: '#4F46E5', borderColor: '#4338CA' };
 
         const newNode: Node = {
             id: `${type}-${Date.now()}`,
             type,
             position,
-            style: { width: dim.w, height: dim.h },
+            style: {
+                width: dim.w,
+                height: dim.h,
+                backgroundColor: brand.color,
+                borderColor: brand.borderColor,
+                borderRadius: 8,
+                opacity: 1,
+                fontColor: "#ffffff",
+                fontSize: 13,
+                icon: null,
+                theme: "default"
+            } as any,
             data: {
                 label: label,
-                category: nodeTypeInfo?.category || 'Compute'
+                category: nodeTypeInfo?.category || 'Core',
+                description: NODE_DESCRIPTIONS[type] || '',
+                tags: [],
+                ai: {
+                    summary: "",
+                    notes: "",
+                    lastAnalyzed: null
+                }
             },
         };
         setNodes((nds) => nds.concat(newNode));
@@ -680,6 +712,29 @@ function WorkspaceView() {
         );
     }, [takeSnapshot, setNodes]);
 
+    const updateEdgeData = useCallback((id: string, newData: any) => {
+        takeSnapshot();
+        setEdges((eds) =>
+            eds.map((edge) => {
+                if (edge.id === id) {
+                    const labelVal = newData.label !== undefined ? newData.label : (edge.data?.label || edge.label || '');
+                    return { 
+                        ...edge, 
+                        label: labelVal,
+                        data: { ...edge.data, ...newData } 
+                    };
+                }
+                return edge;
+            })
+        );
+    }, [takeSnapshot, setEdges]);
+
+    const deleteEdge = useCallback((id: string) => {
+        takeSnapshot();
+        setEdges((eds) => eds.filter((edge) => edge.id !== id));
+        if (selectedEdgeId === id) setSelectedEdgeId(null);
+    }, [takeSnapshot, setEdges, selectedEdgeId]);
+
     const onConnect = useCallback(
         (params: Connection) => {
             takeSnapshot();
@@ -692,7 +747,12 @@ function WorkspaceView() {
                 type: edgeType,
                 style,
                 animated: isSimulating,
-                markerEnd: hasArrow ? { type: 'arrowclosed' as any, color: '#555' } : undefined
+                markerEnd: hasArrow ? { type: 'arrowclosed' as any, color: '#555' } : undefined,
+                data: {
+                    label: "",
+                    description: "what this connection represents",
+                    ai: { notes: "" }
+                }
             }, eds));
         },
         [setEdges, isSimulating, takeSnapshot, edgeType, edgeStyle, hasArrow],
@@ -700,6 +760,7 @@ function WorkspaceView() {
 
     const onPaneClick = useCallback((event: React.MouseEvent) => {
         setSelectedNodeId(null);
+        setSelectedEdgeId(null);
         const position = screenToFlowPosition({
             x: event.clientX,
             y: event.clientY,
@@ -729,6 +790,39 @@ function WorkspaceView() {
                     title: "Failed to save changes",
                     description: err.message || "An error occurred while saving. Please try again.",
                     variant: "destructive",
+                });
+            }
+        });
+    };
+
+    useEffect(() => {
+        if (workspace && isSettingsOpen) {
+            setWsDescription(workspace.description || '');
+            setWsAuthor(workspace.author || '');
+            setWsAiContext(workspace.aiContext || '');
+            setWsTags(workspace.tags || []);
+            setWsGroups(workspace.groups || []);
+        }
+    }, [workspace, isSettingsOpen]);
+
+    const handleSaveWorkspaceSettings = () => {
+        updateWorkspace.mutate({
+            id: workspaceId,
+            description: wsDescription,
+            author: wsAuthor,
+            aiContext: wsAiContext,
+            tags: wsTags,
+            groups: wsGroups,
+        }, {
+            onSuccess: () => {
+                toast({ title: 'Workspace settings updated successfully' });
+                setIsSettingsOpen(false);
+            },
+            onError: (err: any) => {
+                toast({
+                    title: 'Failed to update workspace settings',
+                    description: err.message,
+                    variant: 'destructive',
                 });
             }
         });
@@ -855,9 +949,12 @@ function WorkspaceView() {
                 return;
             }
 
-            if ((e.key === 'Delete' || e.key === 'Backspace') && selectedNodeId) {
-                if (!isEditing) {
+            if (e.key === 'Delete' || e.key === 'Backspace') {
+                if (isEditing) return;
+                if (selectedNodeId) {
                     deleteNode(selectedNodeId);
+                } else if (selectedEdgeId) {
+                    deleteEdge(selectedEdgeId);
                 }
             }
             if (e.ctrlKey || e.metaKey) {
@@ -904,18 +1001,26 @@ function WorkspaceView() {
 
     const onNodeClick = useCallback((_: any, node: Node) => {
         setSelectedNodeId(node.id);
+        setSelectedEdgeId(null);
         setActiveTab('properties');
     }, []);
 
     const onNodeDoubleClick = useCallback((_: any, node: Node) => {
         // Double-click always opens properties for inline editing
         setSelectedNodeId(node.id);
+        setSelectedEdgeId(null);
         setActiveTab('properties');
         setTimeout(() => {
             const input = document.querySelector('[data-property-input="true"]') as HTMLTextAreaElement | HTMLInputElement;
             input?.focus();
             if (input instanceof HTMLTextAreaElement || input instanceof HTMLInputElement) input.select();
         }, 50);
+    }, []);
+
+    const onEdgeClick = useCallback((_: any, edge: Edge) => {
+        setSelectedEdgeId(edge.id);
+        setSelectedNodeId(null);
+        setActiveTab('properties');
     }, []);
 
 
@@ -1000,6 +1105,7 @@ function WorkspaceView() {
     }, [nodes, setNodes, sendNodeMove]);
 
     const selectedNode = nodes.find((n) => n.id === selectedNodeId) || null;
+    const selectedEdge = edges.find((e) => e.id === selectedEdgeId) || null;
 
     if (isLoading) {
         return (
@@ -1060,6 +1166,7 @@ function WorkspaceView() {
                                 onConnect={onConnect}
                                 onNodeClick={onNodeClick}
                                 onNodeDoubleClick={onNodeDoubleClick}
+                                onEdgeClick={onEdgeClick}
                                 onNodeDragStart={onNodeDragStart}
                                 onNodeDrag={onNodeDrag}
                                 onNodeDragStop={onNodeDragStop}
@@ -1151,6 +1258,12 @@ function WorkspaceView() {
                                                             Rename Project
                                                         </button>
                                                     )
+                                                )}
+                                                {canEdit && (
+                                                    <button onClick={() => { setIsSettingsOpen(true); setMenuOpen(false); }} className="w-full flex items-center gap-2.5 px-3 py-2 rounded-lg text-[12px] text-white/60 hover:text-white hover:bg-white/[0.07] transition-all">
+                                                        <Settings className="w-3.5 h-3.5" />
+                                                        Workspace Settings
+                                                    </button>
                                                 )}
                                                 {canEdit && (
                                                     <button onClick={handleDuplicate} className="w-full flex items-center gap-2.5 px-3 py-2 rounded-lg text-[12px] text-white/60 hover:text-white hover:bg-white/[0.07] transition-all">
@@ -1810,7 +1923,7 @@ function WorkspaceView() {
 
                     {/* ── Right properties panel ── overlays canvas, z-40 above sidebar ── */}
                     <AnimatePresence>
-                        {selectedNode && (
+                        {(selectedNode || selectedEdge) && (
                             <motion.aside
                                 initial={{ x: 280, opacity: 0 }}
                                 animate={{ x: 0, opacity: 1 }}
@@ -1821,15 +1934,203 @@ function WorkspaceView() {
                                 <div className="h-full overflow-y-auto" style={{ scrollbarWidth: 'none' }}>
                                     <PropertiesSidebar
                                         selectedNode={selectedNode}
+                                        selectedEdge={selectedEdge}
                                         updateNodeData={updateNodeData}
                                         updateNodeStyle={updateNodeStyle}
+                                        updateEdgeData={updateEdgeData}
                                         deleteNode={onDelete}
-                                        onClose={() => setSelectedNodeId(null)}
+                                        deleteEdge={deleteEdge}
+                                        onClose={() => {
+                                            setSelectedNodeId(null);
+                                            setSelectedEdgeId(null);
+                                        }}
                                     />
                                 </div>
                             </motion.aside>
                         )}
                     </AnimatePresence>
+
+                    {/* Workspace Settings Dialog */}
+                    <Dialog open={isSettingsOpen} onOpenChange={setIsSettingsOpen}>
+                        <DialogContent className="max-w-[480px] w-full bg-[#0E0E0E]/95 backdrop-blur-2xl border border-[#252525] shadow-[0_32px_64px_rgba(0,0,0,0.7)] rounded-2xl text-white p-6 space-y-4">
+                            <DialogHeader className="border-b border-white/[0.06] pb-3">
+                                <DialogTitle className="text-[15px] font-bold uppercase tracking-wider flex items-center gap-2">
+                                    <Settings className="w-4 h-4 text-white/50" />
+                                    Workspace Settings
+                                </DialogTitle>
+                                <DialogDescription className="text-[11px] text-white/40">
+                                    Edit details for your architecture project.
+                                </DialogDescription>
+                            </DialogHeader>
+
+                            <div className="space-y-4 max-h-[55vh] overflow-y-auto pr-1 scrollbar-thin">
+                                {/* Author */}
+                                <div className="space-y-1.5">
+                                    <Label className="text-[10px] uppercase tracking-widest font-bold text-white/40">Author / Architect</Label>
+                                    <Input
+                                        type="text"
+                                        value={wsAuthor}
+                                        onChange={(e) => setWsAuthor(e.target.value)}
+                                        className="h-9 rounded-lg bg-white/5 border-white/10 text-white text-[12px]"
+                                        placeholder="e.g. garden-hoser67"
+                                    />
+                                </div>
+
+                                {/* Description */}
+                                <div className="space-y-1.5">
+                                    <Label className="text-[10px] uppercase tracking-widest font-bold text-white/40">Project Description</Label>
+                                    <Textarea
+                                        value={wsDescription}
+                                        onChange={(e) => setWsDescription(e.target.value)}
+                                        className="min-h-[80px] rounded-lg bg-white/5 border-white/10 text-white text-[12px] resize-none"
+                                        placeholder="Describe the system architecture, its components and layout..."
+                                    />
+                                </div>
+
+                                {/* AI Context */}
+                                <div className="space-y-1.5">
+                                    <Label className="text-[10px] uppercase tracking-widest font-bold text-white/40 flex items-center gap-1">
+                                        <Sparkles className="w-3 h-3 text-[#FF5500]" />
+                                        AI Architectural Context
+                                    </Label>
+                                    <Textarea
+                                        value={wsAiContext}
+                                        onChange={(e) => setWsAiContext(e.target.value)}
+                                        className="min-h-[100px] rounded-lg bg-white/5 border-white/10 text-white text-[12px] resize-none"
+                                        placeholder="Provide specific guidelines, design rules, or background context..."
+                                    />
+                                    <span className="text-[9px] text-white/30 block leading-normal">
+                                        This context helps the AI understand the intent of this diagram during architectural reviews.
+                                    </span>
+                                </div>
+
+                                {/* Tags */}
+                                <div className="space-y-1.5">
+                                    <Label className="text-[10px] uppercase tracking-widest font-bold text-white/40">Workspace Tags</Label>
+                                    {wsTags.length > 0 && (
+                                        <div className="flex flex-wrap gap-1.5 mb-2">
+                                            {wsTags.map(tag => (
+                                                <span
+                                                    key={tag}
+                                                    className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-white/[0.04] border border-white/[0.08] text-[10px] text-white/70"
+                                                >
+                                                    {tag}
+                                                    <button
+                                                        onClick={() => setWsTags(wsTags.filter(t => t !== tag))}
+                                                        className="w-3.5 h-3.5 flex items-center justify-center text-white/30 hover:text-white/75 rounded"
+                                                    >
+                                                        <X className="w-2.5 h-2.5" />
+                                                    </button>
+                                                </span>
+                                            ))}
+                                        </div>
+                                    )}
+                                    <div className="flex gap-2">
+                                        <Input
+                                            type="text"
+                                            placeholder="Add tag... (Press Enter)"
+                                            value={newWsTag}
+                                            onChange={(e) => setNewWsTag(e.target.value)}
+                                            onKeyDown={(e) => {
+                                                if (e.key === 'Enter') {
+                                                    e.preventDefault();
+                                                    const trimmed = newWsTag.trim();
+                                                    if (trimmed && !wsTags.includes(trimmed)) {
+                                                        setWsTags([...wsTags, trimmed]);
+                                                    }
+                                                    setNewWsTag('');
+                                                }
+                                            }}
+                                            className="h-8 rounded-lg bg-white/5 border-white/10 text-white text-[11px]"
+                                        />
+                                        <button
+                                            onClick={() => {
+                                                const trimmed = newWsTag.trim();
+                                                if (trimmed && !wsTags.includes(trimmed)) {
+                                                    setWsTags([...wsTags, trimmed]);
+                                                }
+                                                setNewWsTag('');
+                                            }}
+                                            className="h-8 px-3 rounded-lg border border-white/10 bg-white/5 hover:bg-white/10 text-white text-[11px] font-bold"
+                                        >
+                                            +
+                                        </button>
+                                    </div>
+                                </div>
+
+                                {/* Groups */}
+                                <div className="space-y-1.5">
+                                    <Label className="text-[10px] uppercase tracking-widest font-bold text-white/40">Architectural Groups</Label>
+                                    {wsGroups.length > 0 && (
+                                        <div className="flex flex-wrap gap-1.5 mb-2">
+                                            {wsGroups.map(group => (
+                                                <span
+                                                    key={group}
+                                                    className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-white/[0.04] border border-white/[0.08] text-[10px] text-white/70"
+                                                >
+                                                    {group}
+                                                    <button
+                                                        onClick={() => setWsGroups(wsGroups.filter(g => g !== group))}
+                                                        className="w-3.5 h-3.5 flex items-center justify-center text-white/30 hover:text-white/75 rounded"
+                                                    >
+                                                        <X className="w-2.5 h-2.5" />
+                                                    </button>
+                                                </span>
+                                            ))}
+                                        </div>
+                                    )}
+                                    <div className="flex gap-2">
+                                        <Input
+                                            type="text"
+                                            placeholder="Add group name... (Press Enter)"
+                                            value={newWsGroup}
+                                            onChange={(e) => setNewWsGroup(e.target.value)}
+                                            onKeyDown={(e) => {
+                                                if (e.key === 'Enter') {
+                                                    e.preventDefault();
+                                                    const trimmed = newWsGroup.trim();
+                                                    if (trimmed && !wsGroups.includes(trimmed)) {
+                                                        setWsGroups([...wsGroups, trimmed]);
+                                                    }
+                                                    setNewWsGroup('');
+                                                }
+                                            }}
+                                            className="h-8 rounded-lg bg-white/5 border-white/10 text-white text-[11px]"
+                                        />
+                                        <button
+                                            onClick={() => {
+                                                const trimmed = newWsGroup.trim();
+                                                if (trimmed && !wsGroups.includes(trimmed)) {
+                                                    setWsGroups([...wsGroups, trimmed]);
+                                                }
+                                                setNewWsGroup('');
+                                            }}
+                                            className="h-8 px-3 rounded-lg border border-white/10 bg-white/5 hover:bg-white/10 text-white text-[11px] font-bold"
+                                        >
+                                            +
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div className="flex items-center justify-end gap-2 border-t border-white/[0.06] pt-3 mt-2">
+                                <button
+                                    type="button"
+                                    onClick={() => setIsSettingsOpen(false)}
+                                    className="px-4 py-2 text-[12px] font-medium text-white/60 hover:text-white rounded-lg hover:bg-white/5 transition-all"
+                                >
+                                    Cancel
+                                </button>
+                                <button
+                                    type="button"
+                                    onClick={handleSaveWorkspaceSettings}
+                                    className="bg-[#FF5500] hover:brightness-110 text-white text-[12px] font-semibold px-5 py-2 rounded-lg transition-all"
+                                >
+                                    Save Settings
+                                </button>
+                            </div>
+                        </DialogContent>
+                    </Dialog>
         </div>
     );
 }

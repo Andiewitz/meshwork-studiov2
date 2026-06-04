@@ -77,6 +77,8 @@ export function CreateWorkspaceDialog({ open, onOpenChange }: CreateWorkspaceDia
         type: "system", 
         userId: user.id,
         icon: selectedIcon,
+        groups: [],
+        tags: [],
       },
       {
         onSuccess: (newWorkspace) => {

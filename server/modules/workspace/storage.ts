@@ -124,6 +124,11 @@ export class WorkspaceDatabaseStorage implements IWorkspaceStorage {
             icon: existing.icon,
             userId: existing.userId,
             collectionId: existing.collectionId,
+            description: existing.description,
+            author: existing.author,
+            aiContext: existing.aiContext,
+            groups: existing.groups || [],
+            tags: existing.tags || [],
         }).returning();
 
         return duplicated;

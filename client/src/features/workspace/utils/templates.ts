@@ -1,4 +1,5 @@
 import { Node, Edge } from '@xyflow/react';
+import { validateAndRepairCanvas } from '@/lib/ai-canvas-utils';
 
 export interface TemplateResult {
     nodes: Node[];
@@ -6,8 +7,8 @@ export interface TemplateResult {
 }
 
 export const generateTemplate = (templateType: string, base: { x: number, y: number }): TemplateResult => {
-    let newNodes: Node[] = [];
-    let newEdges: Edge[] = [];
+    let newNodes: any[] = [];
+    let newEdges: any[] = [];
     const now = Date.now();
 
     if (templateType === 'template:ecommerce') {
@@ -107,5 +108,6 @@ export const generateTemplate = (templateType: string, base: { x: number, y: num
         ];
     }
 
-    return { nodes: newNodes, edges: newEdges };
+    const repaired = validateAndRepairCanvas({ nodes: newNodes, edges: newEdges });
+    return repaired || { nodes: newNodes as Node[], edges: newEdges as Edge[] };
 };

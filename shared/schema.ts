@@ -66,6 +66,11 @@ export const workspaces = pgTable("workspaces", {
   collectionId: integer("collection_id").references(() => collections.id),
   createdAt: timestamp("created_at").defaultNow(),
   updatedAt: timestamp("updated_at").defaultNow(),
+  description: text("description"),
+  author: text("author"),
+  aiContext: text("ai_context"),
+  groups: jsonb("groups").$type<string[]>().default(sql`'[]'::jsonb`),
+  tags: jsonb("tags").$type<string[]>().default(sql`'[]'::jsonb`),
 });
 
 export const nodes = pgTable("nodes", {
@@ -190,6 +195,8 @@ export const insertWorkspaceSchema = createInsertSchema(workspaces, {
     .refine((val) => titleRegex.test(val) || val.trim().length > 0, {
       message: "Title can only contain letters, numbers, spaces, hyphens, and underscores",
     }),
+  groups: z.array(z.string()).default([]),
+  tags: z.array(z.string()).default([]),
 }).omit({ id: true, createdAt: true });
 export const insertNodeSchema = createInsertSchema(nodes);
 export const insertUserApiKeySchema = createInsertSchema(userApiKeys).omit({ id: true, createdAt: true, updatedAt: true });

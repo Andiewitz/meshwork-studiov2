@@ -45,7 +45,12 @@ async function createTables() {
                 user_id TEXT,
                 collection_id INTEGER REFERENCES collections(id) ON DELETE SET NULL,
                 created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-                updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+                updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                description TEXT,
+                author TEXT,
+                ai_context TEXT,
+                groups JSONB DEFAULT '[]'::jsonb,
+                tags JSONB DEFAULT '[]'::jsonb
             );
         `);
         console.log("[WorkspaceDB] Workspaces table created/verified");
@@ -104,7 +109,15 @@ async function runMigrations() {
         await pool.query(`
             ALTER TABLE workspaces ADD COLUMN IF NOT EXISTS updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP;
         `);
-        console.log("[WorkspaceDB] Migrations verified (is_favorite, updated_at)");
+        // v1.3: Add description, author, ai_context, groups, and tags to workspaces
+        await pool.query(`
+            ALTER TABLE workspaces ADD COLUMN IF NOT EXISTS description TEXT;
+            ALTER TABLE workspaces ADD COLUMN IF NOT EXISTS author TEXT;
+            ALTER TABLE workspaces ADD COLUMN IF NOT EXISTS ai_context TEXT;
+            ALTER TABLE workspaces ADD COLUMN IF NOT EXISTS groups JSONB DEFAULT '[]'::jsonb;
+            ALTER TABLE workspaces ADD COLUMN IF NOT EXISTS tags JSONB DEFAULT '[]'::jsonb;
+        `);
+        console.log("[WorkspaceDB] Migrations verified (is_favorite, updated_at, metadata)");
     } catch (err) {
         console.error("[WorkspaceDB] Migration failed:", err);
     }

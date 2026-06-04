@@ -88,12 +88,30 @@ export function validateAndRepairCanvas(raw: any): { nodes: Node[]; edges: Edge[
       position: { x, y },
       data: {
         label: n.data?.label || type,
-        category: n.data?.category || "Compute",
+        category: n.data?.category || "Core",
+        description: n.data?.description || "",
+        tags: n.data?.tags || [],
+        ai: {
+          summary: n.data?.ai?.summary || "",
+          notes: n.data?.ai?.notes || "",
+          lastAnalyzed: n.data?.ai?.lastAnalyzed || null
+        },
         ...(n.data?.provider ? { provider: n.data.provider } : {}),
         ...(n.data?.accentColor ? { accentColor: n.data.accentColor } : {}),
         ...(n.data?.note ? { note: n.data.note } : {}),
       },
-      style: { width, height },
+      style: {
+        width,
+        height,
+        backgroundColor: n.style?.backgroundColor || n.data?.accentColor || "#1a1a2e",
+        borderColor: n.style?.borderColor || "#555",
+        borderRadius: n.style?.borderRadius || 8,
+        opacity: n.style?.opacity ?? 1,
+        fontColor: n.style?.fontColor || "#ffffff",
+        fontSize: n.style?.fontSize || 13,
+        icon: n.style?.icon || null,
+        theme: n.style?.theme || "default"
+      },
       ...(n.parentId ? { parentId: n.parentId, extent: "parent" as const } : {}),
     };
   });
@@ -114,6 +132,13 @@ export function validateAndRepairCanvas(raw: any): { nodes: Node[]; edges: Edge[
           stroke: e.style?.stroke || "#555",
           strokeWidth: e.style?.strokeWidth || 1.5,
           ...(hasDash ? { strokeDasharray: e.style.strokeDasharray } : {}),
+        },
+        data: {
+          label: e.data?.label || e.label || "",
+          description: e.data?.description || "",
+          ai: {
+            notes: e.data?.ai?.notes || ""
+          }
         },
         ...(hasArrow ? { markerEnd: { type: "arrowclosed", color: e.style?.stroke || "#555" } } : {}),
         ...(e.label ? {
