@@ -1,7 +1,7 @@
 import React, { useState, useRef, useEffect, useCallback } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Send, Sparkles, Bot, Loader2, ChevronDown, Wand2, Zap } from "lucide-react";
-import { useReactFlow } from "@xyflow/react";
+import { useReactFlow, useNodes, useEdges } from "@xyflow/react";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
 import { validateAndRepairCanvas } from "@/lib/ai-canvas-utils";
@@ -158,7 +158,7 @@ interface Message {
   appliedToCanvas?: boolean;
 }
 
-const SUGGESTIONS = [
+const DEFAULT_SUGGESTIONS = [
   "Design a scalable Kubernetes microservices architecture",
   "Set up a high-availability Postgres cluster",
   "Build a serverless event-driven data pipeline",
@@ -180,6 +180,45 @@ export function AiChatDrawer({
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const { setNodes, setEdges, fitView, getNodes, getEdges, getViewport } = useReactFlow();
+
+  const nodes = useNodes();
+  const edges = useEdges();
+  const [suggestions, setSuggestions] = useState<string[]>(DEFAULT_SUGGESTIONS);
+  const [isLoadingSuggestions, setIsLoadingSuggestions] = useState(false);
+
+  const nodesKey = nodes.map(n => `${n.id}:${n.type}`).join(",");
+  const edgesKey = edges.map(e => `${e.source}->${e.target}`).join(",");
+
+  useEffect(() => {
+    if (!isOpen) return;
+
+    setIsLoadingSuggestions(true);
+    const timer = setTimeout(async () => {
+      try {
+        const { secureFetch } = await import("@/lib/secure-fetch");
+        const response = await secureFetch("/api/ai/suggestions", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            canvas: { nodes, edges }
+          })
+        });
+
+        if (response.ok) {
+          const data = await response.json();
+          if (Array.isArray(data)) {
+            setSuggestions(data);
+          }
+        }
+      } catch (err) {
+        console.error("Failed to load suggestions:", err);
+      } finally {
+        setIsLoadingSuggestions(false);
+      }
+    }, 1500);
+
+    return () => clearTimeout(timer);
+  }, [isOpen, nodesKey, edgesKey]);
 
   const handleInputChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
     setInput(e.target.value);
@@ -431,19 +470,31 @@ export function AiChatDrawer({
                     <p className="text-white/40 text-xs max-w-[240px]">Describe your cloud infrastructure or ask me to modify the canvas.</p>
                   </div>
                   <div className="flex flex-col w-full gap-2 px-2 mt-4">
-                    {SUGGESTIONS.map((s, i) => (
-                      <motion.button
-                        key={s}
-                        initial={{ opacity: 0, x: -10 }}
-                        animate={{ opacity: 1, x: 0 }}
-                        transition={{ delay: 0.2 + i * 0.05 }}
-                        onClick={() => { setInput(s); textareaRef.current?.focus(); }}
-                        className="flex items-center gap-2 px-3 py-2.5 rounded-xl text-[12px] text-white/60 border border-white/[0.06] hover:border-[#10B981]/40 hover:text-white/90 hover:bg-[#10B981]/10 transition-all cursor-pointer text-left w-full group"
-                      >
-                        <Bot className="w-3.5 h-3.5 text-[#10B981]/60 group-hover:text-[#10B981] transition-colors shrink-0" />
-                        <span className="truncate">{s}</span>
-                      </motion.button>
-                    ))}
+                    {isLoadingSuggestions ? (
+                      Array.from({ length: 4 }).map((_, i) => (
+                        <div
+                          key={i}
+                          className="h-[38px] w-full rounded-xl bg-white/[0.02] border border-white/[0.04] animate-pulse flex items-center px-3"
+                        >
+                          <Bot className="w-3.5 h-3.5 text-[#10B981]/30 mr-2 shrink-0" />
+                          <div className="h-3 bg-white/[0.06] rounded w-2/3" />
+                        </div>
+                      ))
+                    ) : (
+                      suggestions.map((s, i) => (
+                        <motion.button
+                          key={s}
+                          initial={{ opacity: 0, x: -10 }}
+                          animate={{ opacity: 1, x: 0 }}
+                          transition={{ delay: 0.2 + i * 0.05 }}
+                          onClick={() => { setInput(s); textareaRef.current?.focus(); }}
+                          className="flex items-center gap-2 px-3 py-2.5 rounded-xl text-[12px] text-white/60 border border-white/[0.06] hover:border-[#10B981]/40 hover:text-white/90 hover:bg-[#10B981]/10 transition-all cursor-pointer text-left w-full group"
+                        >
+                          <Bot className="w-3.5 h-3.5 text-[#10B981]/60 group-hover:text-[#10B981] transition-colors shrink-0" />
+                          <span className="truncate">{s}</span>
+                        </motion.button>
+                      ))
+                    )}
                   </div>
                 </motion.div>
               )}

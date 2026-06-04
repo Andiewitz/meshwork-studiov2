@@ -18,6 +18,8 @@ vi.mock('@server/modules/auth/authCore', () => ({
 // Mock DB calls for getting API keys to return nothing, forcing the route to use the ENV fallback
 vi.mock('@server/modules/ai/db', () => ({
   getApiKeyWithPlaintext: vi.fn().mockResolvedValue(null),
+  getActiveKeyForProvider: vi.fn().mockResolvedValue(null),
+  getUserApiKeys: vi.fn().mockResolvedValue([]),
 }));
 
 const setupTestApp = () => {
@@ -94,5 +96,28 @@ describe('AI Chat Route Integration Tests', () => {
       expect(typeof content).toBe('string');
       expect(content.toLowerCase()).toContain('meshwork');
     }, 15000); // 15s timeout for real API call
+  });
+
+  describe('POST /api/ai/suggestions', () => {
+    it('should return fallback suggestions if no key is found', async () => {
+      // Temporarily remove ENV variable
+      const originalKey = process.env.OPENROUTER_API_KEY;
+      delete process.env.OPENROUTER_API_KEY;
+
+      const res = await request(app)
+        .post('/api/ai/suggestions')
+        .set('x-test-user-id', '1')
+        .send({
+          canvas: { nodes: [], edges: [] }
+        });
+
+      expect(res.status).toBe(200);
+      expect(Array.isArray(res.body)).toBe(true);
+      expect(res.body.length).toBe(4);
+      expect(res.body[0]).toBe("Design a scalable Kubernetes microservices architecture");
+
+      // Restore ENV
+      if (originalKey) process.env.OPENROUTER_API_KEY = originalKey;
+    });
   });
 });
