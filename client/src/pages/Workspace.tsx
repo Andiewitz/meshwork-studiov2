@@ -1474,9 +1474,16 @@ function WorkspaceView() {
                                 {/* ── Top-right panel ── */}
                                 <Panel position="top-right" className="m-5">
                                     <motion.div
-                                        initial={{ opacity: 0, y: -16 }}
-                                        animate={{ opacity: 1, y: 0 }}
-                                        transition={{ duration: 0.5, ease: [0.16, 1, 0.3, 1], delay: 0.1 }}
+                                        initial={{ opacity: 0, y: -16, x: 0 }}
+                                        animate={{ 
+                                            opacity: 1, 
+                                            y: 0,
+                                            x: (selectedNode || selectedEdge) ? -280 : 0
+                                        }}
+                                        transition={{ 
+                                            default: { duration: 0.5, ease: [0.16, 1, 0.3, 1], delay: 0.1 },
+                                            x: { duration: 0.25, ease: [0.16, 1, 0.3, 1] }
+                                        }}
                                         className="flex items-center gap-2"
                                     >
                                         {/* Presence + members — only when workspace belongs to a team */}
