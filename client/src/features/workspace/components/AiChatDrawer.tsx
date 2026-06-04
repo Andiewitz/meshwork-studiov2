@@ -165,7 +165,13 @@ const SUGGESTIONS = [
   "Create a secure AWS VPC with public/private subnets",
 ];
 
-export function AiChatDrawer() {
+export function AiChatDrawer({ 
+  isLeftSidebarOpen = false, 
+  isRightSidebarOpen = false 
+}: { 
+  isLeftSidebarOpen?: boolean; 
+  isRightSidebarOpen?: boolean; 
+}) {
   const [isOpen, setIsOpen] = useState(false);
   const [messages, setMessages] = useState<Message[]>([]);
   const [input, setInput] = useState("");
@@ -355,7 +361,14 @@ export function AiChatDrawer() {
   };
 
   return (
-    <div className="fixed bottom-0 left-1/2 -translate-x-1/2 z-50 flex flex-col items-center pointer-events-none">
+    <div 
+      className="fixed bottom-0 left-1/2 z-50 flex flex-col items-center pointer-events-none transition-transform duration-300 ease-[cubic-bezier(0.16,1,0.3,1)]"
+      style={{
+        transform: `translate(calc(-50% + ${
+          (isLeftSidebarOpen ? 130 : 0) - (isRightSidebarOpen ? 140 : 0)
+        }px), 0)`
+      }}
+    >
       {/* Pull Tab */}
       <motion.button
         onClick={() => setIsOpen(!isOpen)}

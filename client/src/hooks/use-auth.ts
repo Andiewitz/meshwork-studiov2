@@ -11,23 +11,6 @@ function getApiUrl(path: string): string {
 }
 
 async function fetchUser(): Promise<User | null> {
-  // Local Dev Bypass - Instantly see the Dashboard UI without needing Postgres running
-  if (import.meta.env.DEV) {
-    return {
-      id: "mock-id-1",
-      email: "architect@meshwork.dev",
-      firstName: "Andrei",
-      lastName: "Architect",
-      profileImageUrl: "https://lh3.googleusercontent.com/aida-public/AB6AXuC-JTdi7K7guBlCoOvJJUVsjo1JHj0Ok51Bw9bfewYZRrdCNKm96Vq8Esf03yMGfFjz-Nx1o88diz_-CgrcFlaEuF133QGW6enP8CTOPkZJl0ySRO6ZMe-AtabFmhTdW3EhkAYHkBTt7E6x4Inv5fP6wfSJwJOdn4hFT-PbOCoTdUy5TodHgkAX8Y2V5W259KvjJ4pWnlGmcbEbhGUHJAAa1jiqDuRbbhBIC38ALVGuHswMP4FGj74VLcVH-mj5E5IbO9VuDZn8Vzhf",
-      passwordHash: null,
-      authProvider: "email",
-      hasNotifiedTeam: false,
-      readNotificationIds: [],
-      createdAt: new Date(),
-      updatedAt: new Date(),
-    } as User;
-  }
-
   try {
     const response = await fetch(getApiUrl("/api/auth/me"), {
       credentials: "include",
@@ -48,7 +31,24 @@ async function fetchUser(): Promise<User | null> {
     console.log("[AuthHook] User fetched successfully:", userData.id || userData.email);
     return userData;
   } catch (err) {
-    console.error("[AuthHook] Error in fetchUser:", err);
+    console.error("[AuthHook] Error in fetchUser, attempting dev fallback:", err);
+    // Local Dev Bypass - Instantly see the Dashboard UI without needing Postgres running
+    if (import.meta.env.DEV) {
+      console.log("[AuthHook] Using mock user bypass in development");
+      return {
+        id: "mock-id-1",
+        email: "architect@meshwork.dev",
+        firstName: "Andrei",
+        lastName: "Architect",
+        profileImageUrl: "https://lh3.googleusercontent.com/aida-public/AB6AXuC-JTdi7K7guBlCoOvJJUVsjo1JHj0Ok51Bw9bfewYZRrdCNKm96Vq8Esf03yMGfFjz-Nx1o88diz_-CgrcFlaEuF133QGW6enP8CTOPkZJl0ySRO6ZMe-AtabFmhTdW3EhkAYHkBTt7E6x4Inv5fP6wfSJwJOdn4hFT-PbOCoTdUy5TodHgkAX8Y2V5W259KvjJ4pWnlGmcbEbhGUHJAAa1jiqDuRbbhBIC38ALVGuHswMP4FGj74VLcVH-mj5E5IbO9VuDZn8Vzhf",
+        passwordHash: null,
+        authProvider: "email",
+        hasNotifiedTeam: false,
+        readNotificationIds: [],
+        createdAt: new Date(),
+        updatedAt: new Date(),
+      } as User;
+    }
     // Return null instead of throwing to prevent infinite loading screen
     return null;
   }
