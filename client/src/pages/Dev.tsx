@@ -70,6 +70,28 @@ function PatternSvg({ pattern }: { pattern: string }) {
         <circle cx="140" cy="100" r="4" fill="#fff" />
       </svg>
     ),
+    schema: (
+      <svg viewBox="0 0 200 150" className="w-full h-full">
+        {/* Top node box */}
+        <rect x="70" y="15" width="60" height="28" rx="5" fill="none" stroke="#1a1a1a" strokeWidth="2.5" />
+        <line x1="80" y1="24" x2="120" y2="24" stroke="#1a1a1a" strokeWidth="1.5" />
+        <line x1="80" y1="32" x2="112" y2="32" stroke="#1a1a1a" strokeWidth="1.5" />
+        {/* Left node box */}
+        <rect x="18" y="90" width="60" height="28" rx="5" fill="none" stroke="#1a1a1a" strokeWidth="2.5" />
+        <line x1="28" y1="99" x2="68" y2="99" stroke="#1a1a1a" strokeWidth="1.5" />
+        <line x1="28" y1="107" x2="60" y2="107" stroke="#1a1a1a" strokeWidth="1.5" />
+        {/* Right node box */}
+        <rect x="122" y="90" width="60" height="28" rx="5" fill="none" stroke="#1a1a1a" strokeWidth="2.5" />
+        <line x1="132" y1="99" x2="172" y2="99" stroke="#1a1a1a" strokeWidth="1.5" />
+        <line x1="132" y1="107" x2="162" y2="107" stroke="#1a1a1a" strokeWidth="1.5" />
+        {/* Connecting edges */}
+        <line x1="100" y1="43" x2="48" y2="90" stroke="#1a1a1a" strokeWidth="2" strokeLinecap="round" />
+        <line x1="100" y1="43" x2="152" y2="90" stroke="#1a1a1a" strokeWidth="2" strokeLinecap="round" />
+        {/* Arrowheads */}
+        <polygon points="44,84 48,90 54,86" fill="#1a1a1a" />
+        <polygon points="156,86 152,90 148,84" fill="#1a1a1a" />
+      </svg>
+    ),
   };
   return patterns[pattern] || null;
 }
@@ -179,6 +201,59 @@ The root theme maps semantic color variables (\`--primary\`) to raw HSL values r
 ## Accessible React Primitives
 
 Interactive components (Dialogs, Dropdowns, Tooltips, Accordions) use Radix UI primitives. This delegates focus management, keyboard navigation (Escape, Arrow keys), and ARIA attribute assignment to the primitive layer. Tooltips render descriptions via React portals to escape hidden overflow boundaries while maintaining context to the targeted node.
+    `
+  },
+  {
+    id: 5,
+    title: "Canvas Node & Workspace Schema",
+    subtitle: "The complete JSON data model behind every node, edge, and diagram in Meshwork Studio.",
+    date: "June 7, 2026",
+    category: "Technical",
+    readTime: "10 min read",
+    imageColor: "bg-[#2A3A4A]",
+    imagePattern: "schema",
+    author: "Meshwork Engineering",
+    content: `
+## What Is the Canvas Schema?
+
+Every diagram in Meshwork Studio is represented as a JSON object with two arrays: \`nodes\` and \`edges\`. This payload is what gets stored in the database, exchanged with the Mosh AI co-pilot, and synced across collaborators in real time. Understanding it is essential for building integrations, debugging AI output, or extending the canvas renderer.
+
+## Node Structure
+
+Each node has four required fields:
+
+- \`id\` — a unique string identifier, stable across saves (e.g. \`"db-primary"\`, \`"k8s-api-gateway"\`)
+- \`type\` — the visual renderer key, drawn from a strict registry of ~50 valid types (\`database\`, \`microservice\`, \`vpc\`, \`k8s-pod\`, etc.)
+- \`position\` — \`{ x, y }\` in logical canvas pixels, where \`x\` increases right and \`y\` increases downward
+- \`data\` — application metadata: \`label\`, \`category\`, \`description\`, \`tags\`, \`provider\`, and \`ai\` annotations
+
+Optional fields include \`style\` (visual overrides: background color, border, opacity, font size, theme variant) and \`parentId\` + \`extent: "parent"\` for nesting nodes inside containers like \`vpc\` or \`k8s-namespace\`.
+
+## Canonical Node Sizes
+
+Every node type has a canonical width and height baked into the renderer. For example: \`database\` is 144×120px, \`gateway\` is 192×72px, \`vpc\` is 408×312px. The \`validateAndRepairCanvas\` utility automatically corrects any AI-generated node that uses non-canonical dimensions — making the canvas resilient to imperfect model output.
+
+## Type Aliases & AI Normalisation
+
+Mosh and external importers often emit common technology names that don't map directly to valid types. A built-in alias table normalises these automatically: \`postgres\` → \`database\`, \`redis\` → \`cache\`, \`nginx\` → \`loadBalancer\`, \`lambda\` → \`logic\`, \`kafka\` → \`bus\`, \`s3\` → \`storage\`, and so on. Any unrecognised type falls back to \`server\`.
+
+## Parent–Child Nesting
+
+Container nodes (\`vpc\`, \`region\`, \`k8s-namespace\`) support nesting. To nest a node inside a container, set \`parentId\` to the container's ID and \`extent\` to \`"parent"\`. Child positions are then relative to the container's top-left corner, not the global canvas origin. This enables clean visual grouping without coordinate clashes.
+
+## Edge Structure
+
+Edges require \`id\`, \`source\`, and \`target\`. Optional fields control how the connection is drawn: \`type\` (\`smoothstep\`, \`bezier\`, \`straight\`, \`step\`), \`label\` (a protocol badge rendered at the midpoint), \`animated\` (marching-ants for active data flows), \`style\` (stroke color, width, dash pattern), and \`markerEnd\` (arrowhead type and color).
+
+The \`data\` sub-object stores metadata readable by the Properties sidebar: a \`label\` mirror, a \`description\`, and \`ai.notes\` populated by Mosh during analysis.
+
+## AI Metadata Fields
+
+Every node and edge carries an \`ai\` sub-object — never rendered directly in the UI, but used by Mosh as working memory across follow-up prompts. Fields include \`summary\` (Mosh's understanding of the component's role), \`notes\` (extended design observations), and \`lastAnalyzed\` (ISO 8601 timestamp of the last Mosh interaction).
+
+## JSON Schema & Validation
+
+A full Draft-07 JSON Schema covering every field, enum, and constraint lives at \`docs/canvas-schema.json\` in the repository. Integrate it with any JSON Schema validator (e.g. Ajv) to validate canvas payloads in CI pipelines, import tools, or external editors. The \`validateAndRepairCanvas\` runtime utility in \`client/src/lib/ai-canvas-utils.ts\` performs a repair pass instead of hard rejection — correcting types, deduplicating IDs, and placing orphaned nodes at safe fallback coordinates.
     `
   }
 ];
