@@ -1,0 +1,426 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://meshwork-studio.up.railway.app/schemas/canvas.json",
+  "title": "MeshworkCanvas",
+  "description": "Full canvas payload for a Meshwork Studio workspace — arrays of nodes and edges as persisted to the database and exchanged with the Mosh AI co-pilot.",
+  "type": "object",
+  "required": ["nodes", "edges"],
+  "additionalProperties": false,
+
+  "properties": {
+    "nodes": {
+      "type": "array",
+      "description": "Ordered list of ReactFlow nodes on the canvas.",
+      "items": { "$ref": "#/definitions/Node" }
+    },
+    "edges": {
+      "type": "array",
+      "description": "Ordered list of ReactFlow edges on the canvas.",
+      "items": { "$ref": "#/definitions/Edge" }
+    }
+  },
+
+  "definitions": {
+
+    "Node": {
+      "type": "object",
+      "description": "A single infrastructure component placed on the canvas.",
+      "required": ["id", "type", "position", "data"],
+      "additionalProperties": false,
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Unique string identifier for this node. Stable across saves.",
+          "minLength": 1,
+          "examples": ["node-1", "db-primary", "k8s-api-gateway"]
+        },
+        "type": {
+          "type": "string",
+          "description": "Visual renderer and category identifier. Must match an entry in the VALID_TYPES registry.",
+          "enum": [
+            "server", "microservice", "worker", "logic",
+            "database", "cache", "storage", "search",
+            "influxdb", "snowflake", "clickhouse",
+            "gateway", "loadBalancer", "cdn", "bus",
+            "queue", "route53", "nats", "socketio",
+            "vault", "auth0", "waf",
+            "prometheus", "grafana", "datadog",
+            "vpc", "region", "k8s-namespace",
+            "k8s-pod", "k8s-deployment", "k8s-replicaset", "k8s-statefulset", "k8s-daemonset",
+            "k8s-service", "k8s-ingress", "k8s-configmap", "k8s-secret",
+            "k8s-pvc", "k8s-job", "k8s-cronjob", "k8s-hpa",
+            "user", "app", "api", "stripe", "twilio", "shopify",
+            "github_actions", "jenkins", "gitlab", "argocd",
+            "annotation", "note"
+          ]
+        },
+        "position": {
+          "$ref": "#/definitions/Position"
+        },
+        "data": {
+          "$ref": "#/definitions/NodeData"
+        },
+        "style": {
+          "$ref": "#/definitions/NodeStyle"
+        },
+        "parentId": {
+          "type": "string",
+          "description": "ID of a container node this node is nested inside (vpc, region, k8s-namespace). When set, extent MUST also be 'parent'.",
+          "examples": ["vpc-1", "region-us-east"]
+        },
+        "extent": {
+          "type": "string",
+          "const": "parent",
+          "description": "Must be exactly 'parent' when parentId is set. Constrains drag movement to the parent bounds."
+        },
+        "width": {
+          "type": "number",
+          "description": "Measured width in pixels (written by ReactFlow after render). Read-only at the application level.",
+          "minimum": 24
+        },
+        "height": {
+          "type": "number",
+          "description": "Measured height in pixels (written by ReactFlow after render). Read-only at the application level.",
+          "minimum": 24
+        },
+        "measured": {
+          "type": "object",
+          "description": "ReactFlow internal sizing measurement. Managed by the renderer.",
+          "properties": {
+            "width": { "type": "number" },
+            "height": { "type": "number" }
+          }
+        }
+      }
+    },
+
+    "Position": {
+      "type": "object",
+      "description": "Canvas coordinate in logical pixels relative to the flow's origin (0,0). Not screen pixels.",
+      "required": ["x", "y"],
+      "additionalProperties": false,
+      "properties": {
+        "x": {
+          "type": "number",
+          "description": "Horizontal position on the infinite canvas. Increases to the right."
+        },
+        "y": {
+          "type": "number",
+          "description": "Vertical position on the infinite canvas. Increases downward."
+        }
+      }
+    },
+
+    "NodeData": {
+      "type": "object",
+      "description": "Application-level metadata attached to a node. Accessible inside node renderers via props.data.",
+      "required": ["label"],
+      "properties": {
+        "label": {
+          "type": "string",
+          "description": "Human-readable display name shown on the node card.",
+          "minLength": 1,
+          "maxLength": 64,
+          "examples": ["Primary DB", "Auth Service", "Redis Cache"]
+        },
+        "category": {
+          "type": "string",
+          "description": "Logical grouping used for visual filtering and Mosh AI context.",
+          "examples": ["Core", "Data", "Networking", "Security", "Monitoring", "CI/CD", "K8s", "External"]
+        },
+        "description": {
+          "type": "string",
+          "description": "Optional longer description shown in the Properties sidebar.",
+          "maxLength": 512
+        },
+        "tags": {
+          "type": "array",
+          "description": "Freeform string tags for filtering, search, and AI summarization.",
+          "items": { "type": "string", "maxLength": 32 },
+          "maxItems": 16
+        },
+        "ai": {
+          "$ref": "#/definitions/NodeAiMetadata"
+        },
+        "provider": {
+          "type": "string",
+          "description": "Optional cloud provider hint rendered as a provider badge (e.g. 'aws', 'gcp', 'azure').",
+          "examples": ["aws", "gcp", "azure", "self-hosted"]
+        },
+        "accentColor": {
+          "type": "string",
+          "description": "Optional hex or CSS color for the node accent/border glow. Overrides the default theme accent.",
+          "pattern": "^#[0-9a-fA-F]{3,8}$",
+          "examples": ["#10B981", "#3B82F6", "#F59E0B"]
+        },
+        "note": {
+          "type": "string",
+          "description": "For 'note' typed nodes only — the markdown body text rendered inside the sticky-note block.",
+          "maxLength": 2048
+        }
+      },
+      "additionalProperties": false
+    },
+
+    "NodeAiMetadata": {
+      "type": "object",
+      "description": "Mosh AI-generated annotations stored with each node. Never rendered as UI — used by Mosh for context on follow-up prompts.",
+      "additionalProperties": false,
+      "properties": {
+        "summary": {
+          "type": "string",
+          "description": "Short AI-generated summary of this component's role in the overall architecture.",
+          "maxLength": 256
+        },
+        "notes": {
+          "type": "string",
+          "description": "Extended design notes authored or updated by Mosh.",
+          "maxLength": 1024
+        },
+        "lastAnalyzed": {
+          "type": ["string", "null"],
+          "format": "date-time",
+          "description": "ISO 8601 timestamp of the last time Mosh analyzed or touched this node."
+        }
+      }
+    },
+
+    "NodeStyle": {
+      "type": "object",
+      "description": "Visual style overrides applied to the node renderer. All fields are optional — missing values use the design-system defaults.",
+      "additionalProperties": false,
+      "properties": {
+        "width": {
+          "type": "number",
+          "description": "Override the canonical node width (px). Should match NODE_SIZES for the given type unless intentionally resized.",
+          "minimum": 48
+        },
+        "height": {
+          "type": "number",
+          "description": "Override the canonical node height (px). Should match NODE_SIZES for the given type unless intentionally resized.",
+          "minimum": 24
+        },
+        "backgroundColor": {
+          "type": "string",
+          "description": "Card background fill. Accepts any valid CSS color string.",
+          "examples": ["#1a1a2e", "rgba(16,185,129,0.08)"]
+        },
+        "borderColor": {
+          "type": "string",
+          "description": "Border / outline color.",
+          "examples": ["#555", "#10B981"]
+        },
+        "borderRadius": {
+          "type": "number",
+          "description": "Corner radius in pixels.",
+          "minimum": 0,
+          "maximum": 48,
+          "default": 8
+        },
+        "opacity": {
+          "type": "number",
+          "description": "Overall node opacity (0 = fully transparent, 1 = fully opaque).",
+          "minimum": 0,
+          "maximum": 1,
+          "default": 1
+        },
+        "fontColor": {
+          "type": "string",
+          "description": "Label text color.",
+          "default": "#ffffff"
+        },
+        "fontSize": {
+          "type": "number",
+          "description": "Label font size in pixels.",
+          "minimum": 8,
+          "maximum": 32,
+          "default": 13
+        },
+        "icon": {
+          "type": ["string", "null"],
+          "description": "Optional custom icon override. Can be a Lucide icon name or a URL to an SVG/PNG.",
+          "examples": ["server", "database", "https://cdn.example.com/icons/aws-rds.svg"]
+        },
+        "theme": {
+          "type": "string",
+          "description": "Named visual theme variant for the node renderer.",
+          "enum": ["default", "minimal", "glass", "neon"],
+          "default": "default"
+        }
+      }
+    },
+
+    "Edge": {
+      "type": "object",
+      "description": "A directed connection between two nodes.",
+      "required": ["id", "source", "target"],
+      "additionalProperties": false,
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Unique string identifier for this edge.",
+          "minLength": 1,
+          "examples": ["edge-1", "e-db-cache", "conn-lb-svc"]
+        },
+        "source": {
+          "type": "string",
+          "description": "ID of the originating node. Must match a node.id in the same canvas."
+        },
+        "target": {
+          "type": "string",
+          "description": "ID of the destination node. Must match a node.id in the same canvas."
+        },
+        "sourceHandle": {
+          "type": ["string", "null"],
+          "description": "Optional ReactFlow handle ID on the source node (e.g. 'right', 'bottom')."
+        },
+        "targetHandle": {
+          "type": ["string", "null"],
+          "description": "Optional ReactFlow handle ID on the target node (e.g. 'left', 'top')."
+        },
+        "type": {
+          "type": "string",
+          "description": "ReactFlow edge renderer to use.",
+          "enum": ["default", "straight", "step", "smoothstep", "bezier"],
+          "default": "smoothstep"
+        },
+        "animated": {
+          "type": "boolean",
+          "description": "When true, renders a marching-ants dash animation along the edge — used for active data flows.",
+          "default": false
+        },
+        "label": {
+          "type": "string",
+          "description": "Short text label rendered at the midpoint of the edge.",
+          "maxLength": 64,
+          "examples": ["HTTPS", "gRPC", "pub/sub", "TCP 5432"]
+        },
+        "labelStyle": {
+          "type": "object",
+          "description": "CSS style overrides for the label text element.",
+          "properties": {
+            "fill": { "type": "string" },
+            "fontSize": { "type": "number" },
+            "fontFamily": { "type": "string" },
+            "fontWeight": { "type": ["number", "string"] }
+          }
+        },
+        "labelBgStyle": {
+          "type": "object",
+          "description": "CSS style overrides for the label background pill.",
+          "properties": {
+            "fill": { "type": "string" },
+            "fillOpacity": { "type": "number" }
+          }
+        },
+        "labelBgPadding": {
+          "type": "array",
+          "description": "[horizontal, vertical] padding in pixels around the label background.",
+          "items": { "type": "number" },
+          "minItems": 2,
+          "maxItems": 2
+        },
+        "labelBgBorderRadius": {
+          "type": "number",
+          "description": "Corner radius of the label background.",
+          "minimum": 0
+        },
+        "style": {
+          "$ref": "#/definitions/EdgeStyle"
+        },
+        "markerEnd": {
+          "$ref": "#/definitions/EdgeMarker"
+        },
+        "data": {
+          "$ref": "#/definitions/EdgeData"
+        }
+      }
+    },
+
+    "EdgeStyle": {
+      "type": "object",
+      "description": "SVG path styling for the edge line.",
+      "additionalProperties": false,
+      "properties": {
+        "stroke": {
+          "type": "string",
+          "description": "Edge line color.",
+          "default": "#555",
+          "examples": ["#555", "#10B981", "rgba(255,255,255,0.3)"]
+        },
+        "strokeWidth": {
+          "type": "number",
+          "description": "Edge line thickness in pixels.",
+          "minimum": 0.5,
+          "maximum": 16,
+          "default": 1.5
+        },
+        "strokeDasharray": {
+          "type": "string",
+          "description": "SVG strokeDasharray value for dashed/dotted lines.",
+          "examples": ["5 3", "8 4", "2 2"]
+        }
+      }
+    },
+
+    "EdgeMarker": {
+      "type": "object",
+      "description": "Arrowhead marker rendered at the target end of the edge.",
+      "required": ["type"],
+      "additionalProperties": false,
+      "properties": {
+        "type": {
+          "type": "string",
+          "description": "ReactFlow marker type.",
+          "enum": ["arrow", "arrowclosed"],
+          "default": "arrowclosed"
+        },
+        "color": {
+          "type": "string",
+          "description": "Fill/stroke color of the arrowhead. Should match the edge stroke color.",
+          "examples": ["#555", "#10B981"]
+        },
+        "width": {
+          "type": "number",
+          "description": "Arrowhead width multiplier.",
+          "minimum": 1
+        },
+        "height": {
+          "type": "number",
+          "description": "Arrowhead height multiplier.",
+          "minimum": 1
+        }
+      }
+    },
+
+    "EdgeData": {
+      "type": "object",
+      "description": "Application-level metadata for a connection. Accessible in edge renderers via props.data.",
+      "additionalProperties": false,
+      "properties": {
+        "label": {
+          "type": "string",
+          "description": "Duplicate of the top-level label field (kept in sync). Used by the Properties sidebar to read/write the edge label.",
+          "maxLength": 64
+        },
+        "description": {
+          "type": "string",
+          "description": "Longer description of what this connection represents.",
+          "maxLength": 512
+        },
+        "ai": {
+          "type": "object",
+          "description": "Mosh AI-generated annotations for this connection.",
+          "additionalProperties": false,
+          "properties": {
+            "notes": {
+              "type": "string",
+              "description": "AI design notes about this connection (e.g. protocol, SLA, security posture).",
+              "maxLength": 512
+            }
+          }
+        }
+      }
+    }
+  }
+}
