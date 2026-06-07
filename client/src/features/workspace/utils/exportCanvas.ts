@@ -11,7 +11,14 @@ const IMAGE_QUALITY = 2; // 2x resolution for retina
 // ─── JSON Schema ─────────────────────────────────────────────────────
 
 export const canvasJsonSchema = z.object({
-    title: z.string(),
+    title: z.preprocess(
+        (val) => {
+            if (val === undefined || val === null) return "Untitled";
+            if (typeof val === "string" && val.trim() === "") return "Untitled";
+            return val;
+        },
+        z.string()
+    ).default("Untitled"),
     nodes: z.array(z.object({
         id: z.string(),
         type: z.string().optional(),

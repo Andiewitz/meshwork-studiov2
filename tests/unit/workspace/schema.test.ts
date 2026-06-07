@@ -58,14 +58,29 @@ describe('Workspace Schema (Unit)', () => {
       expect(result.success).toBe(false);
     });
 
-    it('should reject empty titles', () => {
+    it('should default empty titles to "Untitled"', () => {
       const result = insertWorkspaceSchema.safeParse({
         title: '',
         type: 'system',
         userId: 'user-123',
       });
 
-      expect(result.success).toBe(false);
+      expect(result.success).toBe(true);
+      if (result.success) {
+        expect(result.data.title).toBe('Untitled');
+      }
+    });
+
+    it('should default missing title to "Untitled"', () => {
+      const result = insertWorkspaceSchema.safeParse({
+        type: 'system',
+        userId: 'user-123',
+      });
+
+      expect(result.success).toBe(true);
+      if (result.success) {
+        expect(result.data.title).toBe('Untitled');
+      }
     });
 
     it('should reject titles with emojis', () => {

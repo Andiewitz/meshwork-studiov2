@@ -42,9 +42,13 @@ describe('canvasJsonSchema', () => {
         expect(canvasJsonSchema.safeParse(payload).success).toBe(true);
     });
 
-    it('rejects missing title', () => {
+    it('defaults missing title to "Untitled"', () => {
         const { title, ...noTitle } = validPayload;
-        expect(canvasJsonSchema.safeParse(noTitle).success).toBe(false);
+        const result = canvasJsonSchema.safeParse(noTitle);
+        expect(result.success).toBe(true);
+        if (result.success) {
+            expect(result.data.title).toBe('Untitled');
+        }
     });
 
     it('rejects missing nodes', () => {
@@ -127,8 +131,8 @@ describe('importFromJson', () => {
     });
 
     it('throws on missing required fields', async () => {
-        const noTitle = JSON.stringify({ nodes: [], edges: [], exportedAt: '2026-01-01T00:00:00Z' });
-        await expect(importFromJson(makeFile(noTitle)))
+        const noNodes = JSON.stringify({ title: 'Test', edges: [], exportedAt: '2026-01-01T00:00:00Z' });
+        await expect(importFromJson(makeFile(noNodes)))
             .rejects.toThrow('Invalid canvas file');
     });
 

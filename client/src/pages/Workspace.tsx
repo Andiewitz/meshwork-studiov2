@@ -241,8 +241,9 @@ function WorkspaceView() {
 
     const handleRename = useCallback(() => {
         const trimmed = renameValue.trim();
-        if (!trimmed || trimmed === workspace?.title) { setIsRenaming(false); return; }
-        updateWorkspace.mutate({ id: workspaceId, title: trimmed }, {
+        const finalTitle = trimmed === "" ? "Untitled" : trimmed;
+        if (finalTitle === workspace?.title) { setIsRenaming(false); return; }
+        updateWorkspace.mutate({ id: workspaceId, title: finalTitle }, {
             onSuccess: () => { toast({ title: 'Renamed' }); setIsRenaming(false); },
             onError: (e: any) => { toast({ title: 'Rename failed', description: e.message, variant: 'destructive' }); },
         });
