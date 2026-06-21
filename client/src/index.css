@@ -316,9 +316,12 @@ html {
   pointer-events: none;
 }
 
-/* Ensure node content clips inside its boundary */
+/* Ensure node content clips inside its boundary and doesn't bleed background from style props */
 .react-flow__node {
   overflow: visible !important;
+  background: transparent !important;
+  border: none !important;
+  box-shadow: none !important;
 }
 
 /* Tool specific cursors (override global pointer for crosshairs) */
