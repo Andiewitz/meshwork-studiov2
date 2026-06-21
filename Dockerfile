@@ -5,7 +5,7 @@ WORKDIR /app
 
 # Install dependencies
 COPY package*.json ./
-RUN npm install
+RUN npm install --legacy-peer-deps
 
 # Copy source code
 COPY . .
@@ -32,7 +32,7 @@ COPY --from=builder /app/drizzle.config.ts ./
 COPY --from=builder /app/shared ./shared
 
 # Install production deps + drizzle-kit for schema sync
-RUN npm cache clean --force && npm ci --omit=dev && npm install drizzle-kit --no-save
+RUN npm cache clean --force && npm ci --omit=dev --legacy-peer-deps && npm install drizzle-kit --no-save --legacy-peer-deps
 
 # Set environment variables
 ENV NODE_ENV=production
