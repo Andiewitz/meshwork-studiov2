@@ -1,13 +1,14 @@
-import { useState, useMemo, useRef, useEffect, useCallback } from "react";
+import { useState, useMemo } from "react";
 import { Link, useLocation } from "wouter";
 import { useWorkspaces, useDeleteWorkspace } from "@/hooks/use-workspaces";
 import { useAuth } from "@/hooks/use-auth";
 import { WorkspaceCard } from "@/components/workspace/WorkspaceCard";
 import { CreateWorkspaceDialog } from "@/components/workspace/CreateWorkspaceDialog";
-import { Search, LayoutGrid, List, Clock, Package, Terminal, Users, ArrowRight } from "lucide-react";
+import { Search, LayoutGrid, List, Package } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { motion, AnimatePresence } from "framer-motion";
 import { LineSyncLoader } from "@/components/ui/loading-screen";
+import { SearchBar } from "@/components/ui/search-bar";
 
 const containerVariants = {
   hidden: { opacity: 0 },
@@ -35,25 +36,13 @@ export default function Home() {
 
   const [isCreateOpen, setIsCreateOpen] = useState(false);
   const [searchTerm, setSearchTerm] = useState("");
-  const [isSearchFocused, setIsSearchFocused] = useState(false);
   
   // Settings specific to Workspaces Archive page
   const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid');
   const [isMultiSelectMode, setIsMultiSelectMode] = useState(false);
   const [selectedIds, setSelectedIds] = useState<Set<number>>(new Set());
-  const searchInputRef = useRef<HTMLInputElement>(null);
 
-  // ⌘K / Ctrl+K shortcut to focus the search bar
-  useEffect(() => {
-    const handleKeyDown = (e: KeyboardEvent) => {
-      if ((e.metaKey || e.ctrlKey) && e.key === 'k') {
-        e.preventDefault();
-        searchInputRef.current?.focus();
-      }
-    };
-    window.addEventListener('keydown', handleKeyDown);
-    return () => window.removeEventListener('keydown', handleKeyDown);
-  }, []);
+  // ⌘K shortcut is now handled inside SearchBar component
 
   const isWorkspacesPage = location === "/workspaces";
 
@@ -127,77 +116,12 @@ export default function Home() {
                   {getGreeting()}, {userName}.
                 </h2>
                 
-                {/* Command Bar */}
-                <div className="w-full max-w-2xl relative group z-30">
-                  <div className="absolute inset-y-0 left-4 flex items-center pointer-events-none">
-                    <Search className="w-5 h-5 text-outline/50" />
-                  </div>
-                  <input
-                    ref={searchInputRef}
-                    value={searchTerm}
-                    onChange={(e) => setSearchTerm(e.target.value)}
-                    onFocus={() => setIsSearchFocused(true)}
-                    onBlur={() => setTimeout(() => setIsSearchFocused(false), 200)}
-                    className={cn(
-                      "w-full border py-4 pl-12 pr-16 text-base font-body text-white placeholder:text-white/30 focus:outline-none transition-all duration-300 backdrop-blur-3xl",
-                      isSearchFocused 
-                        ? "bg-black/60 border-primary/50 rounded-t-2xl rounded-b-none shadow-[0_20px_50px_rgba(0,0,0,0.8)]" 
-                        : "glass-card hover:bg-white/[0.04] rounded-2xl"
-                    )}
-                    placeholder="Search blueprints, assets, or run a command..."
-                    type="text"
-                  />
-                  <div className="absolute inset-y-0 right-4 flex items-center gap-2">
-                    <kbd className="px-2 py-1 bg-surface-container-high text-[10px] text-outline border border-outline-variant/30 rounded font-body">⌘ K</kbd>
-                  </div>
-
-                  {/* Search Dropdown - Aesthetic Mapping */}
-                  <AnimatePresence>
-                    {isSearchFocused && (
-                      <motion.div
-                        initial={{ opacity: 0, y: -10 }}
-                        animate={{ opacity: 1, y: 0 }}
-                        exit={{ opacity: 0, y: -10 }}
-                        transition={{ duration: 0.2 }}
-                        className="absolute top-full left-0 right-0 glass-card !bg-black/60 border-t-0 border-primary/50 rounded-b-2xl overflow-hidden shadow-[0_40px_80px_rgba(0,0,0,0.9)] text-left"
-                      >
-                        {/* Dynamic Projects Suggestion */}
-                        {filteredWorkspaces.length > 0 && (
-                          <div className="p-2 border-b border-outline-variant/10">
-                            <div className="px-3 py-2 text-[10px] font-sans font-bold text-outline tracking-widest uppercase">Projects {searchTerm ? 'Matching Search' : 'Recent'}</div>
-                            {filteredWorkspaces.slice(0, 5).map(ws => (
-                              <Link key={ws.id} href={`/workspace/${ws.id}`}>
-                                <div className="flex items-center gap-3 px-3 py-2.5 rounded-lg hover:bg-surface-container-high cursor-figma-pointer transition-colors group/item">
-                                  <Package className="w-4 h-4 text-outline group-hover/item:text-white transition-colors" />
-                                  <div className="flex flex-col">
-                                    <span className="text-sm text-[#E5E2E1] group-hover/item:text-white transition-colors leading-tight">{ws.title}</span>
-                                    <span className="text-[10px] text-outline tracking-wider group-hover/item:text-primary transition-colors uppercase mt-0.5">ID: #{ws.id}</span>
-                                  </div>
-                                  <ArrowRight className="w-4 h-4 ml-auto text-outline opacity-0 group-hover/item:opacity-100 transition-opacity" />
-                                </div>
-                              </Link>
-                            ))}
-                          </div>
-                        )}
-
-                        <div className="p-2">
-                          <div className="px-3 py-2 text-[10px] font-sans font-bold text-outline tracking-widest uppercase">Commands</div>
-                          <div onClick={() => setIsCreateOpen(true)} className="flex items-center gap-3 px-3 py-2.5 rounded-lg hover:bg-surface-container-high cursor-figma-pointer transition-colors group/item">
-                            <Terminal className="w-4 h-4 text-outline group-hover/item:text-white transition-colors" />
-                            <span className="text-sm text-[#E5E2E1] group-hover/item:text-white transition-colors">Create new workspace</span>
-                            <kbd className="ml-auto px-2 py-1 bg-surface-container-highest text-[10px] text-outline rounded font-body opacity-0 group-hover/item:opacity-100 transition-opacity">↵</kbd>
-                          </div>
-                          <Link href="/team">
-                            <div className="flex items-center gap-3 px-3 py-2.5 rounded-lg hover:bg-surface-container-high cursor-figma-pointer transition-colors group/item">
-                              <Users className="w-4 h-4 text-outline group-hover/item:text-white transition-colors" />
-                              <span className="text-sm text-[#E5E2E1] group-hover/item:text-white transition-colors">Invite team member</span>
-                            </div>
-                          </Link>
-                        </div>
-                      </motion.div>
-                    )}
-                  </AnimatePresence>
-                </div>
+                {/* Command Bar — SearchBar component */}
+                <SearchBar
+                  data={filteredWorkspaces}
+                  onCreateNew={() => setIsCreateOpen(true)}
+                  commandMode
+                />
 
                 {/* Primary Action */}
                 <div className="mt-12">
