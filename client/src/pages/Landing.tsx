@@ -7,38 +7,14 @@ import { Link } from "wouter";
 import { Helmet } from "react-helmet-async";
 import { MeshworkLogo } from "@/components/MeshworkLogo";
 
-const BASE_CARDS = [
-  { src: "/assets/carousel-1.webp", alt: "Dark UI Design", isShader: false },
-  { src: "/assets/carousel-2.webp", alt: "Visual Workflow", isShader: false },
-  { src: "/assets/carousel-3.webp", alt: "Infrastructure Context", isShader: false },
-  { src: "/assets/carousel-4.webp", alt: "Auto-Routing Algorithms", isShader: false },
-  { src: "/assets/carousel-5.webp", alt: "Deployment Dashboard", isShader: false },
-  { src: "/assets/carousel-6.webp", alt: "Architecture Map", isShader: false },
-  { src: "/assets/carousel-7.webp", alt: "Cloud Integration", isShader: false },
-];
 
-const CARDS = Array.from({ length: 14 }).map((_, i) => ({
-  id: i,
-  ...BASE_CARDS[i % 7],
-}));
 
 const Home = () => {
     const containerRef = useRef<HTMLDivElement>(null);
     const { scrollYProgress } = useScroll();
     const [scrolled, setScrolled] = useState(false);
 
-    // Carousel state
-    const [currentIndex, setCurrentIndex] = useState(1);
-    const [isPaused, setIsPaused] = useState(false);
-    const [isMobile, setIsMobile] = useState(false);
-    const timerRef = useRef<NodeJS.Timeout | null>(null);
 
-    useEffect(() => {
-        const checkMobile = () => setIsMobile(window.innerWidth < 768);
-        checkMobile();
-        window.addEventListener('resize', checkMobile);
-        return () => window.removeEventListener('resize', checkMobile);
-    }, []);
 
     useEffect(() => {
         const onScroll = () => setScrolled(window.scrollY > 20);
@@ -60,16 +36,7 @@ const Home = () => {
         }
     }, []);
 
-    useEffect(() => {
-        if (!isPaused) {
-            timerRef.current = setInterval(() => {
-                setCurrentIndex((prev) => (prev + 1) % CARDS.length);
-            }, 2500);
-        }
-        return () => {
-            if (timerRef.current) clearInterval(timerRef.current);
-        };
-    }, [isPaused]);
+
 
     const barOpacity = useTransform(scrollYProgress, [0, 0.05], [0, 1]);
 
@@ -149,114 +116,38 @@ const Home = () => {
                     <div className="absolute inset-0 bg-[url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMjAiIGhlaWdodD0iMjAiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+PGNpcmNsZSBjeD0iMSIgY3k9IjEiIHI9IjEiIGZpbGw9InJnYmEoMjU1LDI1NSwyNTUsMC4wNSkiLz48L3N2Zz4=')] bg-[length:24px_24px] bg-repeat [mask-image:radial-gradient(ellipse_at_top,black_40%,transparent_70%)] opacity-70" />
                 </div>
 
-                {/* Independent Hero Header */}
+                {/* Centered Hero Header */}
                 <motion.div 
                     variants={containerVariants}
                     initial="hidden"
                     animate="visible"
-                    className="flex flex-col items-center mb-16"
+                    className="flex flex-col items-center text-center mt-12 mb-32"
                 >
                     <motion.h1 
                         variants={itemVariants}
-                        className="text-[3rem] sm:text-[4rem] lg:text-[4.5rem] font-medium font-sans text-white leading-[1.1] tracking-tight mb-4 drop-shadow-md"
+                        className="text-[3rem] sm:text-[4rem] lg:text-[5rem] font-medium font-sans text-white leading-[1.1] tracking-tight mb-6 drop-shadow-md"
                     >
                         Build with Meshwork Studio
                     </motion.h1>
                     <motion.p 
                         variants={itemVariants}
-                        className="text-[1rem] sm:text-[1.125rem] text-white/60 font-medium tracking-wide max-w-[600px]"
+                        className="text-[1.125rem] sm:text-[1.25rem] text-white/60 font-medium tracking-wide max-w-[650px] mb-10"
                     >
                         Go from prompt to production with automated infrastructure, seamless scaling, and more.
                     </motion.p>
+                    <motion.div variants={itemVariants} className="flex gap-4">
+                        <Link href="/auth/register">
+                            <button className="bg-primary text-black rounded-lg py-3 px-8 text-base font-bold hover:brightness-110 transition-all cursor-pointer">
+                                Get Started
+                            </button>
+                        </Link>
+                        <a href="https://github.com/Andiewitz/Meshwork-Studio_" target="_blank" rel="noopener noreferrer">
+                            <button className="bg-white/10 text-white hover:bg-white/20 rounded-lg py-3 px-8 text-base font-bold transition-all cursor-pointer flex items-center gap-2">
+                                <FileCode2 className="w-5 h-5" /> View on GitHub
+                            </button>
+                        </a>
+                    </motion.div>
                 </motion.div>
-
-                {/* 3D Carousel Section */}
-                <div className="w-full flex flex-col items-center mt-6">
-                    <div className="relative w-full flex items-center justify-center mb-16 overflow-visible"
-                         style={{ height: isMobile ? 600 : 700 }}
-                         onMouseEnter={() => setIsPaused(true)}
-                         onMouseLeave={() => setIsPaused(false)}
-                    >
-                        {CARDS.map((card, idx) => {
-                            let distance = idx - currentIndex;
-                            if (distance > CARDS.length / 2) distance -= CARDS.length;
-                            if (distance < -CARDS.length / 2) distance += CARDS.length;
-
-                            if (Math.abs(distance) > 4) return null;
-
-                            const isActive = distance === 0;
-                            const cardWidth = isMobile ? 280 : 400;
-                            const cardGap = isMobile ? 16 : 30;
-                            const activeHeight = isMobile ? 400 : 540;
-                            const inactiveHeight = isMobile ? 320 : 460;
-                            const offset = distance * (cardWidth + cardGap);
-                            
-                            return (
-                                <motion.div 
-                                    key={card.id}
-                                    className="absolute shrink-0 origin-center"
-                                    style={{ width: cardWidth }}
-                                    initial={false}
-                                    animate={{ 
-                                        x: offset,
-                                        height: isActive ? activeHeight : inactiveHeight,
-                                        y: isActive ? (isMobile ? -20 : -30) : 0,
-                                        opacity: isActive ? 1 : 0.4,
-                                        zIndex: isActive ? 10 : 0
-                                    }}
-                                    transition={{ type: "spring", stiffness: 150, damping: 20, mass: 0.8 }}
-                                >
-                                    <div 
-                                        className="relative w-full h-full rounded-[1.5rem] overflow-hidden bg-white/[0.05] border border-white/[0.05]"
-                                        style={{
-                                            boxShadow: isActive ? '0 0 120px rgba(59, 130, 246, 0.4)' : 'none'
-                                        }}
-                                    >
-                                        <img 
-                                            src={card.src} 
-                                            alt={card.alt} 
-                                            className="absolute inset-0 w-full h-full object-cover opacity-80" 
-                                            loading={Math.abs(distance) <= 1 ? "eager" : "lazy"}
-                                            decoding="async"
-                                        />
-                                    </div>
-                                </motion.div>
-                            );
-                        })}
-                        {/* Anchored Prompt Overlay */}
-                        <div className={`absolute left-1/2 -translate-x-1/2 z-20 pointer-events-auto w-full max-w-[500px] flex flex-col items-center px-4 ${isMobile ? 'top-[65%]' : 'top-[55%]'}`}>
-                            <motion.div 
-                                variants={containerVariants}
-                                initial="hidden"
-                                animate="visible"
-                                className="bg-[#202124] rounded-[1rem] p-5 sm:p-6 shadow-[0_20px_40px_rgba(0,0,0,0.8)] border border-white/5 w-[500px] text-left flex flex-col justify-between"
-                            >
-                                <p className="text-[1.125rem] text-white font-sans mb-8">
-                                    Create a collaborative live particle art<span className="animate-pulse text-blue-500">|</span>
-                                </p>
-                                <div className="flex justify-end">
-                                    <Link href="/auth/register">
-                                        <button className="bg-[#3b82f6] hover:bg-[#2563eb] text-white rounded-lg py-2.5 px-5 transition-colors font-sans font-medium flex items-center justify-center text-sm">
-                                            <ArrowRight className="mr-2 w-4 h-4" /> Get started
-                                        </button>
-                                    </Link>
-                                </div>
-                            </motion.div>
-
-                            {/* Pagination Controls */}
-                            <div className="flex justify-center mt-6">
-                                <div className="bg-[#202124] rounded-full flex items-center p-1 border border-white/5">
-                                    <button onClick={() => setIsPaused(true)} className="p-2 hover:bg-white/10 rounded-full text-white/50 hover:text-white transition-colors">
-                                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="m15 18-6-6 6-6"/></svg>
-                                    </button>
-                                    <button onClick={() => setIsPaused(true)} className="p-2 hover:bg-white/10 rounded-full text-white/50 hover:text-white transition-colors">
-                                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="m9 18 6-6-6-6"/></svg>
-                                    </button>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
             </main>
 
             {/* TEMPLATES SECTION */}
