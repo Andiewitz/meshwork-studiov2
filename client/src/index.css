@@ -3,10 +3,10 @@
 @tailwind utilities;
 
 :root {
-  --font-sans: 'Inter', system-ui, sans-serif;
-  --font-display: 'Outfit', 'Inter', system-ui, sans-serif;
-  --font-label: 'Inter', system-ui, sans-serif;
-  --font-mono: 'Geist Mono', 'JetBrains Mono', ui-monospace, monospace;
+  --font-sans: 'Plus Jakarta Sans', system-ui, sans-serif;
+  --font-display: 'DM Sans', system-ui, sans-serif;
+  --font-label: 'Plus Jakarta Sans', system-ui, sans-serif;
+  --font-mono: 'DM Sans', ui-monospace, monospace;
 
   /* Restored Deep Dark Theme */
   --background: 0 0% 5%;       /* #0D0D0D */
@@ -29,8 +29,8 @@
   --color-outline: #333333;
   --color-outline-variant: #222222;
   
-  --font-headline: 'Outfit', 'Inter', system-ui, sans-serif;
-  --font-body: 'Inter', system-ui, sans-serif;
+  --font-headline: 'DM Sans', system-ui, sans-serif;
+  --font-body: 'Plus Jakarta Sans', system-ui, sans-serif;
 
   --primary: 24 100% 50%;
   --primary-foreground: 0 0% 100%;
