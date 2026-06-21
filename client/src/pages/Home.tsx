@@ -97,7 +97,7 @@ export default function Home() {
 
   return (
     <>
-      <div className="w-full max-w-[1400px] mx-auto pb-20">
+      <div className="w-full max-w-[1400px] mx-auto">
         <AnimatePresence mode="wait">
           {!isWorkspacesPage ? (
             // ==========================================
@@ -109,11 +109,11 @@ export default function Home() {
               animate="visible"
               exit="exit"
               variants={containerVariants}
-              className="w-full"
+              className="w-full min-h-[calc(100vh-10rem)] flex flex-col justify-center pb-12"
             >
               {/* Hero Section */}
-              <motion.section variants={fadeUpVariants} className="flex flex-col items-center text-center mt-16 md:mt-24 mb-32">
-                <h2 className="text-4xl md:text-6xl lg:text-7xl font-extrabold font-sans tracking-tighter text-white mb-12">
+              <motion.section variants={fadeUpVariants} className="flex flex-col items-center text-center mb-16 shrink-0">
+                <h2 className="text-4xl md:text-5xl lg:text-6xl font-extrabold font-sans tracking-tighter text-white mb-10">
                   {getGreeting()}, {userName}.
                 </h2>
                 
@@ -125,7 +125,7 @@ export default function Home() {
                 />
 
                 {/* Primary Action */}
-                <div className="mt-12">
+                <div className="mt-10">
                   <AnimatedButton
                     label="New Workspace"
                     onClick={() => setIsCreateOpen(true)}
@@ -134,7 +134,7 @@ export default function Home() {
               </motion.section>
 
               {/* Dashboard Content */}
-              <div className="w-full max-w-5xl mx-auto">
+              <div className="w-full max-w-5xl mx-auto shrink-0">
                 <motion.section variants={containerVariants} className="w-full">
                   <motion.div variants={fadeUpVariants} className="flex items-center justify-between mb-10">
                     <h3 className="text-xs font-bold font-sans tracking-[0.2em] uppercase text-outline">Recent Projects</h3>
