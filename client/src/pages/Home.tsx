@@ -9,6 +9,7 @@ import { cn } from "@/lib/utils";
 import { motion, AnimatePresence } from "framer-motion";
 import { LineSyncLoader } from "@/components/ui/loading-screen";
 import { SearchBar } from "@/components/ui/search-bar";
+import { AnimatedButton } from "@/components/ui/animated-button";
 
 const containerVariants = {
   hidden: { opacity: 0 },
@@ -125,14 +126,10 @@ export default function Home() {
 
                 {/* Primary Action */}
                 <div className="mt-12">
-                  <motion.button
+                  <AnimatedButton
+                    label="New Workspace"
                     onClick={() => setIsCreateOpen(true)}
-                    whileHover={{ scale: 1.02, y: -2 }}
-                    whileTap={{ scale: 0.98 }}
-                    className="px-10 py-5 bg-primary text-black font-sans font-black uppercase tracking-[0.2em] rounded-2xl shadow-[0_20px_60px_rgba(255,102,0,0.3)] hover:shadow-[0_20px_80px_rgba(255,102,0,0.5)] transition-all duration-500"
-                  >
-                    New Workspace
-                  </motion.button>
+                  />
                 </div>
               </motion.section>
 
