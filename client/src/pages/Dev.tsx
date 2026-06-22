@@ -363,9 +363,9 @@ export default function DevDocs() {
   );
 
   return (
-    <div className="flex min-h-screen bg-[#0A0A0A] text-white">
+    <div className="flex min-h-[calc(100vh-64px)] bg-[#0A0A0A] text-white">
       {/* Desktop Sidebar */}
-      <aside className="hidden lg:block w-[280px] shrink-0 sticky top-0 h-screen overflow-hidden">
+      <aside className="hidden lg:block w-[280px] shrink-0 sticky top-16 h-[calc(100vh-64px)] overflow-hidden">
         <Sidebar />
       </aside>
 
@@ -463,7 +463,7 @@ export default function DevDocs() {
 
         {/* Right Sidebar (Table of Contents) */}
         {headings.length > 0 && (
-          <aside className="hidden xl:block w-[240px] shrink-0 sticky top-0 h-screen overflow-y-auto py-16 pr-8 pl-4 border-l border-white/5 scrollbar-hide">
+          <aside className="hidden xl:block w-[240px] shrink-0 sticky top-16 h-[calc(100vh-64px)] overflow-y-auto py-16 pr-8 pl-4 border-l border-white/5 scrollbar-hide">
             <h4 className="text-xs font-bold tracking-wider uppercase text-white/40 mb-4 font-sans">On this page</h4>
             <ul className="space-y-2.5 text-[13px] font-sans font-medium">
               {headings.map((heading) => (

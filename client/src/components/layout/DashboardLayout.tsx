@@ -306,7 +306,7 @@ export function DashboardLayout({ children }: { children: ReactNode }) {
 
       {/* Main content */}
       <main className="pl-20 pt-16 min-h-screen technical-gradient w-full">
-        <div className="w-full h-full p-12">
+        <div className={`w-full h-full ${isDev ? "" : "p-12"}`}>
           <Suspense
             fallback={
               <div className="flex flex-col items-center justify-center h-[60vh] gap-6">
