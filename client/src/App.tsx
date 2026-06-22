@@ -13,13 +13,13 @@ import { AnimatePresence, motion } from "framer-motion";
 import { cn } from "@/lib/utils";
 import { DashboardLayout } from "@/components/layout/DashboardLayout";
 import { HelmetProvider } from "react-helmet-async";
+import { AuthModalProvider, useAuthModal } from "@/components/auth/AuthModalContext";
+import { AuthModal } from "@/components/auth/AuthModal";
 
 // Route-level code splitting via React.lazy
 const NotFound = React.lazy(() => import("@/pages/not-found"));
 const Home = React.lazy(() => import("@/pages/Home"));
 const Landing = React.lazy(() => import("@/pages/Landing"));
-const Login = React.lazy(() => import("@/pages/auth/Login"));
-const Register = React.lazy(() => import("@/pages/auth/Register"));
 const Settings = React.lazy(() => import("@/pages/Settings"));
 const Workspace = React.lazy(() => import("@/pages/Workspace"));
 const Dev = React.lazy(() => import("@/pages/Dev"));
@@ -30,6 +30,7 @@ const PrivacyPolicy = React.lazy(() => import("@/pages/PrivacyPolicy"));
 
 function ProtectedRoute({ component: Component }: { component: React.ComponentType }) {
   const { user, isLoading, isRedirecting } = useAuth();
+  const authModal = useAuthModal();
   const [isMobile, setIsMobile] = React.useState(false);
 
   React.useEffect(() => {
@@ -39,12 +40,20 @@ function ProtectedRoute({ component: Component }: { component: React.ComponentTy
     return () => window.removeEventListener("resize", check);
   }, []);
 
+  // If not loading and no user, open the login modal
+  React.useEffect(() => {
+    if (!isLoading && !isRedirecting && !user) {
+      authModal.open('login');
+    }
+  }, [isLoading, isRedirecting, user, authModal]);
+
   if (isLoading || isRedirecting) {
     return <RedirectingScreen />;
   }
 
   if (!user) {
-    return <Redirect to="/auth/login" />;
+    // Show a minimal screen while the modal is open
+    return <RedirectingScreen />;
   }
 
   if (isMobile) {
@@ -75,40 +84,13 @@ function Router() {
   const [location] = useLocation();
   const { user, isLoading, isRedirecting } = useAuth();
 
-  // Auth routes
+  // Backwards compat: redirect old /auth/* routes to landing with query param
   if (location.startsWith("/auth/")) {
-    if (isRedirecting) {
-      return <RedirectingScreen />;
-    }
-    return (
-      <AnimatePresence mode="wait" initial={false}>
-        <motion.div
-          key={location}
-          initial={{ opacity: 0, x: -30 }}
-          animate={{ opacity: 1, x: 0 }}
-          exit={{ opacity: 0, x: 30 }}
-          transition={{ 
-            duration: 0.35, 
-            ease: [0.25, 0.1, 0.25, 1],
-            opacity: { duration: 0.25 }
-          }}
-          className="min-h-screen"
-          style={{ willChange: "opacity, transform" }}
-        >
-          <Switch location={location} key={location}>
-            <Route path="/auth/login">
-              <Login />
-            </Route>
-            <Route path="/auth/register">
-              <Register />
-            </Route>
-            <Route>
-              <Redirect to="/auth/login" />
-            </Route>
-          </Switch>
-        </motion.div>
-      </AnimatePresence>
-    );
+    const mode = location.includes("register") ? "register" : "login";
+    // Preserve any query params (like ?error=google)
+    const existingParams = window.location.search;
+    const separator = existingParams ? "&" : "?";
+    return <Redirect to={`/${existingParams ? existingParams + "&" : "?"}auth=${mode}`} />;
   }
 
   // Show redirecting screen during auth transitions for protected routes
@@ -236,12 +218,15 @@ function App() {
       <QueryClientProvider client={queryClient}>
         <ThemeProvider>
           <WouterRouter>
-            <TooltipProvider>
-              <Toaster />
-              <Suspense fallback={<RedirectingScreen />}>
-                <Router />
-              </Suspense>
-            </TooltipProvider>
+            <AuthModalProvider>
+              <TooltipProvider>
+                <Toaster />
+                <AuthModal />
+                <Suspense fallback={<RedirectingScreen />}>
+                  <Router />
+                </Suspense>
+              </TooltipProvider>
+            </AuthModalProvider>
           </WouterRouter>
         </ThemeProvider>
       </QueryClientProvider>

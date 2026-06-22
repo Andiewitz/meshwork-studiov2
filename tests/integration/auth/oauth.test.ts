@@ -104,7 +104,7 @@ describe('OAuth Routes Integration Tests', () => {
       mockAuthenticateBehavior = 'failure';
       const res = await request(app).get('/api/auth/google/callback');
       expect(res.status).toBe(302);
-      expect(res.header.location).toBe('/auth/login?error=google');
+      expect(res.header.location).toBe('/?auth=login&error=google');
     });
   });
 });

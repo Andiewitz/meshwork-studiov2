@@ -5,6 +5,7 @@ import Button from '../components/prometheus/Button';
 import Lenis from "lenis";
 import { Link, useLocation } from "wouter";
 import { PRELOADED_TEMPLATES, TemplateDefinition } from '../lib/templates';
+import { useAuthModal } from '@/components/auth/AuthModalContext';
 import { Helmet } from "react-helmet-async";
 import { MeshworkLogo } from "@/components/MeshworkLogo";
 
@@ -16,10 +17,11 @@ const Home = () => {
     const [scrolled, setScrolled] = useState(false);
     const [, setLocation] = useLocation();
     const [activeCategory, setActiveCategory] = useState<TemplateDefinition['category']>('Featured');
+    const authModal = useAuthModal();
 
     const handleTemplateClick = (template: TemplateDefinition) => {
         localStorage.setItem('meshwork_pending_template', JSON.stringify(template));
-        setLocation('/auth/register');
+        authModal.open('register');
     };
 
     const activeTemplates = PRELOADED_TEMPLATES.filter(t => t.category === activeCategory);
@@ -107,14 +109,10 @@ const Home = () => {
                         <a href="#how-it-works" className="text-sm font-sans font-normal text-white/60 hover:text-white transition-colors">How It Works</a>
                     </div>
                     <div className="flex items-center gap-5">
-                        <Link href="/auth/login">
-                            <button className="font-sans font-medium text-sm text-white/60 hover:text-white transition-colors cursor-pointer">Log in</button>
-                        </Link>
-                        <Link href="/auth/register">
-                            <button className="bg-primary text-black rounded-lg py-2 px-5 text-sm font-bold hover:brightness-110 transition-all cursor-pointer">
-                                Get Started
-                            </button>
-                        </Link>
+                        <button onClick={() => authModal.open('login')} className="font-sans font-medium text-sm text-white/60 hover:text-white transition-colors cursor-pointer">Log in</button>
+                        <button onClick={() => authModal.open('register')} className="bg-primary text-black rounded-lg py-2 px-5 text-sm font-bold hover:brightness-110 transition-all cursor-pointer">
+                            Get Started
+                        </button>
                     </div>
                 </div>
             </nav>
@@ -146,11 +144,9 @@ const Home = () => {
                         Go from prompt to production with automated infrastructure, seamless scaling, and more.
                     </motion.p>
                     <motion.div variants={itemVariants} className="flex gap-4">
-                        <Link href="/auth/register">
-                            <button className="bg-primary text-black rounded-lg py-3 px-8 text-base font-bold hover:brightness-110 transition-all cursor-pointer">
-                                Get Started
-                            </button>
-                        </Link>
+                        <button onClick={() => authModal.open('register')} className="bg-primary text-black rounded-lg py-3 px-8 text-base font-bold hover:brightness-110 transition-all cursor-pointer">
+                            Get Started
+                        </button>
                         <a href="https://github.com/Andiewitz/Meshwork-Studio_" target="_blank" rel="noopener noreferrer">
                             <button className="bg-white/10 text-white hover:bg-white/20 rounded-lg py-3 px-8 text-base font-bold transition-all cursor-pointer flex items-center gap-2">
                                 <FileCode2 className="w-5 h-5" /> View on GitHub
@@ -262,11 +258,9 @@ const Home = () => {
                         {/* Prompt Input Bar */}
                         <div className="bg-[#1a1a1d] rounded-xl border border-white/[0.08] flex items-center px-5 py-3.5 gap-3 mb-8">
                             <span className="text-white/30 text-sm font-sans flex-1 text-left">Describe your infrastructure in a sentence or two</span>
-                            <Link href="/auth/register">
-                                <button className="text-white/40 text-sm font-medium whitespace-nowrap hover:text-white/60 transition-colors">
-                                    Get started
-                                </button>
-                            </Link>
+                            <button onClick={() => authModal.open('register')} className="text-white/40 text-sm font-medium whitespace-nowrap hover:text-white/60 transition-colors cursor-pointer">
+                                Get started
+                            </button>
                         </div>
 
                         {/* Suggestion Chips */}
@@ -351,11 +345,9 @@ const Home = () => {
                             <h3 className="font-sans text-xl font-medium text-white leading-snug">
                                 Start exploring and building<br />with Meshwork Studio.
                             </h3>
-                            <Link href="/auth/register">
-                                <button className="text-white text-sm font-medium border border-white/20 rounded-full px-6 py-2.5 hover:bg-white/[0.06] transition-all w-fit">
-                                    Sign up and get started
-                                </button>
-                            </Link>
+                            <button onClick={() => authModal.open('register')} className="text-white text-sm font-medium border border-white/20 rounded-full px-6 py-2.5 hover:bg-white/[0.06] transition-all w-fit cursor-pointer">
+                                Sign up and get started
+                            </button>
                         </div>
 
                         {/* Link columns */}

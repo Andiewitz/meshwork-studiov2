@@ -12,6 +12,6 @@ export function redirectToLogin(toast?: (options: { title: string; description: 
     });
   }
   setTimeout(() => {
-    window.location.href = "/auth/login";
+    window.location.href = "/?auth=login";
   }, 500);
 }

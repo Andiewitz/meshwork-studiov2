@@ -19,7 +19,7 @@ export function registerAuthRoutes(app: Express): void {
   app.get("/api/auth/google/callback",
     passport.authenticate("google", {
       successRedirect: "/",
-      failureRedirect: "/auth/login?error=google",
+      failureRedirect: "/?auth=login&error=google",
     })
   );
 
