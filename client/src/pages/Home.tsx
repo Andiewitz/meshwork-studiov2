@@ -11,7 +11,6 @@ import { motion, AnimatePresence } from "framer-motion";
 import { LineSyncLoader } from "@/components/ui/loading-screen";
 import { SearchBar } from "@/components/ui/search-bar";
 import { AnimatedButton } from "@/components/ui/animated-button";
-import { Skeleton } from "@/components/ui/skeleton";
 
 const containerVariants = {
   hidden: { opacity: 0 },
@@ -139,45 +138,9 @@ export default function Home() {
   };
   const userName = user?.firstName || user?.email?.split('@')[0] || "Architect";
 
-  if (isAuthLoading || isGeneratingBlueprint) {
+  if (isAuthLoading || isWorkspacesLoading || isGeneratingBlueprint) {
     return <LineSyncLoader message={isGeneratingBlueprint ? "Generating Blueprint..." : "Loading blueprints"} />;
   }
-
-  const renderGridSkeleton = () => (
-    <>
-      {Array.from({ length: 3 }).map((_, i) => (
-        <div key={i} className="glass-card p-1 rounded-xl flex flex-col h-[280px]">
-          <Skeleton className="aspect-video mb-4 w-full rounded-sm opacity-20" />
-          <div className="px-5 pb-5 flex-1 flex flex-col justify-between">
-            <div>
-              <Skeleton className="h-6 w-3/4 mb-3 opacity-20" />
-            </div>
-            <div className="flex items-center justify-between mt-auto">
-              <Skeleton className="h-3 w-1/2 opacity-20" />
-              <Skeleton className="h-7 w-7 rounded-md opacity-20" />
-            </div>
-          </div>
-        </div>
-      ))}
-    </>
-  );
-
-  const renderListSkeleton = () => (
-    <>
-      {Array.from({ length: 5 }).map((_, i) => (
-        <div key={i} className="glass-card p-3 rounded-xl flex flex-row items-center gap-6">
-          <Skeleton className="w-32 aspect-video rounded-sm opacity-20 shrink-0" />
-          <div className="flex-1 flex items-center justify-between pr-4">
-            <div className="flex flex-col gap-2 w-full max-w-[200px]">
-              <Skeleton className="h-6 w-full opacity-20" />
-              <Skeleton className="h-3 w-2/3 opacity-20" />
-            </div>
-            <Skeleton className="h-7 w-7 rounded-md opacity-20" />
-          </div>
-        </div>
-      ))}
-    </>
-  );
 
   return (
     <>
@@ -227,18 +190,16 @@ export default function Home() {
                     </Link>
                   </motion.div>
                   <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-10">
-                    {isWorkspacesLoading ? renderGridSkeleton() : (
-                      displayWorkspaces.slice(0, 3).map(workspace => (
-                        <WorkspaceCard
-                          key={workspace.id}
-                          workspace={workspace}
-                          onDelete={handleDelete}
-                          viewMode="grid"
-                        />
-                      ))
-                    )}
+                    {displayWorkspaces.slice(0, 3).map(workspace => (
+                      <WorkspaceCard
+                        key={workspace.id}
+                        workspace={workspace}
+                        onDelete={handleDelete}
+                        viewMode="grid"
+                      />
+                    ))}
                   </div>
-                  {!isWorkspacesLoading && displayWorkspaces.length === 0 && !searchTerm && (
+                  {displayWorkspaces.length === 0 && !searchTerm && (
                     <motion.div variants={fadeUpVariants} className="bg-white/[0.02] backdrop-blur-xl border border-dashed border-white/10 rounded-xl p-16 flex flex-col items-center justify-center text-center shadow-[0_8px_30px_rgba(0,0,0,0.12)]">
                       <Package className="w-12 h-12 text-outline/30 mb-4" />
                       <p className="text-outline font-sans">No recent projects found.</p>

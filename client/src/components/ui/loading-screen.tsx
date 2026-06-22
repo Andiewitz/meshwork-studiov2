@@ -9,7 +9,7 @@ interface LoadingScreenProps {
 // Standard loading — centered logo + thin progress bar
 export function LoadingScreen({ message, subMessage }: LoadingScreenProps) {
   return (
-    <div className="flex flex-col items-center justify-center min-h-screen bg-background">
+    <div className="flex flex-col items-center justify-center min-h-screen bg-background fixed inset-0 z-[100]">
       <motion.div
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
