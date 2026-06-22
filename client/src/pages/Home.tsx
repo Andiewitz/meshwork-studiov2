@@ -56,11 +56,16 @@ export default function Home() {
             tags: [template.category]
           } as any);
           
+          const normalizedEdges = template.edges.map((edge: any) => ({
+            ...edge,
+            animated: edge.animated ? 1 : 0
+          }));
+
           // 2. Sync nodes and edges
           await secureFetch(`/api/workspaces/${ws.id}/canvas`, {
             method: "POST",
             headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ nodes: template.nodes, edges: template.edges })
+            body: JSON.stringify({ nodes: template.nodes, edges: normalizedEdges })
           });
           
           // 3. Clean up and redirect
