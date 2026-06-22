@@ -1,7 +1,8 @@
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
 import { Link, useLocation } from "wouter";
-import { useWorkspaces, useDeleteWorkspace } from "@/hooks/use-workspaces";
+import { useWorkspaces, useDeleteWorkspace, useCreateWorkspace } from "@/hooks/use-workspaces";
 import { useAuth } from "@/hooks/use-auth";
+import { secureFetch } from "@/lib/secure-fetch";
 import { WorkspaceCard } from "@/components/workspace/WorkspaceCard";
 import { CreateWorkspaceDialog } from "@/components/workspace/CreateWorkspaceDialog";
 import { Search, LayoutGrid, List, Package } from "lucide-react";
@@ -34,6 +35,47 @@ export default function Home() {
   const { user, isLoading: isAuthLoading } = useAuth();
   const { data: workspaces, isLoading: isWorkspacesLoading } = useWorkspaces();
   const deleteWorkspace = useDeleteWorkspace();
+  const createWorkspace = useCreateWorkspace();
+
+  const [isGeneratingBlueprint, setIsGeneratingBlueprint] = useState(false);
+
+  useEffect(() => {
+    const pendingTemplateStr = localStorage.getItem('meshwork_pending_template');
+    if (pendingTemplateStr && user && !isGeneratingBlueprint) {
+      setIsGeneratingBlueprint(true);
+      
+      const executeTemplateCreation = async () => {
+        try {
+          const template = JSON.parse(pendingTemplateStr);
+          // 1. Create Workspace
+          const ws = await createWorkspace.mutateAsync({
+            title: template.title,
+            description: template.description,
+            type: "architecture",
+            groups: [],
+            tags: [template.category]
+          } as any);
+          
+          // 2. Sync nodes and edges
+          await secureFetch(`/api/workspaces/${ws.id}/canvas`, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ nodes: template.nodes, edges: template.edges })
+          });
+          
+          // 3. Clean up and redirect
+          localStorage.removeItem('meshwork_pending_template');
+          setLocation(`/workspace/${ws.id}`);
+        } catch (e) {
+          console.error("Failed to generate blueprint:", e);
+          setIsGeneratingBlueprint(false);
+          localStorage.removeItem('meshwork_pending_template');
+        }
+      };
+      
+      executeTemplateCreation();
+    }
+  }, [user, createWorkspace, setLocation, isGeneratingBlueprint]);
 
   const [isCreateOpen, setIsCreateOpen] = useState(false);
   const [searchTerm, setSearchTerm] = useState("");
@@ -91,8 +133,8 @@ export default function Home() {
   };
   const userName = user?.firstName || user?.email?.split('@')[0] || "Architect";
 
-  if (isAuthLoading || isWorkspacesLoading) {
-    return <LineSyncLoader message="Loading blueprints" />;
+  if (isAuthLoading || isWorkspacesLoading || isGeneratingBlueprint) {
+    return <LineSyncLoader message={isGeneratingBlueprint ? "Generating Blueprint..." : "Loading blueprints"} />;
   }
 
   return (
