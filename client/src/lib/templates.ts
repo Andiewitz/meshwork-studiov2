@@ -19,8 +19,10 @@ export const PRELOADED_TEMPLATES: TemplateDefinition[] = [
         "type": "annotation",
         "position": {
           "x": -200,
-          "y": 0
+          "y": -100
         },
+        "width": 400,
+        "height": 100,
         "data": {
           "label": "## Modern SaaS Architecture\nComplete setup with Next.js frontend, FastAPI backend, caching, and a database cluster."
         }
@@ -200,6 +202,8 @@ export const PRELOADED_TEMPLATES: TemplateDefinition[] = [
           "x": 650,
           "y": -50
         },
+        "width": 300,
+        "height": 100,
         "data": {
           "label": "All backend services are deployed in an auto-scaling group across 3 availability zones."
         }
@@ -283,8 +287,10 @@ export const PRELOADED_TEMPLATES: TemplateDefinition[] = [
         "type": "annotation",
         "position": {
           "x": -100,
-          "y": 0
+          "y": -100
         },
+        "width": 400,
+        "height": 100,
         "data": {
           "label": "## Kubernetes Microservices\nHigh-scale event-driven architecture."
         }
@@ -431,6 +437,8 @@ export const PRELOADED_TEMPLATES: TemplateDefinition[] = [
           "x": 250,
           "y": 650
         },
+        "width": 400,
+        "height": 100,
         "data": {
           "label": "Services communicate asynchronously via Kafka topics."
         }
@@ -504,8 +512,10 @@ export const PRELOADED_TEMPLATES: TemplateDefinition[] = [
         "type": "annotation",
         "position": {
           "x": 0,
-          "y": 0
+          "y": -100
         },
+        "width": 400,
+        "height": 100,
         "data": {
           "label": "## Data Lake & Analytics\nModern data stack extracting data from external sources."
         }
@@ -647,6 +657,8 @@ export const PRELOADED_TEMPLATES: TemplateDefinition[] = [
           "x": 600,
           "y": 600
         },
+        "width": 300,
+        "height": 100,
         "data": {
           "label": "dbt models run inside Snowflake for high performance ELT."
         }
@@ -715,8 +727,10 @@ export const PRELOADED_TEMPLATES: TemplateDefinition[] = [
         "type": "annotation",
         "position": {
           "x": -200,
-          "y": 0
+          "y": -100
         },
+        "width": 500,
+        "height": 100,
         "data": {
           "label": "## Multi-Region High Availability\nActive-Active regional failover with global load balancing."
         }
@@ -872,6 +886,8 @@ export const PRELOADED_TEMPLATES: TemplateDefinition[] = [
           "x": 800,
           "y": 350
         },
+        "width": 300,
+        "height": 100,
         "data": {
           "label": "Cross-region DB replication keeps the secondary region in sync."
         }
@@ -961,8 +977,10 @@ export const PRELOADED_TEMPLATES: TemplateDefinition[] = [
         "type": "annotation",
         "position": {
           "x": 0,
-          "y": 0
+          "y": -100
         },
+        "width": 400,
+        "height": 100,
         "data": {
           "label": "## Serverless API\nFully managed API utilizing AWS Lambda and DynamoDB."
         }
@@ -1155,8 +1173,10 @@ export const PRELOADED_TEMPLATES: TemplateDefinition[] = [
         "type": "annotation",
         "position": {
           "x": 0,
-          "y": 0
+          "y": -100
         },
+        "width": 500,
+        "height": 100,
         "data": {
           "label": "## Event-Driven Pipeline\nAsynchronous processing workflow using SQS, EventBridge, and Lambda."
         }
@@ -1376,8 +1396,10 @@ export const PRELOADED_TEMPLATES: TemplateDefinition[] = [
         "type": "annotation",
         "position": {
           "x": -200,
-          "y": 0
+          "y": -100
         },
+        "width": 400,
+        "height": 100,
         "data": {
           "label": "## MERN Stack Architecture\nThe classic Mongo, Express, React, Node application."
         }
@@ -1549,8 +1571,10 @@ export const PRELOADED_TEMPLATES: TemplateDefinition[] = [
         "type": "annotation",
         "position": {
           "x": 0,
-          "y": 0
+          "y": -100
         },
+        "width": 400,
+        "height": 100,
         "data": {
           "label": "## Jamstack with Headless CMS\nGlobal edge delivery for static sites."
         }
@@ -1683,8 +1707,10 @@ export const PRELOADED_TEMPLATES: TemplateDefinition[] = [
         "type": "annotation",
         "position": {
           "x": 0,
-          "y": 0
+          "y": -100
         },
+        "width": 400,
+        "height": 100,
         "data": {
           "label": "## Next.js + Auth0 + PlanetScale\nModern enterprise-grade React stack."
         }
@@ -1871,8 +1897,10 @@ export const PRELOADED_TEMPLATES: TemplateDefinition[] = [
         "type": "annotation",
         "position": {
           "x": 0,
-          "y": 0
+          "y": -100
         },
+        "width": 500,
+        "height": 100,
         "data": {
           "label": "## Real-time Telemetry Streaming\nHigh-throughput streaming pipeline using Kafka, Clickhouse, and Grafana."
         }
@@ -2033,8 +2061,10 @@ export const PRELOADED_TEMPLATES: TemplateDefinition[] = [
         "type": "annotation",
         "position": {
           "x": 0,
-          "y": 0
+          "y": -100
         },
+        "width": 500,
+        "height": 100,
         "data": {
           "label": "## Nightly Batch Processing\nExtract, Transform, Load (ETL) pipeline with Spark and S3."
         }
@@ -2141,6 +2171,8 @@ export const PRELOADED_TEMPLATES: TemplateDefinition[] = [
           "x": 900,
           "y": 250
         },
+        "width": 300,
+        "height": 150,
         "data": {
           "label": "Spark jobs process the data and write Parquet files to the Curated Zone."
         }
@@ -2195,8 +2227,10 @@ export const PRELOADED_TEMPLATES: TemplateDefinition[] = [
         "type": "annotation",
         "position": {
           "x": 0,
-          "y": 0
+          "y": -100
         },
+        "width": 400,
+        "height": 100,
         "data": {
           "label": "## ELK Log Analytics Stack\nCentralized logging and operational metrics."
         }
