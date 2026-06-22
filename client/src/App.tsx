@@ -17,16 +17,32 @@ import { AuthModalProvider, useAuthModal } from "@/components/auth/AuthModalCont
 import { AuthModal } from "@/components/auth/AuthModal";
 
 // Route-level code splitting via React.lazy
-const NotFound = React.lazy(() => import("@/pages/not-found"));
-const Home = React.lazy(() => import("@/pages/Home"));
-const Landing = React.lazy(() => import("@/pages/Landing"));
-const Settings = React.lazy(() => import("@/pages/Settings"));
-const Workspace = React.lazy(() => import("@/pages/Workspace"));
-const Dev = React.lazy(() => import("@/pages/Dev"));
-const Team = React.lazy(() => import("@/pages/Team"));
-const Templates = React.lazy(() => import("@/pages/Templates"));
-const TermsOfService = React.lazy(() => import("@/pages/TermsOfService"));
-const PrivacyPolicy = React.lazy(() => import("@/pages/PrivacyPolicy"));
+const lazyMap = {
+  NotFound: React.lazy(() => import("@/pages/not-found")),
+  Home: React.lazy(() => import("@/pages/Home")),
+  Landing: React.lazy(() => import("@/pages/Landing")),
+  Settings: React.lazy(() => import("@/pages/Settings")),
+  Workspace: React.lazy(() => import("@/pages/Workspace")),
+  Dev: React.lazy(() => import("@/pages/Dev")),
+  Team: React.lazy(() => import("@/pages/Team")),
+  Templates: React.lazy(() => import("@/pages/Templates")),
+  TermsOfService: React.lazy(() => import("@/pages/TermsOfService")),
+  PrivacyPolicy: React.lazy(() => import("@/pages/PrivacyPolicy")),
+};
+
+const { NotFound, Home, Landing, Settings, Workspace, Dev, Team, Templates, TermsOfService, PrivacyPolicy } = lazyMap;
+
+// Eagerly trigger import for the current route to parallelize with auth fetch
+const currentPath = window.location.pathname;
+if (currentPath === '/' || currentPath === '/landing') import("@/pages/Landing");
+else if (currentPath === '/home' || currentPath === '/workspaces') import("@/pages/Home");
+else if (currentPath === '/settings') import("@/pages/Settings");
+else if (currentPath.startsWith('/workspace/')) import("@/pages/Workspace");
+else if (currentPath === '/dev') import("@/pages/Dev");
+else if (currentPath === '/team') import("@/pages/Team");
+else if (currentPath === '/templates') import("@/pages/Templates");
+else if (currentPath === '/terms') import("@/pages/TermsOfService");
+else if (currentPath === '/privacy') import("@/pages/PrivacyPolicy");
 
 function ProtectedRoute({ component: Component }: { component: React.ComponentType }) {
   const { user, isLoading, isRedirecting } = useAuth();
