@@ -461,15 +461,16 @@ export function AuthModal() {
             </DialogPrimitive.Overlay>
 
             {/* Content */}
-            <DialogPrimitive.Content forceMount asChild>
-              <motion.div
-                initial={{ opacity: 0, scale: 0.95, y: 20 }}
-                animate={{ opacity: 1, scale: 1, y: 0 }}
-                exit={{ opacity: 0, scale: 0.95, y: 20 }}
-                transition={{ duration: 0.25, ease: [0.16, 1, 0.3, 1] }}
-                className="fixed left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 z-[101] w-full max-w-[440px] max-h-[90vh] overflow-y-auto"
-              >
-                <div className="relative bg-[#111113] border border-white/[0.08] rounded-2xl shadow-[0_25px_60px_rgba(0,0,0,0.7)] p-7">
+            <div className="fixed inset-0 z-[101] flex items-center justify-center pointer-events-none">
+              <DialogPrimitive.Content forceMount asChild>
+                <motion.div
+                  initial={{ opacity: 0, scale: 0.95, y: 20 }}
+                  animate={{ opacity: 1, scale: 1, y: 0 }}
+                  exit={{ opacity: 0, scale: 0.95, y: 20 }}
+                  transition={{ duration: 0.25, ease: [0.16, 1, 0.3, 1] }}
+                  className="w-full max-w-[440px] max-h-[90vh] overflow-y-auto pointer-events-auto"
+                >
+                  <div className="relative bg-[#111113] border border-white/[0.08] rounded-2xl shadow-[0_25px_60px_rgba(0,0,0,0.7)] p-7">
                   {/* Close button */}
                   <DialogPrimitive.Close className="absolute right-4 top-4 text-white/30 hover:text-white transition-colors rounded-full p-1 hover:bg-white/10">
                     <X className="w-4 h-4" />
@@ -504,6 +505,7 @@ export function AuthModal() {
                 </div>
               </motion.div>
             </DialogPrimitive.Content>
+            </div>
           </DialogPrimitive.Portal>
         )}
       </AnimatePresence>
