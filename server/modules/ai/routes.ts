@@ -317,7 +317,7 @@ router.post("/suggestions", isAuthenticated, async (req: Request, res: Response)
     if (process.env.OPENROUTER_API_KEY) {
       provider = "openrouter";
       apiKey = process.env.OPENROUTER_API_KEY.trim().replace(/^["']|["']$/g, '');
-      model = "deepseek/deepseek-r1:free";
+      model = "gpt-oss-120b:free";
     } else {
       // 2. Otherwise find the first active key in user database
       const keys = await getUserApiKeys(userId);
@@ -346,7 +346,7 @@ router.post("/suggestions", isAuthenticated, async (req: Request, res: Response)
       } else if (provider === "anthropic") {
         model = "claude-3-5-haiku-20241022";
       } else if (provider === "openrouter") {
-        model = "deepseek/deepseek-r1:free";
+        model = "gpt-oss-120b:free";
       } else {
         return res.status(400).json({ error: `Unsupported provider for suggestions: ${provider}` });
       }
@@ -452,7 +452,7 @@ router.get("/providers", isAuthenticated, async (_req: Request, res: Response) =
     { id: "openai", name: "OpenAI", models: ["gpt-4", "gpt-4-turbo", "gpt-3.5-turbo"] },
     { id: "anthropic", name: "Anthropic", models: ["claude-3-5-sonnet", "claude-3-opus"] },
     { id: "google", name: "Google AI", models: ["gemini-pro"] },
-    { id: "openrouter", name: "OpenRouter", models: ["meta-llama/llama-3-8b-instruct:free", "google/gemini-2.5-flash:free", "deepseek/deepseek-r1:free", "deepseek/deepseek-r1"] },
+    { id: "openrouter", name: "OpenRouter", models: ["meta-llama/llama-3-8b-instruct:free", "google/gemini-2.5-flash:free", "gpt-oss-120b:free", "gpt-oss-120b"] },
   ]);
 });
 

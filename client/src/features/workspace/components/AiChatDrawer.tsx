@@ -295,9 +295,9 @@ export function AiChatDrawer({
             credentials: "include",
             body: JSON.stringify({
               provider: "openrouter",
-              // DeepSeek R1 — powerful reasoning and instruction-following model
-              // Tested working: DeepSeek R1 Free > openrouter/free
-              model: "deepseek/deepseek-r1:free",
+              // GPT OSS 120B — powerful reasoning and instruction-following model
+              // Tested working: GPT OSS 120B Free > openrouter/free
+              model: "gpt-oss-120b:free",
               messages: payloadMessages,
               stream: false,
             }),
@@ -448,7 +448,7 @@ export function AiChatDrawer({
                   </div>
                   <div className="flex items-center gap-1.5 mt-0.5">
                     <motion.div className="w-1.5 h-1.5 rounded-full bg-emerald-400" animate={{ opacity: [1, 0.4, 1] }} transition={{ repeat: Infinity, duration: 2 }} />
-                    <span className="text-[10px] text-white/30">DeepSeek R1 · Canvas-aware</span>
+                    <span className="text-[10px] text-white/30">GPT OSS 120B · Canvas-aware</span>
                   </div>
                 </div>
               </div>
