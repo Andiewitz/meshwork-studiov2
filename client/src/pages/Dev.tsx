@@ -1,10 +1,11 @@
-import { useState } from "react";
-import { Search, Grid3X3, List, ArrowLeft, Calendar, Clock, Tag, Share2, Link2 } from "lucide-react";
+import { useState, useEffect, useMemo } from "react";
+import { Search, ChevronRight, Menu, X, Copy, BookOpen } from "lucide-react";
 import { Input } from "@/components/ui/input";
-import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
-import { motion, AnimatePresence } from "framer-motion";
+import ReactMarkdown from "react-markdown";
+import remarkGfm from "remark-gfm";
 import { useToast } from "@/hooks/use-toast";
+import { motion, AnimatePresence } from "framer-motion";
 
 interface BlogPost {
   id: number;
@@ -13,87 +14,8 @@ interface BlogPost {
   date: string;
   category: string;
   readTime: string;
-  imageColor: string;
-  imagePattern?: string;
-  content?: string;
   author?: string;
-}
-
-function PatternSvg({ pattern }: { pattern: string }) {
-  const patterns: Record<string, JSX.Element> = {
-    chart: (
-      <svg viewBox="0 0 200 150" className="w-full h-full">
-        <path d="M40,110 Q60,60 80,90 T120,70 T160,50" fill="none" stroke="#1a1a1a" strokeWidth="3" />
-        <circle cx="80" cy="90" r="4" fill="#1a1a1a" />
-        <circle cx="120" cy="70" r="4" fill="#1a1a1a" />
-        <path d="M140,40 L150,30 M150,40 L160,30" stroke="#1a1a1a" strokeWidth="2" />
-      </svg>
-    ),
-    stairs: (
-      <svg viewBox="0 0 200 150" className="w-full h-full">
-        <path d="M60,120 L60,90 L90,90 L90,60 L120,60 L120,30" fill="none" stroke="#fff" strokeWidth="4" strokeLinecap="round" />
-        <path d="M130,40 Q140,30 150,40" fill="none" stroke="#fff" strokeWidth="2" />
-      </svg>
-    ),
-    book: (
-      <svg viewBox="0 0 200 150" className="w-full h-full">
-        <rect x="50" y="30" width="100" height="90" rx="4" fill="none" stroke="#1a1a1a" strokeWidth="3" />
-        <line x1="80" y1="30" x2="80" y2="120" stroke="#1a1a1a" strokeWidth="2" />
-        <line x1="95" y1="50" x2="130" y2="50" stroke="#1a1a1a" strokeWidth="2" />
-        <line x1="95" y1="65" x2="130" y2="65" stroke="#1a1a1a" strokeWidth="2" />
-        <line x1="95" y1="80" x2="120" y2="80" stroke="#1a1a1a" strokeWidth="2" />
-      </svg>
-    ),
-    code: (
-      <svg viewBox="0 0 200 150" className="w-full h-full">
-        <path d="M70,75 L50,55 L70,35" fill="none" stroke="#1a1a1a" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" />
-        <path d="M130,75 L150,55 L130,35" fill="none" stroke="#1a1a1a" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" />
-        <line x1="85" y1="85" x2="115" y2="25" stroke="#1a1a1a" strokeWidth="3" strokeLinecap="round" />
-      </svg>
-    ),
-    eye: (
-      <svg viewBox="0 0 200 150" className="w-full h-full">
-        <ellipse cx="100" cy="75" rx="50" ry="30" fill="none" stroke="#1a1a1a" strokeWidth="3" />
-        <circle cx="100" cy="75" r="15" fill="#1a1a1a" />
-        <path d="M150,45 L170,35" stroke="#1a1a1a" strokeWidth="3" strokeLinecap="round" />
-        <path d="M155,55 L175,50" stroke="#1a1a1a" strokeWidth="2" strokeLinecap="round" />
-      </svg>
-    ),
-    nodes: (
-      <svg viewBox="0 0 200 150" className="w-full h-full">
-        <circle cx="60" cy="75" r="12" fill="#1a1a1a" />
-        <circle cx="140" cy="50" r="12" fill="#1a1a1a" />
-        <circle cx="140" cy="100" r="12" fill="#1a1a1a" />
-        <line x1="72" y1="75" x2="128" y2="55" stroke="#1a1a1a" strokeWidth="2" />
-        <line x1="72" y1="75" x2="128" y2="95" stroke="#1a1a1a" strokeWidth="2" />
-        <circle cx="140" cy="50" r="4" fill="#fff" />
-        <circle cx="140" cy="100" r="4" fill="#fff" />
-      </svg>
-    ),
-    schema: (
-      <svg viewBox="0 0 200 150" className="w-full h-full">
-        {/* Top node box */}
-        <rect x="70" y="15" width="60" height="28" rx="5" fill="none" stroke="#1a1a1a" strokeWidth="2.5" />
-        <line x1="80" y1="24" x2="120" y2="24" stroke="#1a1a1a" strokeWidth="1.5" />
-        <line x1="80" y1="32" x2="112" y2="32" stroke="#1a1a1a" strokeWidth="1.5" />
-        {/* Left node box */}
-        <rect x="18" y="90" width="60" height="28" rx="5" fill="none" stroke="#1a1a1a" strokeWidth="2.5" />
-        <line x1="28" y1="99" x2="68" y2="99" stroke="#1a1a1a" strokeWidth="1.5" />
-        <line x1="28" y1="107" x2="60" y2="107" stroke="#1a1a1a" strokeWidth="1.5" />
-        {/* Right node box */}
-        <rect x="122" y="90" width="60" height="28" rx="5" fill="none" stroke="#1a1a1a" strokeWidth="2.5" />
-        <line x1="132" y1="99" x2="172" y2="99" stroke="#1a1a1a" strokeWidth="1.5" />
-        <line x1="132" y1="107" x2="162" y2="107" stroke="#1a1a1a" strokeWidth="1.5" />
-        {/* Connecting edges */}
-        <line x1="100" y1="43" x2="48" y2="90" stroke="#1a1a1a" strokeWidth="2" strokeLinecap="round" />
-        <line x1="100" y1="43" x2="152" y2="90" stroke="#1a1a1a" strokeWidth="2" strokeLinecap="round" />
-        {/* Arrowheads */}
-        <polygon points="44,84 48,90 54,86" fill="#1a1a1a" />
-        <polygon points="156,86 152,90 148,84" fill="#1a1a1a" />
-      </svg>
-    ),
-  };
-  return patterns[pattern] || null;
+  content?: string;
 }
 
 const blogPosts: BlogPost[] = [
@@ -104,8 +26,6 @@ const blogPosts: BlogPost[] = [
     date: "May 10, 2026",
     category: "Engineering",
     readTime: "12 min read",
-    imageColor: "bg-[#7A8B6E]",
-    imagePattern: "nodes",
     author: "Meshwork Engineering",
     content: `
 ## Render & Math Layer
@@ -134,8 +54,6 @@ The backend executes PostgreSQL \`ON CONFLICT (id) DO UPDATE\` queries with this
     date: "May 8, 2026",
     category: "Technical",
     readTime: "8 min read",
-    imageColor: "bg-[#E8DED5]",
-    imagePattern: "code",
     author: "Meshwork Engineering",
     content: `
 ## Key Management (BYOK)
@@ -160,8 +78,6 @@ LLM providers return HTTP 429 and 503 frequently under load. Meshwork handles th
     date: "May 5, 2026",
     category: "Engineering",
     readTime: "6 min read",
-    imageColor: "bg-[#B8C5C4]",
-    imagePattern: "eye",
     author: "Meshwork Security Team",
     content: `
 ## API & Validation Boundaries
@@ -186,8 +102,6 @@ The application logger uses a recursive redaction transport. Before payloads wri
     date: "May 2, 2026",
     category: "Design",
     readTime: "5 min read",
-    imageColor: "bg-[#9B8B7A]",
-    imagePattern: "stairs",
     author: "Meshwork Design",
     content: `
 ## Tailwind Utility Foundation
@@ -210,8 +124,6 @@ Interactive components (Dialogs, Dropdowns, Tooltips, Accordions) use Radix UI p
     date: "June 7, 2026",
     category: "Technical",
     readTime: "10 min read",
-    imageColor: "bg-[#2A3A4A]",
-    imagePattern: "schema",
     author: "Meshwork Engineering",
     content: `
 ## What Is the Canvas Schema?
@@ -251,6 +163,9 @@ The \`data\` sub-object stores metadata readable by the Properties sidebar: a \`
 
 Every node and edge carries an \`ai\` sub-object — never rendered directly in the UI, but used by Mosh as working memory across follow-up prompts. Fields include \`summary\` (Mosh's understanding of the component's role), \`notes\` (extended design observations), and \`lastAnalyzed\` (ISO 8601 timestamp of the last Mosh interaction).
 
+> [!NOTE]
+> AI metadata is completely stripped out before generating a public shareable link.
+
 ## JSON Schema & Validation
 
 A full Draft-07 JSON Schema covering every field, enum, and constraint lives at \`docs/canvas-schema.json\` in the repository. Integrate it with any JSON Schema validator (e.g. Ajv) to validate canvas payloads in CI pipelines, import tools, or external editors. The \`validateAndRepairCanvas\` runtime utility in \`client/src/lib/ai-canvas-utils.ts\` performs a repair pass instead of hard rejection — correcting types, deduplicating IDs, and placing orphaned nodes at safe fallback coordinates.
@@ -258,420 +173,325 @@ A full Draft-07 JSON Schema covering every field, enum, and constraint lives at 
   }
 ];
 
-export default function Dev() {
-  const [searchTerm, setSearchTerm] = useState("");
-  const [viewMode, setViewMode] = useState<"grid" | "list">("grid");
-  const [selectedPost, setSelectedPost] = useState<BlogPost | null>(null);
-  const [selectedCategory, setSelectedCategory] = useState("All");
-
-  const categories = ["All", "Announcements", "Engineering", "Technical", "Features", "Product", "Design"];
-
-  const containerVariants = {
-    hidden: { opacity: 0 },
-    show: {
-      opacity: 1,
-      transition: {
-        staggerChildren: 0.1,
-      },
-    },
-    exit: {
-      opacity: 0,
-      transition: {
-        staggerChildren: 0.05,
-        staggerDirection: -1
-      }
+// Helper to extract headings from markdown for the right-side TOC
+function extractHeadings(markdown: string) {
+  const headings: { level: number; text: string; id: string }[] = [];
+  const lines = markdown.split('\n');
+  lines.forEach(line => {
+    const match = line.match(/^(#{2,3})\s+(.*)$/);
+    if (match) {
+      const level = match[1].length;
+      const text = match[2];
+      const id = text.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '');
+      headings.push({ level, text, id });
     }
-  };
+  });
+  return headings;
+}
 
-  const itemVariants = {
-    hidden: { opacity: 0, y: 20, scale: 0.96 },
-    show: { 
-      opacity: 1, 
-      y: 0, 
-      scale: 1,
-      transition: { 
-        type: "spring", 
-        stiffness: 300, 
-        damping: 24 
-      }
-    },
-    exit: { opacity: 0, y: -20, scale: 0.96 }
-  };
-
+export default function DevDocs() {
+  const [searchTerm, setSearchTerm] = useState("");
+  const [activePostId, setActivePostId] = useState<number>(blogPosts[0].id);
+  const [isMobileNavOpen, setIsMobileNavOpen] = useState(false);
+  const [activeHeadingId, setActiveHeadingId] = useState<string>("");
   const { toast } = useToast();
 
-  const handleShareOnX = () => {
-    if (!selectedPost) return;
-    const text = encodeURIComponent(`Check out this article on Weave Studio: ${selectedPost.title}`);
-    const url = encodeURIComponent(window.location.href);
-    window.open(`https://twitter.com/intent/tweet?text=${text}&url=${url}`, '_blank');
-  };
+  const activePost = useMemo(() => blogPosts.find(p => p.id === activePostId) || blogPosts[0], [activePostId]);
+  const headings = useMemo(() => activePost.content ? extractHeadings(activePost.content) : [], [activePost]);
+
+  // Group posts by category
+  const categoriesMap = useMemo(() => {
+    const map: Record<string, BlogPost[]> = {};
+    blogPosts.forEach(post => {
+      if (!map[post.category]) map[post.category] = [];
+      map[post.category].push(post);
+    });
+    return map;
+  }, []);
 
   const handleCopyLink = () => {
     navigator.clipboard.writeText(window.location.href);
     toast({
       title: "Link Copied",
-      description: "Article link copied to clipboard.",
+      description: "Documentation link copied to clipboard.",
     });
   };
 
-  const filteredPosts = blogPosts.filter((post) => {
-    const matchesSearch = 
-      post.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      post.subtitle.toLowerCase().includes(searchTerm.toLowerCase());
-    const matchesCategory = selectedCategory === "All" || post.category === selectedCategory;
-    return matchesSearch && matchesCategory;
-  });
+  // Scroll spy for TOC
+  useEffect(() => {
+    const observer = new IntersectionObserver(
+      (entries) => {
+        entries.forEach((entry) => {
+          if (entry.isIntersecting) {
+            setActiveHeadingId(entry.target.id);
+          }
+        });
+      },
+      { rootMargin: "0px 0px -80% 0px" } // trigger near top
+    );
 
-  if (selectedPost) {
-    return (
-      <AnimatePresence mode="wait">
-        <motion.div
-          key="post"
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          exit={{ opacity: 0, y: -20 }}
-          transition={{ duration: 0.3, ease: [0.25, 0.1, 0.25, 1] }}
-          className="min-h-screen relative"
-        >
-          {/* Blog post background */}
-          <div className="fixed inset-0 -z-10 overflow-hidden pointer-events-none bg-[#0A0A0A]">
-            <div className="absolute inset-0 bg-[repeating-linear-gradient(0deg,transparent,transparent_31px,currentColor_31px,currentColor_32px)] opacity-[0.02]" />
-            <div className="absolute top-0 right-0 w-[800px] h-[800px] bg-gradient-radial from-primary/5 via-transparent to-transparent rounded-full blur-3xl opacity-50" />
-            <div className="absolute bottom-0 left-0 w-[600px] h-[600px] bg-gradient-radial from-indigo-500/5 via-transparent to-transparent rounded-full blur-3xl opacity-50" />
+    headings.forEach((heading) => {
+      const el = document.getElementById(heading.id);
+      if (el) observer.observe(el);
+    });
+
+    return () => observer.disconnect();
+  }, [headings, activePostId]);
+
+  // Custom Markdown Components
+  const markdownComponents: any = {
+    h2: ({ node, children, ...props }: any) => {
+      const text = String(children).replace(/\n/g, '');
+      const id = text.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '');
+      return <h2 id={id} className="text-2xl font-semibold mt-16 mb-4 text-white/90 border-b border-white/10 pb-2 font-sans tracking-tight" {...props}>{children}</h2>
+    },
+    h3: ({ node, children, ...props }: any) => {
+      const text = String(children).replace(/\n/g, '');
+      const id = text.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '');
+      return <h3 id={id} className="text-xl font-medium mt-8 mb-4 text-white/80 font-sans tracking-tight" {...props}>{children}</h3>
+    },
+    p: ({ node, children, ...props }: any) => <p className="leading-relaxed mb-6 text-white/70 font-sans font-light" {...props}>{children}</p>,
+    a: ({ node, children, ...props }: any) => <a className="text-blue-400 hover:text-blue-300 underline underline-offset-2 transition-colors" {...props}>{children}</a>,
+    ul: ({ node, children, ...props }: any) => <ul className="list-disc list-outside ml-6 mb-6 space-y-2 text-white/70 font-sans font-light" {...props}>{children}</ul>,
+    ol: ({ node, children, ...props }: any) => <ol className="list-decimal list-outside ml-6 mb-6 space-y-2 text-white/70 font-sans font-light" {...props}>{children}</ol>,
+    li: ({ node, children, ...props }: any) => <li {...props}>{children}</li>,
+    blockquote: ({ node, children, ...props }: any) => {
+      // Look for github style alerts like > [!NOTE]
+      const textContent = String(children?.[1]?.props?.children?.[0] || "");
+      if (textContent.includes("[!NOTE]")) {
+        return (
+          <div className="border border-blue-500/30 bg-blue-500/10 p-4 rounded-lg my-8 flex gap-3 text-white/80">
+            <div className="text-blue-400 mt-0.5"><BookOpen className="w-5 h-5" /></div>
+            <div>{children}</div>
           </div>
-
-          <div className="max-w-4xl mx-auto px-4 md:px-0 py-12">
-            {/* Back button */}
-            <button 
-              className="mb-12 flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-medium text-white/50 hover:text-white hover:bg-white/[0.05] transition-all border border-transparent hover:border-white/[0.08]"
-              onClick={() => setSelectedPost(null)}
-            >
-              <ArrowLeft className="w-4 h-4" />
-              Back to articles
-            </button>
-
-            {/* Article header */}
-            <article className="space-y-12">
-              <div className="space-y-8 text-center max-w-3xl mx-auto">
-                <div className="flex items-center justify-center gap-4 text-sm font-medium tracking-wide">
-                  <span className="px-3 py-1 bg-white/[0.05] border border-white/[0.08] text-white/80 rounded-full">
-                    {selectedPost.category}
-                  </span>
-                  <span className="flex items-center gap-1.5 text-white/40">
-                    <Calendar className="w-4 h-4 text-white/30" />
-                    {selectedPost.date}
-                  </span>
-                  <span className="flex items-center gap-1.5 text-white/40">
-                    <Clock className="w-4 h-4 text-white/30" />
-                    {selectedPost.readTime}
-                  </span>
-                </div>
-                
-                <h1 className="text-5xl md:text-6xl font-bold font-sans leading-tight tracking-tight text-white drop-shadow-lg">
-                  {selectedPost.title}
-                </h1>
-                
-                <p className="text-xl md:text-2xl text-white/60 leading-relaxed font-sans font-light">
-                  {selectedPost.subtitle}
-                </p>
-
-              {selectedPost.author && (
-                <div className="flex items-center justify-center gap-4 pt-4">
-                  <div className="w-12 h-12 rounded-full bg-white/[0.08] border border-white/[0.1] flex items-center justify-center font-semibold text-white/90 shadow-lg">
-                    {selectedPost.author.split(' ').map(n => n[0]).join('')}
-                  </div>
-                  <div className="text-left">
-                    <p className="font-medium text-white/90">{selectedPost.author}</p>
-                    <p className="text-sm text-white/40">Weave Studio Team</p>
-                  </div>
-                </div>
-              )}
-            </div>
-
-            {/* Featured image */}
-            <div className="relative w-full aspect-[2/1] rounded-3xl overflow-hidden shadow-[inset_0_1px_0_rgba(255,255,255,0.2),0_24px_64px_rgba(0,0,0,0.8)] border border-white/[0.08] group">
-              <div className={cn("absolute inset-0 transition-transform duration-700 group-hover:scale-105", selectedPost.imageColor)}>
-                 {selectedPost.imagePattern && <PatternSvg pattern={selectedPost.imagePattern} />}
-              </div>
-              <div className="absolute inset-0 bg-gradient-to-t from-[#0A0A0A]/80 via-transparent to-transparent opacity-60" />
-            </div>
-
-            {/* Article content */}
-            <div className="prose prose-invert prose-lg md:prose-xl max-w-3xl mx-auto">
-              <div className="space-y-8 text-white/80 leading-relaxed font-sans font-light">
-                {selectedPost.content?.split('\n\n').map((paragraph, idx) => {
-                  if (paragraph.startsWith('## ')) {
-                    return <h2 key={idx} className="text-3xl font-bold font-sans mt-16 mb-6 text-white">{paragraph.replace('## ', '')}</h2>;
-                  }
-                  if (paragraph.startsWith('### ')) {
-                    return <h3 key={idx} className="text-2xl font-semibold font-sans mt-12 mb-4 text-white/90">{paragraph.replace('### ', '')}</h3>;
-                  }
-                  if (paragraph.startsWith('- ')) {
-                    return (
-                      <ul key={idx} className="list-disc list-outside space-y-3 ml-6 text-white/70">
-                        {paragraph.split('\n').map((item, i) => (
-                          <li key={i}>{item.replace('- ', '')}</li>
-                        ))}
-                      </ul>
-                    );
-                  }
-                  if (paragraph.startsWith('1. ')) {
-                    return (
-                      <ol key={idx} className="list-decimal list-outside space-y-3 ml-6 text-white/70">
-                        {paragraph.split('\n').map((item, i) => (
-                          <li key={i}>{item.replace(/^\d+\. /, '')}</li>
-                        ))}
-                      </ol>
-                    );
-                  }
-                  if (paragraph.startsWith('**') && paragraph.endsWith('**')) {
-                    return <p key={idx} className="font-semibold text-xl text-white/90">{paragraph.replace(/\*\*/g, '')}</p>;
-                  }
-                  if (paragraph.includes('`')) {
-                    return (
-                      <p key={idx}>
-                        {paragraph.split('`').map((part, i) => 
-                          i % 2 === 1 ? (
-                            <code key={i} className="px-2 py-1 bg-white/[0.05] border border-white/[0.08] rounded text-[0.9em] font-mono text-blue-300">{part}</code>
-                          ) : part
-                        )}
-                      </p>
-                    );
-                  }
-                  return <p key={idx}>{paragraph}</p>;
-                })}
-              </div>
-            </div>
-
-            {/* Share section */}
-            <div className="border-t border-white/[0.08] pt-8 mt-16 max-w-3xl mx-auto">
-              <div className="flex flex-col sm:flex-row items-center justify-between gap-6">
-                <div className="flex items-center gap-4">
-                  <button 
-                    onClick={handleShareOnX}
-                    className="flex items-center gap-2 px-4 py-2 bg-white/[0.03] hover:bg-white/[0.08] border border-white/[0.08] rounded-xl text-sm font-medium text-white/70 hover:text-white transition-all shadow-[inset_0_1px_0_rgba(255,255,255,0.1)]"
-                  >
-                    <Share2 className="w-4 h-4" />
-                    Share on X
-                  </button>
-                  <button 
-                    onClick={handleCopyLink}
-                    className="flex items-center gap-2 px-4 py-2 bg-white/[0.03] hover:bg-white/[0.08] border border-white/[0.08] rounded-xl text-sm font-medium text-white/70 hover:text-white transition-all shadow-[inset_0_1px_0_rgba(255,255,255,0.1)]"
-                  >
-                    <Link2 className="w-4 h-4" />
-                    Copy link
-                  </button>
-                </div>
-                <button className="text-sm font-medium text-white/40 hover:text-white transition-colors" onClick={() => setSelectedPost(null)}>
-                  Back to all posts
-                </button>
-              </div>
-            </div>
-          </article>
+        );
+      }
+      if (textContent.includes("[!IMPORTANT]")) {
+        return (
+          <div className="border border-purple-500/30 bg-purple-500/10 p-4 rounded-lg my-8 flex gap-3 text-white/80">
+            <div className="text-purple-400 mt-0.5"><BookOpen className="w-5 h-5" /></div>
+            <div>{children}</div>
+          </div>
+        );
+      }
+      return (
+        <blockquote className="border-l-4 border-[#3a3a3a] pl-4 my-6 italic text-white/60" {...props}>
+          {children}
+        </blockquote>
+      )
+    },
+    code: ({ node, inline, className, children, ...props }: any) => {
+      const match = /language-(\w+)/.exec(className || '')
+      return !inline ? (
+        <div className="rounded-xl overflow-hidden border border-white/10 my-8 shadow-lg shadow-black/50">
+          <div className="bg-[#1a1a1a] px-4 py-2.5 text-xs text-white/40 font-mono border-b border-white/5 flex justify-between items-center">
+            <span>{match ? match[1] : 'text'}</span>
+          </div>
+          <pre className="p-5 overflow-x-auto text-[13px] bg-[#0A0A0A] leading-relaxed">
+            <code className={className} {...props}>
+              {children}
+            </code>
+          </pre>
         </div>
-      </motion.div>
-    </AnimatePresence>
-  );
-}
+      ) : (
+        <code className="bg-white/10 px-1.5 py-0.5 rounded-md text-[0.9em] font-mono text-blue-300" {...props}>
+          {children}
+        </code>
+      )
+    },
+    table: ({ node, children, ...props }: any) => (
+      <div className="overflow-x-auto my-8 border border-white/10 rounded-xl">
+        <table className="w-full text-left text-sm text-white/70" {...props}>{children}</table>
+      </div>
+    ),
+    th: ({ node, children, ...props }: any) => <th className="bg-[#1a1a1a] px-5 py-4 font-medium text-white/90 border-b border-white/10 whitespace-nowrap" {...props}>{children}</th>,
+    td: ({ node, children, ...props }: any) => <td className="px-5 py-4 border-b border-white/5 last:border-0 bg-[#0A0A0A]" {...props}>{children}</td>,
+  };
 
-  return (
-    <AnimatePresence mode="wait">
-      <motion.div
-        key="list"
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        exit={{ opacity: 0, y: -20 }}
-        transition={{ duration: 0.3, ease: [0.25, 0.1, 0.25, 1] }}
-        className="min-h-[calc(100vh-4rem)] relative"
-      >
-        {/* Dev blog background - fixed to cover full viewport */}
-        <div className="fixed inset-0 -z-10 overflow-hidden pointer-events-none bg-[#0A0A0A]">
-          <div className="absolute inset-0 bg-[repeating-linear-gradient(0deg,transparent,transparent_31px,currentColor_31px,currentColor_32px)] opacity-[0.02]" />
-          <div className="absolute top-1/4 right-0 w-[500px] h-[500px] bg-gradient-radial from-indigo-500/5 via-transparent to-transparent rounded-full blur-3xl opacity-50" />
-          <div className="absolute bottom-1/4 left-1/4 w-[300px] h-[300px] bg-gradient-radial from-emerald-500/5 via-transparent to-transparent rounded-full blur-3xl opacity-50" />
-        </div>
-
-      <motion.div 
-        variants={containerVariants}
-        initial="hidden"
-        animate="show"
-        className="max-w-6xl mx-auto px-4 md:px-6 pt-12 pb-24"
-      >
-      {/* Header with search */}
-      <motion.div variants={itemVariants} className="mb-12">
-        <div className="flex flex-col md:flex-row items-center justify-between gap-6 mb-8">
-          <div className="flex-1 w-full max-w-xl">
-            <div className="relative group">
-              <Search className="absolute left-4 top-1/2 -translate-y-1/2 h-4 w-4 text-white/40 group-focus-within:text-white/80 transition-colors" />
-              <input
-                type="text"
-                placeholder="Search articles..."
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-                className="w-full pl-12 pr-4 py-3 bg-[#121214]/60 backdrop-blur-xl border border-white/[0.08] text-white placeholder:text-white/30 rounded-2xl focus:outline-none focus:ring-1 focus:ring-white/[0.2] transition-all shadow-[inset_0_1px_0_rgba(255,255,255,0.1),0_8px_32px_rgba(0,0,0,0.5)]"
-              />
-            </div>
-          </div>
-          
-          <div className="flex items-center gap-2 bg-[#121214]/60 backdrop-blur-xl border border-white/[0.08] rounded-xl p-1.5 shadow-[inset_0_1px_0_rgba(255,255,255,0.1)]">
-            <button
-              onClick={() => setViewMode("grid")}
-              className={cn(
-                "p-2.5 rounded-lg transition-colors",
-                viewMode === "grid" ? "bg-white/[0.08] text-white shadow-sm" : "text-white/50 hover:text-white hover:bg-white/[0.04]"
-              )}
-            >
-              <Grid3X3 className="w-4 h-4" />
-            </button>
-            <button
-              onClick={() => setViewMode("list")}
-              className={cn(
-                "p-2.5 rounded-lg transition-colors",
-                viewMode === "list" ? "bg-white/[0.08] text-white shadow-sm" : "text-white/50 hover:text-white hover:bg-white/[0.04]"
-              )}
-            >
-              <List className="w-4 h-4" />
-            </button>
-          </div>
-        </div>
-      </motion.div>
-
-      <div className="flex flex-col lg:flex-row gap-12">
-        {/* Sidebar Filters */}
-        <motion.aside variants={itemVariants} className="w-full lg:w-56 shrink-0 hidden lg:block">
-          <div className="space-y-8 sticky top-8">
-            <div>
-              <h4 className="text-sm font-medium tracking-wider uppercase text-white/40 mb-6 font-sans">Categories</h4>
-              <div className="space-y-1.5">
-                {categories.map((category) => (
-                  <button
-                    key={category}
-                    onClick={() => setSelectedCategory(category)}
-                    className={cn(
-                      "w-full text-left px-4 py-2.5 rounded-xl text-sm font-medium transition-all duration-200",
-                      selectedCategory === category 
-                        ? "bg-white/[0.08] text-white shadow-[inset_0_1px_0_rgba(255,255,255,0.1)]" 
-                        : "text-white/60 hover:text-white hover:bg-white/[0.04]"
-                    )}
-                  >
-                    {category}
-                  </button>
-                ))}
-              </div>
-            </div>
-          </div>
-        </motion.aside>
-
-        {/* Blog Grid/List with smooth transition */}
-        <div className="flex-1">
-          <AnimatePresence mode="wait">
-            {viewMode === "grid" ? (
-              <motion.div
-                key="grid"
-                variants={containerVariants}
-                initial="hidden"
-                animate="show"
-                exit="exit"
-                className="grid grid-cols-1 md:grid-cols-2 gap-8"
-              >
-                {filteredPosts.map((post) => (
-                  <motion.article
-                    key={post.id}
-                    variants={itemVariants}
-                    onClick={() => setSelectedPost(post)}
-                    className="group cursor-pointer bg-[#121214]/60 backdrop-blur-xl border border-white/[0.08] hover:border-white/[0.2] rounded-3xl overflow-hidden transition-all duration-500 hover:bg-white/[0.05] hover:shadow-[0_24px_64px_rgba(0,0,0,0.9),inset_0_1px_0_rgba(255,255,255,0.1)] flex flex-col relative"
-                  >
-                    <div className="absolute inset-0 bg-gradient-to-tr from-white/[0.0] to-white/[0.05] opacity-0 group-hover:opacity-100 transition-opacity duration-700 pointer-events-none" />
-                    <div className={cn("h-56 w-full flex items-center justify-center p-8 transition-transform duration-700 group-hover:scale-[1.03] shrink-0", post.imageColor)}>
-                      {post.imagePattern && <PatternSvg pattern={post.imagePattern} />}
-                    </div>
-                    <div className="p-8 space-y-4 relative bg-[#121214]/40 flex-1 flex flex-col z-10">
-                      <div className="flex items-center gap-3 text-xs font-medium text-white/50 tracking-wide uppercase">
-                        <span className="flex items-center gap-1">
-                          <Tag className="w-3.5 h-3.5" />
-                          {post.category}
-                        </span>
-                        <span>·</span>
-                        <span className="flex items-center gap-1">
-                          <Clock className="w-3.5 h-3.5" />
-                          {post.readTime}
-                        </span>
-                      </div>
-                      <h3 className="font-sans font-semibold text-2xl text-white group-hover:text-blue-400 transition-colors line-clamp-2 leading-snug">
-                        {post.title}
-                      </h3>
-                      <p className="text-white/60 line-clamp-2 leading-relaxed font-light">
-                        {post.subtitle}
-                      </p>
-                      <p className="text-sm font-medium text-white/40 pt-2 mt-auto">
-                        {post.date}
-                      </p>
-                    </div>
-                  </motion.article>
-                ))}
-              </motion.div>
-            ) : (
-              <motion.div
-                key="list"
-                variants={containerVariants}
-                initial="hidden"
-                animate="show"
-                exit="exit"
-                className="space-y-6"
-              >
-                {filteredPosts.map((post) => (
-                  <motion.div 
-                    key={post.id} 
-                    variants={itemVariants}
-                    onClick={() => setSelectedPost(post)}
-                    className="relative flex flex-col sm:flex-row gap-6 p-4 bg-[#121214]/60 backdrop-blur-xl border border-white/[0.08] hover:border-white/[0.2] hover:bg-white/[0.05] rounded-3xl group cursor-pointer transition-all duration-500 hover:shadow-[0_24px_64px_rgba(0,0,0,0.9),inset_0_1px_0_rgba(255,255,255,0.1)]"
-                  >
-                    <div className="absolute inset-0 rounded-3xl bg-gradient-to-r from-transparent to-white/[0.03] opacity-0 group-hover:opacity-100 transition-opacity duration-700 pointer-events-none" />
-                    <div className={cn("w-full sm:w-64 h-48 sm:h-auto rounded-2xl shrink-0 flex items-center justify-center p-6 overflow-hidden z-10", post.imageColor)}>
-                      <div className="transition-transform duration-700 group-hover:scale-[1.03] w-full h-full flex items-center justify-center">
-                        {post.imagePattern && <PatternSvg pattern={post.imagePattern} />}
-                      </div>
-                    </div>
-                    <div className="flex-1 space-y-4 py-4 pr-4 z-10">
-                      <div className="flex items-center gap-3 text-xs font-medium text-white/50 tracking-wide uppercase">
-                        <span className="flex items-center gap-1">
-                          <Tag className="w-3.5 h-3.5" />
-                          {post.category}
-                        </span>
-                        <span>·</span>
-                        <span className="flex items-center gap-1">
-                          <Calendar className="w-3.5 h-3.5" />
-                          {post.date}
-                        </span>
-                        <span>·</span>
-                        <span className="flex items-center gap-1">
-                          <Clock className="w-3.5 h-3.5" />
-                          {post.readTime}
-                        </span>
-                      </div>
-                      <h3 className="font-sans font-semibold text-2xl text-white group-hover:text-blue-400 transition-colors leading-snug">
-                        {post.title}
-                      </h3>
-                      <p className="text-lg text-white/60 font-sans font-light line-clamp-2">
-                        {post.subtitle}
-                      </p>
-                    </div>
-                  </motion.div>
-                ))}
-              </motion.div>
-            )}
-          </AnimatePresence>
-          
-          {filteredPosts.length === 0 && (
-            <div className="text-center py-24 bg-white/[0.02] border border-white/[0.05] rounded-3xl backdrop-blur-xl">
-              <p className="text-white/50 text-lg">No articles found matching your search.</p>
-            </div>
-          )}
+  const Sidebar = () => (
+    <div className="w-full h-full flex flex-col bg-[#0A0A0A] border-r border-white/10">
+      <div className="p-4 sticky top-0 bg-[#0A0A0A]/95 backdrop-blur-xl z-10 border-b border-white/5">
+        <div className="relative">
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-white/30" />
+          <Input 
+            placeholder="Search docs..." 
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+            className="pl-9 bg-[#1a1a1a] border-white/10 text-white placeholder:text-white/30 h-9 rounded-lg text-sm"
+          />
         </div>
       </div>
-      </motion.div>
-      </motion.div>
-    </AnimatePresence>
+      
+      <div className="flex-1 overflow-y-auto p-4 space-y-8 scrollbar-hide">
+        {Object.entries(categoriesMap).map(([category, posts]) => {
+          const filtered = posts.filter(p => 
+            p.title.toLowerCase().includes(searchTerm.toLowerCase()) || 
+            p.subtitle.toLowerCase().includes(searchTerm.toLowerCase())
+          );
+          if (filtered.length === 0) return null;
+          
+          return (
+            <div key={category}>
+              <h4 className="text-xs font-bold tracking-wider uppercase text-white/40 mb-3 px-2 font-sans">{category}</h4>
+              <ul className="space-y-1">
+                {filtered.map(post => (
+                  <li key={post.id}>
+                    <button
+                      onClick={() => {
+                        setActivePostId(post.id);
+                        setIsMobileNavOpen(false);
+                        window.scrollTo({ top: 0, behavior: 'smooth' });
+                      }}
+                      className={cn(
+                        "w-full text-left px-2 py-1.5 rounded-md text-[14px] transition-colors font-sans flex items-center justify-between group",
+                        activePostId === post.id 
+                          ? "bg-white/10 text-white font-medium" 
+                          : "text-white/60 hover:text-white hover:bg-white/5"
+                      )}
+                    >
+                      <span className="truncate">{post.title}</span>
+                      {activePostId === post.id && <ChevronRight className="w-3.5 h-3.5 text-white/40" />}
+                    </button>
+                  </li>
+                ))}
+              </ul>
+            </div>
+          );
+        })}
+      </div>
+    </div>
+  );
+
+  return (
+    <div className="flex min-h-screen bg-[#0A0A0A] text-white">
+      {/* Desktop Sidebar */}
+      <aside className="hidden lg:block w-[280px] shrink-0 sticky top-0 h-screen overflow-hidden">
+        <Sidebar />
+      </aside>
+
+      {/* Mobile Nav Toggle */}
+      <div className="lg:hidden fixed top-0 left-0 right-0 h-14 bg-[#0A0A0A]/90 backdrop-blur-xl border-b border-white/10 z-50 flex items-center justify-between px-4">
+        <div className="flex items-center gap-2 font-medium text-sm">
+          <BookOpen className="w-4 h-4 text-blue-400" />
+          <span>Documentation</span>
+        </div>
+        <button onClick={() => setIsMobileNavOpen(true)} className="p-2 -mr-2 text-white/60 hover:text-white">
+          <Menu className="w-5 h-5" />
+        </button>
+      </div>
+
+      {/* Mobile Nav Drawer */}
+      <AnimatePresence>
+        {isMobileNavOpen && (
+          <>
+            <motion.div 
+              initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
+              onClick={() => setIsMobileNavOpen(false)}
+              className="fixed inset-0 bg-black/60 backdrop-blur-sm z-[60] lg:hidden"
+            />
+            <motion.div 
+              initial={{ x: "-100%" }} animate={{ x: 0 }} exit={{ x: "-100%" }}
+              transition={{ type: "spring", damping: 25, stiffness: 200 }}
+              className="fixed top-0 left-0 bottom-0 w-[280px] bg-[#0A0A0A] z-[70] lg:hidden shadow-2xl border-r border-white/10"
+            >
+              <div className="absolute top-2 right-2 z-10">
+                <button onClick={() => setIsMobileNavOpen(false)} className="p-2 text-white/50 hover:text-white">
+                  <X className="w-5 h-5" />
+                </button>
+              </div>
+              <Sidebar />
+            </motion.div>
+          </>
+        )}
+      </AnimatePresence>
+
+      {/* Main Content Area */}
+      <main className="flex-1 min-w-0 bg-[#0A0A0A] flex pt-14 lg:pt-0">
+        <div className="flex-1 px-6 lg:px-12 py-10 lg:py-16 max-w-[800px] mx-auto lg:mx-0 w-full">
+          {/* Breadcrumbs & Copy */}
+          <div className="flex items-center justify-between mb-10">
+            <div className="flex items-center gap-2 text-[13px] font-medium text-white/40 font-sans tracking-wide">
+              <span>Dev</span>
+              <ChevronRight className="w-3.5 h-3.5" />
+              <span>{activePost.category}</span>
+              <ChevronRight className="w-3.5 h-3.5" />
+              <span className="text-white/70 truncate max-w-[200px]">{activePost.title}</span>
+            </div>
+            
+            <button 
+              onClick={handleCopyLink}
+              className="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-white/5 hover:bg-white/10 border border-white/10 text-xs font-medium text-white/70 transition-colors"
+            >
+              <Copy className="w-3.5 h-3.5" />
+              <span className="hidden sm:inline">Copy page</span>
+            </button>
+          </div>
+
+          <motion.article 
+            key={activePost.id}
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.3 }}
+          >
+            {/* Header */}
+            <div className="mb-12">
+              <h1 className="text-4xl sm:text-5xl font-bold tracking-tight text-white mb-6 font-sans leading-tight">
+                {activePost.title}
+              </h1>
+              <p className="text-lg sm:text-xl text-white/60 font-sans font-light leading-relaxed">
+                {activePost.subtitle}
+              </p>
+            </div>
+
+            {/* Markdown Body */}
+            <div className="prose prose-invert prose-blue max-w-none prose-pre:bg-transparent prose-pre:p-0 prose-p:leading-relaxed">
+              <ReactMarkdown 
+                remarkPlugins={[remarkGfm]}
+                components={markdownComponents}
+              >
+                {activePost.content || ""}
+              </ReactMarkdown>
+            </div>
+            
+            {/* Footer */}
+            <div className="mt-20 pt-8 border-t border-white/10 flex flex-col sm:flex-row items-center justify-between text-sm text-white/40 gap-4">
+              <div>Last updated: {activePost.date}</div>
+              <div>Written by {activePost.author}</div>
+            </div>
+          </motion.article>
+        </div>
+
+        {/* Right Sidebar (Table of Contents) */}
+        {headings.length > 0 && (
+          <aside className="hidden xl:block w-[240px] shrink-0 sticky top-0 h-screen overflow-y-auto py-16 pr-8 pl-4 border-l border-white/5 scrollbar-hide">
+            <h4 className="text-xs font-bold tracking-wider uppercase text-white/40 mb-4 font-sans">On this page</h4>
+            <ul className="space-y-2.5 text-[13px] font-sans font-medium">
+              {headings.map((heading) => (
+                <li 
+                  key={heading.id} 
+                  style={{ paddingLeft: \`\${(heading.level - 2) * 12}px\` }}
+                >
+                  <a 
+                    href={\`#\${heading.id}\`}
+                    className={cn(
+                      "block transition-colors leading-snug",
+                      activeHeadingId === heading.id 
+                        ? "text-blue-400" 
+                        : "text-white/50 hover:text-white/80"
+                    )}
+                    onClick={(e) => {
+                      e.preventDefault();
+                      document.getElementById(heading.id)?.scrollIntoView({ behavior: 'smooth' });
+                    }}
+                  >
+                    {heading.text}
+                  </a>
+                </li>
+              ))}
+            </ul>
+          </aside>
+        )}
+      </main>
+    </div>
   );
 }
