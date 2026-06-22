@@ -87,9 +87,9 @@
 @layer utilities {
   .technical-gradient {
     background: 
-      radial-gradient(circle at 50% 0%, rgba(255, 102, 0, 0.05) 0%, transparent 50%),
-      radial-gradient(circle at 0% 100%, rgba(255, 102, 0, 0.02) 0%, transparent 50%),
-      radial-gradient(circle at 100% 100%, rgba(255, 102, 0, 0.02) 0%, transparent 50%),
+      radial-gradient(circle at 50% 0%, rgba(59, 130, 246, 0.05) 0%, transparent 50%),
+      radial-gradient(circle at 0% 100%, rgba(59, 130, 246, 0.02) 0%, transparent 50%),
+      radial-gradient(circle at 100% 100%, rgba(59, 130, 246, 0.02) 0%, transparent 50%),
       #080808;
     position: relative;
   }
