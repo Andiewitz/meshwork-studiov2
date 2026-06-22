@@ -469,10 +469,10 @@ export default function DevDocs() {
               {headings.map((heading) => (
                 <li 
                   key={heading.id} 
-                  style={{ paddingLeft: \`\${(heading.level - 2) * 12}px\` }}
+                  style={{ paddingLeft: `${(heading.level - 2) * 12}px` }}
                 >
                   <a 
-                    href={\`#\${heading.id}\`}
+                    href={`#${heading.id}`}
                     className={cn(
                       "block transition-colors leading-snug",
                       activeHeadingId === heading.id 
