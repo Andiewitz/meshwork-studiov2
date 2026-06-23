@@ -61,40 +61,49 @@ export class CanvasDatabaseStorage implements ICanvasStorage {
                 );
             }
 
-            // 4. Safely Upsert
+            // 4. Safely Upsert in Chunks
+            const CHUNK_SIZE = 500;
+            
             if (newNodes.length > 0) {
-                await tx.insert(nodes).values(newNodes.map(n => ({ ...n, workspaceId })))
-                    .onConflictDoUpdate({
-                        target: [nodes.id, nodes.workspaceId],
-                        set: {
-                            type: sql`EXCLUDED.type`,
-                            position: sql`EXCLUDED.position`,
-                            data: sql`EXCLUDED.data`,
-                            parentId: sql`EXCLUDED.parent_id`,
-                            extent: sql`EXCLUDED.extent`,
-                            style: sql`EXCLUDED.style`,
-                            width: sql`EXCLUDED.width`,
-                            height: sql`EXCLUDED.height`,
-                            measured: sql`EXCLUDED.measured`,
-                        }
-                    });
+                for (let i = 0; i < newNodes.length; i += CHUNK_SIZE) {
+                    const chunk = newNodes.slice(i, i + CHUNK_SIZE);
+                    await tx.insert(nodes).values(chunk.map(n => ({ ...n, workspaceId })))
+                        .onConflictDoUpdate({
+                            target: [nodes.id, nodes.workspaceId],
+                            set: {
+                                type: sql`EXCLUDED.type`,
+                                position: sql`EXCLUDED.position`,
+                                data: sql`EXCLUDED.data`,
+                                parentId: sql`EXCLUDED.parent_id`,
+                                extent: sql`EXCLUDED.extent`,
+                                style: sql`EXCLUDED.style`,
+                                width: sql`EXCLUDED.width`,
+                                height: sql`EXCLUDED.height`,
+                                measured: sql`EXCLUDED.measured`,
+                            }
+                        });
+                }
             }
+
             if (newEdges.length > 0) {
-                await tx.insert(edges).values(newEdges.map(e => ({ ...e, workspaceId })))
-                    .onConflictDoUpdate({
-                        target: [edges.id, edges.workspaceId],
-                        set: {
-                            source: sql`EXCLUDED.source`,
-                            target: sql`EXCLUDED.target`,
-                            sourceHandle: sql`EXCLUDED.source_handle`,
-                            targetHandle: sql`EXCLUDED.target_handle`,
-                            type: sql`EXCLUDED.type`,
-                            data: sql`EXCLUDED.data`,
-                            style: sql`EXCLUDED.style`,
-                            markerEnd: sql`EXCLUDED.marker_end`,
-                            animated: sql`EXCLUDED.animated`,
-                        }
-                    });
+                for (let i = 0; i < newEdges.length; i += CHUNK_SIZE) {
+                    const chunk = newEdges.slice(i, i + CHUNK_SIZE);
+                    await tx.insert(edges).values(chunk.map(e => ({ ...e, workspaceId })))
+                        .onConflictDoUpdate({
+                            target: [edges.id, edges.workspaceId],
+                            set: {
+                                source: sql`EXCLUDED.source`,
+                                target: sql`EXCLUDED.target`,
+                                sourceHandle: sql`EXCLUDED.source_handle`,
+                                targetHandle: sql`EXCLUDED.target_handle`,
+                                type: sql`EXCLUDED.type`,
+                                data: sql`EXCLUDED.data`,
+                                style: sql`EXCLUDED.style`,
+                                markerEnd: sql`EXCLUDED.marker_end`,
+                                animated: sql`EXCLUDED.animated`,
+                            }
+                        });
+                }
             }
 
             // 5. Update workspace updated_at timestamp
@@ -109,11 +118,18 @@ export class CanvasDatabaseStorage implements ICanvasStorage {
             const nodesList = await tx.select().from(nodes).where(eq(nodes.workspaceId, fromWorkspaceId));
             const edgesList = await tx.select().from(edges).where(eq(edges.workspaceId, fromWorkspaceId));
 
+            const CHUNK_SIZE = 500;
             if (nodesList.length > 0) {
-                await tx.insert(nodes).values(nodesList.map((n: any) => ({ ...n, workspaceId: toWorkspaceId })));
+                for (let i = 0; i < nodesList.length; i += CHUNK_SIZE) {
+                    const chunk = nodesList.slice(i, i + CHUNK_SIZE);
+                    await tx.insert(nodes).values(chunk.map((n: any) => ({ ...n, workspaceId: toWorkspaceId })));
+                }
             }
             if (edgesList.length > 0) {
-                await tx.insert(edges).values(edgesList.map((e: any) => ({ ...e, workspaceId: toWorkspaceId })));
+                for (let i = 0; i < edgesList.length; i += CHUNK_SIZE) {
+                    const chunk = edgesList.slice(i, i + CHUNK_SIZE);
+                    await tx.insert(edges).values(chunk.map((e: any) => ({ ...e, workspaceId: toWorkspaceId })));
+                }
             }
         });
     }
