@@ -91,8 +91,38 @@ export function useUpdateWorkspace() {
       if (!res.ok) throw new Error("Failed to update workspace");
       return api.workspaces.update.responses[200].parse(await res.json());
     },
-    onSuccess: () => {
+    onMutate: async (newWorkspace) => {
+      await queryClient.cancelQueries({ queryKey: [api.workspaces.list.path] });
+      await queryClient.cancelQueries({ queryKey: [api.workspaces.get.path, newWorkspace.id] });
+
+      const previousWorkspaces = queryClient.getQueryData([api.workspaces.list.path]);
+      const previousWorkspace = queryClient.getQueryData([api.workspaces.get.path, newWorkspace.id]);
+
+      if (previousWorkspaces) {
+        queryClient.setQueryData([api.workspaces.list.path], (old: any) => {
+          return old.map((w: any) => w.id === newWorkspace.id ? { ...w, ...newWorkspace } : w);
+        });
+      }
+
+      if (previousWorkspace) {
+        queryClient.setQueryData([api.workspaces.get.path, newWorkspace.id], (old: any) => {
+          return { ...old, ...newWorkspace };
+        });
+      }
+
+      return { previousWorkspaces, previousWorkspace };
+    },
+    onError: (err, newWorkspace, context: any) => {
+      if (context?.previousWorkspaces) {
+        queryClient.setQueryData([api.workspaces.list.path], context.previousWorkspaces);
+      }
+      if (context?.previousWorkspace) {
+        queryClient.setQueryData([api.workspaces.get.path, newWorkspace.id], context.previousWorkspace);
+      }
+    },
+    onSettled: (data, error, variables) => {
       queryClient.invalidateQueries({ queryKey: [api.workspaces.list.path] });
+      queryClient.invalidateQueries({ queryKey: [api.workspaces.get.path, variables.id] });
     },
   });
 }

@@ -17,24 +17,19 @@ async function fetchUser(): Promise<User | null> {
     });
 
     if (response.status === 401) {
-      console.log("[AuthHook] Fetch user returned 401 (Not logged in)");
       return null;
     }
 
     if (!response.ok) {
       const text = await response.text();
-      console.error("[AuthHook] Fetch user failed:", response.status, text);
       throw new Error(`${response.status}: ${text}`);
     }
 
     const userData = await response.json();
-    console.log("[AuthHook] User fetched successfully:", userData.id || userData.email);
     return userData;
   } catch (err) {
-    console.error("[AuthHook] Error in fetchUser, attempting dev fallback:", err);
     // Local Dev Bypass - Instantly see the Dashboard UI without needing Postgres running
     if (import.meta.env.DEV) {
-      console.log("[AuthHook] Using mock user bypass in development");
       return {
         id: "mock-id-1",
         email: "architect@meshwork.dev",

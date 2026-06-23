@@ -66,11 +66,9 @@ function getCsrfToken(): string {
   if (typeof window !== "undefined") {
     const stored = sessionStorage.getItem("csrfToken");
     if (stored) {
-      console.log("[SecureFetch] Using CSRF token from sessionStorage");
       return stored;
     }
   }
-  console.warn("[SecureFetch] No CSRF token found in sessionStorage");
   return "";
 }
 

@@ -194,6 +194,17 @@ app.use((req, res, next) => {
         return next(err);
       }
 
+      // Handle Postgres database constraint errors
+      if (err.code === '23505') {
+        return res.status(400).json({ message: "A record with this value already exists. Please use a unique value." });
+      }
+      if (err.code === '23503') {
+        return res.status(400).json({ message: "Referenced record does not exist or cannot be deleted." });
+      }
+      if (err.code === '22P02') {
+        return res.status(400).json({ message: "Invalid data format provided." });
+      }
+
       return res.status(status).json({ message });
     });
 
