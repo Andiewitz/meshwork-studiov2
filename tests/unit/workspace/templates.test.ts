@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { PRELOADED_TEMPLATES } from '../../../client/src/lib/templates';
+import { PRELOADED_TEMPLATES } from '../../../client/src/features/workspace/utils/preloadedTemplates';
 import { insertWorkspaceSchema } from '../../../shared/schema';
 
 describe('Preloaded Templates Validation', () => {

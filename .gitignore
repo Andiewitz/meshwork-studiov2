@@ -52,3 +52,7 @@ replit.nix
 # Agent / AI tooling
 .agent/
 .gemini/
+
+# Planning & Investigations
+plans/
+investigations/

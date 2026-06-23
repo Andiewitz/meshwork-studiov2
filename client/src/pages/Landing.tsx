@@ -1,10 +1,10 @@
 import React, { useRef, useEffect, useState, useMemo, useCallback } from 'react';
 import { motion, useScroll, useTransform, AnimatePresence, Variants } from 'framer-motion';
 import { ArrowRight, Sparkles, Move, FileCode2, Network, GitBranch, Terminal } from 'lucide-react';
-import Button from '../components/prometheus/Button';
+
 import Lenis from "lenis";
 import { Link, useLocation } from "wouter";
-import { PRELOADED_TEMPLATES, TemplateDefinition } from '../lib/templates';
+import { PRELOADED_TEMPLATES, TemplateDefinition } from '../features/workspace/utils/preloadedTemplates';
 import { useAuthModal } from '@/components/auth/AuthModalContext';
 import { Helmet } from "react-helmet-async";
 import { MeshworkLogo } from "@/components/MeshworkLogo";
