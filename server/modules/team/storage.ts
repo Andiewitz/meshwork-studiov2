@@ -12,7 +12,7 @@ import {
     type Workspace,
     type TeamRole,
 } from "@shared/schema";
-import { eq, and, inArray } from "drizzle-orm";
+import { eq, and, inArray, sql } from "drizzle-orm";
 import crypto from "crypto";
 
 // ─── Invite Code Generator ──────────────────────────────────────────
@@ -94,34 +94,24 @@ export class TeamDatabaseStorage implements ITeamStorage {
     }
 
     async getTeamsByUser(userId: string): Promise<(Team & { memberCount: number })[]> {
-        const memberships = await db
-            .select({ teamId: teamMembers.teamId })
-            .from(teamMembers)
-            .where(eq(teamMembers.userId, userId));
-
-        if (memberships.length === 0) return [];
-
-        const teamIds = memberships.map((m) => m.teamId);
-        const teamsList = await db
-            .select()
+        return await db
+            .select({
+                id: teams.id,
+                name: teams.name,
+                ownerId: teams.ownerId,
+                inviteCode: teams.inviteCode,
+                createdAt: teams.createdAt,
+                memberCount: sql<number>`cast(count(${teamMembers.id}) as integer)`,
+            })
             .from(teams)
-            .where(inArray(teams.id, teamIds));
-
-        // Get all member counts in one query instead of N+1
-        const counts = await db
-            .select({ teamId: teamMembers.teamId })
-            .from(teamMembers)
-            .where(inArray(teamMembers.teamId, teamIds));
-
-        const countMap = new Map<string, number>();
-        for (const c of counts) {
-            countMap.set(c.teamId, (countMap.get(c.teamId) || 0) + 1);
-        }
-
-        return teamsList.map(team => ({
-            ...team,
-            memberCount: countMap.get(team.id) || 0,
-        }));
+            .innerJoin(teamMembers, eq(teams.id, teamMembers.teamId))
+            .where(
+                inArray(
+                    teams.id,
+                    db.select({ teamId: teamMembers.teamId }).from(teamMembers).where(eq(teamMembers.userId, userId))
+                )
+            )
+            .groupBy(teams.id);
     }
 
     async getTeam(teamId: string): Promise<Team | undefined> {
