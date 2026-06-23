@@ -16,6 +16,14 @@ vi.mock('@server/modules/workspace/storage', () => ({
   }
 }));
 
+const mockGetWorkspaceRole = vi.fn();
+vi.mock('@server/modules/team/storage', () => ({
+  teamStorage: {
+    getWorkspaceRole: (...args: any[]) => mockGetWorkspaceRole(...args),
+    canAccessWorkspace: (...args: any[]) => vi.fn()(...args),
+  }
+}));
+
 // We mock AuthModule for middleware
 vi.mock('@server/modules/auth', () => ({
   AuthModule: {
@@ -61,7 +69,7 @@ describe('Workspace Routes Integration Tests (IDOR & Zod)', () => {
 
   describe('PUT /api/workspaces/:id (Updating a Workspace)', () => {
     
-    it('should return 401 Unauthorized if a User attempts to modify another User s workspace (IDOR)', async () => {
+    it('should return 403 Forbidden if a User attempts to modify another User s workspace (IDOR)', async () => {
       // Setup the mock database to return a workspace owned by "user_B"
       mockGetWorkspace.mockResolvedValue({
         id: 1,
@@ -69,14 +77,17 @@ describe('Workspace Routes Integration Tests (IDOR & Zod)', () => {
         userId: "user_B"
       });
 
+      // Role is null because they don't have access
+      mockGetWorkspaceRole.mockResolvedValue(null);
+
       // Simulating a request coming from "user_A"
       const res = await request(app)
         .put('/api/workspaces/1')
         .set('x-test-user-id', 'user_A')
         .send({ title: "Hacked Title" });
 
-      expect(res.status).toBe(401);
-      expect(res.body.message).toBe("Unauthorized");
+      expect(res.status).toBe(403);
+      expect(res.body.message).toContain("Forbidden");
       expect(mockUpdateWorkspace).not.toHaveBeenCalled();
     });
 
@@ -98,6 +109,7 @@ describe('Workspace Routes Integration Tests (IDOR & Zod)', () => {
         title: "My Workspace",
         userId: "user_A"
       });
+      mockGetWorkspaceRole.mockResolvedValue('workspace-owner');
 
       // Sending a title that is longer than 16 chars (violating schema limits)
       // or attempting to inject weird fields.
@@ -118,6 +130,7 @@ describe('Workspace Routes Integration Tests (IDOR & Zod)', () => {
         title: "Old Title",
         userId: "user_A"
       });
+      mockGetWorkspaceRole.mockResolvedValue('workspace-owner');
 
       mockUpdateWorkspace.mockResolvedValue({
         id: 1,
@@ -142,6 +155,7 @@ describe('Workspace Routes Integration Tests (IDOR & Zod)', () => {
         userId: "user_A",
         isFavorite: false
       });
+      mockGetWorkspaceRole.mockResolvedValue('workspace-owner');
 
       mockUpdateWorkspace.mockResolvedValue({
         id: 1,

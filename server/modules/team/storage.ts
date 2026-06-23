@@ -320,7 +320,7 @@ export class TeamDatabaseStorage implements ITeamStorage {
         if (shared.length === 0) return null;
 
         const teamIds = shared.map(s => s.teamId);
-        const [membership] = await db
+        const memberships = await db
             .select({ role: teamMembers.role })
             .from(teamMembers)
             .where(and(
@@ -328,7 +328,23 @@ export class TeamDatabaseStorage implements ITeamStorage {
                 inArray(teamMembers.teamId, teamIds)
             ));
 
-        return (membership?.role as TeamRole) || null;
+        if (memberships.length === 0) return null;
+
+        const roleWeights: Record<string, number> = { owner: 4, admin: 3, editor: 2, viewer: 1 };
+        
+        let highestRole: TeamRole = 'viewer';
+        let highestWeight = 0;
+
+        for (const m of memberships) {
+            const role = m.role as TeamRole;
+            const weight = roleWeights[role] || 0;
+            if (weight > highestWeight) {
+                highestWeight = weight;
+                highestRole = role;
+            }
+        }
+
+        return highestRole;
     }
 }
 

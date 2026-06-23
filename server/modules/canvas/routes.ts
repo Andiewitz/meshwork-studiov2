@@ -32,8 +32,10 @@ export function registerCanvasRoutes(app: Express) {
         if (!workspace) return res.status(404).json({ message: "Workspace not found" });
 
         const userId = req.user!.id;
-        const hasAccess = await teamStorage.canAccessWorkspace(userId, workspace.id);
-        if (!hasAccess) return res.status(401).json({ message: "Unauthorized" });
+        const role = await teamStorage.getWorkspaceRole(workspace.id, userId);
+        if (!role || role === 'viewer') {
+            return res.status(403).json({ message: "Forbidden: Viewer access cannot modify canvas" });
+        }
 
         const { nodes, edges } = api.workspaces.syncCanvas.input.parse(req.body);
         await canvasStorage.syncCanvas(id, nodes, edges);
@@ -49,8 +51,10 @@ export function registerCanvasRoutes(app: Express) {
         if (!workspace) return res.status(404).json({ message: "Source workspace not found" });
 
         const userId = req.user!.id;
-        const hasAccess = await teamStorage.canAccessWorkspace(userId, workspace.id);
-        if (!hasAccess) return res.status(401).json({ message: "Unauthorized" });
+        const role = await teamStorage.getWorkspaceRole(workspace.id, userId);
+        if (!role || role === 'viewer') {
+            return res.status(403).json({ message: "Forbidden: Viewer access cannot duplicate canvas" });
+        }
 
         // Validate destination workspace — must be owned by the user
         const destWorkspace = await workspaceStorage.getWorkspace(toWorkspaceId);

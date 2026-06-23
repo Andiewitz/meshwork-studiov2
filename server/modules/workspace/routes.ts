@@ -111,7 +111,10 @@ export function registerWorkspaceRoutes(app: Express) {
             if (!existing) return res.status(404).json({ message: "Not found" });
 
             const userId = req.user!.id;
-            if (existing.userId !== userId) return res.status(401).json({ message: "Unauthorized" });
+            const role = await teamStorage.getWorkspaceRole(id, userId);
+            if (!role || role === 'viewer') {
+                return res.status(403).json({ message: "Forbidden: Viewer access cannot modify workspace metadata" });
+            }
 
             const updated = await workspaceStorage.updateWorkspace(id, input);
             res.json(updated);
@@ -129,7 +132,10 @@ export function registerWorkspaceRoutes(app: Express) {
         if (!existing) return res.status(404).json({ message: "Not found" });
 
         const userId = req.user!.id;
-        if (existing.userId !== userId) return res.status(401).json({ message: "Unauthorized" });
+        const role = await teamStorage.getWorkspaceRole(id, userId);
+        if (role !== 'workspace-owner' && role !== 'owner' && role !== 'admin') {
+            return res.status(403).json({ message: "Forbidden: Only admins and owners can delete this workspace" });
+        }
 
         // Delete canvas data first (nodes and edges)
         await canvasStorage.syncCanvas(id, [], []);
@@ -144,7 +150,10 @@ export function registerWorkspaceRoutes(app: Express) {
         if (!existing) return res.status(404).json({ message: "Not found" });
 
         const userId = req.user!.id;
-        if (existing.userId !== userId) return res.status(401).json({ message: "Unauthorized" });
+        const role = await teamStorage.getWorkspaceRole(id, userId);
+        if (role !== 'workspace-owner' && role !== 'owner' && role !== 'admin') {
+            return res.status(403).json({ message: "Forbidden: Only admins and owners can duplicate this workspace" });
+        }
 
         const { title } = req.body;
         const duplicated = await workspaceStorage.duplicateWorkspace(id, title);

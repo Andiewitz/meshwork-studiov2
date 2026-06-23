@@ -252,7 +252,7 @@ export default function Home() {
                     variants={containerVariants}
                     className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-10"
                   >
-                    {isWorkspacesLoading ? renderGridSkeleton() : (
+                    {isWorkspacesLoading ? null : (
                       displayWorkspaces.map(workspace => (
                         <WorkspaceCard
                           key={workspace.id}
@@ -272,7 +272,7 @@ export default function Home() {
                     variants={containerVariants}
                     className="flex flex-col gap-4"
                   >
-                    {isWorkspacesLoading ? renderListSkeleton() : (
+                    {isWorkspacesLoading ? null : (
                       displayWorkspaces.map(workspace => (
                         <WorkspaceCard
                           key={workspace.id}
