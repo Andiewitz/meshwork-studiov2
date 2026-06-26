@@ -42,15 +42,27 @@ vi.mock('passport', () => {
       authenticate: (strategy: string, options: any) => {
         return (req: any, res: any, next: any) => {
           if (strategy === 'google') {
-            if (options && (options.successRedirect || options.failureRedirect)) {
+            if (req.path === '/api/auth/google/callback') {
               // This is the callback handler
               if (mockAuthenticateBehavior === 'failure') {
-                return res.redirect(options.failureRedirect || '/auth/login?error=google');
+                // Manually call the callback with an error
+                return typeof options === 'function' 
+                  ? options(new Error("Mock failure"), null, null) 
+                  : res.redirect('/?auth=login&error=google');
               }
               // Simulate login
               req.user = { id: 'google-user-id', email: 'google@example.com' };
               req.login = (user: any, cb: any) => cb(null);
-              return res.redirect(options.successRedirect || '/');
+              
+              // If options are provided (old way)
+              if (options && options.successRedirect) {
+                return res.redirect(options.successRedirect);
+              }
+              
+              // If custom callback is provided (new way)
+              if (typeof options === 'function') {
+                return options(null, req.user, null);
+              }
             } else {
               // This is the initial auth redirection
               return res.redirect('https://accounts.google.com/o/oauth2/v2/auth?client_id=mock');

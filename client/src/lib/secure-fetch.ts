@@ -56,7 +56,32 @@ export async function secureFetch(
     init.headers = headers;
   }
 
-  return fetch(input, init);
+  let response = await fetch(input, init);
+
+  // Automatic JWT Token Refresh
+  // If the request fails with 401 and it's not the refresh endpoint itself,
+  // we try to use the refresh_token cookie to get a new access_token cookie.
+  const urlString = input.toString();
+  if (response.status === 401 && !urlString.includes("/api/auth/refresh") && !urlString.includes("/api/auth/login") && !urlString.includes("/api/auth/logout")) {
+    try {
+      const refreshResponse = await fetch("/api/auth/refresh", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        // Required to send and receive the HttpOnly cookies
+        credentials: "include",
+      });
+
+      if (refreshResponse.ok) {
+        // Refresh succeeded, the new access_token cookie is now set.
+        // Retry the original request!
+        response = await fetch(input, init);
+      }
+    } catch (refreshErr) {
+      console.warn("Token refresh failed:", refreshErr);
+    }
+  }
+
+  return response;
 }
 
 /**

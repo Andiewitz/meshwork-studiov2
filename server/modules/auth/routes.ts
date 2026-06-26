@@ -5,6 +5,7 @@ import { db } from "./db";
 import { users, workspaces, nodes, edges, collections } from "@shared/schema";
 import { eq, and, inArray } from "drizzle-orm";
 import { hashPassword, verifyPassword } from "./password";
+import { generateTokens, verifyToken } from "./jwt";
 import { isAuthenticated } from "./authCore";
 import { optionalCaptchaMiddleware } from "./captcha";
 import { authLimiter } from "../../middleware/rateLimit";
@@ -19,12 +20,41 @@ export function registerAuthRoutes(app: Express): void {
     scope: ["profile", "email"],
   }));
 
-  app.get("/api/auth/google/callback",
-    passport.authenticate("google", {
-      successRedirect: "/",
-      failureRedirect: "/?auth=login&error=google",
-    })
-  );
+  app.get("/api/auth/google/callback", (req: Request, res: Response, next) => {
+    passport.authenticate("google", (err: any, user: any, info: any) => {
+      if (err) {
+        return res.redirect("/?auth=login&error=google");
+      }
+      if (!user) {
+        return res.redirect("/?auth=login&error=google");
+      }
+      
+      req.login(user, (err) => {
+        if (err) {
+          return res.redirect("/?auth=login&error=google");
+        }
+
+        const { accessToken, refreshToken } = generateTokens(user);
+        
+        const isProd = process.env.NODE_ENV === "production";
+        res.cookie("access_token", accessToken, {
+          httpOnly: true,
+          secure: isProd,
+          sameSite: "lax",
+          maxAge: 15 * 60 * 1000, // 15 minutes
+        });
+        
+        res.cookie("refresh_token", refreshToken, {
+          httpOnly: true,
+          secure: isProd,
+          sameSite: "lax",
+          maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
+        });
+
+        return res.redirect("/");
+      });
+    })(req, res, next);
+  });
 
   // Register with email/password (with CAPTCHA and CSRF protection)
   // In development, skip CSRF to allow testing without full setup
@@ -109,13 +139,64 @@ export function registerAuthRoutes(app: Express): void {
         if (err) {
           return next(err);
         }
+
+        const { accessToken, refreshToken } = generateTokens(user);
+        
+        const isProd = process.env.NODE_ENV === "production";
+        res.cookie("access_token", accessToken, {
+          httpOnly: true,
+          secure: isProd,
+          sameSite: "lax",
+          maxAge: 15 * 60 * 1000, // 15 minutes
+        });
+        
+        res.cookie("refresh_token", refreshToken, {
+          httpOnly: true,
+          secure: isProd,
+          sameSite: "lax",
+          maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
+        });
+
         return res.json({ user });
       });
     })(req, res, next);
   });
 
+  // Refresh Token endpoint
+  app.post("/api/auth/refresh", (req: Request, res: Response) => {
+    const refreshToken = req.cookies?.refresh_token;
+    
+    if (!refreshToken) {
+      return res.status(401).json({ message: "No refresh token provided" });
+    }
+
+    const payload = verifyToken(refreshToken, "refresh");
+    if (!payload) {
+      // Clear invalid cookies
+      res.clearCookie("access_token");
+      res.clearCookie("refresh_token");
+      return res.status(401).json({ message: "Invalid or expired refresh token" });
+    }
+
+    // Generate new access token
+    const { accessToken } = generateTokens({ id: payload.userId });
+    
+    res.cookie("access_token", accessToken, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === "production",
+      sameSite: "lax",
+      maxAge: 15 * 60 * 1000,
+    });
+
+    res.json({ message: "Token refreshed successfully" });
+  });
+
   // Logout
   app.post("/api/auth/logout", (req: Request, res: Response) => {
+    // Clear JWT cookies
+    res.clearCookie("access_token");
+    res.clearCookie("refresh_token");
+
     req.logout((err) => {
       if (err) {
         log.error({ err }, "Logout error");

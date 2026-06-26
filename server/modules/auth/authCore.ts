@@ -7,6 +7,7 @@ import memorystore from "memorystore";
 import { getRedis } from "../../lib/redis";
 import { createGoogleStrategy } from "./strategies/google";
 import { createLocalStrategy } from "./strategies/local";
+import { verifyToken } from "./jwt";
 
 const log = createChildLogger("auth");
 
@@ -80,8 +81,23 @@ export async function setupAuth(app: Express) {
 }
 
 export const isAuthenticated: RequestHandler = (req, res, next) => {
-  if (req.isAuthenticated()) {
+  // First check if the user is authenticated via Passport session (useful during transition/OAuth)
+  if (req.isAuthenticated && req.isAuthenticated()) {
     return next();
   }
-  res.status(401).json({ message: "Session expired or not logged in" });
+
+  // Then check for JWT access token in cookies
+  const accessToken = req.cookies?.access_token;
+  if (!accessToken) {
+    return res.status(401).json({ message: "No access token provided" });
+  }
+
+  const payload = verifyToken(accessToken, "access");
+  if (!payload) {
+    return res.status(401).json({ message: "Access token expired or invalid" });
+  }
+
+  // Map the JWT payload to req.user so downstream handlers work seamlessly
+  req.user = { id: payload.userId } as any;
+  next();
 };
