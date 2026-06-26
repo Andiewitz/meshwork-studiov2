@@ -37,6 +37,21 @@ services:
       timeout: 5s
       retries: 5
 
+  emnesh-redis:
+    container_name: emnesh-redis
+    image: redis:7-alpine
+    restart: always
+    ports:
+      - '6379:6379'
+    volumes:
+      - redis_data:/data
+    command: redis-server --appendonly yes
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
   emnesh-backend:
     container_name: emnesh-backend-api
     image: emnesh-app:latest
@@ -50,8 +65,10 @@ services:
       DATABASE_URL: postgresql://user:password@emnesh-workspace-db:5432/emnesh_workspace
       WORKSPACE_DATABASE_URL: postgresql://user:password@emnesh-workspace-db:5432/emnesh_workspace
       AUTH_DATABASE_URL: postgresql://user:password@emnesh-auth-db:5432/emnesh_auth
+      REDIS_URL: redis://emnesh-redis:6379
       NODE_ENV: production
       SESSION_SECRET: dev_secret_change_me_in_prod
+      JWT_SECRET: ${JWT_SECRET:-change_me_in_prod_use_256_bit_random_key}
       # Google OAuth (optional - configure for production)
       GOOGLE_CLIENT_ID: ${GOOGLE_CLIENT_ID:-}
       GOOGLE_CLIENT_SECRET: ${GOOGLE_CLIENT_SECRET:-}
@@ -69,6 +86,8 @@ services:
         condition: service_healthy
       emnesh-auth-db:
         condition: service_healthy
+      emnesh-redis:
+        condition: service_healthy
 
   emnesh-frontend:
     container_name: emnesh-frontend
@@ -85,3 +104,4 @@ services:
 volumes:
   pgdata_workspace:
   pgdata_auth:
+  redis_data:
