@@ -5,10 +5,52 @@ import type { IncomingMessage } from "http";
 import cookie from "cookie";
 import { teamStorage } from "./storage";
 import { db } from "../workspace/db";
-import { sessions } from "@shared/schema";
+import { sessions, users } from "@shared/schema";
 import { eq } from "drizzle-orm";
+import { verifyToken } from "../auth/jwt";
+import { createRedisClient } from "../../lib/redis";
+import crypto from "crypto";
 
 const log = createChildLogger("websocket");
+
+// ─── Redis Pub/Sub Setup ─────────────────────────────────────────────
+const ORIGIN_SERVER_ID = crypto.randomUUID();
+const redisPub = createRedisClient();
+const redisSub = createRedisClient();
+
+if (redisSub) {
+    redisSub.on("message", (channel, message) => {
+        if (!channel.startsWith("ws:room:")) return;
+        try {
+            const workspaceId = parseInt(channel.split(":")[2]);
+            const payload = JSON.parse(message);
+            // Ignore messages originating from this server instance
+            if (payload.originServerId === ORIGIN_SERVER_ID) return;
+            
+            // Broadcast the message locally
+            broadcastToRoom(workspaceId, payload.data, payload.excludeUserId);
+        } catch (err) {
+            log.error({ err, channel }, "Error processing pub/sub message");
+        }
+    });
+}
+
+function publishToRoom(workspaceId: number, message: ServerMessage, excludeUserId?: string) {
+    // 1. Always broadcast to local clients on this node
+    broadcastToRoom(workspaceId, message, excludeUserId);
+
+    // 2. Publish to Redis for other nodes
+    if (redisPub) {
+        const payload = JSON.stringify({
+            originServerId: ORIGIN_SERVER_ID,
+            excludeUserId,
+            data: message
+        });
+        redisPub.publish(`ws:room:${workspaceId}`, payload).catch(err => {
+            log.error({ err, workspaceId }, "Redis publish failed");
+        });
+    }
+}
 
 // ─── Types ───────────────────────────────────────────────────────────
 
@@ -76,10 +118,15 @@ function removeFromAllRooms(ws: WebSocket) {
             const user = users[j][1];
             if (user.ws === ws) {
                 room.delete(userId);
-                broadcastToRoom(workspaceId, { type: "left", userId });
+                publishToRoom(workspaceId, { type: "left", userId });
 
                 // Clean up empty rooms
-                if (room.size === 0) rooms.delete(workspaceId);
+                if (room.size === 0) {
+                    rooms.delete(workspaceId);
+                    if (redisSub) {
+                        redisSub.unsubscribe(`ws:room:${workspaceId}`).catch(err => log.error({ err }, "Redis unsubscribe failed"));
+                    }
+                }
                 return { workspaceId, userId };
             }
         }
@@ -88,27 +135,28 @@ function removeFromAllRooms(ws: WebSocket) {
 }
 
 // ─── Session Resolver ────────────────────────────────────────────────
-// Resolves a session cookie to a user object. Uses the same session
-// store as Express (connect-pg-simple / memory).
-
+// Resolves a session cookie to a user object. Uses the JWT access token.
 async function resolveSession(req: IncomingMessage): Promise<{ id: string; email: string; firstName: string | null } | null> {
     try {
         const cookieHeader = req.headers.cookie || "";
         const cookies = cookie.parse(cookieHeader);
-        const sid = cookies["connect.sid"];
-        if (!sid) return null;
+        const accessToken = cookies["access_token"];
+        
+        if (!accessToken) return null;
 
-        // Decode the connect.sid cookie (format: s:<id>.<signature>)
-        const rawSid = sid.startsWith("s:") ? sid.slice(2).split(".")[0] : sid;
+        const payload = verifyToken(accessToken, "access");
+        if (!payload) return null;
 
-        // Read from pg sessions table directly
-        const [session] = await db.select().from(sessions).where(eq(sessions.sid, rawSid));
-        if (!session) return null;
+        // Fetch user details
+        const [user] = await db.select({
+            id: users.id,
+            email: users.email,
+            firstName: users.firstName
+        }).from(users).where(eq(users.id, payload.userId));
 
-        const sess = session.sess as any;
-        if (!sess?.passport?.user) return null;
+        if (!user) return null;
 
-        return sess.passport.user;
+        return user;
     } catch (err) {
         log.error({ err }, "Session resolution error");
         return null;
@@ -185,6 +233,9 @@ export function initializeWebSocket(httpServer: HttpServer) {
                         // Create room if needed
                         if (!rooms.has(msg.workspaceId)) {
                             rooms.set(msg.workspaceId, new Map());
+                            if (redisSub) {
+                                redisSub.subscribe(`ws:room:${msg.workspaceId}`).catch(err => log.error({ err }, "Redis subscribe failed"));
+                            }
                         }
 
                         const room = rooms.get(msg.workspaceId)!;
@@ -197,7 +248,7 @@ export function initializeWebSocket(httpServer: HttpServer) {
                         });
 
                         // Notify others
-                        broadcastToRoom(msg.workspaceId, {
+                        publishToRoom(msg.workspaceId, {
                             type: "joined",
                             userId: user.id,
                             name: user.firstName || user.email.split("@")[0],
@@ -225,7 +276,7 @@ export function initializeWebSocket(httpServer: HttpServer) {
                         }
 
                         // Broadcast cursor to others
-                        broadcastToRoom(currentWorkspaceId, {
+                        publishToRoom(currentWorkspaceId, {
                             type: "cursor",
                             userId: currentUserId,
                             x: msg.x || 0,
@@ -244,7 +295,7 @@ export function initializeWebSocket(httpServer: HttpServer) {
 
                     case "node-move": {
                         if (!currentUserId || !currentWorkspaceId || !msg.nodeId) return;
-                        broadcastToRoom(currentWorkspaceId, {
+                        publishToRoom(currentWorkspaceId, {
                             type: "node-move",
                             userId: currentUserId,
                             nodeId: msg.nodeId,
@@ -257,7 +308,7 @@ export function initializeWebSocket(httpServer: HttpServer) {
 
                     case "canvas-sync": {
                         if (!currentUserId || !currentWorkspaceId) return;
-                        broadcastToRoom(currentWorkspaceId, {
+                        publishToRoom(currentWorkspaceId, {
                             type: "canvas-sync",
                             userId: currentUserId,
                             nodes: msg.nodes,
