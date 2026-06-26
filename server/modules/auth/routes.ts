@@ -5,7 +5,7 @@ import { db } from "./db";
 import { users, workspaces, nodes, edges, collections } from "@shared/schema";
 import { eq, and, inArray } from "drizzle-orm";
 import { hashPassword, verifyPassword } from "./password";
-import { generateTokens, verifyToken } from "./jwt";
+import { generateTokens, verifyToken, revokeRefreshToken, isRefreshTokenRevoked } from "./jwt";
 import { isAuthenticated } from "./authCore";
 import { optionalCaptchaMiddleware } from "./captcha";
 import { authLimiter } from "../../middleware/rateLimit";
@@ -163,7 +163,7 @@ export function registerAuthRoutes(app: Express): void {
   });
 
   // Refresh Token endpoint
-  app.post("/api/auth/refresh", (req: Request, res: Response) => {
+  app.post("/api/auth/refresh", async (req: Request, res: Response) => {
     const refreshToken = req.cookies?.refresh_token;
     
     if (!refreshToken) {
@@ -172,10 +172,20 @@ export function registerAuthRoutes(app: Express): void {
 
     const payload = verifyToken(refreshToken, "refresh");
     if (!payload) {
-      // Clear invalid cookies
       res.clearCookie("access_token");
       res.clearCookie("refresh_token");
       return res.status(401).json({ message: "Invalid or expired refresh token" });
+    }
+
+    // SECURITY: Check if token has been revoked in Redis
+    if (payload.jti) {
+      const isRevoked = await isRefreshTokenRevoked(payload.jti);
+      if (isRevoked) {
+        log.warn({ userId: payload.userId, jti: payload.jti }, "Attempt to use revoked refresh token");
+        res.clearCookie("access_token");
+        res.clearCookie("refresh_token");
+        return res.status(401).json({ message: "Token has been revoked" });
+      }
     }
 
     // Generate new access token
@@ -192,7 +202,16 @@ export function registerAuthRoutes(app: Express): void {
   });
 
   // Logout
-  app.post("/api/auth/logout", (req: Request, res: Response) => {
+  app.post("/api/auth/logout", async (req: Request, res: Response) => {
+    // Revoke the current refresh token if it exists
+    const refreshToken = req.cookies?.refresh_token;
+    if (refreshToken) {
+      const payload = verifyToken(refreshToken, "refresh");
+      if (payload && payload.jti) {
+        await revokeRefreshToken(payload.jti);
+      }
+    }
+
     // Clear JWT cookies
     res.clearCookie("access_token");
     res.clearCookie("refresh_token");
