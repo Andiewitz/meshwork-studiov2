@@ -1,5 +1,8 @@
 import type { Request, Response, NextFunction } from "express";
 import csrf from "csurf";
+import { createChildLogger } from "../lib/logger";
+
+const log = createChildLogger("csrf");
 
 declare global {
   namespace Express {
@@ -59,8 +62,7 @@ export const validateCsrfToken = (req: Request, res: Response, next: NextFunctio
   csrfProtection(req, res, (err: any) => {
     if (err) {
       // CSRF token validation failed
-      console.warn("[CSRF] Token validation failed for:", req.method, req.path);
-      console.warn("[CSRF] Error:", err.message);
+      log.warn({ method: req.method, path: req.path, error: err.message }, "Token validation failed");
       return res.status(403).json({
         message: "CSRF validation failed",
         error: process.env.NODE_ENV === "production" ? undefined : err.message,

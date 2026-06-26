@@ -1,9 +1,12 @@
 import Redis from "ioredis";
 import type { Redis as RedisType } from "ioredis";
+import { createChildLogger } from "./logger";
 
 // ─── Singleton Redis Client ─────────────────────────────────────────
 // Used for sessions, caching, and general key-value operations.
 // For pub/sub, use createRedisClient() to get a dedicated connection.
+
+const log = createChildLogger("redis");
 
 let redis: RedisType | null = null;
 let redisAvailable = false;
@@ -25,7 +28,7 @@ export function getRedis(): RedisType | null {
       maxRetriesPerRequest: 3,
       retryStrategy(times) {
         if (times > 5) {
-          console.warn("[Redis] Max reconnection attempts reached, giving up");
+          log.warn("Max reconnection attempts reached, giving up");
           return null; // Stop retrying
         }
         return Math.min(times * 200, 2000); // Exponential backoff, max 2s
@@ -35,14 +38,13 @@ export function getRedis(): RedisType | null {
 
     redis.on("connect", () => {
       redisAvailable = true;
-      console.log("[Redis] Connected successfully");
+      log.info("Connected successfully");
     });
 
     redis.on("error", (err) => {
       redisAvailable = false;
-      // Only warn once, don't spam logs
       if (redis?.status === "connecting") {
-        console.warn("[Redis] Connection failed:", err.message);
+        log.warn({ err: err.message }, "Connection failed");
       }
     });
 
@@ -52,13 +54,13 @@ export function getRedis(): RedisType | null {
 
     // Attempt connection (non-blocking)
     redis.connect().catch((err) => {
-      console.warn("[Redis] Initial connection failed (degrading gracefully):", err.message);
+      log.warn({ err: err.message }, "Initial connection failed (degrading gracefully)");
       redisAvailable = false;
     });
 
     return redis;
   } catch (err: any) {
-    console.warn("[Redis] Failed to create client:", err.message);
+    log.warn({ err: err.message }, "Failed to create client");
     return null;
   }
 }
@@ -79,7 +81,7 @@ export function createRedisClient(): RedisType | null {
     });
     return client;
   } catch (err: any) {
-    console.warn("[Redis] Failed to create client:", err.message);
+    log.warn({ err: err.message }, "Failed to create pub/sub client");
     return null;
   }
 }

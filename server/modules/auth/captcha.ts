@@ -61,19 +61,19 @@ export async function verifyCaptcha(
 
   // If no CAPTCHA configured, skip verification (dev mode only)
   if (!config) {
-    console.log('[Captcha] No CAPTCHA configured, skipping verification (dev mode)');
+    log.debug("No CAPTCHA configured, skipping verification (dev mode)");
     return { success: true };
   }
 
   // Validate token format (prevent injection)
-  if (!token || typeof token !== 'string' || token.length < 10 || token.length > 5000) {
-    console.error('[Captcha] Invalid token format');
+  if (!token || typeof token !== "string" || token.length < 10 || token.length > 2000) {
+    log.warn("Invalid token format");
     return { success: false, error: 'Invalid CAPTCHA token format' };
   }
 
   // Check for replay attacks
   if (usedTokens.has(token)) {
-    console.error('[Captcha] Token reuse detected (possible replay attack)');
+    log.warn("Token reuse detected (possible replay attack)");
     return { success: false, error: 'CAPTCHA already used - please complete a new challenge' };
   }
 
@@ -99,7 +99,7 @@ export async function verifyCaptcha(
     });
 
     if (!response.ok) {
-      console.error('[Captcha] Verification service error:', response.status);
+      log.error({ status: response.status }, "Verification service error");
       return { success: false, error: 'CAPTCHA verification service unavailable' };
     }
 
@@ -109,17 +109,17 @@ export async function verifyCaptcha(
       // For reCAPTCHA v3, check score
       if (config.provider === 'recaptcha' && data.score !== undefined) {
         const threshold = config.scoreThreshold || 0.5;
-        if (data.score < threshold) {
-          console.warn(`[Captcha] Score too low: ${data.score} (threshold: ${threshold})`);
+        if (data.score !== undefined && data.score < threshold) {
+          log.warn({ score: data.score, threshold }, "Score too low");
           return { 
             success: false, 
             error: 'CAPTCHA verification failed - suspicious activity detected',
             score: data.score 
           };
         }
-        console.log(`[Captcha] ${config.provider} passed with score: ${data.score}`);
+        log.debug({ score: data.score, provider: config.provider }, "Passed with score");
       } else {
-        console.log(`[Captcha] ${config.provider} verification passed`);
+        log.debug({ provider: config.provider }, "Verification passed");
       }
 
       // Mark token as used (prevent replay)
@@ -128,15 +128,15 @@ export async function verifyCaptcha(
 
       return { success: true, score: data.score };
     } else {
-      const errorCodes = data['error-codes'] || [];
-      console.error(`[Captcha] ${config.provider} verification failed:`, errorCodes);
+      const errorCodes = data["error-codes"] || [];
+      log.warn({ provider: config.provider, errorCodes }, "Verification failed");
       
       // Map error codes to user-friendly messages
       const errorMessage = mapErrorCodes(errorCodes, config.provider);
       return { success: false, error: errorMessage };
     }
   } catch (err) {
-    console.error('[Captcha] Verification error:', err);
+    log.error({ err }, "Verification error");
     return { success: false, error: 'CAPTCHA verification failed - please try again' };
   }
 }
@@ -185,7 +185,7 @@ export function captchaMiddleware(req: any, res: any, next: any) {
       });
     }
   }).catch((err) => {
-    console.error('[Captcha] Middleware error:', err);
+    log.error({ err }, "Middleware error");
     res.status(500).json({ 
       message: 'CAPTCHA verification error - please try again later' 
     });
@@ -202,9 +202,7 @@ export function optionalCaptchaMiddleware(req: any, res: any, next: any) {
   const config = getCaptchaConfig();
   
   if (!config) {
-    if (process.env.NODE_ENV !== 'production') {
-      console.log('[Captcha] Skipping verification (no CAPTCHA keys configured)');
-    }
+    log.debug("Skipping verification (no CAPTCHA keys configured)");
     return next();
   }
   

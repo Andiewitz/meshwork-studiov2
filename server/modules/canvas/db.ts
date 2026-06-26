@@ -1,13 +1,16 @@
 import { drizzle } from "drizzle-orm/node-postgres";
 import pg from "pg";
 import * as schema from "@shared/schema";
+import { createChildLogger } from "../../lib/logger";
+
+const log = createChildLogger("canvas-db");
 
 const { Pool } = pg;
 
 const connectionString = process.env.WORKSPACE_DATABASE_URL || process.env.DATABASE_URL;
 
 if (!connectionString) {
-    console.warn("[CanvasDB] WORKSPACE_DATABASE_URL not set, falling back to in-memory mode if configured");
+    log.warn("WORKSPACE_DATABASE_URL not set, falling back to in-memory mode if configured");
 }
 
 export const pool = new Pool({ connectionString: connectionString || "postgres://" });
@@ -47,7 +50,7 @@ async function createTables() {
                 END IF;
             END $$;
         `);
-        console.log("[CanvasDB] Nodes table created/verified");
+        log.info("Nodes table created/verified");
 
         // Create edges table for connections
         await pool.query(`
@@ -80,7 +83,7 @@ async function createTables() {
                 END IF;
             END $$;
         `);
-        console.log("[CanvasDB] Edges table created/verified");
+        log.info("Edges table created/verified");
 
         // Safe column migrations - ADD COLUMN IF NOT EXISTS is idempotent
         await pool.query(`
@@ -92,10 +95,10 @@ async function createTables() {
             ALTER TABLE edges ADD COLUMN IF NOT EXISTS style JSONB;
             ALTER TABLE edges ADD COLUMN IF NOT EXISTS marker_end JSONB;
         `);
-        console.log("[CanvasDB] Canvas table columns migrated (style, dimensions)");
+        log.info("Canvas table columns migrated (style, dimensions)");
 
     } catch (err) {
-        console.error("[CanvasDB] Failed to create tables:", err);
+        log.error({ err }, "Failed to create tables");
     }
 }
 

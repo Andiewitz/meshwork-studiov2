@@ -1,8 +1,10 @@
 import { Router, Request, Response } from "express";
+import { createChildLogger } from "../../lib/logger";
 import { isAuthenticated } from "../auth/authCore";
 import { createApiKey, deleteApiKey, getUserApiKeys, toggleKeyStatus, getApiKeyWithPlaintext, getActiveKeyForProvider } from "./db";
 import { validateKeyFormat } from "./encryption";
 
+const log = createChildLogger("ai");
 const router = Router();
 
 /**
@@ -23,7 +25,7 @@ router.get("/keys", isAuthenticated, async (req: Request, res: Response) => {
       createdAt: key.createdAt,
     })));
   } catch (error) {
-    console.error("[AI] Failed to list keys:", error);
+    log.error({ err: error }, "Failed to list keys");
     res.status(500).json({ error: "Failed to retrieve API keys" });
   }
 });
@@ -60,7 +62,7 @@ router.post("/keys", isAuthenticated, async (req: Request, res: Response) => {
       createdAt: key.createdAt,
     });
   } catch (error) {
-    console.error("[AI] Failed to create key:", error);
+    log.error({ err: error }, "Failed to create key");
     res.status(500).json({ error: "Failed to store API key" });
   }
 });
@@ -92,7 +94,7 @@ router.post("/keys/test", isAuthenticated, async (req: Request, res: Response) =
       message: "Key format is valid (actual API test not implemented yet)" 
     });
   } catch (error) {
-    console.error("[AI] Failed to test key:", error);
+    log.error({ err: error }, "Failed to test key");
     res.status(500).json({ error: "Failed to test API key" });
   }
 });
@@ -114,7 +116,7 @@ router.delete("/keys/:id", isAuthenticated, async (req: Request, res: Response) 
     
     res.json({ success: true });
   } catch (error) {
-    console.error("[AI] Failed to delete key:", error);
+    log.error({ err: error }, "Failed to delete key");
     res.status(500).json({ error: "Failed to delete API key" });
   }
 });
@@ -146,7 +148,7 @@ router.post("/keys/:id/toggle", isAuthenticated, async (req: Request, res: Respo
       isActive: key.isActive,
     });
   } catch (error) {
-    console.error("[AI] Failed to toggle key:", error);
+    log.error({ err: error }, "Failed to toggle key");
     res.status(500).json({ error: "Failed to update API key" });
   }
 });
@@ -294,7 +296,7 @@ router.post("/chat", isAuthenticated, async (req: Request, res: Response) => {
       return res.status(400).json({ error: `Unsupported provider: ${provider}` });
     }
   } catch (error: any) {
-    console.error("[AI] Chat completion failed:", error);
+    log.error({ err: error }, "Chat completion failed");
     res.status(500).json({ error: error.message || "Failed to complete chat request" });
   }
 });
@@ -422,7 +424,7 @@ Do NOT wrap the output in markdown code blocks like \`\`\`json. Return only the 
       }
       throw new Error("Response was not a JSON array");
     } catch (e) {
-      console.warn("[AI Suggestions] Failed to parse suggestions response:", responseText, e);
+      log.warn({ response: responseText, err: e }, "Failed to parse suggestions response");
       // Fallback suggestions
       return res.json([
         "Design a scalable Kubernetes microservices architecture",
@@ -432,7 +434,7 @@ Do NOT wrap the output in markdown code blocks like \`\`\`json. Return only the 
       ]);
     }
   } catch (error: any) {
-    console.error("[AI Suggestions] Suggestions failed:", error);
+    log.error({ err: error }, "Suggestions failed");
     // Return fallback suggestions on error rather than breaking the UI
     res.json([
       "Design a scalable Kubernetes microservices architecture",

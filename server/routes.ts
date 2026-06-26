@@ -5,7 +5,10 @@ import { WorkspaceModule } from "./modules/workspace";
 import { CanvasModule } from "./modules/canvas";
 import { AIModule } from "./modules/ai";
 import { TeamModule } from "./modules/team";
+import { createChildLogger } from "./lib/logger";
 import { generateCsrfToken, csrfProtection } from "./middleware/csrf";
+
+const log = createChildLogger("server");
 
 export async function registerRoutes(
   httpServer: Server,
@@ -39,7 +42,7 @@ export async function registerRoutes(
   // Initialize Team Module (handles teams, members, and shared workspaces)
   TeamModule.initialize(app);
 
-  console.log("[Monolith] All modules initialized");
+  log.info("All modules initialized");
 
   return httpServer;
 }

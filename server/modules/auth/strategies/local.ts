@@ -2,8 +2,11 @@ import { Strategy as LocalStrategy, VerifyFunction } from "passport-local";
 import { db } from "../db";
 import { users } from "@shared/schema";
 import { eq } from "drizzle-orm";
+import { createChildLogger } from "../../../lib/logger";
 import { verifyPassword } from "../password";
 import { isAccountLocked, recordFailedAttempt, resetFailedAttempts } from "../lockout";
+
+const log = createChildLogger("auth-local");
 
 // In-memory user store for development mode (no database)
 interface InMemoryUser {
@@ -109,7 +112,7 @@ export function createLocalStrategy() {
           authProvider: user.authProvider,
         } as Express.User);
       } catch (err) {
-        console.error("[LocalAuth] Authentication error - check logs for details");
+        log.error({ err }, "Authentication error");
         return done(err);
       }
     }

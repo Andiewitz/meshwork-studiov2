@@ -1,5 +1,7 @@
 import "dotenv/config";
-console.log("[Monolith] Starting initialization phase 0...");
+import { logger, createChildLogger } from "./lib/logger";
+const log = createChildLogger("server");
+log.info("Starting initialization phase 0...");
 import express, { type Request, Response, NextFunction } from "express";
 import { db } from "./modules/workspace/db";
 import { sql } from "drizzle-orm";
@@ -95,16 +97,6 @@ app.get("/health", (_req, res) => {
   res.status(200).json({ status: "healthy", timestamp: new Date().toISOString() });
 });
 
-export function log(message: string, source = "express") {
-  const formattedTime = new Date().toLocaleTimeString("en-US", {
-    hour: "numeric",
-    minute: "2-digit",
-    second: "2-digit",
-    hour12: true,
-  });
-
-  console.log(`${formattedTime} [${source}] ${message}`);
-}
 
 app.use((req, res, next) => {
   const start = Date.now();
@@ -120,8 +112,13 @@ app.use((req, res, next) => {
   res.on("finish", () => {
     const duration = Date.now() - start;
     if (path.startsWith("/api")) {
-      let logLine = `${req.method} ${path} ${res.statusCode} in ${duration}ms`;
-      
+      const logData: Record<string, any> = {
+        method: req.method,
+        path,
+        status: res.statusCode,
+        duration,
+      };
+
       // SECURITY: Sanitize logs to prevent leaking sensitive data (PII, tokens, etc.)
       if (capturedJsonResponse && process.env.NODE_ENV === "production") {
         const sanitized = { ...capturedJsonResponse };
@@ -137,12 +134,12 @@ app.use((req, res, next) => {
           }
         };
         redact(sanitized);
-        logLine += ` :: ${JSON.stringify(sanitized)}`;
+        logData.response = sanitized;
       } else if (capturedJsonResponse) {
-        logLine += ` :: ${JSON.stringify(capturedJsonResponse)}`;
+        logData.response = capturedJsonResponse;
       }
 
-      log(logLine);
+      log.info(logData, `${req.method} ${path} ${res.statusCode} in ${duration}ms`);
     }
   });
 
@@ -160,35 +157,35 @@ app.use((req, res, next) => {
       host: "0.0.0.0",
     },
     () => {
-      log(`server started listening on port ${port} (initializing modules...)`);
+    log.info(`Server started listening on port ${port} (initializing modules...)`);
     },
   );
 
   try {
-    log("starting database migrations...");
+    log.info("Starting database migrations...");
     try {
       await db.execute(sql`ALTER TABLE workspaces ADD COLUMN IF NOT EXISTS updated_at timestamp DEFAULT CURRENT_TIMESTAMP`);
       // Targeted hotfix: revert `updated_at` for legacy workspaces corrupted by the above DEFAULT CURRENT_TIMESTAMP
       await db.execute(sql`UPDATE workspaces SET updated_at = created_at WHERE updated_at > '2026-04-19 07:00:00' AND updated_at < '2026-04-19 08:30:00' AND created_at < '2026-04-19 07:00:00'`);
-      log("database migrations applied successfully");
+      log.info("Database migrations applied successfully");
     } catch (dbErr) {
-      console.warn("Failed to apply DB migrations, might already exist or DB is unavailable:", dbErr);
+      log.warn({ err: dbErr }, "Failed to apply DB migrations, might already exist or DB is unavailable");
     }
     
-    log("starting module initialization...");
+    log.info("Starting module initialization...");
     await registerRoutes(httpServer, app);
-    log("all modules initialized successfully");
+    log.info("All modules initialized successfully");
 
     // Initialize WebSocket presence server for real-time cursors
     const { initializeWebSocket } = await import("./modules/team/websocket");
     initializeWebSocket(httpServer);
-    log("WebSocket presence server initialized");
+    log.info("WebSocket presence server initialized");
 
     app.use((err: any, _req: Request, res: Response, next: NextFunction) => {
       const status = err.status || err.statusCode || 500;
       const message = err.message || "Internal Server Error";
 
-      console.error("Internal Server Error:", err);
+      log.error({ err }, "Internal Server Error");
 
       if (res.headersSent) {
         return next(err);
@@ -212,17 +209,17 @@ app.use((req, res, next) => {
     // setting up all the other routes so the catch-all route
     // doesn't interfere with the other routes
     if (process.env.NODE_ENV === "production") {
-      log("serving static frontend files from /public");
+      log.info("Serving static frontend files from /public");
       serveStatic(app);
     } else {
       const { setupVite } = await import("./vite");
       await setupVite(httpServer, app);
     }
     
-    log(`server fully ready and serving on port ${port}`);
+    log.info(`Server fully ready and serving on port ${port}`);
   } catch (error) {
-    console.error("CRITICAL FAILURE DURING SERVER INITIALIZATION:", error);
-    console.error("The server is still listening on /health but other routes may be broken.");
+    log.fatal({ err: error }, "CRITICAL FAILURE DURING SERVER INITIALIZATION");
+    log.error("The server is still listening on /health but other routes may be broken.");
     // We do NOT exit to allow healthcheck to pass and logs to stay accessible.
   }
 })();

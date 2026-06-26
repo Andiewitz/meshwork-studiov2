@@ -1,4 +1,5 @@
 import type { Express, Request, Response } from "express";
+import { createChildLogger } from "../../lib/logger";
 import passport from "passport";
 import { db } from "./db";
 import { users, workspaces, nodes, edges, collections } from "@shared/schema";
@@ -8,6 +9,8 @@ import { isAuthenticated } from "./authCore";
 import { optionalCaptchaMiddleware } from "./captcha";
 import { authLimiter } from "../../middleware/rateLimit";
 import { csrfProtection } from "../../middleware/csrf";
+
+const log = createChildLogger("auth");
 
 // Register auth-specific routes
 export function registerAuthRoutes(app: Express): void {
@@ -29,7 +32,7 @@ export function registerAuthRoutes(app: Express): void {
   
   app.post("/api/auth/register", authLimiter, registerCsrfMiddleware, optionalCaptchaMiddleware, async (req: Request, res: Response) => {
     if (process.env.NODE_ENV === "development") {
-      console.log("[Auth] CSRF disabled for register in development mode");
+      log.debug("CSRF disabled for register in development mode");
     }
     try {
       const { email, password, firstName, lastName } = req.body;
@@ -75,7 +78,7 @@ export function registerAuthRoutes(app: Express): void {
         userId: newUser.id,
       });
     } catch (err: any) {
-      console.error("[Auth] Registration error:", err);
+      log.error({ err }, "Registration error");
       res.status(500).json({ message: err.message || "Registration failed due to server error" });
     }
   });
@@ -86,7 +89,7 @@ export function registerAuthRoutes(app: Express): void {
   
   app.post("/api/auth/login", authLimiter, loginCsrfMiddleware, (req: Request, res: Response, next) => {
     if (process.env.NODE_ENV === "development") {
-      console.log("[Auth] CSRF disabled for login in development mode");
+      log.debug("CSRF disabled for login in development mode");
     }
     passport.authenticate("local", (err: any, user: any, info: any) => {
       if (err) {
@@ -115,7 +118,7 @@ export function registerAuthRoutes(app: Express): void {
   app.post("/api/auth/logout", (req: Request, res: Response) => {
     req.logout((err) => {
       if (err) {
-        console.error("[Auth] Logout error:", err);
+        log.error({ err }, "Logout error");
         return res.status(500).json({ message: "Logout failed" });
       }
       res.json({ message: "Logged out successfully" });
@@ -167,7 +170,7 @@ export function registerAuthRoutes(app: Express): void {
 
       res.json(user);
     } catch (error) {
-      console.error("[Auth] Error fetching user:", error);
+      log.error({ err: error }, "Error fetching user");
       res.status(500).json({ message: "Failed to fetch user profile - please try again" });
     }
   });
@@ -198,7 +201,7 @@ export function registerAuthRoutes(app: Express): void {
 
       res.json(updatedUser);
     } catch (error) {
-      console.error("[Auth] Error updating preferences:", error);
+      log.error({ err: error }, "Error updating preferences");
       res.status(500).json({ message: "Failed to update preferences" });
     }
   });
@@ -228,7 +231,7 @@ export function registerAuthRoutes(app: Express): void {
 
       res.json(updatedUser);
     } catch (error) {
-      console.error("[Auth] Error updating profile:", error);
+      log.error({ err: error }, "Error updating profile");
       res.status(500).json({ message: "Failed to update profile" });
     }
   });
@@ -277,7 +280,7 @@ export function registerAuthRoutes(app: Express): void {
 
       res.json({ message: "Password changed successfully" });
     } catch (error) {
-      console.error("[Auth] Error changing password:", error);
+      log.error({ err: error }, "Error changing password");
       res.status(500).json({ message: "Failed to change password" });
     }
   });
@@ -313,7 +316,7 @@ export function registerAuthRoutes(app: Express): void {
 
       res.json({ message: "All data deleted successfully" });
     } catch (error) {
-      console.error("[Auth] Error deleting user data:", error);
+      log.error({ err: error }, "Error deleting user data");
       res.status(500).json({ message: "Failed to delete user data" });
     }
   });
@@ -355,7 +358,7 @@ export function registerAuthRoutes(app: Express): void {
         res.json({ message: "Account deleted successfully" });
       });
     } catch (error) {
-      console.error("[Auth] Error deleting account:", error);
+      log.error({ err: error }, "Error deleting account");
       res.status(500).json({ message: "Failed to delete account" });
     }
   });

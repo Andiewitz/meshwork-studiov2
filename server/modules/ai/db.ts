@@ -1,6 +1,9 @@
 import { eq, and } from "drizzle-orm";
 import { drizzle } from "drizzle-orm/node-postgres";
 import pg from "pg";
+import { createChildLogger } from "../../lib/logger";
+
+const log = createChildLogger("ai-db");
 import * as schema from "@shared/schema";
 import { encryptApiKey, decryptApiKey, generateKeyHint } from "./encryption";
 
@@ -9,7 +12,7 @@ const { Pool } = pg;
 const connectionString = process.env.DATABASE_URL;
 
 if (!connectionString) {
-  console.error("[AI] DATABASE_URL not set. AI module will fall back to placeholder mode.");
+  log.error("DATABASE_URL not set. AI module will fall back to placeholder mode.");
 }
 
 let db: any = null;

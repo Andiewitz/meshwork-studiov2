@@ -1,11 +1,14 @@
 import type { Express } from "express";
 import { canvasStorage } from "./storage";
 import { registerCanvasRoutes } from "./routes";
+import { createChildLogger } from "../../lib/logger";
+
+const log = createChildLogger("canvas");
 
 export class CanvasModule {
     static initialize(app: Express) {
         registerCanvasRoutes(app);
-        console.log("[CanvasModule] Modular Canvas service initialized");
+        log.info("Canvas service initialized");
     }
 
     static storage = canvasStorage;

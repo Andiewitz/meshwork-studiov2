@@ -1,6 +1,9 @@
 import { users, type User, type UpsertUser } from "@shared/schema";
 import { db } from "./db";
 import { eq } from "drizzle-orm";
+import { createChildLogger } from "../../lib/logger";
+
+const log = createChildLogger("auth-storage");
 
 // Interface for auth storage operations
 export interface IAuthStorage {
@@ -17,7 +20,7 @@ class AuthStorage implements IAuthStorage {
 
   async upsertUser(userData: UpsertUser): Promise<User> {
     try {
-      console.log("[AuthStorage] DB Upsert for user:", userData.id);
+      log.info({ userId: userData.id }, "DB Upsert for user");
       const [user] = await db
         .insert(users)
         .values(userData)
@@ -29,10 +32,10 @@ class AuthStorage implements IAuthStorage {
           },
         })
         .returning();
-      console.log("[AuthStorage] DB Upsert successful");
+      log.info("DB Upsert successful");
       return user;
     } catch (err) {
-      console.error("[AuthStorage] DB Upsert failed:", err);
+      log.error({ err }, "DB Upsert failed");
       throw err;
     }
   }

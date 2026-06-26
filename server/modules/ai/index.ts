@@ -1,5 +1,8 @@
 import type { Express } from "express";
 import aiRoutes from "./routes";
+import { createChildLogger } from "../../lib/logger";
+
+const log = createChildLogger("ai");
 
 /**
  * AI Module - BYOK (Bring Your Own Key) AI Service
@@ -15,7 +18,7 @@ export class AIModule {
     // Mount AI routes under /api/ai
     app.use("/api/ai", aiRoutes);
     
-    console.log("[AIModule] AI service initialized at /api/ai");
+    log.info("AI service initialized at /api/ai");
   }
 }
 

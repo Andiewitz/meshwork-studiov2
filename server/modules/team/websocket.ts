@@ -1,4 +1,5 @@
 import { WebSocketServer, WebSocket } from "ws";
+import { createChildLogger } from "../../lib/logger";
 import type { Server as HttpServer } from "http";
 import type { IncomingMessage } from "http";
 import cookie from "cookie";
@@ -6,6 +7,8 @@ import { teamStorage } from "./storage";
 import { db } from "../workspace/db";
 import { sessions } from "@shared/schema";
 import { eq } from "drizzle-orm";
+
+const log = createChildLogger("websocket");
 
 // ─── Types ───────────────────────────────────────────────────────────
 
@@ -107,7 +110,7 @@ async function resolveSession(req: IncomingMessage): Promise<{ id: string; email
 
         return sess.passport.user;
     } catch (err) {
-        console.error("[WebSocket] Session resolution error:", err);
+        log.error({ err }, "Session resolution error");
         return null;
     }
 }
@@ -117,7 +120,7 @@ async function resolveSession(req: IncomingMessage): Promise<{ id: string; email
 export function initializeWebSocket(httpServer: HttpServer) {
     const wss = new WebSocketServer({ server: httpServer, path: "/ws" });
 
-    console.log("[WebSocket] Presence server initialized on /ws");
+    log.info("Presence server initialized on /ws");
 
     wss.on("connection", (ws: WebSocket, req: IncomingMessage) => {
         let currentUserId: string | null = null;
@@ -264,7 +267,7 @@ export function initializeWebSocket(httpServer: HttpServer) {
                     }
                 }
             } catch (err) {
-                console.error("[WebSocket] Message handling error:", err);
+                log.error({ err }, "Message handling error");
             }
         });
 

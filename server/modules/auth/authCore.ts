@@ -1,4 +1,5 @@
 import passport from "passport";
+import { createChildLogger } from "../../lib/logger";
 import session from "express-session";
 import type { Express, RequestHandler } from "express";
 import connectPg from "connect-pg-simple";
@@ -6,15 +7,17 @@ import memorystore from "memorystore";
 import { createGoogleStrategy } from "./strategies/google";
 import { createLocalStrategy } from "./strategies/local";
 
+const log = createChildLogger("auth");
+
 const getSession = () => {
   const sessionTtl = 7 * 24 * 60 * 60 * 1000; // 1 week
   const connectionString = process.env.AUTH_DATABASE_URL || process.env.DATABASE_URL;
   
   // SECURITY: Require SESSION_SECRET in production - fallback to temporary secret if missing to avoid healthcheck crash
   if (!process.env.SESSION_SECRET) {
-    console.error("[AuthCore] CRITICAL: SESSION_SECRET environment variable is missing!");
+    log.error("CRITICAL: SESSION_SECRET environment variable is missing!");
     if (process.env.NODE_ENV === "production") {
-      console.error("[AuthCore] Using emergency fallback secret. SESSIONS WILL NOT BE SECURE UNTIL FIXED.");
+      log.error("Using emergency fallback secret. SESSIONS WILL NOT BE SECURE UNTIL FIXED.");
     }
   }
 

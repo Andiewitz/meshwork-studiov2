@@ -1,13 +1,16 @@
 import { drizzle } from "drizzle-orm/node-postgres";
 import pg from "pg";
 import * as schema from "@shared/schema";
+import { createChildLogger } from "../../lib/logger";
+
+const log = createChildLogger("workspace-db");
 
 const { Pool } = pg;
 
 const connectionString = process.env.WORKSPACE_DATABASE_URL || process.env.DATABASE_URL;
 
 if (!connectionString) {
-    console.warn("[WorkspaceDB] WORKSPACE_DATABASE_URL not set, falling back to in-memory mode if configured");
+    log.warn("WORKSPACE_DATABASE_URL not set, falling back to in-memory mode if configured");
 }
 
 export const pool = new Pool({ connectionString: connectionString || "postgres://" });
@@ -32,7 +35,7 @@ async function createTables() {
                 created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
             );
         `);
-        console.log("[WorkspaceDB] Collections table created/verified");
+        log.info("Collections table created/verified");
 
         // Create workspaces table
         await pool.query(`
@@ -53,7 +56,7 @@ async function createTables() {
                 tags JSONB DEFAULT '[]'::jsonb
             );
         `);
-        console.log("[WorkspaceDB] Workspaces table created/verified");
+        log.info("Workspaces table created/verified");
 
         // Create teams table
         await pool.query(`
@@ -65,7 +68,7 @@ async function createTables() {
                 created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
             );
         `);
-        console.log("[WorkspaceDB] Teams table created/verified");
+        log.info("Teams table created/verified");
 
         // Create team_members table
         await pool.query(`
@@ -78,7 +81,7 @@ async function createTables() {
                 joined_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
             );
         `);
-        console.log("[WorkspaceDB] Team Members table created/verified");
+        log.info("Team Members table created/verified");
 
         // Create team_workspaces table
         await pool.query(`
@@ -89,10 +92,10 @@ async function createTables() {
                 shared_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
             );
         `);
-        console.log("[WorkspaceDB] Team Workspaces table created/verified");
+        log.info("Team Workspaces table created/verified");
 
     } catch (err) {
-        console.error("[WorkspaceDB] Failed to create tables:", err);
+        log.error({ err }, "Failed to create tables");
     }
 }
 
@@ -117,9 +120,9 @@ async function runMigrations() {
             ALTER TABLE workspaces ADD COLUMN IF NOT EXISTS groups JSONB DEFAULT '[]'::jsonb;
             ALTER TABLE workspaces ADD COLUMN IF NOT EXISTS tags JSONB DEFAULT '[]'::jsonb;
         `);
-        console.log("[WorkspaceDB] Migrations verified (is_favorite, updated_at, metadata)");
+        log.info("Migrations verified (is_favorite, updated_at, metadata)");
     } catch (err) {
-        console.error("[WorkspaceDB] Migration failed:", err);
+        log.error({ err }, "Migration failed");
     }
 }
 

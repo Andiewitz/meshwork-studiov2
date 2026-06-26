@@ -2,6 +2,9 @@ import { Strategy as GoogleStrategy } from "passport-google-oauth20";
 import { db } from "../db";
 import { users } from "@shared/schema";
 import { eq } from "drizzle-orm";
+import { createChildLogger } from "../../../lib/logger";
+
+const log = createChildLogger("auth-google");
 
 /**
  * Create and configure Google OAuth strategy
@@ -11,7 +14,7 @@ export function createGoogleStrategy() {
   const clientSecret = process.env.GOOGLE_CLIENT_SECRET;
 
   if (!clientID || !clientSecret) {
-    console.warn("[GoogleAuth] GOOGLE_CLIENT_ID or GOOGLE_CLIENT_SECRET not set");
+    log.warn("GOOGLE_CLIENT_ID or GOOGLE_CLIENT_SECRET not set");
     return null;
   }
 
@@ -84,7 +87,7 @@ export function createGoogleStrategy() {
           authProvider: newUser.authProvider,
         } as Express.User);
       } catch (err) {
-        console.error("[GoogleAuth] Error:", err);
+        log.error({ err }, "Google authentication error");
         return done(err as Error);
       }
     }

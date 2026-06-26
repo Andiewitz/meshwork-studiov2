@@ -1,13 +1,16 @@
 import { drizzle } from "drizzle-orm/node-postgres";
 import pg from "pg";
 import * as schema from "@shared/schema";
+import { createChildLogger } from "../../lib/logger";
+
+const log = createChildLogger("auth-db");
 
 const { Pool } = pg;
 
 const connectionString = process.env.AUTH_DATABASE_URL || process.env.DATABASE_URL;
 
 if (!connectionString) {
-    console.warn("[AuthDB] AUTH_DATABASE_URL not set, falling back to in-memory mode if configured");
+    log.warn("AUTH_DATABASE_URL not set, falling back to in-memory mode if configured");
 }
 
 export const pool = new Pool({ connectionString: connectionString || "postgres://" });
@@ -37,7 +40,7 @@ async function createTables() {
                 updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
             );
         `);
-        console.log("[AuthDB] Users table created/verified");
+        log.info("Users table created/verified");
 
         // Create sessions table for connect-pg-simple
         await pool.query(`
@@ -47,7 +50,7 @@ async function createTables() {
                 expire TIMESTAMP NOT NULL
             );
         `);
-        console.log("[AuthDB] Sessions table created/verified");
+        log.info("Sessions table created/verified");
 
         // Create login_attempts table for account lockout protection
         await pool.query(`
@@ -63,10 +66,10 @@ async function createTables() {
             CREATE INDEX IF NOT EXISTS IDX_login_attempts_email ON login_attempts(email);
             CREATE INDEX IF NOT EXISTS IDX_login_attempts_locked_until ON login_attempts(locked_until);
         `);
-        console.log("[AuthDB] Login attempts table created/verified");
+        log.info("Login attempts table created/verified");
 
     } catch (err) {
-        console.error("[AuthDB] Failed to create tables:", err);
+        log.error({ err }, "Failed to create tables");
     }
 }
 
@@ -80,9 +83,9 @@ async function runMigrations() {
             ALTER TABLE users ADD COLUMN IF NOT EXISTS has_notified_team BOOLEAN DEFAULT false;
             ALTER TABLE users ADD COLUMN IF NOT EXISTS read_notification_ids JSONB DEFAULT '[]'::jsonb;
         `);
-        console.log("[AuthDB] Migrations verified (notification preferences)");
+        log.info("Migrations verified (notification preferences)");
     } catch (err) {
-        console.error("[AuthDB] Migration failed:", err);
+        log.error({ err }, "Migration failed");
     }
 }
 
