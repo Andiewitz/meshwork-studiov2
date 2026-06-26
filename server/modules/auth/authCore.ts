@@ -2,8 +2,9 @@ import passport from "passport";
 import { createChildLogger } from "../../lib/logger";
 import session from "express-session";
 import type { Express, RequestHandler } from "express";
-import connectPg from "connect-pg-simple";
+import RedisStore from "connect-redis";
 import memorystore from "memorystore";
+import { getRedis } from "../../lib/redis";
 import { createGoogleStrategy } from "./strategies/google";
 import { createLocalStrategy } from "./strategies/local";
 
@@ -21,7 +22,10 @@ const getSession = () => {
     }
   }
 
-  if (!connectionString) {
+  const redisClient = getRedis();
+
+  if (!redisClient) {
+    log.warn("Redis client not available, falling back to in-memory session store (development only)");
     const MemoryStore = memorystore(session);
     return session({
       secret: process.env.SESSION_SECRET || "dev_only_insecure_dev_key_12345",
@@ -34,12 +38,10 @@ const getSession = () => {
     });
   }
 
-  const pgStore = connectPg(session);
-  const sessionStore = new pgStore({
-    conString: connectionString,
-    createTableIfMissing: true,
-    ttl: sessionTtl,
-    tableName: "sessions",
+  const sessionStore = new RedisStore({
+    client: redisClient,
+    prefix: "sess:",
+    ttl: sessionTtl / 1000, // connect-redis uses seconds for ttl, not ms
   });
 
   return session({

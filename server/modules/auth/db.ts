@@ -42,15 +42,7 @@ async function createTables() {
         `);
         log.info("Users table created/verified");
 
-        // Create sessions table for connect-pg-simple
-        await pool.query(`
-            CREATE TABLE IF NOT EXISTS sessions (
-                sid VARCHAR PRIMARY KEY,
-                sess JSONB NOT NULL,
-                expire TIMESTAMP NOT NULL
-            );
-        `);
-        log.info("Sessions table created/verified");
+        // Session storage has been moved to Redis!
 
         // Create login_attempts table for account lockout protection
         await pool.query(`
