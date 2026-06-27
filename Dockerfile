@@ -25,7 +25,7 @@ WORKDIR /app
 # Copy production build artifacts
 COPY --from=builder /app/dist ./dist
 COPY --from=builder /app/package*.json ./
-COPY --from=builder /app/node_modules/connect-pg-simple/table.sql ./dist/table.sql
+
 
 # Copy drizzle config for schema push at startup
 COPY --from=builder /app/drizzle.config.ts ./
