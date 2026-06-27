@@ -18,6 +18,8 @@ import {
     type Connection,
     Panel,
     useReactFlow,
+    ConnectionMode,
+    SelectionMode,
     ReactFlowProvider,
     useViewport,
     applyNodeChanges,
