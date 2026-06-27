@@ -13,6 +13,9 @@ import helmet from "helmet";
 import cookieParser from "cookie-parser";
 import { csrfProtection, generateCsrfToken, validateCsrfToken } from "./middleware/csrf";
 import { apiLimiter } from "./middleware/rateLimit";
+import { isRedisAvailable } from "./lib/redis";
+
+let isAppReady = false;
 
 const app = express();
 const httpServer = createServer(app);
@@ -92,9 +95,49 @@ app.use(cookieParser());
 // not globally, because it needs session middleware to be initialized first.
 // Session middleware is initialized by setupAuth() in registerRoutes()
 
-// Health check for Railway
-app.get("/health", (_req, res) => {
-  res.status(200).json({ status: "healthy", timestamp: new Date().toISOString() });
+// Real Health Check endpoint
+app.get("/health", async (_req, res) => {
+  try {
+    const checks = {
+      postgres: false,
+      redis: false,
+    };
+
+    // Check Postgres
+    try {
+      await db.execute(sql`SELECT 1`);
+      checks.postgres = true;
+    } catch (err) {
+      log.error({ err }, "Postgres health check failed");
+    }
+
+    // Check Redis
+    checks.redis = await isRedisAvailable();
+
+    const isHealthy = checks.postgres && checks.redis;
+    const status = isHealthy ? "healthy" : "degraded";
+    const statusCode = isHealthy ? 200 : 503;
+
+    res.status(statusCode).json({
+      status,
+      timestamp: new Date().toISOString(),
+      uptime: process.uptime(),
+      memory: process.memoryUsage(),
+      checks,
+    });
+  } catch (err) {
+    log.error({ err }, "Health check endpoint error");
+    res.status(500).json({ status: "error", message: "Internal health check error" });
+  }
+});
+
+// Readiness Probe
+app.get("/ready", (_req, res) => {
+  if (isAppReady) {
+    res.status(200).json({ status: "ready" });
+  } else {
+    res.status(503).json({ status: "not_ready" });
+  }
 });
 
 
@@ -151,15 +194,9 @@ app.use((req, res, next) => {
   
   // Start listening BEFORE expensive initialization to pass healthchecks early.
   // Port 0.0.0.0 is required for Railway/Docker.
-  httpServer.listen(
-    {
-      port,
-      host: "0.0.0.0",
-    },
-    () => {
+  httpServer.listen(port, "0.0.0.0", () => {
     log.info(`Server started listening on port ${port} (initializing modules...)`);
-    },
-  );
+  });
 
   try {
     log.info("Starting database migrations...");
@@ -216,6 +253,7 @@ app.use((req, res, next) => {
       await setupVite(httpServer, app);
     }
     
+    isAppReady = true;
     log.info(`Server fully ready and serving on port ${port}`);
   } catch (error) {
     log.fatal({ err: error }, "CRITICAL FAILURE DURING SERVER INITIALIZATION");
