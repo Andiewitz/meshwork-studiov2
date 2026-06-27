@@ -14,6 +14,8 @@ import cookieParser from "cookie-parser";
 import { csrfProtection, generateCsrfToken, validateCsrfToken } from "./middleware/csrf";
 import { apiLimiter } from "./middleware/rateLimit";
 import { isRedisAvailable } from "./lib/redis";
+import { metricsMiddleware } from "./middleware/metricsMiddleware";
+import { metricsRegistry } from "./lib/metrics";
 
 let isAppReady = false;
 
@@ -88,6 +90,9 @@ app.use(
 
 app.use(express.urlencoded({ extended: false, limit: "5mb" }));
 
+// Prometheus metrics middleware
+app.use(metricsMiddleware);
+
 // SECURITY: CSRF Protection - Setup cookie parser before CSRF middleware
 app.use(cookieParser());
 
@@ -137,6 +142,18 @@ app.get("/ready", (_req, res) => {
     res.status(200).json({ status: "ready" });
   } else {
     res.status(503).json({ status: "not_ready" });
+  }
+});
+
+// Prometheus Metrics Endpoint
+app.get("/metrics", async (_req, res) => {
+  try {
+    res.set("Content-Type", metricsRegistry.contentType);
+    const metrics = await metricsRegistry.metrics();
+    res.send(metrics);
+  } catch (err) {
+    log.error({ err }, "Metrics endpoint error");
+    res.status(500).send("Error generating metrics");
   }
 });
 

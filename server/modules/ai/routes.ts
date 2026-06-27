@@ -3,6 +3,7 @@ import { createChildLogger } from "../../lib/logger";
 import { isAuthenticated } from "../auth/authCore";
 import { createApiKey, deleteApiKey, getUserApiKeys, toggleKeyStatus, getApiKeyWithPlaintext, getActiveKeyForProvider } from "./db";
 import { validateKeyFormat } from "./encryption";
+import { aiChatRequestsTotal, aiChatDurationSeconds } from "../../lib/metrics";
 
 const log = createChildLogger("ai");
 const router = Router();
@@ -165,6 +166,16 @@ router.post("/chat", isAuthenticated, async (req: Request, res: Response) => {
     if (!provider || !model || !messages || !Array.isArray(messages)) {
       return res.status(400).json({ error: "provider, model, and messages are required" });
     }
+
+    const start = process.hrtime();
+    res.on("finish", () => {
+      const duration = process.hrtime(start);
+      const durationInSeconds = duration[0] + duration[1] / 1e9;
+      const status = res.statusCode >= 400 ? "error" : "success";
+      
+      aiChatRequestsTotal.labels(provider, model, status).inc();
+      aiChatDurationSeconds.labels(provider).observe(durationInSeconds);
+    });
     
     // Get user's API key for this provider
     let apiKey = "";

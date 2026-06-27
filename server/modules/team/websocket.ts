@@ -9,6 +9,7 @@ import { sessions, users } from "@shared/schema";
 import { eq } from "drizzle-orm";
 import { verifyToken } from "../auth/jwt";
 import { createRedisClient } from "../../lib/redis";
+import { websocketConnectionsActive, websocketRoomsActive } from "../../lib/metrics";
 import crypto from "crypto";
 
 const log = createChildLogger("websocket");
@@ -123,6 +124,7 @@ function removeFromAllRooms(ws: WebSocket) {
                 // Clean up empty rooms
                 if (room.size === 0) {
                     rooms.delete(workspaceId);
+                    websocketRoomsActive.set(rooms.size);
                     if (redisSub) {
                         redisSub.unsubscribe(`ws:room:${workspaceId}`).catch(err => log.error({ err }, "Redis unsubscribe failed"));
                     }
@@ -171,6 +173,7 @@ export function initializeWebSocket(httpServer: HttpServer) {
     log.info("Presence server initialized on /ws");
 
     wss.on("connection", (ws: WebSocket, req: IncomingMessage) => {
+        websocketConnectionsActive.inc();
         let currentUserId: string | null = null;
         let currentWorkspaceId: number | null = null;
 
@@ -233,6 +236,7 @@ export function initializeWebSocket(httpServer: HttpServer) {
                         // Create room if needed
                         if (!rooms.has(msg.workspaceId)) {
                             rooms.set(msg.workspaceId, new Map());
+                            websocketRoomsActive.set(rooms.size);
                             if (redisSub) {
                                 redisSub.subscribe(`ws:room:${msg.workspaceId}`).catch(err => log.error({ err }, "Redis subscribe failed"));
                             }
@@ -323,11 +327,13 @@ export function initializeWebSocket(httpServer: HttpServer) {
         });
 
         ws.on("close", () => {
+            websocketConnectionsActive.dec();
             clearInterval(heartbeat);
             removeFromAllRooms(ws);
         });
 
         ws.on("error", () => {
+            websocketConnectionsActive.dec();
             clearInterval(heartbeat);
             removeFromAllRooms(ws);
         });
