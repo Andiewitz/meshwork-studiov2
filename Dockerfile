@@ -15,6 +15,10 @@ ARG VITE_RECAPTCHA_SITE_KEY
 ENV VITE_RECAPTCHA_SITE_KEY=$VITE_RECAPTCHA_SITE_KEY
 RUN npm run build
 
+# Prune dev dependencies to save space and install drizzle-kit for runtime schema push
+RUN npm prune --omit=dev --legacy-peer-deps
+RUN npm install drizzle-kit --no-save --legacy-peer-deps
+
 # Runtime stage
 FROM node:20-alpine
 
@@ -26,13 +30,12 @@ WORKDIR /app
 COPY --from=builder /app/dist ./dist
 COPY --from=builder /app/package*.json ./
 
+# Copy pre-installed node_modules from builder
+COPY --from=builder /app/node_modules ./node_modules
 
 # Copy drizzle config for schema push at startup
 COPY --from=builder /app/drizzle.config.ts ./
 COPY --from=builder /app/shared ./shared
-
-# Install production deps + drizzle-kit for schema sync
-RUN npm cache clean --force && npm ci --omit=dev --legacy-peer-deps && npm install drizzle-kit --no-save --legacy-peer-deps
 
 # Set environment variables
 ENV NODE_ENV=production
