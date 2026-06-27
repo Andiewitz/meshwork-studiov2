@@ -18,10 +18,10 @@ import {
     type Connection,
     Panel,
     useReactFlow,
-    ConnectionMode,
-    SelectionMode,
     ReactFlowProvider,
     useViewport,
+    applyNodeChanges,
+    applyEdgeChanges,
 } from '@xyflow/react';
 
 import '@xyflow/react/dist/style.css';
@@ -115,7 +115,7 @@ import {
 import { useToast } from '@/hooks/use-toast';
 import { useAuth } from '@/hooks/use-auth';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { AvatarGroup, AvatarGroupTooltip } from '@/components/animate-ui/components/animate/avatar-group';
+
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
@@ -155,8 +155,8 @@ function WorkspaceView() {
     const updateWorkspace = useUpdateWorkspace();
     const duplicateWorkspace = useDuplicateWorkspace();
 
-    const [nodes, setNodes, onNodesChange] = useNodesState<Node>([]);
-    const [edges, setEdges, onEdgesChange] = useEdgesState<Edge>([]);
+    const [nodes, setNodes] = useState<Node[]>([]);
+    const [edges, setEdges] = useState<Edge[]>([]);
     const [selectedNodeId, setSelectedNodeId] = useState<string | null>(null);
     const [selectedEdgeId, setSelectedEdgeId] = useState<string | null>(null);
     const [activeTab, setActiveTab] = useState<'layers' | 'properties'>('layers');
@@ -327,18 +327,43 @@ function WorkspaceView() {
         requestAnimationFrame(() => { isRemoteUpdate.current = false; });
     }, [setNodes]);
 
-    const handleRemoteCanvasSync = useCallback((nodes: any[], edges: any[]) => {
+    const handleRemoteNodesChange = useCallback((changes: any[]) => {
         isRemoteUpdate.current = true;
-        setNodes(nodes || []);
-        setEdges(edges || []);
-        // Reset after React processes the batch
+        setNodes((nds) => applyNodeChanges(changes, nds));
         requestAnimationFrame(() => { isRemoteUpdate.current = false; });
-    }, [setNodes, setEdges]);
+    }, [setNodes]);
 
-    const { collaborators, isConnected: isPresenceConnected, sendCursor, sendNodeMove, sendCanvasSync } = usePresence(workspaceId, handleRemoteNodeMove, handleRemoteCanvasSync);
+    const handleRemoteEdgesChange = useCallback((changes: any[]) => {
+        isRemoteUpdate.current = true;
+        setEdges((eds) => applyEdgeChanges(changes, eds));
+        requestAnimationFrame(() => { isRemoteUpdate.current = false; });
+    }, [setEdges]);
+
+    const { collaborators, isConnected: isPresenceConnected, sendCursor, sendNodeMove, sendNodesChange, sendEdgesChange } = usePresence(
+        workspaceId, 
+        handleRemoteNodeMove, 
+        undefined, // onCanvasSync unused
+        handleRemoteNodesChange, 
+        handleRemoteEdgesChange
+    );
     const lastCursorSent = useRef(0);
     const lastNodeMoveSent = useRef(0);
     const canvasWrapperRef = useRef<HTMLDivElement>(null);
+
+    const onNodesChange = useCallback((changes: any[]) => {
+        setNodes((nds) => applyNodeChanges(changes, nds));
+        // Prevent broadcasting updates caused by remote changes
+        if (!isRemoteUpdate.current) {
+            sendNodesChange(changes);
+        }
+    }, [setNodes, sendNodesChange]);
+
+    const onEdgesChange = useCallback((changes: any[]) => {
+        setEdges((eds) => applyEdgeChanges(changes, eds));
+        if (!isRemoteUpdate.current) {
+            sendEdgesChange(changes);
+        }
+    }, [setEdges, sendEdgesChange]);
 
     // Throttled cursor broadcast on mouse move (uses React Flow's native event)
     const handlePaneMouseMove = useCallback((event: React.MouseEvent) => {
@@ -559,18 +584,9 @@ function WorkspaceView() {
         }
     }, [canvasData, workspaceId, setNodes, setEdges, toast]);
 
-    // ── Fast WS broadcast (500ms) — syncs to peers immediately ──
-    const syncBroadcastRef = useRef<ReturnType<typeof setTimeout>>();
-
     useEffect(() => {
         if (isInitialLoad.current) return;
         if (isRemoteUpdate.current) return;
-
-        // Fast broadcast to peers via WS (500ms debounce)
-        if (syncBroadcastRef.current) clearTimeout(syncBroadcastRef.current);
-        syncBroadcastRef.current = setTimeout(() => {
-            sendCanvasSync(nodes, edges);
-        }, 500);
 
         // Slow persist to DB (3s debounce)
         saveCanvasToLocalCache(workspaceId, nodes, edges);
@@ -599,9 +615,8 @@ function WorkspaceView() {
 
         return () => {
             if (saveTimeoutRef.current) clearTimeout(saveTimeoutRef.current);
-            if (syncBroadcastRef.current) clearTimeout(syncBroadcastRef.current);
         };
-    }, [nodes, edges, workspaceId, sync, toast, sendCanvasSync]);
+    }, [nodes, edges, workspaceId, sync, toast]);
 
     useEffect(() => {
         setEdges((eds) =>
@@ -1491,22 +1506,20 @@ function WorkspaceView() {
                                         <Popover>
                                             <PopoverTrigger asChild>
                                                 <button className="flex items-center focus:outline-none cursor-pointer hover:opacity-90 transition-opacity">
-                                                    <AvatarGroup>
+                                                    <div className="flex -space-x-2 overflow-hidden">
                                                         {/* Current user — always shown */}
-                                                        <Avatar className="size-6 border-2 border-[#121214]">
+                                                        <Avatar className="size-6 border-2 border-[#121214]" title={`${user?.firstName || user?.email?.split('@')[0] || 'You'} (you)`}>
                                                             <AvatarImage src={user?.profileImageUrl || ''} />
                                                             <AvatarFallback className="text-[9px] font-bold bg-indigo-500/30 text-indigo-200">
                                                                 {(user?.firstName?.[0] || user?.email?.[0] || '?').toUpperCase()}
                                                             </AvatarFallback>
-                                                            <AvatarGroupTooltip>{user?.firstName || user?.email?.split('@')[0] || 'You'} (you)</AvatarGroupTooltip>
                                                         </Avatar>
                                                         {/* Live collaborators */}
                                                         {collaborators.filter(c => c.userId !== user?.id).slice(0, 3).map((u) => (
-                                                            <Avatar key={u.userId} className="size-6 border-2 border-[#121214]">
+                                                            <Avatar key={u.userId} className="size-6 border-2 border-[#121214]" title={u.name}>
                                                                 <AvatarFallback className="text-[9px] font-bold" style={{ backgroundColor: `${u.color}28`, color: u.color }}>
                                                                     {u.name[0]?.toUpperCase()}
                                                                 </AvatarFallback>
-                                                                <AvatarGroupTooltip>{u.name}</AvatarGroupTooltip>
                                                             </Avatar>
                                                         ))}
                                                         {/* Overflow count */}
@@ -1517,7 +1530,7 @@ function WorkspaceView() {
                                                                 </AvatarFallback>
                                                             </Avatar>
                                                         )}
-                                                    </AvatarGroup>
+                                                    </div>
                                                 </button>
                                             </PopoverTrigger>
                                             <PopoverContent className="w-72 p-0 bg-[#121214]/85 backdrop-blur-2xl border border-white/[0.08] rounded-2xl shadow-[inset_0_1px_0_rgba(255,255,255,0.1),0_16px_48px_rgba(0,0,0,0.8)] z-[200]" side="bottom" align="end" sideOffset={8}>

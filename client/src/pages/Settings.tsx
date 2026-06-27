@@ -8,7 +8,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { useToast } from "@/hooks/use-toast";
 import { queryClient } from "@/lib/queryClient";
-import { aiService, type ApiKey, type Provider } from "@/services/ai";
+import { aiService, type ApiKey, type Provider } from "@/lib/ai";
 import { Loader2, User, Lock, Trash2, Download, AlertTriangle, Eye, EyeOff, Sun, Moon, Monitor, Plus, Key, Check, X } from "lucide-react";
 import {
   AlertDialog,

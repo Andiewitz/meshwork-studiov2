@@ -6,8 +6,10 @@ import { createChildLogger } from "../../lib/logger";
 
 const log = createChildLogger("auth");
 
+import type { AppContext } from "../../lib/registry";
+
 export class AuthModule {
-    static async initialize(app: Express) {
+    static async initialize(app: Express, context: AppContext) {
         await setupAuth(app);
         registerAuthRoutes(app);
         log.info("Authentication service initialized");

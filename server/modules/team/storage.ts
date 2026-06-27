@@ -63,6 +63,7 @@ export interface ITeamStorage {
     updateMemberRole(teamId: string, targetUserId: string, newRole: TeamRole): Promise<TeamMember>;
     getMemberRole(teamId: string, userId: string): Promise<TeamRole | null>;
     getWorkspaceRole(workspaceId: number, userId: string): Promise<TeamRole | 'workspace-owner' | null>;
+    deleteAllUserData(userId: string, tx?: any): Promise<void>;
 }
 
 export class TeamDatabaseStorage implements ITeamStorage {
@@ -335,6 +336,21 @@ export class TeamDatabaseStorage implements ITeamStorage {
         }
 
         return highestRole;
+    }
+
+    async deleteAllUserData(userId: string, providedTx?: any): Promise<void> {
+        const execute = async (tx: any) => {
+            // Delete teams owned by the user
+            // Note: teamMembers and teamWorkspaces have CASCADE on teamId, so they will be deleted automatically.
+            await tx.delete(teams).where(eq(teams.ownerId, userId));
+            // Note: teamMembers has CASCADE on userId, so the user will be removed from other teams automatically.
+        };
+
+        if (providedTx) {
+            await execute(providedTx);
+        } else {
+            await db.transaction(execute);
+        }
     }
 }
 

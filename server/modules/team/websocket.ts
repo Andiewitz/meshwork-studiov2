@@ -64,7 +64,7 @@ interface PresenceUser {
 }
 
 interface ClientMessage {
-    type: "join" | "cursor" | "leave" | "node-move" | "canvas-sync";
+    type: "join" | "cursor" | "leave" | "node-move" | "canvas-sync" | "nodes-change" | "edges-change";
     workspaceId?: number;
     x?: number;
     y?: number;
@@ -74,10 +74,11 @@ interface ClientMessage {
     parentId?: string | null;
     nodes?: any[];
     edges?: any[];
+    changes?: any[];
 }
 
 interface ServerMessage {
-    type: "presence" | "cursor" | "joined" | "left" | "error" | "node-move" | "canvas-sync";
+    type: "presence" | "cursor" | "joined" | "left" | "error" | "node-move" | "canvas-sync" | "nodes-change" | "edges-change";
     [key: string]: any;
 }
 
@@ -310,8 +311,8 @@ export function initializeWebSocket(httpServer: HttpServer) {
                         break;
                     }
 
-                    case "canvas-sync": {
-                        if (!currentUserId || !currentWorkspaceId) return;
+                    case "canvas-sync":
+                        if (!currentWorkspaceId) return;
                         publishToRoom(currentWorkspaceId, {
                             type: "canvas-sync",
                             userId: currentUserId,
@@ -319,7 +320,24 @@ export function initializeWebSocket(httpServer: HttpServer) {
                             edges: msg.edges,
                         }, currentUserId);
                         break;
-                    }
+
+                    case "nodes-change":
+                        if (!currentWorkspaceId) return;
+                        publishToRoom(currentWorkspaceId, {
+                            type: "nodes-change",
+                            userId: currentUserId,
+                            changes: msg.changes,
+                        }, currentUserId);
+                        break;
+
+                    case "edges-change":
+                        if (!currentWorkspaceId) return;
+                        publishToRoom(currentWorkspaceId, {
+                            type: "edges-change",
+                            userId: currentUserId,
+                            changes: msg.changes,
+                        }, currentUserId);
+                        break;
                 }
             } catch (err) {
                 log.error({ err }, "Message handling error");

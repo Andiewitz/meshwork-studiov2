@@ -13,10 +13,12 @@ const log = createChildLogger("ai");
  * - Key management endpoints
  */
 
+import type { AppContext } from "../../lib/registry";
+
 export class AIModule {
-  static initialize(app: Express) {
-    // Mount AI routes under /api/ai
-    app.use("/api/v1/ai", aiRoutes);
+  static initialize(app: Express, context: AppContext) {
+    // Mount AI routes under /api/v1/ai
+    app.use("/api/v1/ai", aiRoutes(context));
     
     log.info("AI service initialized at /api/ai");
   }

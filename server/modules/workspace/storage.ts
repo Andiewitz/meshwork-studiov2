@@ -26,6 +26,7 @@ export interface IWorkspaceStorage {
     updateWorkspace(id: number, updates: Partial<InsertWorkspace>): Promise<Workspace>;
     deleteWorkspace(id: number): Promise<void>;
     duplicateWorkspace(id: number, newTitle?: string): Promise<Workspace>;
+    deleteAllUserData(userId: number, tx?: any): Promise<void>;
 }
 
 export class WorkspaceDatabaseStorage implements IWorkspaceStorage {
@@ -132,6 +133,19 @@ export class WorkspaceDatabaseStorage implements IWorkspaceStorage {
         }).returning();
 
         return duplicated;
+    }
+
+    async deleteAllUserData(userId: number, providedTx?: any): Promise<void> {
+        const execute = async (tx: any) => {
+            await tx.delete(workspaces).where(eq(workspaces.userId, userId));
+            await tx.delete(collections).where(eq(collections.userId, userId));
+        };
+
+        if (providedTx) {
+            await execute(providedTx);
+        } else {
+            await db.transaction(execute);
+        }
     }
 }
 

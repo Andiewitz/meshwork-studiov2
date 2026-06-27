@@ -55,7 +55,36 @@ vi.mock('@server/modules/rate-limit', () => ({
 const setupTestApp = () => {
   const app = express();
   app.use(express.json());
-  registerWorkspaceRoutes(app);
+  
+  const mockContext = {
+    registry: {
+      get: (key: string) => {
+        if (key === 'isAuthenticated') {
+          return (req: any, res: any, next: any) => {
+            if (req.headers['x-test-user-id']) {
+              req.user = { id: req.headers['x-test-user-id'] };
+              next();
+            } else {
+              res.status(401).json({ message: "Not authenticated" });
+            }
+          };
+        }
+        if (key === 'teamStorage') {
+          return {
+            getWorkspaceRole: mockGetWorkspaceRole,
+            canAccessWorkspace: vi.fn(),
+          };
+        }
+        return null;
+      }
+    },
+    eventBus: {
+      emit: vi.fn(),
+      emitAsync: vi.fn(),
+    }
+  } as any;
+  
+  registerWorkspaceRoutes(app, mockContext);
   return app;
 };
 

@@ -1,15 +1,14 @@
 import type { Express } from "express";
 import { workspaceStorage } from "./storage";
-import { teamStorage } from "../team/storage";
-import { CanvasModule } from "../canvas";
 import { api } from "@shared/routes";
-import { AuthModule } from "../auth";
 import { z } from "zod";
 import { csrfProtection } from "../../middleware/csrf";
+import type { AppContext } from "../../lib/registry";
 
-export function registerWorkspaceRoutes(app: Express) {
-    const { isAuthenticated } = AuthModule.middleware;
-    const canvasStorage = CanvasModule.storage;
+export function registerWorkspaceRoutes(app: Express, context: AppContext) {
+    const isAuthenticated = context.registry.get<any>("isAuthenticated");
+    const teamStorage = context.registry.get<any>("teamStorage");
+    const { eventBus } = context;
 
     // Collections (Subcollections)
     app.get("/api/v1/collections", isAuthenticated, async (req, res) => {
@@ -138,7 +137,7 @@ export function registerWorkspaceRoutes(app: Express) {
         }
 
         // Delete canvas data first (nodes and edges)
-        await canvasStorage.syncCanvas(id, [], []);
+        eventBus.emit('workspace.deleted', { id });
         
         await workspaceStorage.deleteWorkspace(id);
         res.status(204).send();
@@ -159,7 +158,7 @@ export function registerWorkspaceRoutes(app: Express) {
         const duplicated = await workspaceStorage.duplicateWorkspace(id, title);
         
         // Also duplicate the canvas data
-        await canvasStorage.duplicateCanvas(id, duplicated.id);
+        eventBus.emit('workspace.duplicated', { originalId: id, newId: duplicated.id });
         
         res.status(201).json(duplicated);
     });

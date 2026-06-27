@@ -1,18 +1,21 @@
 import { Router, Request, Response } from "express";
 import { createChildLogger } from "../../lib/logger";
-import { isAuthenticated } from "../auth/authCore";
 import { createApiKey, deleteApiKey, getUserApiKeys, toggleKeyStatus, getApiKeyWithPlaintext, getActiveKeyForProvider } from "./db";
 import { validateKeyFormat } from "./encryption";
 import { aiChatRequestsTotal, aiChatDurationSeconds } from "../../lib/metrics";
+import type { AppContext } from "../../lib/registry";
 
 const log = createChildLogger("ai");
-const router = Router();
 
-/**
- * GET /api/ai/keys
- * List all API keys for the current user (returns hints only, never full keys)
- */
-router.get("/keys", isAuthenticated, async (req: Request, res: Response) => {
+export default function createAIRoutes(context: AppContext) {
+  const router = Router();
+  const isAuthenticated = context.registry.get<any>("isAuthenticated");
+
+  /**
+   * GET /api/ai/keys
+   * List all API keys for the current user (returns hints only, never full keys)
+   */
+  router.get("/keys", isAuthenticated, async (req: Request, res: Response) => {
   try {
     const userId = req.user!.id;
     const keys = await getUserApiKeys(userId);
@@ -469,4 +472,5 @@ router.get("/providers", isAuthenticated, async (_req: Request, res: Response) =
   ]);
 });
 
-export default router;
+  return router;
+}

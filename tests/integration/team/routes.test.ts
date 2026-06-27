@@ -76,7 +76,35 @@ vi.mock('@server/middleware/csrf', () => ({
 const setupApp = () => {
   const app = express();
   app.use(express.json());
-  registerTeamRoutes(app);
+
+  const mockContext = {
+    registry: {
+      get: (key: string) => {
+        if (key === 'isAuthenticated') {
+          return (req: any, res: any, next: any) => {
+            if (req.headers['x-test-user-id']) {
+              req.user = { id: req.headers['x-test-user-id'] };
+              next();
+            } else {
+              res.status(401).json({ message: "Not authenticated" });
+            }
+          };
+        }
+        if (key === 'workspaceStorage') {
+          return {
+            getWorkspace: mockGetWorkspace,
+          };
+        }
+        return null;
+      }
+    },
+    eventBus: {
+      emit: vi.fn(),
+      emitAsync: vi.fn(),
+    }
+  } as any;
+
+  registerTeamRoutes(app, mockContext);
   return app;
 };
 

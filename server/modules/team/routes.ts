@@ -1,13 +1,13 @@
 import type { Express } from "express";
 import { teamStorage } from "./storage";
-import { workspaceStorage } from "../workspace/storage";
-import { AuthModule } from "../auth";
 import { joinTeamSchema, updateMemberRoleSchema } from "@shared/schema";
 import { csrfProtection } from "../../middleware/csrf";
 import { z } from "zod";
+import type { AppContext } from "../../lib/registry";
 
-export function registerTeamRoutes(app: Express) {
-    const { isAuthenticated } = AuthModule.middleware;
+export function registerTeamRoutes(app: Express, context: AppContext) {
+    const isAuthenticated = context.registry.get<any>("isAuthenticated");
+    const workspaceStorage = context.registry.get<any>("workspaceStorage");
 
     // ── Create a team ────────────────────────────────────────────────
     app.post("/api/v1/teams", csrfProtection, isAuthenticated, async (req, res) => {

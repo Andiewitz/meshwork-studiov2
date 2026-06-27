@@ -3,17 +3,7 @@ import request from 'supertest';
 import express from 'express';
 import aiRoutes from '@server/modules/ai/routes';
 
-// Mock AuthModule middleware to allow requests through
-vi.mock('@server/modules/auth/authCore', () => ({
-  isAuthenticated: (req: any, res: any, next: any) => {
-    if (req.headers['x-test-user-id']) {
-      req.user = { id: Number(req.headers['x-test-user-id']) };
-      next();
-    } else {
-      res.status(401).json({ message: "Not authenticated" });
-    }
-  }
-}));
+// We removed the AuthModule mock and rely on registry mock inside setupTestApp
 
 // Mock DB calls for getting API keys to return nothing, forcing the route to use the ENV fallback
 vi.mock('@server/modules/ai/db', () => ({
@@ -25,7 +15,30 @@ vi.mock('@server/modules/ai/db', () => ({
 const setupTestApp = () => {
   const app = express();
   app.use(express.json());
-  app.use('/api/v1/ai', aiRoutes);
+  
+  const mockContext = {
+    registry: {
+      get: (key: string) => {
+        if (key === 'isAuthenticated') {
+          return (req: any, res: any, next: any) => {
+            if (req.headers['x-test-user-id']) {
+              req.user = { id: Number(req.headers['x-test-user-id']) };
+              next();
+            } else {
+              res.status(401).json({ message: "Not authenticated" });
+            }
+          };
+        }
+        return null;
+      }
+    },
+    eventBus: {
+      emit: vi.fn(),
+      emitAsync: vi.fn(),
+    }
+  } as any;
+
+  app.use('/api/v1/ai', aiRoutes(mockContext));
   return app;
 };
 

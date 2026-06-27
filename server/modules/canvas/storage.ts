@@ -16,6 +16,7 @@ export interface ICanvasStorage {
     getEdges(workspaceId: number): Promise<Edge[]>;
     syncCanvas(workspaceId: number, nodes: InsertNode[], edges: InsertEdge[]): Promise<void>;
     duplicateCanvas(fromWorkspaceId: number, toWorkspaceId: number): Promise<void>;
+    deleteAllUserData(userId: number, tx?: any): Promise<void>;
 }
 
 export class CanvasDatabaseStorage implements ICanvasStorage {
@@ -133,6 +134,27 @@ export class CanvasDatabaseStorage implements ICanvasStorage {
             }
         });
     }
+
+    async deleteAllUserData(userId: number, providedTx?: any): Promise<void> {
+        const execute = async (tx: any) => {
+            const userWorkspaces = await tx
+                .select({ id: workspaces.id })
+                .from(workspaces)
+                .where(eq(workspaces.userId, userId));
+
+            const workspaceIds = userWorkspaces.map((w: any) => w.id);
+            if (workspaceIds.length > 0) {
+                await tx.delete(edges).where(inArray(edges.workspaceId, workspaceIds));
+                await tx.delete(nodes).where(inArray(nodes.workspaceId, workspaceIds));
+            }
+        };
+
+        if (providedTx) {
+            await execute(providedTx);
+        } else {
+            await db.transaction(execute);
+        }
+    }
 }
 
 // In-memory fallback for Canvas
@@ -173,6 +195,14 @@ export class CanvasMemStorage implements ICanvasStorage {
         for (const edge of edgesToDuplicate) {
             this.edgesMap.set(`${toWorkspaceId}:${edge.id}`, { ...edge, workspaceId: toWorkspaceId } as Edge);
         }
+    }
+
+    async deleteAllUserData(userId: number): Promise<void> {
+        // In-memory doesn't track workspaces by user directly here,
+        // but for completeness we would filter manually if we had workspace metadata.
+        // For now, this is a no-op in memory storage since workspaces are deleted in WorkspaceModule
+        // and we don't have a strict foreign key constraint in memory.
+        // In a real memory implementation, we'd iterate and delete.
     }
 }
 

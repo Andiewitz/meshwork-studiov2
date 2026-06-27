@@ -10,7 +10,7 @@ export interface PresenceUser {
 }
 
 interface ServerMessage {
-  type: "presence" | "cursor" | "joined" | "left" | "error" | "node-move" | "canvas-sync";
+  type: "presence" | "cursor" | "joined" | "left" | "error" | "node-move" | "canvas-sync" | "nodes-change" | "edges-change";
   users?: PresenceUser[];
   userId?: string;
   name?: string;
@@ -24,6 +24,7 @@ interface ServerMessage {
   parentId?: string | null;
   nodes?: any[];
   edges?: any[];
+  changes?: any[];
 }
 
 // ─── Hook ────────────────────────────────────────────────────────────
@@ -32,12 +33,18 @@ export function usePresence(
   workspaceId: number | null,
   onNodeMove?: (nodeId: string, x: number, y: number, parentId?: string | null) => void,
   onCanvasSync?: (nodes: any[], edges: any[]) => void,
+  onNodesChange?: (changes: any[]) => void,
+  onEdgesChange?: (changes: any[]) => void,
 ) {
   const wsRef = useRef<WebSocket | null>(null);
   const onNodeMoveRef = useRef(onNodeMove);
   onNodeMoveRef.current = onNodeMove;
   const onCanvasSyncRef = useRef(onCanvasSync);
   onCanvasSyncRef.current = onCanvasSync;
+  const onNodesChangeRef = useRef(onNodesChange);
+  onNodesChangeRef.current = onNodesChange;
+  const onEdgesChangeRef = useRef(onEdgesChange);
+  onEdgesChangeRef.current = onEdgesChange;
   const [collaborators, setCollaborators] = useState<Map<string, PresenceUser>>(new Map());
   const [isConnected, setIsConnected] = useState(false);
   const reconnectTimer = useRef<ReturnType<typeof setTimeout>>();
@@ -138,6 +145,20 @@ export function usePresence(
             }
             break;
           }
+
+          case "nodes-change": {
+            if (msg.changes) {
+              onNodesChangeRef.current?.(msg.changes);
+            }
+            break;
+          }
+
+          case "edges-change": {
+            if (msg.changes) {
+              onEdgesChangeRef.current?.(msg.changes);
+            }
+            break;
+          }
         }
       } catch {
         // Ignore malformed messages
@@ -191,11 +212,25 @@ export function usePresence(
     }
   }, []);
 
+  const sendNodesChange = useCallback((changes: any[]) => {
+    if (wsRef.current?.readyState === WebSocket.OPEN) {
+      wsRef.current.send(JSON.stringify({ type: "nodes-change", changes }));
+    }
+  }, []);
+
+  const sendEdgesChange = useCallback((changes: any[]) => {
+    if (wsRef.current?.readyState === WebSocket.OPEN) {
+      wsRef.current.send(JSON.stringify({ type: "edges-change", changes }));
+    }
+  }, []);
+
   return {
     collaborators: Array.from(collaborators.values()),
     isConnected,
     sendCursor,
     sendNodeMove,
     sendCanvasSync,
+    sendNodesChange,
+    sendEdgesChange,
   };
 }

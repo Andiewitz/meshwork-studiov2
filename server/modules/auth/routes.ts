@@ -2,7 +2,7 @@ import type { Express, Request, Response } from "express";
 import { createChildLogger } from "../../lib/logger";
 import passport from "passport";
 import { db } from "./db";
-import { users, workspaces, nodes, edges, collections } from "@shared/schema";
+import { users } from "@shared/schema";
 import { eq, and, inArray } from "drizzle-orm";
 import { hashPassword, verifyPassword } from "./password";
 import { generateTokens, verifyToken, revokeRefreshToken, isRefreshTokenRevoked } from "./jwt";
@@ -12,11 +12,12 @@ import { authLimiter } from "../../middleware/rateLimit";
 import { csrfProtection } from "../../middleware/csrf";
 import { validate } from "../../middleware/validate";
 import { registerSchema, loginSchema, changePasswordSchema } from "./schemas";
+import type { AppContext } from "../../lib/registry";
 
 const log = createChildLogger("auth");
 
 // Register auth-specific routes
-export function registerAuthRoutes(app: Express): void {
+export function registerAuthRoutes(app: Express, context: AppContext): void {
   // Google OAuth routes
   app.get("/api/v1/auth/google", passport.authenticate("google", {
     scope: ["profile", "email"],
@@ -385,27 +386,8 @@ export function registerAuthRoutes(app: Express): void {
       const userId = req.user.id;
 
       await db.transaction(async (tx) => {
-        // Get all user workspaces first
-        const userWorkspaces = await tx
-          .select({ id: workspaces.id })
-          .from(workspaces)
-          .where(eq(workspaces.userId, userId));
-
-        const workspaceIds = userWorkspaces.map(w => w.id);
-
-        if (workspaceIds.length > 0) {
-          // Delete edges for user's workspaces
-          await tx.delete(edges).where(inArray(edges.workspaceId, workspaceIds));
-
-          // Delete nodes for user's workspaces
-          await tx.delete(nodes).where(inArray(nodes.workspaceId, workspaceIds));
-
-          // Delete workspaces
-          await tx.delete(workspaces).where(eq(workspaces.userId, userId));
-        }
-
-        // Delete collections
-        await tx.delete(collections).where(eq(collections.userId, userId));
+        // Emit event for other modules to clean up user data
+        await context.eventBus.emitAsync('user.deleted', { id: userId, tx });
       });
 
       res.json({ message: "All data deleted successfully" });
@@ -421,27 +403,8 @@ export function registerAuthRoutes(app: Express): void {
       const userId = req.user.id;
 
       await db.transaction(async (tx) => {
-        // Get all user workspaces first
-        const userWorkspaces = await tx
-          .select({ id: workspaces.id })
-          .from(workspaces)
-          .where(eq(workspaces.userId, userId));
-
-        const workspaceIds = userWorkspaces.map(w => w.id);
-
-        if (workspaceIds.length > 0) {
-          // Delete edges for user's workspaces
-          await tx.delete(edges).where(inArray(edges.workspaceId, workspaceIds));
-
-          // Delete nodes for user's workspaces
-          await tx.delete(nodes).where(inArray(nodes.workspaceId, workspaceIds));
-
-          // Delete workspaces
-          await tx.delete(workspaces).where(eq(workspaces.userId, userId));
-        }
-
-        // Delete collections
-        await tx.delete(collections).where(eq(collections.userId, userId));
+        // Emit event for other modules to clean up user data
+        await context.eventBus.emitAsync('user.deleted', { id: userId, tx });
 
         // Delete user
         await tx.delete(users).where(eq(users.id, userId));

@@ -1,15 +1,14 @@
 import type { Express } from "express";
 import { canvasStorage } from "./storage";
-import { teamStorage } from "../team/storage";
-import { WorkspaceModule } from "../workspace";
 import { api } from "@shared/routes";
-import { AuthModule } from "../auth";
 import { z } from "zod";
 import { csrfProtection } from "../../middleware/csrf";
+import type { AppContext } from "../../lib/registry";
 
-export function registerCanvasRoutes(app: Express) {
-    const { isAuthenticated } = AuthModule.middleware;
-    const workspaceStorage = WorkspaceModule.storage;
+export function registerCanvasRoutes(app: Express, context: AppContext) {
+    const isAuthenticated = context.registry.get<any>("isAuthenticated");
+    const workspaceStorage = context.registry.get<any>("workspaceStorage");
+    const teamStorage = context.registry.get<any>("teamStorage");
 
     // Canvas logic routes
     app.get(api.workspaces.getCanvas.path, isAuthenticated, async (req, res) => {
