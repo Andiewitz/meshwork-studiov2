@@ -196,7 +196,7 @@ export function AiChatDrawer({
     const timer = setTimeout(async () => {
       try {
         const { secureFetch } = await import("@/lib/secure-fetch");
-        const response = await secureFetch("/api/ai/suggestions", {
+        const response = await secureFetch("/api/v1/ai/suggestions", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
@@ -289,7 +289,7 @@ export function AiChatDrawer({
 
       while (attempt < maxAttempts) {
         try {
-          response = await secureFetch("/api/ai/chat", {
+          response = await secureFetch("/api/v1/ai/chat", {
             method: "POST",
             headers: { "Content-Type": "application/json" },
             credentials: "include",

@@ -16,11 +16,11 @@ const log = createChildLogger("auth");
 // Register auth-specific routes
 export function registerAuthRoutes(app: Express): void {
   // Google OAuth routes
-  app.get("/api/auth/google", passport.authenticate("google", {
+  app.get("/api/v1/auth/google", passport.authenticate("google", {
     scope: ["profile", "email"],
   }));
 
-  app.get("/api/auth/google/callback", (req: Request, res: Response, next) => {
+  app.get("/api/v1/auth/google/callback", (req: Request, res: Response, next) => {
     passport.authenticate("google", (err: any, user: any, info: any) => {
       if (err) {
         return res.redirect("/?auth=login&error=google");
@@ -60,7 +60,7 @@ export function registerAuthRoutes(app: Express): void {
   // In development, skip CSRF to allow testing without full setup
   const registerCsrfMiddleware = process.env.NODE_ENV === "production" ? csrfProtection : (_req: any, _res: any, next: any) => next();
   
-  app.post("/api/auth/register", authLimiter, registerCsrfMiddleware, optionalCaptchaMiddleware, async (req: Request, res: Response) => {
+  app.post("/api/v1/auth/register", authLimiter, registerCsrfMiddleware, optionalCaptchaMiddleware, async (req: Request, res: Response) => {
     if (process.env.NODE_ENV === "development") {
       log.debug("CSRF disabled for register in development mode");
     }
@@ -117,7 +117,7 @@ export function registerAuthRoutes(app: Express): void {
   // In development, skip CSRF to allow testing
   const loginCsrfMiddleware = process.env.NODE_ENV === "production" ? csrfProtection : (_req: any, _res: any, next: any) => next();
   
-  app.post("/api/auth/login", authLimiter, loginCsrfMiddleware, (req: Request, res: Response, next) => {
+  app.post("/api/v1/auth/login", authLimiter, loginCsrfMiddleware, (req: Request, res: Response, next) => {
     if (process.env.NODE_ENV === "development") {
       log.debug("CSRF disabled for login in development mode");
     }
@@ -163,7 +163,7 @@ export function registerAuthRoutes(app: Express): void {
   });
 
   // Refresh Token endpoint
-  app.post("/api/auth/refresh", async (req: Request, res: Response) => {
+  app.post("/api/v1/auth/refresh", async (req: Request, res: Response) => {
     const refreshToken = req.cookies?.refresh_token;
     
     if (!refreshToken) {
@@ -202,7 +202,7 @@ export function registerAuthRoutes(app: Express): void {
   });
 
   // Logout
-  app.post("/api/auth/logout", async (req: Request, res: Response) => {
+  app.post("/api/v1/auth/logout", async (req: Request, res: Response) => {
     // Revoke the current refresh token if it exists
     const refreshToken = req.cookies?.refresh_token;
     if (refreshToken) {
@@ -226,7 +226,7 @@ export function registerAuthRoutes(app: Express): void {
   });
 
   // Get current authenticated user
-  app.get("/api/auth/me", isAuthenticated, async (req: any, res: Response) => {
+  app.get("/api/v1/auth/me", isAuthenticated, async (req: any, res: Response) => {
     try {
       const userId = req.user.id;
       
@@ -276,7 +276,7 @@ export function registerAuthRoutes(app: Express): void {
   });
 
   // Update user preferences (notifications, team notified, etc)
-  app.patch("/api/user/preferences", isAuthenticated, async (req: any, res: Response) => {
+  app.patch("/api/v1/user/preferences", isAuthenticated, async (req: any, res: Response) => {
     try {
       const userId = req.user.id;
       const { hasNotifiedTeam, readNotificationIds } = req.body;
@@ -307,7 +307,7 @@ export function registerAuthRoutes(app: Express): void {
   });
 
   // Update user profile
-  app.patch("/api/user/profile", isAuthenticated, async (req: any, res: Response) => {
+  app.patch("/api/v1/user/profile", isAuthenticated, async (req: any, res: Response) => {
     try {
       const userId = req.user.id;
       const { firstName, lastName } = req.body;
@@ -337,7 +337,7 @@ export function registerAuthRoutes(app: Express): void {
   });
 
   // Change password
-  app.post("/api/user/change-password", csrfProtection, isAuthenticated, async (req: any, res: Response) => {
+  app.post("/api/v1/user/change-password", csrfProtection, isAuthenticated, async (req: any, res: Response) => {
     try {
       const userId = req.user.id;
       const { currentPassword, newPassword } = req.body;
@@ -386,7 +386,7 @@ export function registerAuthRoutes(app: Express): void {
   });
 
   // Delete all user data (workspaces, nodes, edges, collections)
-  app.delete("/api/user/data", csrfProtection, isAuthenticated, async (req: any, res: Response) => {
+  app.delete("/api/v1/user/data", csrfProtection, isAuthenticated, async (req: any, res: Response) => {
     try {
       const userId = req.user.id;
 
@@ -422,7 +422,7 @@ export function registerAuthRoutes(app: Express): void {
   });
 
   // Delete account and all data
-  app.delete("/api/user/account", csrfProtection, isAuthenticated, async (req: any, res: Response) => {
+  app.delete("/api/v1/user/account", csrfProtection, isAuthenticated, async (req: any, res: Response) => {
     try {
       const userId = req.user.id;
 

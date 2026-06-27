@@ -25,7 +25,7 @@ vi.mock('@server/modules/ai/db', () => ({
 const setupTestApp = () => {
   const app = express();
   app.use(express.json());
-  app.use('/api/ai', aiRoutes);
+  app.use('/api/v1/ai', aiRoutes);
   return app;
 };
 
@@ -40,7 +40,7 @@ describe('AI Chat Route Integration Tests', () => {
   describe('POST /api/ai/chat', () => {
     it('should return 400 if required fields are missing', async () => {
       const res = await request(app)
-        .post('/api/ai/chat')
+        .post('/api/v1/ai/chat')
         .set('x-test-user-id', '1')
         .send({ provider: 'openrouter' }); // missing model and messages
 
@@ -54,7 +54,7 @@ describe('AI Chat Route Integration Tests', () => {
       delete process.env.OPENROUTER_API_KEY;
 
       const res = await request(app)
-        .post('/api/ai/chat')
+        .post('/api/v1/ai/chat')
         .set('x-test-user-id', '1')
         .send({
           provider: 'openrouter',
@@ -77,7 +77,7 @@ describe('AI Chat Route Integration Tests', () => {
       }
 
       const res = await request(app)
-        .post('/api/ai/chat')
+        .post('/api/v1/ai/chat')
         .set('x-test-user-id', '1')
         .send({
           provider: 'openrouter',
@@ -105,7 +105,7 @@ describe('AI Chat Route Integration Tests', () => {
       delete process.env.OPENROUTER_API_KEY;
 
       const res = await request(app)
-        .post('/api/ai/suggestions')
+        .post('/api/v1/ai/suggestions')
         .set('x-test-user-id', '1')
         .send({
           canvas: { nodes: [], edges: [] }

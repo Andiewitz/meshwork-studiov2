@@ -28,7 +28,7 @@ export const aiService = {
    * Get list of supported AI providers
    */
   async getProviders(): Promise<Provider[]> {
-    const res = await apiRequest("GET", "/api/ai/providers");
+    const res = await apiRequest("GET", "/api/v1/ai/providers");
     return res.json();
   },
 
@@ -36,7 +36,7 @@ export const aiService = {
    * Get user's stored API keys (returns hints only)
    */
   async getApiKeys(): Promise<ApiKey[]> {
-    const res = await apiRequest("GET", "/api/ai/keys");
+    const res = await apiRequest("GET", "/api/v1/ai/keys");
     return res.json();
   },
 
@@ -44,7 +44,7 @@ export const aiService = {
    * Save a new API key (encrypted server-side)
    */
   async saveApiKey(provider: string, apiKey: string): Promise<ApiKey> {
-    const res = await apiRequest("POST", "/api/ai/keys", {
+    const res = await apiRequest("POST", "/api/v1/ai/keys", {
       provider,
       apiKey,
     });
@@ -55,14 +55,14 @@ export const aiService = {
    * Delete an API key
    */
   async deleteApiKey(keyId: string): Promise<void> {
-    await apiRequest("DELETE", `/api/ai/keys/${keyId}`);
+    await apiRequest("DELETE", `/api/v1/ai/keys/${keyId}`);
   },
 
   /**
    * Toggle key active status
    */
   async toggleKeyStatus(keyId: string, isActive: boolean): Promise<ApiKey> {
-    const res = await apiRequest("POST", `/api/ai/keys/${keyId}/toggle`, {
+    const res = await apiRequest("POST", `/api/v1/ai/keys/${keyId}/toggle`, {
       isActive,
     });
     return res.json();
@@ -72,7 +72,7 @@ export const aiService = {
    * Test an API key without storing it
    */
   async testApiKey(provider: string, apiKey: string): Promise<{ valid: boolean; message?: string }> {
-    const res = await apiRequest("POST", "/api/ai/keys/test", {
+    const res = await apiRequest("POST", "/api/v1/ai/keys/test", {
       provider,
       apiKey,
     });
@@ -89,7 +89,7 @@ export const aiService = {
     temperature?: number;
     maxTokens?: number;
   }): Promise<any> {
-    const res = await apiRequest("POST", "/api/ai/chat", {
+    const res = await apiRequest("POST", "/api/v1/ai/chat", {
       ...params,
       stream: false,
     });
@@ -108,7 +108,7 @@ export const aiService = {
     maxTokens?: number;
   }): AsyncGenerator<string, void, unknown> {
     const { secureFetch } = await import("../lib/secure-fetch");
-    const res = await secureFetch("/api/ai/chat", {
+    const res = await secureFetch("/api/v1/ai/chat", {
       method: "POST",
       headers: {
         "Content-Type": "application/json",

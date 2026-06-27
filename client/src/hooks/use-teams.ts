@@ -31,9 +31,9 @@ export function useTeams() {
   const { isAuthenticated } = useAuth();
 
   return useQuery<TeamWithCount[]>({
-    queryKey: ["/api/teams"],
+    queryKey: ["/api/v1/teams"],
     queryFn: async () => {
-      const res = await fetch(getApiUrl("/api/teams"), { credentials: "include" });
+      const res = await fetch(getApiUrl("/api/v1/teams"), { credentials: "include" });
       if (!res.ok) throw new Error("Failed to fetch teams");
       return res.json();
     },
@@ -46,9 +46,9 @@ export function useTeam(teamId: string | null) {
   const { isAuthenticated } = useAuth();
 
   return useQuery<TeamDetail>({
-    queryKey: ["/api/teams", teamId],
+    queryKey: ["/api/v1/teams", teamId],
     queryFn: async () => {
-      const res = await fetch(getApiUrl(`/api/teams/${teamId}`), { credentials: "include" });
+      const res = await fetch(getApiUrl(`/api/v1/teams/${teamId}`), { credentials: "include" });
       if (!res.ok) throw new Error("Failed to fetch team");
       return res.json();
     },
@@ -61,9 +61,9 @@ export function useTeamWorkspaces(teamId: string | null) {
   const { isAuthenticated } = useAuth();
 
   return useQuery<Workspace[]>({
-    queryKey: ["/api/teams", teamId, "workspaces"],
+    queryKey: ["/api/v1/teams", teamId, "workspaces"],
     queryFn: async () => {
-      const res = await fetch(getApiUrl(`/api/teams/${teamId}/workspaces`), { credentials: "include" });
+      const res = await fetch(getApiUrl(`/api/v1/teams/${teamId}/workspaces`), { credentials: "include" });
       if (!res.ok) throw new Error("Failed to fetch team workspaces");
       return res.json();
     },
@@ -79,7 +79,7 @@ export function useCreateTeam() {
 
   return useMutation({
     mutationFn: async (name: string) => {
-      const res = await secureFetch(getApiUrl("/api/teams"), {
+      const res = await secureFetch(getApiUrl("/api/v1/teams"), {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ name }),
@@ -92,7 +92,7 @@ export function useCreateTeam() {
       return res.json();
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["/api/teams"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/v1/teams"] });
     },
   });
 }
@@ -102,7 +102,7 @@ export function useJoinTeam() {
 
   return useMutation({
     mutationFn: async (inviteCode: string) => {
-      const res = await secureFetch(getApiUrl("/api/teams/join"), {
+      const res = await secureFetch(getApiUrl("/api/v1/teams/join"), {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ inviteCode }),
@@ -115,7 +115,7 @@ export function useJoinTeam() {
       return res.json();
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["/api/teams"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/v1/teams"] });
       queryClient.invalidateQueries({ queryKey: [api.workspaces.list.path] });
     },
   });
@@ -126,7 +126,7 @@ export function useLeaveTeam() {
 
   return useMutation({
     mutationFn: async ({ teamId, userId }: { teamId: string; userId: string }) => {
-      const res = await secureFetch(getApiUrl(`/api/teams/${teamId}/members/${userId}`), {
+      const res = await secureFetch(getApiUrl(`/api/v1/teams/${teamId}/members/${userId}`), {
         method: "DELETE",
         credentials: "include",
       });
@@ -136,7 +136,7 @@ export function useLeaveTeam() {
       }
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["/api/teams"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/v1/teams"] });
       queryClient.invalidateQueries({ queryKey: [api.workspaces.list.path] });
     },
   });
@@ -147,7 +147,7 @@ export function useDeleteTeam() {
 
   return useMutation({
     mutationFn: async (teamId: string) => {
-      const res = await secureFetch(getApiUrl(`/api/teams/${teamId}`), {
+      const res = await secureFetch(getApiUrl(`/api/v1/teams/${teamId}`), {
         method: "DELETE",
         credentials: "include",
       });
@@ -157,7 +157,7 @@ export function useDeleteTeam() {
       }
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["/api/teams"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/v1/teams"] });
       queryClient.invalidateQueries({ queryKey: [api.workspaces.list.path] });
     },
   });
@@ -168,7 +168,7 @@ export function useShareWorkspace() {
 
   return useMutation({
     mutationFn: async ({ teamId, workspaceId }: { teamId: string; workspaceId: number }) => {
-      const res = await secureFetch(getApiUrl(`/api/teams/${teamId}/workspaces`), {
+      const res = await secureFetch(getApiUrl(`/api/v1/teams/${teamId}/workspaces`), {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ workspaceId }),
@@ -181,7 +181,7 @@ export function useShareWorkspace() {
       return res.json();
     },
     onSuccess: (_, { teamId }) => {
-      queryClient.invalidateQueries({ queryKey: ["/api/teams", teamId, "workspaces"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/v1/teams", teamId, "workspaces"] });
       queryClient.invalidateQueries({ queryKey: [api.workspaces.list.path] });
     },
   });
@@ -192,7 +192,7 @@ export function useRegenerateInviteCode() {
 
   return useMutation({
     mutationFn: async (teamId: string) => {
-      const res = await secureFetch(getApiUrl(`/api/teams/${teamId}/regenerate-code`), {
+      const res = await secureFetch(getApiUrl(`/api/v1/teams/${teamId}/regenerate-code`), {
         method: "POST",
         credentials: "include",
       });
@@ -203,8 +203,8 @@ export function useRegenerateInviteCode() {
       return res.json();
     },
     onSuccess: (_, teamId) => {
-      queryClient.invalidateQueries({ queryKey: ["/api/teams", teamId] });
-      queryClient.invalidateQueries({ queryKey: ["/api/teams"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/v1/teams", teamId] });
+      queryClient.invalidateQueries({ queryKey: ["/api/v1/teams"] });
     },
   });
 }

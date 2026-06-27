@@ -47,12 +47,12 @@ function LoginForm() {
     setFormErrors({});
 
     try {
-      const res = await apiRequest("POST", "/api/auth/login", { email, password });
+      const res = await apiRequest("POST", "/api/v1/auth/login", { email, password });
       const data = await res.json();
 
       if (res.ok) {
         toast({ title: "Welcome back!", description: `Logged in as ${data.user.email}` });
-        queryClient.setQueryData(["/api/auth/me"], data.user);
+        queryClient.setQueryData(["/api/v1/auth/me"], data.user);
         close();
         setLocation("/home");
       } else {
@@ -73,7 +73,7 @@ function LoginForm() {
   };
 
   const handleGoogleLogin = () => {
-    window.location.href = "/api/auth/google";
+    window.location.href = "/api/v1/auth/google";
   };
 
   const inputBase = "h-11 bg-black/40 border transition-all duration-200 rounded-xl px-4 text-white placeholder:text-white/20 text-sm";
@@ -232,7 +232,7 @@ function RegisterForm() {
 
     setIsLoading(true);
     try {
-      const res = await apiRequest("POST", "/api/auth/register", {
+      const res = await apiRequest("POST", "/api/v1/auth/register", {
         email: formData.email,
         password: formData.password,
         firstName: formData.firstName,

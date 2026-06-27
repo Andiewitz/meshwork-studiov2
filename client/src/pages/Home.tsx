@@ -62,7 +62,7 @@ export default function Home() {
           }));
 
           // 2. Sync nodes and edges
-          await secureFetch(`/api/workspaces/${ws.id}/canvas`, {
+          await secureFetch(`/api/v1/workspaces/${ws.id}/canvas`, {
             method: "POST",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({ nodes: template.nodes, edges: normalizedEdges })

@@ -10,7 +10,7 @@ export function registerTeamRoutes(app: Express) {
     const { isAuthenticated } = AuthModule.middleware;
 
     // ── Create a team ────────────────────────────────────────────────
-    app.post("/api/teams", csrfProtection, isAuthenticated, async (req, res) => {
+    app.post("/api/v1/teams", csrfProtection, isAuthenticated, async (req, res) => {
         try {
             const { name } = req.body;
             if (!name || typeof name !== "string" || name.trim().length === 0) {
@@ -29,14 +29,14 @@ export function registerTeamRoutes(app: Express) {
     });
 
     // ── List user's teams ────────────────────────────────────────────
-    app.get("/api/teams", isAuthenticated, async (req, res) => {
+    app.get("/api/v1/teams", isAuthenticated, async (req, res) => {
         const userId = req.user!.id;
         const teams = await teamStorage.getTeamsByUser(userId);
         res.json(teams);
     });
 
     // ── Get team details + members ───────────────────────────────────
-    app.get("/api/teams/:id", isAuthenticated, async (req, res) => {
+    app.get("/api/v1/teams/:id", isAuthenticated, async (req, res) => {
         const teamId = Array.isArray(req.params.id) ? req.params.id[0] : req.params.id;
         const userId = req.user!.id;
 
@@ -51,7 +51,7 @@ export function registerTeamRoutes(app: Express) {
     });
 
     // ── Join team via invite code ────────────────────────────────────
-    app.post("/api/teams/join", csrfProtection, isAuthenticated, async (req, res) => {
+    app.post("/api/v1/teams/join", csrfProtection, isAuthenticated, async (req, res) => {
         try {
             const { inviteCode } = joinTeamSchema.parse(req.body);
             const userId = req.user!.id;
@@ -66,7 +66,7 @@ export function registerTeamRoutes(app: Express) {
     });
 
     // ── Leave / remove member ────────────────────────────────────────
-    app.delete("/api/teams/:id/members/:userId", csrfProtection, isAuthenticated, async (req, res) => {
+    app.delete("/api/v1/teams/:id/members/:userId", csrfProtection, isAuthenticated, async (req, res) => {
         const teamId = Array.isArray(req.params.id) ? req.params.id[0] : req.params.id;
         const targetUserId = Array.isArray(req.params.userId) ? req.params.userId[0] : req.params.userId;
         const requesterId = req.user!.id;
@@ -87,7 +87,7 @@ export function registerTeamRoutes(app: Express) {
     });
 
     // ── Share workspace with team ────────────────────────────────────
-    app.post("/api/teams/:id/workspaces", csrfProtection, isAuthenticated, async (req, res) => {
+    app.post("/api/v1/teams/:id/workspaces", csrfProtection, isAuthenticated, async (req, res) => {
         try {
             const teamId = Array.isArray(req.params.id) ? req.params.id[0] : req.params.id;
             const userId = req.user!.id;
@@ -114,7 +114,7 @@ export function registerTeamRoutes(app: Express) {
     });
 
     // ── List team workspaces ─────────────────────────────────────────
-    app.get("/api/teams/:id/workspaces", isAuthenticated, async (req, res) => {
+    app.get("/api/v1/teams/:id/workspaces", isAuthenticated, async (req, res) => {
         const teamId = Array.isArray(req.params.id) ? req.params.id[0] : req.params.id;
         const userId = req.user!.id;
 
@@ -126,7 +126,7 @@ export function registerTeamRoutes(app: Express) {
     });
 
     // ── Unshare workspace ────────────────────────────────────────────
-    app.delete("/api/teams/:id/workspaces/:workspaceId", csrfProtection, isAuthenticated, async (req, res) => {
+    app.delete("/api/v1/teams/:id/workspaces/:workspaceId", csrfProtection, isAuthenticated, async (req, res) => {
         const teamId = Array.isArray(req.params.id) ? req.params.id[0] : req.params.id;
         const workspaceId = Number(req.params.workspaceId);
         const userId = req.user!.id;
@@ -146,7 +146,7 @@ export function registerTeamRoutes(app: Express) {
     });
 
     // ── Regenerate invite code (owner only) ──────────────────────────
-    app.post("/api/teams/:id/regenerate-code", csrfProtection, isAuthenticated, async (req, res) => {
+    app.post("/api/v1/teams/:id/regenerate-code", csrfProtection, isAuthenticated, async (req, res) => {
         const teamId = Array.isArray(req.params.id) ? req.params.id[0] : req.params.id;
         const userId = req.user!.id;
 
@@ -158,7 +158,7 @@ export function registerTeamRoutes(app: Express) {
     });
 
     // ── Delete team (owner only) ─────────────────────────────────────
-    app.delete("/api/teams/:id", csrfProtection, isAuthenticated, async (req, res) => {
+    app.delete("/api/v1/teams/:id", csrfProtection, isAuthenticated, async (req, res) => {
         const teamId = Array.isArray(req.params.id) ? req.params.id[0] : req.params.id;
         const userId = req.user!.id;
 
@@ -170,7 +170,7 @@ export function registerTeamRoutes(app: Express) {
     });
 
     // ── Update member role (owner/admin only) ────────────────────────
-    app.patch("/api/teams/:id/members/:userId/role", csrfProtection, isAuthenticated, async (req, res) => {
+    app.patch("/api/v1/teams/:id/members/:userId/role", csrfProtection, isAuthenticated, async (req, res) => {
         const teamId = Array.isArray(req.params.id) ? req.params.id[0] : req.params.id;
         const targetUserId = Array.isArray(req.params.userId) ? req.params.userId[0] : req.params.userId;
         const actorId = req.user!.id;
@@ -207,7 +207,7 @@ export function registerTeamRoutes(app: Express) {
     });
 
     // ── Get user's role for a workspace ──────────────────────────────
-    app.get("/api/workspaces/:id/role", isAuthenticated, async (req, res) => {
+    app.get("/api/v1/workspaces/:id/role", isAuthenticated, async (req, res) => {
         const workspaceId = Number(req.params.id);
         const userId = req.user!.id;
 
@@ -218,7 +218,7 @@ export function registerTeamRoutes(app: Express) {
     });
 
     // ── Get all members for a workspace (via its team) ──────────────
-    app.get("/api/workspaces/:id/members", isAuthenticated, async (req, res) => {
+    app.get("/api/v1/workspaces/:id/members", isAuthenticated, async (req, res) => {
         const workspaceId = Number(req.params.id);
         const userId = req.user!.id;
 

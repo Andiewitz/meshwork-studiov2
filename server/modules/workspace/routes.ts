@@ -12,14 +12,14 @@ export function registerWorkspaceRoutes(app: Express) {
     const canvasStorage = CanvasModule.storage;
 
     // Collections (Subcollections)
-    app.get("/api/collections", isAuthenticated, async (req, res) => {
+    app.get("/api/v1/collections", isAuthenticated, async (req, res) => {
         const userId = req.user!.id;
         const parentId = req.query.parentId ? Number(req.query.parentId) : null;
         const collections = await workspaceStorage.getCollections(userId, parentId);
         res.json(collections);
     });
 
-    app.post("/api/collections", csrfProtection, isAuthenticated, async (req, res) => {
+    app.post("/api/v1/collections", csrfProtection, isAuthenticated, async (req, res) => {
         try {
             const userId = req.user!.id;
             const collection = await workspaceStorage.createCollection({
@@ -32,7 +32,7 @@ export function registerWorkspaceRoutes(app: Express) {
         }
     });
 
-    app.get("/api/collections/:id", isAuthenticated, async (req, res) => {
+    app.get("/api/v1/collections/:id", isAuthenticated, async (req, res) => {
         const id = Number(req.params.id);
         const collection = await workspaceStorage.getCollectionById(id);
         if (!collection) return res.status(404).json({ message: "Collection not found" });
@@ -43,7 +43,7 @@ export function registerWorkspaceRoutes(app: Express) {
         res.json(collection);
     });
 
-    app.put("/api/collections/:id", csrfProtection, isAuthenticated, async (req, res) => {
+    app.put("/api/v1/collections/:id", csrfProtection, isAuthenticated, async (req, res) => {
         const id = Number(req.params.id);
         const existing = await workspaceStorage.getCollectionById(id);
         if (!existing) return res.status(404).json({ message: "Collection not found" });
@@ -55,7 +55,7 @@ export function registerWorkspaceRoutes(app: Express) {
         res.json(updated);
     });
 
-    app.delete("/api/collections/:id", csrfProtection, isAuthenticated, async (req, res) => {
+    app.delete("/api/v1/collections/:id", csrfProtection, isAuthenticated, async (req, res) => {
         const id = Number(req.params.id);
         const existing = await workspaceStorage.getCollectionById(id);
         if (!existing) return res.status(404).json({ message: "Collection not found" });

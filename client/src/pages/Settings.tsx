@@ -151,13 +151,13 @@ export default function Settings() {
   const handleUpdateProfile = async () => {
     setIsUpdatingProfile(true);
     try {
-      const res = await apiRequest("PATCH", "/api/user/profile", {
+      const res = await apiRequest("PATCH", "/api/v1/user/profile", {
         firstName: firstName.trim() || null,
         lastName: lastName.trim() || null,
       });
       if (!res.ok) throw new Error("Failed to update profile");
       const updatedUser = await res.json();
-      queryClient.setQueryData(["/api/auth/me"], updatedUser);
+      queryClient.setQueryData(["/api/v1/auth/me"], updatedUser);
       toast({ title: "Profile updated", description: "Your changes have been saved." });
     } catch (error: any) {
       toast({ title: "Error", description: error.message, variant: "destructive" });
@@ -178,7 +178,7 @@ export default function Settings() {
     }
     setIsChangingPassword(true);
     try {
-      const res = await apiRequest("POST", "/api/user/change-password", { currentPassword, newPassword });
+      const res = await apiRequest("POST", "/api/v1/user/change-password", { currentPassword, newPassword });
       if (!res.ok) throw new Error("Failed to change password");
       toast({ title: "Password changed", description: "Your password has been updated." });
       setCurrentPassword("");
@@ -198,7 +198,7 @@ export default function Settings() {
     }
     setIsDeletingAccount(true);
     try {
-      const res = await apiRequest("DELETE", "/api/user/account");
+      const res = await apiRequest("DELETE", "/api/v1/user/account");
       if (!res.ok) throw new Error("Failed to delete account");
       toast({ title: "Account deleted", description: "Your account has been permanently removed." });
       logout();
@@ -215,7 +215,7 @@ export default function Settings() {
     }
     setIsDeletingData(true);
     try {
-      const res = await apiRequest("DELETE", "/api/user/data");
+      const res = await apiRequest("DELETE", "/api/v1/user/data");
       if (!res.ok) throw new Error("Failed to delete data");
       toast({ title: "Data deleted", description: "All your workspaces and projects have been removed." });
       setDeleteDataConfirmText("");

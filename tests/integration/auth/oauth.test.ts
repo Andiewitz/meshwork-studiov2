@@ -42,7 +42,7 @@ vi.mock('passport', () => {
       authenticate: (strategy: string, options: any) => {
         return (req: any, res: any, next: any) => {
           if (strategy === 'google') {
-            if (req.path === '/api/auth/google/callback') {
+            if (req.path === '/api/v1/auth/google/callback') {
               // This is the callback handler
               if (mockAuthenticateBehavior === 'failure') {
                 // Manually call the callback with an error
@@ -98,7 +98,7 @@ describe('OAuth Routes Integration Tests', () => {
 
   describe('GET /api/auth/google', () => {
     it('should redirect to Google login authorization page', async () => {
-      const res = await request(app).get('/api/auth/google');
+      const res = await request(app).get('/api/v1/auth/google');
       expect(res.status).toBe(302);
       expect(res.header.location).toContain('accounts.google.com');
     });
@@ -107,14 +107,14 @@ describe('OAuth Routes Integration Tests', () => {
   describe('GET /api/auth/google/callback', () => {
     it('should redirect to root on successful authentication', async () => {
       mockAuthenticateBehavior = 'success';
-      const res = await request(app).get('/api/auth/google/callback');
+      const res = await request(app).get('/api/v1/auth/google/callback');
       expect(res.status).toBe(302);
       expect(res.header.location).toBe('/');
     });
 
     it('should redirect to login with error parameter on failed authentication', async () => {
       mockAuthenticateBehavior = 'failure';
-      const res = await request(app).get('/api/auth/google/callback');
+      const res = await request(app).get('/api/v1/auth/google/callback');
       expect(res.status).toBe(302);
       expect(res.header.location).toBe('/?auth=login&error=google');
     });

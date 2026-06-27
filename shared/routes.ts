@@ -21,7 +21,7 @@ export const api = {
   collections: {
     list: {
       method: 'GET' as const,
-      path: '/api/collections' as const,
+      path: '/api/v1/collections' as const,
       responses: {
         200: z.array(z.custom<typeof collections.$inferSelect>()),
         401: errorSchemas.unauthorized
@@ -29,7 +29,7 @@ export const api = {
     },
     create: {
       method: 'POST' as const,
-      path: '/api/collections' as const,
+      path: '/api/v1/collections' as const,
       input: insertCollectionSchema,
       responses: {
         201: z.custom<typeof collections.$inferSelect>(),
@@ -41,7 +41,7 @@ export const api = {
   workspaces: {
     list: {
       method: 'GET' as const,
-      path: '/api/workspaces' as const,
+      path: '/api/v1/workspaces' as const,
       responses: {
         200: z.array(z.custom<typeof workspaces.$inferSelect>()),
         401: errorSchemas.unauthorized
@@ -49,7 +49,7 @@ export const api = {
     },
     create: {
       method: 'POST' as const,
-      path: '/api/workspaces' as const,
+      path: '/api/v1/workspaces' as const,
       input: insertWorkspaceSchema,
       responses: {
         201: z.custom<typeof workspaces.$inferSelect>(),
@@ -59,7 +59,7 @@ export const api = {
     },
     get: {
       method: 'GET' as const,
-      path: '/api/workspaces/:id' as const,
+      path: '/api/v1/workspaces/:id' as const,
       responses: {
         200: z.custom<typeof workspaces.$inferSelect>(),
         404: errorSchemas.notFound,
@@ -68,7 +68,7 @@ export const api = {
     },
     update: {
       method: 'PUT' as const,
-      path: '/api/workspaces/:id' as const,
+      path: '/api/v1/workspaces/:id' as const,
       input: insertWorkspaceSchema.partial(),
       responses: {
         200: z.custom<typeof workspaces.$inferSelect>(),
@@ -79,7 +79,7 @@ export const api = {
     },
     delete: {
       method: 'DELETE' as const,
-      path: '/api/workspaces/:id' as const,
+      path: '/api/v1/workspaces/:id' as const,
       responses: {
         204: z.void(),
         404: errorSchemas.notFound,
@@ -88,7 +88,7 @@ export const api = {
     },
     duplicate: {
       method: 'POST' as const,
-      path: '/api/workspaces/:id/duplicate' as const,
+      path: '/api/v1/workspaces/:id/duplicate' as const,
       input: z.object({ title: z.string().optional() }),
       responses: {
         201: z.custom<typeof workspaces.$inferSelect>(),
@@ -98,7 +98,7 @@ export const api = {
     },
     getCanvas: {
       method: 'GET' as const,
-      path: '/api/workspaces/:id/canvas' as const,
+      path: '/api/v1/workspaces/:id/canvas' as const,
       responses: {
         200: z.object({
           nodes: z.array(z.any()),
@@ -110,7 +110,7 @@ export const api = {
     },
     syncCanvas: {
       method: 'POST' as const,
-      path: '/api/workspaces/:id/canvas' as const,
+      path: '/api/v1/workspaces/:id/canvas' as const,
       input: z.object({
         nodes: z.array(z.any()),
         edges: z.array(z.any()),

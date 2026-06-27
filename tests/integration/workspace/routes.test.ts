@@ -82,7 +82,7 @@ describe('Workspace Routes Integration Tests (IDOR & Zod)', () => {
 
       // Simulating a request coming from "user_A"
       const res = await request(app)
-        .put('/api/workspaces/1')
+        .put('/api/v1/workspaces/1')
         .set('x-test-user-id', 'user_A')
         .send({ title: "Hacked Title" });
 
@@ -95,7 +95,7 @@ describe('Workspace Routes Integration Tests (IDOR & Zod)', () => {
       mockGetWorkspace.mockResolvedValue(null);
 
       const res = await request(app)
-        .put('/api/workspaces/999')
+        .put('/api/v1/workspaces/999')
         .set('x-test-user-id', 'user_A')
         .send({ title: "Hello" });
 
@@ -114,7 +114,7 @@ describe('Workspace Routes Integration Tests (IDOR & Zod)', () => {
       // Sending a title that is longer than 16 chars (violating schema limits)
       // or attempting to inject weird fields.
       const res = await request(app)
-        .put('/api/workspaces/1')
+        .put('/api/v1/workspaces/1')
         .set('x-test-user-id', 'user_A')
         .send({ title: "ThisTitleIsWayTooLongForTheDatabaseLimit" });
 
@@ -139,7 +139,7 @@ describe('Workspace Routes Integration Tests (IDOR & Zod)', () => {
       });
 
       const res = await request(app)
-        .put('/api/workspaces/1')
+        .put('/api/v1/workspaces/1')
         .set('x-test-user-id', 'user_A')
         .send({ title: "New Title" });
 
@@ -165,7 +165,7 @@ describe('Workspace Routes Integration Tests (IDOR & Zod)', () => {
       });
 
       const res = await request(app)
-        .put('/api/workspaces/1')
+        .put('/api/v1/workspaces/1')
         .set('x-test-user-id', 'user_A')
         .send({ isFavorite: true });
 

@@ -10,7 +10,7 @@ export function useCsrfTokenInitializer() {
     // Fetch CSRF token on mount
     const initializeCsrfToken = async () => {
       try {
-        const response = await fetch("/api/csrf-token");
+        const response = await fetch("/api/v1/csrf-token");
         if (response.ok) {
           const data = await response.json();
           if (data.csrfToken) {

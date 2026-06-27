@@ -12,7 +12,7 @@ function getApiUrl(path: string): string {
 
 async function fetchUser(): Promise<User | null> {
   try {
-    const response = await fetch(getApiUrl("/api/auth/me"), {
+    const response = await fetch(getApiUrl("/api/v1/auth/me"), {
       credentials: "include",
     });
 
@@ -50,7 +50,7 @@ async function fetchUser(): Promise<User | null> {
 }
 
 async function logout(): Promise<void> {
-  const response = await secureFetch(getApiUrl("/api/auth/logout"), {
+  const response = await secureFetch(getApiUrl("/api/v1/auth/logout"), {
     method: "POST",
     credentials: "include",
   });
@@ -64,7 +64,7 @@ export function useAuth() {
   const queryClient = useQueryClient();
   const [isRedirecting, setIsRedirecting] = useState(false);
   const { data: user, isLoading } = useQuery<User | null>({
-    queryKey: ["/api/auth/me"],
+    queryKey: ["/api/v1/auth/me"],
     queryFn: fetchUser,
     retry: false,
     staleTime: 1000 * 60 * 5, // 5 minutes
@@ -73,7 +73,7 @@ export function useAuth() {
   const logoutMutation = useMutation({
     mutationFn: logout,
     onSuccess: () => {
-      queryClient.setQueryData(["/api/auth/me"], null);
+      queryClient.setQueryData(["/api/v1/auth/me"], null);
       setIsRedirecting(true);
       // Clear all queries to ensure fresh state on next login
       queryClient.clear();
@@ -82,7 +82,7 @@ export function useAuth() {
 
   const updatePreferencesMutation = useMutation({
     mutationFn: async (data: { hasNotifiedTeam?: boolean; readNotificationIds?: number[] }) => {
-      const response = await secureFetch(getApiUrl("/api/user/preferences"), {
+      const response = await secureFetch(getApiUrl("/api/v1/user/preferences"), {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(data),
@@ -94,7 +94,7 @@ export function useAuth() {
       return response.json();
     },
     onSuccess: (updatedData) => {
-      queryClient.setQueryData(["/api/auth/me"], (oldUser: any) => {
+      queryClient.setQueryData(["/api/v1/auth/me"], (oldUser: any) => {
         if (!oldUser) return null;
         return { ...oldUser, ...updatedData };
       });

@@ -15,7 +15,7 @@ export async function registerRoutes(
   app: Express
 ): Promise<Server> {
   // CSRF token endpoint — must be available before auth middleware
-  app.get("/api/csrf-token", csrfProtection, generateCsrfToken, (req: Request, res: Response) => {
+  app.get("/api/v1/csrf-token", csrfProtection, generateCsrfToken, (req: Request, res: Response) => {
     try {
       const token = (req as any).csrfToken();
       res.json({ csrfToken: token, message: "CSRF token generated" });

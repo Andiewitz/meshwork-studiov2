@@ -88,7 +88,7 @@ State-changing requests require CSRF double-submit validation. Request bodies ar
 
 ## Rate Limiting & Lockouts
 
-API endpoints enforce sliding-window rate limits (e.g., 100 requests / 15 min). Sensitive endpoints (e.g., \`/api/auth/login\`) use a Redis-backed progressive timeout. Successive failures trigger exponential lockout periods mapped to both the requester's IP and the target username to mitigate credential stuffing and brute-force attacks.
+API endpoints enforce sliding-window rate limits (e.g., 100 requests / 15 min). Sensitive endpoints (e.g., \`/api/v1/auth/login\`) use a Redis-backed progressive timeout. Successive failures trigger exponential lockout periods mapped to both the requester's IP and the target username to mitigate credential stuffing and brute-force attacks.
 
 ## Log Sanitization
 

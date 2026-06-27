@@ -177,7 +177,7 @@ export function useWorkspaceRole(workspaceId: number | null) {
   return useQuery<{ role: WorkspaceRole }>({
     queryKey: ['workspace-role', workspaceId],
     queryFn: async () => {
-      const res = await fetch(getApiUrl(`/api/workspaces/${workspaceId}/role`), { credentials: "include" });
+      const res = await fetch(getApiUrl(`/api/v1/workspaces/${workspaceId}/role`), { credentials: "include" });
       if (!res.ok) return { role: 'none' as WorkspaceRole };
       return res.json();
     },
@@ -200,7 +200,7 @@ export function useWorkspaceMembers(workspaceId: number | null) {
   return useQuery<{ teamId: string | null; members: WorkspaceMember[] }>({
     queryKey: ['workspace-members', workspaceId],
     queryFn: async () => {
-      const res = await fetch(getApiUrl(`/api/workspaces/${workspaceId}/members`), { credentials: "include" });
+      const res = await fetch(getApiUrl(`/api/v1/workspaces/${workspaceId}/members`), { credentials: "include" });
       if (!res.ok) return { teamId: null, members: [] };
       return res.json();
     },
@@ -214,7 +214,7 @@ export function useUpdateMemberRole() {
 
   return useMutation({
     mutationFn: async ({ teamId, userId, role }: { teamId: string; userId: string; role: string }) => {
-      const res = await secureFetch(getApiUrl(`/api/teams/${teamId}/members/${userId}/role`), {
+      const res = await secureFetch(getApiUrl(`/api/v1/teams/${teamId}/members/${userId}/role`), {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ role }),

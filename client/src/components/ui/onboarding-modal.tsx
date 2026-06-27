@@ -58,7 +58,7 @@ export function OnboardingFlow() {
           body: JSON.stringify({ firstName, lastName }),
         });
         // Update local cache
-        queryClient.setQueryData(["/api/auth/me"], (old: any) =>
+        queryClient.setQueryData(["/api/v1/auth/me"], (old: any) =>
           old ? { ...old, firstName, lastName } : old
         );
       }

@@ -43,7 +43,7 @@ export function registerCanvasRoutes(app: Express) {
     });
 
     // Duplicate canvas data when duplicating workspace
-    app.post("/api/workspaces/:id/duplicate-canvas", csrfProtection, isAuthenticated, async (req, res) => {
+    app.post("/api/v1/workspaces/:id/duplicate-canvas", csrfProtection, isAuthenticated, async (req, res) => {
         const id = Number(req.params.id);
         const { toWorkspaceId } = req.body;
         

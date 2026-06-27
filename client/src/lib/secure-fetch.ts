@@ -21,7 +21,7 @@ function getCsrfTokenFromCache(): string {
  * 
  * Usage is identical to fetch():
  * ```tsx
- * const response = await secureFetch('/api/auth/register', {
+ * const response = await secureFetch('/api/v1/auth/register', {
  *   method: 'POST',
  *   body: JSON.stringify(data),
  * });
@@ -62,9 +62,9 @@ export async function secureFetch(
   // If the request fails with 401 and it's not the refresh endpoint itself,
   // we try to use the refresh_token cookie to get a new access_token cookie.
   const urlString = input.toString();
-  if (response.status === 401 && !urlString.includes("/api/auth/refresh") && !urlString.includes("/api/auth/login") && !urlString.includes("/api/auth/logout")) {
+  if (response.status === 401 && !urlString.includes("/api/v1/auth/refresh") && !urlString.includes("/api/v1/auth/login") && !urlString.includes("/api/v1/auth/logout")) {
     try {
-      const refreshResponse = await fetch("/api/auth/refresh", {
+      const refreshResponse = await fetch("/api/v1/auth/refresh", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         // Required to send and receive the HttpOnly cookies

@@ -16,7 +16,7 @@ const log = createChildLogger("ai");
 export class AIModule {
   static initialize(app: Express) {
     // Mount AI routes under /api/ai
-    app.use("/api/ai", aiRoutes);
+    app.use("/api/v1/ai", aiRoutes);
     
     log.info("AI service initialized at /api/ai");
   }

@@ -261,7 +261,7 @@ function WorkspaceView() {
         if (!teamId) { toast({ title: 'Not shared with a team' }); return; }
         // Fetch team details to get invite code
         try {
-            const res = await fetch(`/api/teams/${teamId}`, { credentials: 'include' });
+            const res = await fetch(`/api/v1/teams/${teamId}`, { credentials: 'include' });
             const team = await res.json();
             if (team.inviteCode) {
                 await navigator.clipboard.writeText(team.inviteCode);

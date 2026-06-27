@@ -78,6 +78,14 @@ if (frontendUrl) {
   app.use(cors({ origin: true, credentials: true }));
 }
 
+// API Versioning Compatibility Layer
+app.use((req, res, next) => {
+  if (req.url.startsWith("/api/") && !req.url.startsWith("/api/v1/")) {
+    req.url = req.url.replace("/api/", "/api/v1/");
+  }
+  next();
+});
+
 // SECURITY: Add request size limits to prevent DoS
 app.use(
   express.json({
