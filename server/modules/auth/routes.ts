@@ -10,6 +10,8 @@ import { isAuthenticated } from "./authCore";
 import { optionalCaptchaMiddleware } from "./captcha";
 import { authLimiter } from "../../middleware/rateLimit";
 import { csrfProtection } from "../../middleware/csrf";
+import { validate } from "../../middleware/validate";
+import { registerSchema, loginSchema, changePasswordSchema } from "./schemas";
 
 const log = createChildLogger("auth");
 
@@ -60,16 +62,12 @@ export function registerAuthRoutes(app: Express): void {
   // In development, skip CSRF to allow testing without full setup
   const registerCsrfMiddleware = process.env.NODE_ENV === "production" ? csrfProtection : (_req: any, _res: any, next: any) => next();
   
-  app.post("/api/v1/auth/register", authLimiter, registerCsrfMiddleware, optionalCaptchaMiddleware, async (req: Request, res: Response) => {
+  app.post("/api/v1/auth/register", authLimiter, registerCsrfMiddleware, optionalCaptchaMiddleware, validate({ body: registerSchema }), async (req: Request, res: Response) => {
     if (process.env.NODE_ENV === "development") {
       log.debug("CSRF disabled for register in development mode");
     }
     try {
       const { email, password, firstName, lastName } = req.body;
-
-      if (!email || !password) {
-        return res.status(400).json({ message: "Email and password are required" });
-      }
 
       // SECURITY: Validate password strength
       const { validatePasswordStrength } = await import("./password");
@@ -117,7 +115,7 @@ export function registerAuthRoutes(app: Express): void {
   // In development, skip CSRF to allow testing
   const loginCsrfMiddleware = process.env.NODE_ENV === "production" ? csrfProtection : (_req: any, _res: any, next: any) => next();
   
-  app.post("/api/v1/auth/login", authLimiter, loginCsrfMiddleware, (req: Request, res: Response, next) => {
+  app.post("/api/v1/auth/login", authLimiter, loginCsrfMiddleware, validate({ body: loginSchema }), (req: Request, res: Response, next) => {
     if (process.env.NODE_ENV === "development") {
       log.debug("CSRF disabled for login in development mode");
     }
@@ -337,14 +335,10 @@ export function registerAuthRoutes(app: Express): void {
   });
 
   // Change password
-  app.post("/api/v1/user/change-password", csrfProtection, isAuthenticated, async (req: any, res: Response) => {
+  app.post("/api/v1/user/change-password", csrfProtection, isAuthenticated, validate({ body: changePasswordSchema }), async (req: any, res: Response) => {
     try {
       const userId = req.user.id;
       const { currentPassword, newPassword } = req.body;
-
-      if (!currentPassword || !newPassword) {
-        return res.status(400).json({ message: "Current password and new password are required" });
-      }
 
       // SECURITY: Validate new password strength
       const { validatePasswordStrength } = await import("./password");
