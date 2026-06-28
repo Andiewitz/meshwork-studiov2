@@ -11,8 +11,11 @@ const log = createChildLogger("redis");
 let redis: RedisType | null = null;
 let redisAvailable = false;
 
-function getRedisUrl(): string {
-  return process.env.REDIS_URL || "redis://localhost:6379";
+function getRedisUrl(): string | null {
+  const url = process.env.REDIS_URL;
+  // Allow explicit disable with empty string
+  if (url === "") return null;
+  return url || "redis://localhost:6379";
 }
 
 /**
@@ -23,8 +26,14 @@ function getRedisUrl(): string {
 export function getRedis(): RedisType | null {
   if (redis) return redis;
 
+  const url = getRedisUrl();
+  if (!url) {
+    log.info("Redis disabled (REDIS_URL empty)");
+    return null;
+  }
+
   try {
-    redis = new Redis(getRedisUrl(), {
+    redis = new Redis(url, {
       maxRetriesPerRequest: 3,
       retryStrategy(times) {
         if (times > 5) {
@@ -72,7 +81,10 @@ export function getRedis(): RedisType | null {
  */
 export function createRedisClient(): RedisType | null {
   try {
-    const client = new Redis(getRedisUrl(), {
+    const url = getRedisUrl();
+    if (!url) return null;
+    
+    const client = new Redis(url, {
       maxRetriesPerRequest: 3,
       retryStrategy(times) {
         if (times > 5) return null;
