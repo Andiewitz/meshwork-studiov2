@@ -167,8 +167,12 @@ app.get("/ready", (_req, res) => {
     }
   });
 
-  // Admin Metrics Dashboard
-  app.get("/admin", (_req, res) => {
+  // Admin Metrics Dashboard — secret URL, never exposed in logs/sitemaps
+  const adminSecret = process.env.ADMIN_SECRET || "";
+  app.get("/admin/:secret", (req, res) => {
+    if (!adminSecret || req.params.secret !== adminSecret) {
+      return res.status(404).send("Not Found");
+    }
     try {
       const htmlPath = path.resolve(__dirname, "admin.html");
       if (fs.existsSync(htmlPath)) {
@@ -177,7 +181,6 @@ app.get("/ready", (_req, res) => {
         res.status(404).send("Admin dashboard not found");
       }
     } catch (err) {
-      log.error({ err }, "Admin dashboard error");
       res.status(500).send("Error loading dashboard");
     }
   });
