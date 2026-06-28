@@ -4,22 +4,26 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Meshwork Studio - Metrics</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700;800&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.7/dist/chart.umd.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/chartjs-adapter-date-fns@3.0.0/dist/chartjs-adapter-date-fns.bundle.min.js"></script>
 <style>
 *,*::before,*::after{margin:0;padding:0;box-sizing:border-box}
 :root{
-  --bg:#09090b;--surface:#18181b;--surface-hover:#27272a;
-  --border:#27272a;--border-subtle:#1c1c1f;
-  --text:#fafafa;--text-secondary:#a1a1aa;--text-muted:#52525b;
-  --accent:#6366f1;--accent-dim:rgba(99,102,241,.12);
-  --green:#22c55e;--green-dim:rgba(34,197,94,.12);
-  --red:#ef4444;--red-dim:rgba(239,68,68,.12);
-  --yellow:#eab308;--yellow-dim:rgba(234,179,8,.12);
-  --blue:#3b82f6;
+  --bg:#0D0D0D;--surface:#141414;--surface-mid:#1A1A1A;--surface-high:#222222;
+  --border:#2E2E2E;
+  --text:#FAFAFA;--text-secondary:#999999;--text-muted:#555555;
+  --primary:#FF8000;--primary-dim:rgba(255,128,0,.1);
+  --green:#22C55E;--green-dim:rgba(34,197,94,.1);
+  --red:#E63636;--red-dim:rgba(230,54,54,.1);
+  --yellow:#F59E0B;--yellow-dim:rgba(245,158,11,.1);
+  --blue:#3B82F6;--blue-dim:rgba(59,130,246,.1);
+  --orange-dark:#FF5500;
 }
 html{font-size:14px}
 body{
-  font-family:'Inter',-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;
+  font-family:'Plus Jakarta Sans',system-ui,sans-serif;
   background:var(--bg);color:var(--text);
   line-height:1.5;-webkit-font-smoothing:antialiased;
 }
@@ -28,94 +32,111 @@ body{
 /* Header */
 .header{display:flex;align-items:center;justify-content:space-between;margin-bottom:28px}
 .brand{display:flex;align-items:center;gap:10px}
-.brand-dot{width:10px;height:10px;border-radius:50%;background:var(--accent)}
-.brand h1{font-size:16px;font-weight:600;letter-spacing:-.02em}
-.brand h1 span{color:var(--text-muted);font-weight:400}
-.meta{display:flex;align-items:center;gap:12px}
+.brand-dot{width:10px;height:10px;border-radius:50%;background:var(--primary)}
+.brand h1{font-family:'DM Sans',system-ui,sans-serif;font-size:18px;font-weight:700;letter-spacing:-.03em}
+.brand h1 span{color:var(--text-muted);font-weight:500}
+.meta{display:flex;align-items:center;gap:10px}
 .badge{
   display:inline-flex;align-items:center;gap:6px;
-  padding:4px 10px;border-radius:6px;font-size:11px;font-weight:500;
-  background:var(--surface);border:1px solid var(--border);color:var(--text-secondary);
+  padding:5px 12px;border-radius:6px;font-size:11px;font-weight:600;
+  background:var(--surface-mid);border:1px solid var(--border);color:var(--text-secondary);
 }
 .badge .dot{width:6px;height:6px;border-radius:50%;background:var(--red);flex-shrink:0}
 .badge .dot.ok{background:var(--green)}
 .btn-ghost{
-  padding:4px 10px;border-radius:6px;font-size:11px;font-weight:500;
+  padding:5px 12px;border-radius:6px;font-size:11px;font-weight:600;
   background:transparent;border:1px solid var(--border);color:var(--text-secondary);
-  cursor:pointer;font-family:inherit;transition:all .15s;
+  cursor:pointer;font-family:'Plus Jakarta Sans',system-ui,sans-serif;transition:all .15s;
 }
-.btn-ghost:hover{background:var(--surface);color:var(--text)}
+.btn-ghost:hover{background:var(--surface-mid);color:var(--text)}
+.btn-ghost.active{background:var(--primary-dim);border-color:var(--primary);color:var(--primary)}
 
 /* Stat Cards */
 .stats{display:grid;grid-template-columns:repeat(6,1fr);gap:12px;margin-bottom:24px}
 @media(max-width:900px){.stats{grid-template-columns:repeat(3,1fr)}}
 @media(max-width:500px){.stats{grid-template-columns:repeat(2,1fr)}}
 .stat{
-  background:var(--surface);border:1px solid var(--border-subtle);
-  border-radius:10px;padding:16px;
+  background:var(--surface);border:1px solid var(--border);
+  border-radius:9px;padding:16px;
 }
-.stat-label{font-size:11px;color:var(--text-muted);text-transform:uppercase;letter-spacing:.04em;margin-bottom:6px;font-weight:500}
-.stat-value{font-size:22px;font-weight:700;letter-spacing:-.02em;line-height:1.2}
-.stat-sub{font-size:11px;color:var(--text-muted);margin-top:4px}
+.stat-label{font-size:10px;color:var(--text-muted);text-transform:uppercase;letter-spacing:.06em;margin-bottom:6px;font-weight:700}
+.stat-value{font-family:'DM Sans',system-ui,sans-serif;font-size:24px;font-weight:800;letter-spacing:-.03em;line-height:1.2}
+.stat-sub{font-size:11px;color:var(--text-muted);margin-top:4px;font-weight:500}
 .stat-sub.ok{color:var(--green)}.stat-sub.warn{color:var(--yellow)}.stat-sub.err{color:var(--red)}
 
 /* Chart Rows */
 .chart-row{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:12px}
 @media(max-width:700px){.chart-row{grid-template-columns:1fr}}
 .panel{
-  background:var(--surface);border:1px solid var(--border-subtle);
-  border-radius:10px;padding:16px;overflow:hidden;
+  background:var(--surface);border:1px solid var(--border);
+  border-radius:9px;padding:16px;overflow:hidden;
 }
 .panel-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:12px}
-.panel-title{font-size:12px;font-weight:600;color:var(--text-secondary);text-transform:uppercase;letter-spacing:.04em}
-.panel-badge{font-size:10px;color:var(--text-muted);padding:2px 6px;background:var(--bg);border-radius:4px}
+.panel-title{font-family:'DM Sans',system-ui,sans-serif;font-size:11px;font-weight:700;color:var(--text-secondary);text-transform:uppercase;letter-spacing:.06em}
+.panel-badge{font-size:10px;color:var(--text-muted);padding:2px 8px;background:var(--surface-mid);border-radius:4px;font-weight:600}
 .chart-wrap{position:relative;width:100%;height:180px}
 
 /* Table */
 .table-panel{
-  background:var(--surface);border:1px solid var(--border-subtle);
-  border-radius:10px;overflow:hidden;
+  background:var(--surface);border:1px solid var(--border);
+  border-radius:9px;overflow:hidden;
 }
 .table-panel .panel-header{padding:16px 16px 0}
 table{width:100%;border-collapse:collapse}
 thead th{
-  text-align:left;font-size:10px;font-weight:600;color:var(--text-muted);
-  text-transform:uppercase;letter-spacing:.04em;
-  padding:8px 16px;border-bottom:1px solid var(--border-subtle);
+  text-align:left;font-size:10px;font-weight:700;color:var(--text-muted);
+  text-transform:uppercase;letter-spacing:.06em;
+  padding:10px 16px;border-bottom:1px solid var(--border);
 }
-tbody td{padding:10px 16px;font-size:12px;border-bottom:1px solid var(--border-subtle);color:var(--text-secondary)}
+tbody td{padding:10px 16px;font-size:12px;border-bottom:1px solid var(--border);color:var(--text-secondary)}
 tbody tr:last-child td{border-bottom:none}
-tbody tr:hover{background:var(--surface-hover)}
+tbody tr:hover{background:var(--surface-mid)}
 .method{
-  display:inline-block;padding:2px 6px;border-radius:4px;font-size:10px;
-  font-weight:600;font-family:'SF Mono',Consolas,monospace;min-width:42px;text-align:center;
+  display:inline-block;padding:2px 8px;border-radius:4px;font-size:10px;
+  font-weight:700;font-family:'DM Sans',system-ui,sans-serif;min-width:44px;text-align:center;
 }
 .method.GET{background:var(--green-dim);color:var(--green)}
-.method.POST{background:var(--accent-dim);color:var(--accent)}
+.method.POST{background:var(--primary-dim);color:var(--primary)}
 .method.PUT{background:var(--yellow-dim);color:var(--yellow)}
 .method.DELETE{background:var(--red-dim);color:var(--red)}
-.path{font-family:'SF Mono',Consolas,monospace;color:var(--text-muted);font-size:11px}
-.status-code{font-family:'SF Mono',Consolas,monospace;font-size:11px}
+.path{font-family:'DM Sans',system-ui,sans-serif;color:var(--text-muted);font-size:11px}
+.status-code{font-family:'DM Sans',system-ui,sans-serif;font-size:11px;font-weight:600}
 .status-code.s2{color:var(--green)}.status-code.s4{color:var(--yellow)}.status-code.s5{color:var(--red)}
 
 /* Raw */
 .raw-toggle{
   font-size:11px;color:var(--text-muted);cursor:pointer;
-  background:none;border:none;font-family:inherit;padding:4px 8px;
-  border-radius:4px;transition:all .15s;
+  background:none;border:none;font-family:'Plus Jakarta Sans',system-ui,sans-serif;
+  padding:4px 8px;border-radius:4px;font-weight:600;transition:all .15s;
 }
-.raw-toggle:hover{background:var(--surface);color:var(--text)}
+.raw-toggle:hover{background:var(--surface-mid);color:var(--text)}
 pre.raw{
-  background:var(--surface);border:1px solid var(--border-subtle);
-  border-radius:10px;padding:16px;font-size:11px;
-  font-family:'SF Mono',Consolas,monospace;
+  background:var(--surface);border:1px solid var(--border);
+  border-radius:9px;padding:16px;font-size:11px;
+  font-family:'DM Sans',ui-monospace,monospace;
   overflow:auto;white-space:pre-wrap;display:none;
   margin-top:12px;color:var(--text-muted);max-height:300px;
 }
 
 /* Refresh bar */
 .refresh-bar{position:fixed;bottom:0;left:0;right:0;height:2px;background:transparent;z-index:100}
-.refresh-fill{height:100%;background:var(--accent);width:0;transition:width 10s linear}
+.refresh-fill{height:100%;background:var(--primary);width:0;transition:width 10s linear}
+
+/* Tab bar */
+.tabs{display:flex;gap:4px;margin-bottom:20px}
+.tab{
+  padding:6px 14px;border-radius:6px;font-size:12px;font-weight:600;
+  background:transparent;border:1px solid transparent;color:var(--text-muted);
+  cursor:pointer;font-family:'Plus Jakarta Sans',system-ui,sans-serif;transition:all .15s;
+}
+.tab:hover{color:var(--text-secondary);background:var(--surface-mid)}
+.tab.active{background:var(--primary-dim);border-color:var(--primary);color:var(--primary)}
+
+/* Summary row */
+.summary{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:20px}
+@media(max-width:700px){.summary{grid-template-columns:repeat(2,1fr)}}
+.summary-item{font-size:12px;color:var(--text-secondary)}
+.summary-item strong{color:var(--text);font-weight:700}
 </style>
 </head>
 <body>
@@ -126,11 +147,16 @@ pre.raw{
       <h1>meshwork <span>metrics</span></h1>
     </div>
     <div class="meta">
+      <div class="tabs">
+        <button class="tab active" onclick="setView('live')" id="tabLive">Live</button>
+        <button class="tab" onclick="setView('history')" id="tabHistory">History</button>
+      </div>
       <div class="badge"><div class="dot" id="statusDot"></div><span id="statusText">Connecting</span></div>
       <button class="btn-ghost" onclick="toggleRaw()" id="rawBtn">Raw</button>
     </div>
   </header>
 
+  <div class="summary" id="summary"></div>
   <div class="stats" id="cards"></div>
 
   <div class="chart-row">
@@ -186,12 +212,24 @@ pre.raw{
 <script>
 const POLL=10000, HIST=60;
 let reqHist=[],wsHist=[],rawOn=false,charts={};
+let viewMode='live';
+let historyData=[];
+
+function setView(mode){
+  viewMode=mode;
+  document.getElementById('tabLive').classList.toggle('active',mode==='live');
+  document.getElementById('tabHistory').classList.toggle('active',mode==='history');
+  if(mode==='history') loadHistory();
+  else { loadLive(); }
+}
 
 function toggleRaw(){
   rawOn=!rawOn;
   document.getElementById('rawOutput').style.display=rawOn?'block':'none';
   document.getElementById('rawBtn').textContent=rawOn?'Hide Raw':'Raw';
 }
+
+// ─── Prometheus parser (for live view) ──────────────────────────────
 
 function parsePrometheus(text){
   const m={};
@@ -216,21 +254,32 @@ function sumByLabels(m,n){const g={};for(const e of(m[n]||[])){const t=`${e.labe
 function durations(m){return(m['http_request_duration_seconds']||[]).map(e=>({method:e.labels.method,path:e.labels.path,duration:e.value}));}
 function fmt(n){if(n>=1e6)return(n/1e6).toFixed(1)+'M';if(n>=1e3)return(n/1e3).toFixed(1)+'K';return n.toFixed(0);}
 
+// ─── Charts ─────────────────────────────────────────────────────────
+
 const CO={
   responsive:true,maintainAspectRatio:false,animation:{duration:250},
   plugins:{legend:{display:false}},
-  scales:{x:{display:false},y:{beginAtZero:true,grid:{color:'#27272a'},ticks:{color:'#52525b',font:{size:10}}}},
+  scales:{x:{display:false},y:{beginAtZero:true,grid:{color:'#2E2E2E'},ticks:{color:'#555555',font:{size:10}}}},
   elements:{point:{radius:0,hoverRadius:3},line:{tension:.4,borderWidth:1.5},bar:{borderRadius:3,barPercentage:.7}}
 };
 
+const timeScaleOpts={
+  type:'time',
+  time:{unit:'minute',displayFormats:{minute:'HH:mm'}},
+  grid:{color:'#2E2E2E'},
+  ticks:{color:'#555555',font:{size:10},maxTicksLimit:10}
+};
+
 function init(){
-  charts.req=new Chart('requestRateChart',{type:'line',data:{labels:Array(HIST).fill(''),datasets:[{data:[],borderColor:'#6366f1',backgroundColor:'rgba(99,102,241,.08)',fill:true}]},options:{...CO}});
-  charts.lat=new Chart('latencyChart',{type:'bar',data:{labels:[],datasets:[{data:[],backgroundColor:[]}]},options:{...CO,scales:{...CO.scales,x:{display:true,grid:{display:false},ticks:{color:'#52525b',font:{size:9},maxRotation:0}}}}});
-  charts.ws=new Chart('wsChart',{type:'line',data:{labels:Array(HIST).fill(''),datasets:[{label:'Connections',data:[],borderColor:'#22c55e',backgroundColor:'rgba(34,197,94,.08)',fill:true},{label:'Rooms',data:[],borderColor:'#3b82f6',backgroundColor:'rgba(59,130,246,.08)',fill:true}]},options:{...CO,plugins:{legend:{display:true,labels:{color:'#52525b',font:{size:10},boxWidth:8,padding:12}}}}});
-  charts.ai=new Chart('aiChart',{type:'bar',data:{labels:[],datasets:[{data:[],backgroundColor:[]}]},options:{...CO,indexAxis:'y',scales:{x:{beginAtZero:true,grid:{color:'#27272a'},ticks:{color:'#52525b',font:{size:10}}},y:{display:true,grid:{display:false},ticks:{color:'#a1a1aa',font:{size:10}}}}}});
+  charts.req=new Chart('requestRateChart',{type:'line',data:{labels:[],datasets:[{data:[],borderColor:'#FF8000',backgroundColor:'rgba(255,128,0,.06)',fill:true}]},options:{...CO}});
+  charts.lat=new Chart('latencyChart',{type:'bar',data:{labels:[],datasets:[{data:[],backgroundColor:[]}]},options:{...CO,scales:{...CO.scales,x:{display:true,grid:{display:false},ticks:{color:'#555555',font:{size:9},maxRotation:0}}}}});
+  charts.ws=new Chart('wsChart',{type:'line',data:{labels:[],datasets:[{label:'Connections',data:[],borderColor:'#22C55E',backgroundColor:'rgba(34,197,94,.06)',fill:true},{label:'Rooms',data:[],borderColor:'#3B82F6',backgroundColor:'rgba(59,130,246,.06)',fill:true}]},options:{...CO,plugins:{legend:{display:true,labels:{color:'#999999',font:{size:10},boxWidth:8,padding:12}}}}});
+  charts.ai=new Chart('aiChart',{type:'bar',data:{labels:[],datasets:[{data:[],backgroundColor:[]}]},options:{...CO,indexAxis:'y',scales:{x:{beginAtZero:true,grid:{color:'#2E2E2E'},ticks:{color:'#555555',font:{size:10}}},y:{display:true,grid:{display:false},ticks:{color:'#999999',font:{size:10}}}}}});
 }
 
-function update(m){
+// ─── Live view update ───────────────────────────────────────────────
+
+function updateLive(m){
   const total=(m['http_requests_total']||[]).reduce((s,e)=>s+e.value,0);
   const mem=val(m,'meshwork_process_resident_memory_bytes')/1048576;
   const cpu=val(m,'meshwork_process_cpu_user_seconds_total');
@@ -248,29 +297,37 @@ function update(m){
     {l:'CPU',v:cpu.toFixed(1)+'s',s:'user time'},
   ];
   document.getElementById('cards').innerHTML=stats.map(s=>`<div class="stat"><div class="stat-label">${s.l}</div><div class="stat-value">${s.v}</div><div class="stat-sub ${s.c||''}">${s.s}</div></div>`).join('');
+  document.getElementById('summary').innerHTML='';
 
+  // Request rate (live delta)
   reqHist.push(total);if(reqHist.length>HIST)reqHist.shift();
+  charts.req.data.labels=Array(reqHist.length).fill('');
   charts.req.data.datasets[0].data=reqHist.slice(1).map((v,i)=>v-reqHist[i]);
   charts.req.update('none');
 
-  wsHist.push({c:ws,r:rooms});if(wsHist.length>HIST)wsHist.shift();
-  charts.ws.data.datasets[0].data=wsHist.map(h=>h.c);
-  charts.ws.data.datasets[1].data=wsHist.map(h=>h.r);
-  charts.ws.update('none');
-
+  // Latency
   const dm={};for(const e of durations(m)){const k=e.path||'?';if(!dm[k])dm[k]={s:0,n:0};dm[k].s+=e.duration*1000;dm[k].n++;}
   const dk=Object.keys(dm),dv=dk.map(k=>dm[k].s/dm[k].n);
   charts.lat.data.labels=dk.map(l=>l.length>18?l.slice(0,18)+'...':l);
   charts.lat.data.datasets[0].data=dv;
-  charts.lat.data.datasets[0].backgroundColor=dv.map(v=>v<50?'#22c55e':v<200?'#eab308':'#ef4444');
+  charts.lat.data.datasets[0].backgroundColor=dv.map(v=>v<50?'#22C55E':v<200?'#F59E0B':'#E63636');
   charts.lat.update('none');
 
+  // WebSocket
+  wsHist.push({c:ws,r:rooms});if(wsHist.length>HIST)wsHist.shift();
+  charts.ws.data.labels=Array(wsHist.length).fill('');
+  charts.ws.data.datasets[0].data=wsHist.map(h=>h.c);
+  charts.ws.data.datasets[1].data=wsHist.map(h=>h.r);
+  charts.ws.update('none');
+
+  // AI
   const ab=sumBy(m,'ai_chat_requests_total','provider');
   charts.ai.data.labels=Object.keys(ab);
   charts.ai.data.datasets[0].data=Object.values(ab);
-  charts.ai.data.datasets[0].backgroundColor=['#6366f1','#22c55e','#eab308','#ef4444','#3b82f6','#a855f7'];
+  charts.ai.data.datasets[0].backgroundColor=['#FF8000','#22C55E','#F59E0B','#E63636','#3B82F6','#FF5500'];
   charts.ai.update('none');
 
+  // Endpoints table
   const ep=sumByLabels(m,'http_requests_total');
   const rows=Object.entries(ep).map(([k,c])=>{
     const[method,path,status]=k.split(' ');
@@ -283,12 +340,78 @@ function update(m){
   }).join('');
 }
 
-async function poll(){
+// ─── History view ───────────────────────────────────────────────────
+
+async function loadHistory(){
+  try{
+    const[r1,r2]=await Promise.all([
+      fetch('/api/v1/metrics/history?limit=240'),
+      fetch('/api/v1/metrics/summary')
+    ]);
+    historyData=await r1.json();
+    const summary=await r2.json();
+
+    // Summary
+    document.getElementById('summary').innerHTML=[
+      `<div class="summary-item"><strong>${fmt(summary.totalRequests||0)}</strong> total requests</div>`,
+      `<div class="summary-item"><strong>${fmt(summary.requestsLastHour||0)}</strong> requests (1h)</div>`,
+      `<div class="summary-item"><strong>${(summary.avgDurationLastHour||0).toFixed(1)}</strong> ms avg (1h)</div>`,
+      `<div class="summary-item"><strong>${summary.totalSnapshots||0}</strong> snapshots stored</div>`,
+    ].join('');
+
+    const labels=historyData.map(d=>new Date(d.capturedAt));
+
+    // Stat cards from latest snapshot
+    const latest=historyData[historyData.length-1]||{};
+    document.getElementById('cards').innerHTML=[
+      {l:'Total Requests',v:fmt(latest.totalRequests||0),s:'cumulative'},
+      {l:'Memory',v:(latest.memoryMb||0).toFixed(0)+' MB',s:'avg 1h'},
+      {l:'Event Loop',v:(latest.eventLoopLagMs||0).toFixed(1)+' ms',s:(latest.eventLoopLagMs||0)<10?'healthy':'under load',c:(latest.eventLoopLagMs||0)<10?'ok':'err'},
+      {l:'WebSocket',v:(latest.wsConnections||0)+' / '+((latest.wsRooms||0)),s:'conn / rooms'},
+      {l:'AI Rate',v:(latest.aiRequests||0).toFixed(1),s:'req/s avg'},
+      {l:'Snapshots',v:historyData.length,data:true,s:'stored points'},
+    ].map(s=>`<div class="stat"><div class="stat-label">${s.l}</div><div class="stat-value">${s.v}</div><div class="stat-sub ${s.c||''}">${s.s}</div></div>`).join('');
+
+    // Request rate chart (stored)
+    charts.req.data.labels=labels;
+    charts.req.data.datasets[0].data=historyData.map(d=>d.requestRate);
+    charts.req.update('none');
+
+    // Latency chart (stored - single bar for latest)
+    charts.lat.data.labels=['Avg (1h)'];
+    const avgLat=historyData.slice(-12).reduce((s,d)=>s+d.avgDurationMs,0)/Math.min(historyData.length,12);
+    charts.lat.data.datasets[0].data=[avgLat];
+    charts.lat.data.datasets[0].backgroundColor=[avgLat<50?'#22C55E':avgLat<200?'#F59E0B':'#E63636'];
+    charts.lat.update('none');
+
+    // WS chart (stored)
+    charts.ws.data.labels=labels;
+    charts.ws.data.datasets[0].data=historyData.map(d=>d.wsConnections);
+    charts.ws.data.datasets[1].data=historyData.map(d=>d.wsRooms);
+    charts.ws.update('none');
+
+    // AI chart - use stored rate
+    charts.ai.data.labels=['Req Rate (1h avg)'];
+    charts.ai.data.datasets[0].data=[historyData.slice(-12).reduce((s,d)=>s+d.aiRequests,0)/Math.min(historyData.length,12)];
+    charts.ai.data.datasets[0].backgroundColor=['#FF8000'];
+    charts.ai.update('none');
+
+    // Clear endpoints (not stored)
+    document.getElementById('endpoints').innerHTML='<tr><td colspan="5" style="text-align:center;color:#555">Endpoint breakdown available in live view</td></tr>';
+
+  }catch(e){
+    console.error('Failed to load history:',e);
+  }
+}
+
+// ─── Polling ────────────────────────────────────────────────────────
+
+async function loadLive(){
   try{
     const r=await fetch('/metrics');if(!r.ok)throw new Error(r.statusText);
     const t=await r.text();
     document.getElementById('rawOutput').textContent=t;
-    update(parsePrometheus(t));
+    updateLive(parsePrometheus(t));
     document.getElementById('statusDot').classList.add('ok');
     document.getElementById('statusText').textContent='Live';
   }catch(e){
@@ -298,6 +421,11 @@ async function poll(){
   const bar=document.getElementById('refreshFill');
   bar.style.transition='none';bar.style.width='0%';
   requestAnimationFrame(()=>{bar.style.transition=`width ${POLL}ms linear`;bar.style.width='100%';});
+}
+
+function poll(){
+  if(viewMode==='live') loadLive();
+  else loadHistory();
 }
 
 init();poll();setInterval(poll,POLL);

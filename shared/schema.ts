@@ -1,4 +1,4 @@
-import { pgTable, text, serial, timestamp, integer, jsonb, varchar, index, uniqueIndex, boolean, primaryKey } from "drizzle-orm/pg-core";
+import { pgTable, text, serial, timestamp, integer, jsonb, varchar, index, uniqueIndex, boolean, primaryKey, real } from "drizzle-orm/pg-core";
 import { createInsertSchema } from "drizzle-zod";
 import { z } from "zod";
 import { sql } from "drizzle-orm";
@@ -247,3 +247,26 @@ export type WorkspaceResponse = Workspace;
 
 export type UpsertUser = typeof users.$inferInsert;
 export type User = typeof users.$inferSelect;
+
+// ─── Metrics Snapshots ─────────────────────────────────────────────
+// Periodic snapshots of server metrics for historical dashboards.
+
+export const metricsSnapshots = pgTable("metrics_snapshots", {
+  id: serial("id").primaryKey(),
+  capturedAt: timestamp("captured_at").defaultNow().notNull(),
+  // Request metrics
+  totalRequests: real("total_requests").notNull().default(0),
+  requestRate: real("request_rate").notNull().default(0), // requests since last snapshot
+  avgDurationMs: real("avg_duration_ms").notNull().default(0),
+  // System metrics
+  memoryMb: real("memory_mb").notNull().default(0),
+  cpuSeconds: real("cpu_seconds").notNull().default(0),
+  eventLoopLagMs: real("event_loop_lag_ms").notNull().default(0),
+  // WebSocket
+  wsConnections: integer("ws_connections").notNull().default(0),
+  wsRooms: integer("ws_rooms").notNull().default(0),
+  // AI
+  aiRequests: real("ai_requests").notNull().default(0),
+}, (table) => [
+  index("IDX_metrics_snapshots_captured_at").on(table.capturedAt),
+]);

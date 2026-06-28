@@ -5,6 +5,7 @@ import { WorkspaceModule } from "./modules/workspace";
 import { CanvasModule } from "./modules/canvas";
 import { AIModule } from "./modules/ai";
 import { TeamModule } from "./modules/team";
+import { MetricsModule } from "./modules/metrics";
 import { createChildLogger } from "./lib/logger";
 import { generateCsrfToken, csrfProtection } from "./middleware/csrf";
 import { AppRegistry } from "./lib/registry";
@@ -59,6 +60,9 @@ export async function registerRoutes(
 
   // Initialize Team Module (handles teams, members, and shared workspaces)
   TeamModule.initialize(app, context);
+
+  // Initialize Metrics Module (background collector + history API)
+  await MetricsModule.initialize(app);
 
   log.info("All modules initialized");
 
