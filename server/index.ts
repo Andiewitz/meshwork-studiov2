@@ -165,12 +165,6 @@ app.get("/ready", (_req, res) => {
     }
   });
 
-  // Serve static files early so the frontend works even if DB initialization fails
-  if (process.env.NODE_ENV === "production") {
-    log.info("Serving static frontend files from /public");
-    serveStatic(app);
-  }
-
   (async () => {
     const port = parseInt(process.env.PORT || "5000", 10);
     
@@ -199,6 +193,12 @@ app.get("/ready", (_req, res) => {
     const { initializeWebSocket } = await import("./modules/team/websocket");
     initializeWebSocket(httpServer);
     log.info("WebSocket presence server initialized");
+
+    // Serve static files AFTER routes so API routes aren't caught by catch-all
+    if (process.env.NODE_ENV === "production") {
+      log.info("Serving static frontend files from /public");
+      serveStatic(app);
+    }
 
     app.use((err: any, _req: Request, res: Response, next: NextFunction) => {
       const status = err.status || err.statusCode || 500;
