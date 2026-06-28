@@ -3,6 +3,10 @@
  * Supports hCaptcha and reCAPTCHA with security best practices
  */
 
+import { createChildLogger } from "../../lib/logger";
+
+const log = createChildLogger("captcha");
+
 interface CaptchaConfig {
   secretKey: string;
   provider: 'hcaptcha' | 'recaptcha';

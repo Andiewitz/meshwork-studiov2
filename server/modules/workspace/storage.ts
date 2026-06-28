@@ -137,8 +137,9 @@ export class WorkspaceDatabaseStorage implements IWorkspaceStorage {
 
     async deleteAllUserData(userId: number, providedTx?: any): Promise<void> {
         const execute = async (tx: any) => {
-            await tx.delete(workspaces).where(eq(workspaces.userId, userId));
-            await tx.delete(collections).where(eq(collections.userId, userId));
+            const userIdStr = String(userId);
+            await tx.delete(workspaces).where(eq(workspaces.userId, userIdStr));
+            await tx.delete(collections).where(eq(collections.userId, userIdStr));
         };
 
         if (providedTx) {

@@ -137,10 +137,11 @@ export class CanvasDatabaseStorage implements ICanvasStorage {
 
     async deleteAllUserData(userId: number, providedTx?: any): Promise<void> {
         const execute = async (tx: any) => {
+            const userIdStr = String(userId);
             const userWorkspaces = await tx
                 .select({ id: workspaces.id })
                 .from(workspaces)
-                .where(eq(workspaces.userId, userId));
+                .where(eq(workspaces.userId, userIdStr));
 
             const workspaceIds = userWorkspaces.map((w: any) => w.id);
             if (workspaceIds.length > 0) {

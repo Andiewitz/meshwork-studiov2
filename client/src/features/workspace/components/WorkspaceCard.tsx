@@ -1,5 +1,5 @@
 import { Workspace } from "@shared/schema";
-import { formatDistanceToNow } from "date-fns";
+import { formatDistanceToNow } from "date-fns/formatDistanceToNow";
 import { motion } from "framer-motion";
 import {
   MoreVertical,

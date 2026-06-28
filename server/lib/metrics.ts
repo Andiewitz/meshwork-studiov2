@@ -2,8 +2,8 @@ import client from "prom-client";
 
 // Collect default metrics (CPU, memory, event loop lag, etc.)
 client.collectDefaultMetrics({
-  app: "meshwork-studio",
   prefix: "meshwork_",
+  labels: { app: "meshwork-studio" },
 });
 
 // Custom Metrics

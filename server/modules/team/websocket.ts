@@ -175,8 +175,8 @@ export function initializeWebSocket(httpServer: HttpServer) {
 
     wss.on("connection", (ws: WebSocket, req: IncomingMessage) => {
         websocketConnectionsActive.inc();
-        let currentUserId: string | null = null;
-        let currentWorkspaceId: number | null = null;
+        let currentUserId: string | undefined;
+        let currentWorkspaceId: number | undefined;
 
         // Heartbeat
         let alive = true;
@@ -293,8 +293,8 @@ export function initializeWebSocket(httpServer: HttpServer) {
 
                     case "leave": {
                         removeFromAllRooms(ws);
-                        currentUserId = null;
-                        currentWorkspaceId = null;
+                        currentUserId = undefined;
+                        currentWorkspaceId = undefined;
                         break;
                     }
 

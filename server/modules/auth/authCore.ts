@@ -2,7 +2,7 @@ import passport from "passport";
 import { createChildLogger } from "../../lib/logger";
 import session from "express-session";
 import type { Express, RequestHandler } from "express";
-import RedisStore from "connect-redis";
+import { RedisStore } from "connect-redis";
 import memorystore from "memorystore";
 import { getRedis } from "../../lib/redis";
 import { createGoogleStrategy } from "./strategies/google";

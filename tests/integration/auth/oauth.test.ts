@@ -83,7 +83,11 @@ vi.mock('passport', () => {
 const setupTestApp = () => {
   const app = express();
   app.use(express.json());
-  registerAuthRoutes(app);
+  // Provide minimal mock context for registerAuthRoutes
+  const mockContext = {
+    eventBus: { emitAsync: vi.fn().mockResolvedValue(undefined) }
+  } as any;
+  registerAuthRoutes(app, mockContext);
   return app;
 };
 

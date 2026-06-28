@@ -11,7 +11,7 @@ import type { AppContext } from "../../lib/registry";
 export class AuthModule {
     static async initialize(app: Express, context: AppContext) {
         await setupAuth(app);
-        registerAuthRoutes(app);
+        registerAuthRoutes(app, context);
         log.info("Authentication service initialized");
     }
 
