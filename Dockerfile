@@ -17,7 +17,7 @@ RUN npm run build
 
 # Prune dev dependencies to save space and install drizzle-kit for runtime schema push
 RUN npm prune --omit=dev --legacy-peer-deps
-RUN npm install drizzle-kit --no-save --legacy-peer-deps
+RUN npm install drizzle-kit tsx --no-save --legacy-peer-deps
 
 # Runtime stage
 FROM node:20-alpine
