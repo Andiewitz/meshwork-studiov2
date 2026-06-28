@@ -127,7 +127,7 @@ app.get("/health", async (_req, res) => {
     // Check Redis
     checks.redis = await isRedisAvailable();
 
-    const isHealthy = checks.postgres && checks.redis;
+    const isHealthy = checks.postgres && (!process.env.REDIS_URL || checks.redis);
     const status = isHealthy ? "healthy" : "degraded";
     const statusCode = isHealthy ? 200 : 503;
 
