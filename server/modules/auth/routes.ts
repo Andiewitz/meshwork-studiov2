@@ -67,8 +67,7 @@ export function registerAuthRoutes(app: Express, context: AppContext): void {
     if (process.env.NODE_ENV === "development") {
       log.debug("CSRF disabled for register in development mode");
     }
-    const { email } = req.body || {};
-    log.info({ email }, "Register attempt received");
+    log.info({ email: req.body?.email }, "Register attempt received");
     try {
       const { email, password, firstName, lastName } = req.body;
 
