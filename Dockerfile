@@ -11,6 +11,7 @@ RUN npm install --legacy-peer-deps
 COPY . .
 
 # Build the application
+# VITE_RECAPTCHA_SITE_KEY is a public site key (not a secret) - passed via build arg
 ARG VITE_RECAPTCHA_SITE_KEY
 ENV VITE_RECAPTCHA_SITE_KEY=$VITE_RECAPTCHA_SITE_KEY
 RUN npm run build
