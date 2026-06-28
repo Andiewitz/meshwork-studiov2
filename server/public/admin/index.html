@@ -6,301 +6,301 @@
 <title>Meshwork Studio - Metrics</title>
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.7/dist/chart.umd.min.js"></script>
 <style>
-*{margin:0;padding:0;box-sizing:border-box}
-:root{--bg:#0a0a0f;--card:#12121a;--border:#1e1e2e;--text:#e0e0e8;--muted:#6b7280;--accent:#6366f1;--green:#22c55e;--red:#ef4444;--yellow:#eab308;--blue:#3b82f6}
-body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',monospace;background:var(--bg);color:var(--text);padding:20px;min-height:100vh}
-.header{display:flex;align-items:center;justify-content:space-between;margin-bottom:24px}
-.header h1{font-size:20px;font-weight:600}
-.header h1 span{color:var(--accent)}
-.status{display:flex;align-items:center;gap:8px;font-size:13px;color:var(--muted)}
-.status .dot{width:8px;height:8px;border-radius:50%;background:var(--red)}
-.status .dot.ok{background:var(--green)}
-.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:16px;margin-bottom:24px}
-.card{background:var(--card);border:1px solid var(--border);border-radius:12px;padding:20px}
-.card-label{font-size:12px;color:var(--muted);text-transform:uppercase;letter-spacing:0.5px;margin-bottom:8px}
-.card-value{font-size:28px;font-weight:700}
-.card-sub{font-size:12px;color:var(--muted);margin-top:4px}
-.card-sub.up{color:var(--green)}
-.card-sub.down{color:var(--red)}
-.charts{display:grid;grid-template-columns:repeat(auto-fit,minmax(400px,1fr));gap:16px;margin-bottom:24px}
-.chart-card{background:var(--card);border:1px solid var(--border);border-radius:12px;padding:20px}
-.chart-card h3{font-size:14px;font-weight:600;margin-bottom:16px}
-.table-card{background:var(--card);border:1px solid var(--border);border-radius:12px;padding:20px;margin-bottom:24px}
-.table-card h3{font-size:14px;font-weight:600;margin-bottom:16px}
+*,*::before,*::after{margin:0;padding:0;box-sizing:border-box}
+:root{
+  --bg:#09090b;--surface:#18181b;--surface-hover:#27272a;
+  --border:#27272a;--border-subtle:#1c1c1f;
+  --text:#fafafa;--text-secondary:#a1a1aa;--text-muted:#52525b;
+  --accent:#6366f1;--accent-dim:rgba(99,102,241,.12);
+  --green:#22c55e;--green-dim:rgba(34,197,94,.12);
+  --red:#ef4444;--red-dim:rgba(239,68,68,.12);
+  --yellow:#eab308;--yellow-dim:rgba(234,179,8,.12);
+  --blue:#3b82f6;
+}
+html{font-size:14px}
+body{
+  font-family:'Inter',-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;
+  background:var(--bg);color:var(--text);
+  line-height:1.5;-webkit-font-smoothing:antialiased;
+}
+.layout{max-width:1200px;margin:0 auto;padding:24px 20px 48px}
+
+/* Header */
+.header{display:flex;align-items:center;justify-content:space-between;margin-bottom:28px}
+.brand{display:flex;align-items:center;gap:10px}
+.brand-dot{width:10px;height:10px;border-radius:50%;background:var(--accent)}
+.brand h1{font-size:16px;font-weight:600;letter-spacing:-.02em}
+.brand h1 span{color:var(--text-muted);font-weight:400}
+.meta{display:flex;align-items:center;gap:12px}
+.badge{
+  display:inline-flex;align-items:center;gap:6px;
+  padding:4px 10px;border-radius:6px;font-size:11px;font-weight:500;
+  background:var(--surface);border:1px solid var(--border);color:var(--text-secondary);
+}
+.badge .dot{width:6px;height:6px;border-radius:50%;background:var(--red);flex-shrink:0}
+.badge .dot.ok{background:var(--green)}
+.btn-ghost{
+  padding:4px 10px;border-radius:6px;font-size:11px;font-weight:500;
+  background:transparent;border:1px solid var(--border);color:var(--text-secondary);
+  cursor:pointer;font-family:inherit;transition:all .15s;
+}
+.btn-ghost:hover{background:var(--surface);color:var(--text)}
+
+/* Stat Cards */
+.stats{display:grid;grid-template-columns:repeat(6,1fr);gap:12px;margin-bottom:24px}
+@media(max-width:900px){.stats{grid-template-columns:repeat(3,1fr)}}
+@media(max-width:500px){.stats{grid-template-columns:repeat(2,1fr)}}
+.stat{
+  background:var(--surface);border:1px solid var(--border-subtle);
+  border-radius:10px;padding:16px;
+}
+.stat-label{font-size:11px;color:var(--text-muted);text-transform:uppercase;letter-spacing:.04em;margin-bottom:6px;font-weight:500}
+.stat-value{font-size:22px;font-weight:700;letter-spacing:-.02em;line-height:1.2}
+.stat-sub{font-size:11px;color:var(--text-muted);margin-top:4px}
+.stat-sub.ok{color:var(--green)}.stat-sub.warn{color:var(--yellow)}.stat-sub.err{color:var(--red)}
+
+/* Chart Rows */
+.chart-row{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:12px}
+@media(max-width:700px){.chart-row{grid-template-columns:1fr}}
+.panel{
+  background:var(--surface);border:1px solid var(--border-subtle);
+  border-radius:10px;padding:16px;overflow:hidden;
+}
+.panel-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:12px}
+.panel-title{font-size:12px;font-weight:600;color:var(--text-secondary);text-transform:uppercase;letter-spacing:.04em}
+.panel-badge{font-size:10px;color:var(--text-muted);padding:2px 6px;background:var(--bg);border-radius:4px}
+.chart-wrap{position:relative;width:100%;height:180px}
+
+/* Table */
+.table-panel{
+  background:var(--surface);border:1px solid var(--border-subtle);
+  border-radius:10px;overflow:hidden;
+}
+.table-panel .panel-header{padding:16px 16px 0}
 table{width:100%;border-collapse:collapse}
-th{text-align:left;font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:0.5px;padding:8px 12px;border-bottom:1px solid var(--border)}
-td{padding:8px 12px;border-bottom:1px solid var(--border);font-size:13px}
-tr:last-child td{border-bottom:none}
-.latency-bar{height:6px;border-radius:3px;background:var(--border);overflow:hidden;min-width:60px}
-.latency-fill{height:100%;border-radius:3px;transition:width 0.3s}
-.raw-toggle{cursor:pointer;color:var(--accent);font-size:12px;border:none;background:none;font-family:inherit}
-.raw-toggle:hover{text-decoration:underline}
-pre.raw{background:#0d0d14;border:1px solid var(--border);border-radius:8px;padding:16px;font-size:11px;overflow-x:auto;white-space:pre-wrap;display:none;margin-top:12px;color:var(--muted);max-height:400px;overflow-y:auto}
-.refresh-bar{position:fixed;bottom:0;left:0;right:0;height:3px;background:var(--border)}
-.refresh-fill{height:100%;background:var(--accent);width:0;transition:width 0.1s linear}
-.empty{text-align:center;padding:40px;color:var(--muted);font-size:14px}
-@keyframes pulse{0%,100%{opacity:1}50%{opacity:0.5}}
-.loading{animation:pulse 1.5s infinite}
+thead th{
+  text-align:left;font-size:10px;font-weight:600;color:var(--text-muted);
+  text-transform:uppercase;letter-spacing:.04em;
+  padding:8px 16px;border-bottom:1px solid var(--border-subtle);
+}
+tbody td{padding:10px 16px;font-size:12px;border-bottom:1px solid var(--border-subtle);color:var(--text-secondary)}
+tbody tr:last-child td{border-bottom:none}
+tbody tr:hover{background:var(--surface-hover)}
+.method{
+  display:inline-block;padding:2px 6px;border-radius:4px;font-size:10px;
+  font-weight:600;font-family:'SF Mono',Consolas,monospace;min-width:42px;text-align:center;
+}
+.method.GET{background:var(--green-dim);color:var(--green)}
+.method.POST{background:var(--accent-dim);color:var(--accent)}
+.method.PUT{background:var(--yellow-dim);color:var(--yellow)}
+.method.DELETE{background:var(--red-dim);color:var(--red)}
+.path{font-family:'SF Mono',Consolas,monospace;color:var(--text-muted);font-size:11px}
+.status-code{font-family:'SF Mono',Consolas,monospace;font-size:11px}
+.status-code.s2{color:var(--green)}.status-code.s4{color:var(--yellow)}.status-code.s5{color:var(--red)}
+
+/* Raw */
+.raw-toggle{
+  font-size:11px;color:var(--text-muted);cursor:pointer;
+  background:none;border:none;font-family:inherit;padding:4px 8px;
+  border-radius:4px;transition:all .15s;
+}
+.raw-toggle:hover{background:var(--surface);color:var(--text)}
+pre.raw{
+  background:var(--surface);border:1px solid var(--border-subtle);
+  border-radius:10px;padding:16px;font-size:11px;
+  font-family:'SF Mono',Consolas,monospace;
+  overflow:auto;white-space:pre-wrap;display:none;
+  margin-top:12px;color:var(--text-muted);max-height:300px;
+}
+
+/* Refresh bar */
+.refresh-bar{position:fixed;bottom:0;left:0;right:0;height:2px;background:transparent;z-index:100}
+.refresh-fill{height:100%;background:var(--accent);width:0;transition:width 10s linear}
 </style>
 </head>
 <body>
-<div class="header">
-  <h1><span>meshwork</span> metrics</h1>
-  <div class="status">
-    <div class="dot" id="statusDot"></div>
-    <span id="statusText">Connecting...</span>
-    <button class="raw-toggle" onclick="toggleRaw()">Show Raw</button>
+<div class="layout">
+  <header class="header">
+    <div class="brand">
+      <div class="brand-dot"></div>
+      <h1>meshwork <span>metrics</span></h1>
+    </div>
+    <div class="meta">
+      <div class="badge"><div class="dot" id="statusDot"></div><span id="statusText">Connecting</span></div>
+      <button class="btn-ghost" onclick="toggleRaw()" id="rawBtn">Raw</button>
+    </div>
+  </header>
+
+  <div class="stats" id="cards"></div>
+
+  <div class="chart-row">
+    <div class="panel">
+      <div class="panel-header">
+        <span class="panel-title">Request Rate</span>
+        <span class="panel-badge">req/s</span>
+      </div>
+      <div class="chart-wrap"><canvas id="requestRateChart"></canvas></div>
+    </div>
+    <div class="panel">
+      <div class="panel-header">
+        <span class="panel-title">Response Time</span>
+        <span class="panel-badge">ms avg</span>
+      </div>
+      <div class="chart-wrap"><canvas id="latencyChart"></canvas></div>
+    </div>
   </div>
+
+  <div class="chart-row">
+    <div class="panel">
+      <div class="panel-header">
+        <span class="panel-title">WebSocket</span>
+        <span class="panel-badge">live</span>
+      </div>
+      <div class="chart-wrap"><canvas id="wsChart"></canvas></div>
+    </div>
+    <div class="panel">
+      <div class="panel-header">
+        <span class="panel-title">AI Requests</span>
+        <span class="panel-badge">by provider</span>
+      </div>
+      <div class="chart-wrap"><canvas id="aiChart"></canvas></div>
+    </div>
+  </div>
+
+  <div class="table-panel">
+    <div class="panel-header">
+      <span class="panel-title">Top Endpoints</span>
+      <span class="panel-badge">by volume</span>
+    </div>
+    <table>
+      <thead><tr><th>Method</th><th>Path</th><th>Status</th><th>Count</th><th>Avg</th></tr></thead>
+      <tbody id="endpoints"></tbody>
+    </table>
+  </div>
+
+  <pre class="raw" id="rawOutput"></pre>
 </div>
 
-<div class="grid" id="cards"></div>
-<div class="charts">
-  <div class="chart-card"><h3>Request Rate (req/s)</h3><canvas id="requestRateChart"></canvas></div>
-  <div class="chart-card"><h3>Response Time Distribution</h3><canvas id="latencyChart"></canvas></div>
-</div>
-<div class="charts">
-  <div class="chart-card"><h3>Active Connections & Rooms</h3><canvas id="wsChart"></canvas></div>
-  <div class="chart-card"><h3>AI Requests</h3><canvas id="aiChart"></canvas></div>
-</div>
-<div class="table-card">
-  <h3>Top Endpoints by Request Count</h3>
-  <table><thead><tr><th>Method</th><th>Path</th><th>Status</th><th>Count</th><th>Avg Latency</th></tr></thead><tbody id="endpoints"></tbody></table>
-</div>
-<pre class="raw" id="rawOutput"></pre>
 <div class="refresh-bar"><div class="refresh-fill" id="refreshFill"></div></div>
 
 <script>
-const POLL_INTERVAL = 10000;
-const HISTORY_LEN = 60;
-let requestRateHistory = [];
-let wsHistory = [];
-let aiHistory = [];
-let rawVisible = false;
-let charts = {};
+const POLL=10000, HIST=60;
+let reqHist=[],wsHist=[],rawOn=false,charts={};
 
-function toggleRaw() {
-  rawVisible = !rawVisible;
-  document.getElementById('rawOutput').style.display = rawVisible ? 'block' : 'none';
+function toggleRaw(){
+  rawOn=!rawOn;
+  document.getElementById('rawOutput').style.display=rawOn?'block':'none';
+  document.getElementById('rawBtn').textContent=rawOn?'Hide Raw':'Raw';
 }
 
-function parsePrometheus(text) {
-  const lines = text.split('\n');
-  const metrics = {};
-  for (const line of lines) {
-    if (line.startsWith('#') || !line.trim()) continue;
-    const match = line.match(/^([a-zA-Z_:][a-zA-Z0-9_:]*)\{([^}]*)\}\s+([\d.eE+-]+)\s*(.*)$/);
-    if (match) {
-      const [, name, labelsStr, value] = match;
-      const labels = {};
-      if (labelsStr) {
-        for (const l of labelsStr.split(',')) {
-          const [k, v] = l.split('=');
-          labels[k.trim()] = v.replace(/"/g, '').trim();
-        }
-      }
-      if (!metrics[name]) metrics[name] = [];
-      metrics[name].push({ labels, value: parseFloat(value) });
-    } else {
-      const match2 = line.match(/^([a-zA-Z_:][a-zA-Z0-9_:]*)\s+([\d.eE+-]+)\s*(.*)$/);
-      if (match2) {
-        const [, name, value] = match2;
-        if (!metrics[name]) metrics[name] = [];
-        metrics[name].push({ labels: {}, value: parseFloat(value) });
-      }
+function parsePrometheus(text){
+  const m={};
+  for(const l of text.split('\n')){
+    if(l.startsWith('#')||!l.trim())continue;
+    const tagged=l.match(/^([a-zA-Z_:][a-zA-Z0-9_:]*)\{([^}]*)\}\s+([\d.eE+-]+)/);
+    if(tagged){
+      const[,n,ls,v]=tagged;
+      const lbl={};
+      if(ls)for(const p of ls.split(',')){const[k,val]=p.split('=');lbl[k.trim()]=val.replace(/"/g,'').trim();}
+      if(!m[n])m[n]=[];m[n].push({labels:lbl,value:parseFloat(v)});continue;
     }
+    const plain=l.match(/^([a-zA-Z_:][a-zA-Z0-9_:]*)\s+([\d.eE+-]+)/);
+    if(plain){const[,n,v]=plain;if(!m[n])m[n]=[];m[n].push({labels:{},value:parseFloat(v)});}
   }
-  return metrics;
+  return m;
 }
 
-function getMetricVal(metrics, name, labels = {}) {
-  const entries = metrics[name] || [];
-  for (const e of entries) {
-    let match = true;
-    for (const [k, v] of Object.entries(labels)) {
-      if (e.labels[k] !== v) { match = false; break; }
-    }
-    if (match) return e.value;
-  }
-  return 0;
-}
+function val(m,n,l={}){for(const e of(m[n]||[])){let ok=true;for(const[k,v]of Object.entries(l))if(e.labels[k]!==v){ok=false;break;}if(ok)return e.value;}return 0;}
+function sumBy(m,n,k){const g={};for(const e of(m[n]||[])){const t=e.labels[k]||'?';g[t]=(g[t]||0)+e.value;}return g;}
+function sumByLabels(m,n){const g={};for(const e of(m[n]||[])){const t=`${e.labels.method||''} ${e.labels.path||''} ${e.labels.status_code||''}`.trim();g[t]=(g[t]||0)+e.value;}return g;}
+function durations(m){return(m['http_request_duration_seconds']||[]).map(e=>({method:e.labels.method,path:e.labels.path,duration:e.value}));}
+function fmt(n){if(n>=1e6)return(n/1e6).toFixed(1)+'M';if(n>=1e3)return(n/1e3).toFixed(1)+'K';return n.toFixed(0);}
 
-function getSumByLabel(metrics, name, labelKey) {
-  const groups = {};
-  for (const e of (metrics[name] || [])) {
-    const key = e.labels[labelKey] || 'unknown';
-    groups[key] = (groups[key] || 0) + e.value;
-  }
-  return groups;
-}
-
-function getSumByLabels(metrics, name) {
-  const groups = {};
-  for (const e of (metrics[name] || [])) {
-    const key = `${e.labels.method || ''} ${e.labels.path || ''} ${e.labels.status_code || ''}`.trim();
-    groups[key] = (groups[key] || 0) + e.value;
-  }
-  return groups;
-}
-
-function getDurationByPath(metrics) {
-  const results = [];
-  for (const e of (metrics['http_request_duration_seconds'] || [])) {
-    results.push({ method: e.labels.method, path: e.labels.path, duration: e.value });
-  }
-  return results;
-}
-
-function formatNum(n) {
-  if (n >= 1e9) return (n / 1e9).toFixed(1) + 'B';
-  if (n >= 1e6) return (n / 1e6).toFixed(1) + 'M';
-  if (n >= 1e3) return (n / 1e3).toFixed(1) + 'K';
-  return n.toFixed(0);
-}
-
-function latencyColor(pct) {
-  if (pct < 50) return 'var(--green)';
-  if (pct < 200) return 'var(--yellow)';
-  return 'var(--red)';
-}
-
-const chartOpts = {
-  responsive: true,
-  maintainAspectRatio: false,
-  animation: { duration: 300 },
-  plugins: { legend: { display: false } },
-  scales: {
-    x: { display: false },
-    y: { beginAtZero: true, grid: { color: '#1e1e2e' }, ticks: { color: '#6b7280', font: { size: 10, family: 'monospace' } } }
-  },
-  elements: { point: { radius: 0 }, line: { tension: 0.3, borderWidth: 2 } }
+const CO={
+  responsive:true,maintainAspectRatio:false,animation:{duration:250},
+  plugins:{legend:{display:false}},
+  scales:{x:{display:false},y:{beginAtZero:true,grid:{color:'#27272a'},ticks:{color:'#52525b',font:{size:10}}}},
+  elements:{point:{radius:0,hoverRadius:3},line:{tension:.4,borderWidth:1.5},bar:{borderRadius:3,barPercentage:.7}}
 };
 
-function initCharts() {
-  const rc = document.getElementById('requestRateChart');
-  charts.requestRate = new Chart(rc, {
-    type: 'line',
-    data: { labels: Array(HISTORY_LEN).fill(''), datasets: [{ data: [], borderColor: '#6366f1', backgroundColor: 'rgba(99,102,241,0.1)', fill: true }] },
-    options: { ...chartOpts }
-  });
-
-  const lc = document.getElementById('latencyChart');
-  charts.latency = new Chart(lc, {
-    type: 'bar',
-    data: { labels: [], datasets: [{ data: [], backgroundColor: [] }] },
-    options: { ...chartOpts, scales: { ...chartOpts.scales, x: { display: true, grid: { display: false }, ticks: { color: '#6b7280', font: { size: 10, family: 'monospace' } } } } }
-  });
-
-  const wc = document.getElementById('wsChart');
-  charts.ws = new Chart(wc, {
-    type: 'line',
-    data: { labels: Array(HISTORY_LEN).fill(''), datasets: [
-      { label: 'Connections', data: [], borderColor: '#22c55e', backgroundColor: 'rgba(34,197,94,0.1)', fill: true },
-      { label: 'Rooms', data: [], borderColor: '#3b82f6', backgroundColor: 'rgba(59,130,246,0.1)', fill: true }
-    ] },
-    options: { ...chartOpts, plugins: { legend: { display: true, labels: { color: '#6b7280', font: { size: 10, family: 'monospace' } } } } }
-  });
-
-  const ac = document.getElementById('aiChart');
-  charts.ai = new Chart(ac, {
-    type: 'bar',
-    data: { labels: [], datasets: [{ data: [], backgroundColor: [] }] },
-    options: { ...chartOpts, indexAxis: 'y', scales: { x: { beginAtZero: true, grid: { color: '#1e1e2e' }, ticks: { color: '#6b7280', font: { size: 10, family: 'monospace' } } }, y: { display: true, grid: { display: false }, ticks: { color: '#6b7280', font: { size: 10, family: 'monospace' } } } } }
-  });
+function init(){
+  charts.req=new Chart('requestRateChart',{type:'line',data:{labels:Array(HIST).fill(''),datasets:[{data:[],borderColor:'#6366f1',backgroundColor:'rgba(99,102,241,.08)',fill:true}]},options:{...CO}});
+  charts.lat=new Chart('latencyChart',{type:'bar',data:{labels:[],datasets:[{data:[],backgroundColor:[]}]},options:{...CO,scales:{...CO.scales,x:{display:true,grid:{display:false},ticks:{color:'#52525b',font:{size:9},maxRotation:0}}}}});
+  charts.ws=new Chart('wsChart',{type:'line',data:{labels:Array(HIST).fill(''),datasets:[{label:'Connections',data:[],borderColor:'#22c55e',backgroundColor:'rgba(34,197,94,.08)',fill:true},{label:'Rooms',data:[],borderColor:'#3b82f6',backgroundColor:'rgba(59,130,246,.08)',fill:true}]},options:{...CO,plugins:{legend:{display:true,labels:{color:'#52525b',font:{size:10},boxWidth:8,padding:12}}}}});
+  charts.ai=new Chart('aiChart',{type:'bar',data:{labels:[],datasets:[{data:[],backgroundColor:[]}]},options:{...CO,indexAxis:'y',scales:{x:{beginAtZero:true,grid:{color:'#27272a'},ticks:{color:'#52525b',font:{size:10}}},y:{display:true,grid:{display:false},ticks:{color:'#a1a1aa',font:{size:10}}}}}});
 }
 
-function updateDashboard(metrics) {
-  const totalReqs = (metrics['http_requests_total'] || []).reduce((s, e) => s + e.value, 0);
-  const memUsed = getMetricVal(metrics, 'meshwork_process_resident_memory_bytes') / (1024 * 1024);
-  const cpuUser = getMetricVal(metrics, 'meshwork_process_cpu_user_seconds_total');
-  const eventLoop = getMetricVal(metrics, 'meshwork_eventloop_lag_seconds') * 1000;
-  const wsConn = getMetricVal(metrics, 'websocket_connections_active');
-  const wsRooms = getMetricVal(metrics, 'websocket_rooms_active');
-  const aiTotal = (metrics['ai_chat_requests_total'] || []).reduce((s, e) => s + e.value, 0);
+function update(m){
+  const total=(m['http_requests_total']||[]).reduce((s,e)=>s+e.value,0);
+  const mem=val(m,'meshwork_process_resident_memory_bytes')/1048576;
+  const cpu=val(m,'meshwork_process_cpu_user_seconds_total');
+  const lag=val(m,'meshwork_eventloop_lag_seconds')*1000;
+  const ws=val(m,'websocket_connections_active');
+  const rooms=val(m,'websocket_rooms_active');
+  const ai=(m['ai_chat_requests_total']||[]).reduce((s,e)=>s+e.value,0);
 
-  const cards = [
-    { label: 'Total Requests', value: formatNum(totalReqs), sub: 'all time' },
-    { label: 'Memory Usage', value: memUsed.toFixed(1) + ' MB', sub: `of ${Math.round(memUsed / 1024 * 100) / 100 || '?'} GB heap` },
-    { label: 'Event Loop Lag', value: eventLoop.toFixed(1) + ' ms', sub: eventLoop < 10 ? 'healthy' : 'under load', cls: eventLoop < 10 ? 'up' : 'down' },
-    { label: 'WebSocket', value: wsConn + ' conn', sub: wsRooms + ' active rooms' },
-    { label: 'AI Requests', value: formatNum(aiTotal), sub: 'all time' },
-    { label: 'CPU Time', value: cpuUser.toFixed(2) + 's', sub: 'user seconds' },
+  const stats=[
+    {l:'Requests',v:fmt(total),s:'total'},
+    {l:'Memory',v:mem.toFixed(0)+' MB',s:'resident'},
+    {l:'Event Loop',v:lag.toFixed(1)+' ms',s:lag<10?'healthy':'under load',c:lag<10?'ok':lag<50?'warn':'err'},
+    {l:'WebSocket',v:ws+' / '+rooms,s:'conn / rooms'},
+    {l:'AI Calls',v:fmt(ai),s:'total'},
+    {l:'CPU',v:cpu.toFixed(1)+'s',s:'user time'},
   ];
-  document.getElementById('cards').innerHTML = cards.map(c =>
-    `<div class="card"><div class="card-label">${c.label}</div><div class="card-value">${c.value}</div><div class="card-sub ${c.cls||''}">${c.sub}</div></div>`
-  ).join('');
+  document.getElementById('cards').innerHTML=stats.map(s=>`<div class="stat"><div class="stat-label">${s.l}</div><div class="stat-value">${s.v}</div><div class="stat-sub ${s.c||''}">${s.s}</div></div>`).join('');
 
-  requestRateHistory.push(totalReqs);
-  if (requestRateHistory.length > HISTORY_LEN) requestRateHistory.shift();
-  const rateData = requestRateHistory.slice(1).map((v, i) => v - requestRateHistory[i]);
-  charts.requestRate.data.datasets[0].data = rateData;
-  charts.requestRate.update('none');
+  reqHist.push(total);if(reqHist.length>HIST)reqHist.shift();
+  charts.req.data.datasets[0].data=reqHist.slice(1).map((v,i)=>v-reqHist[i]);
+  charts.req.update('none');
 
-  wsHistory.push({ conn: wsConn, rooms: wsRooms });
-  if (wsHistory.length > HISTORY_LEN) wsHistory.shift();
-  charts.ws.data.datasets[0].data = wsHistory.map(h => h.conn);
-  charts.ws.data.datasets[1].data = wsHistory.map(h => h.rooms);
+  wsHist.push({c:ws,r:rooms});if(wsHist.length>HIST)wsHist.shift();
+  charts.ws.data.datasets[0].data=wsHist.map(h=>h.c);
+  charts.ws.data.datasets[1].data=wsHist.map(h=>h.r);
   charts.ws.update('none');
 
-  const latencyEntries = getDurationByPath(metrics);
-  const latencyMap = {};
-  for (const e of latencyEntries) {
-    const key = e.path || 'unknown';
-    if (!latencyMap[key]) latencyMap[key] = { sum: 0, count: 0 };
-    latencyMap[key].sum += e.duration * 1000;
-    latencyMap[key].count += 1;
-  }
-  const latencyLabels = Object.keys(latencyMap);
-  const latencyVals = latencyLabels.map(k => latencyMap[k].sum / latencyMap[k].count);
-  charts.latency.data.labels = latencyLabels.map(l => l.length > 20 ? l.slice(0, 20) + '...' : l);
-  charts.latency.data.datasets[0].data = latencyVals;
-  charts.latency.data.datasets[0].backgroundColor = latencyVals.map(v => latencyColor(v));
-  charts.latency.update('none');
+  const dm={};for(const e of durations(m)){const k=e.path||'?';if(!dm[k])dm[k]={s:0,n:0};dm[k].s+=e.duration*1000;dm[k].n++;}
+  const dk=Object.keys(dm),dv=dk.map(k=>dm[k].s/dm[k].n);
+  charts.lat.data.labels=dk.map(l=>l.length>18?l.slice(0,18)+'...':l);
+  charts.lat.data.datasets[0].data=dv;
+  charts.lat.data.datasets[0].backgroundColor=dv.map(v=>v<50?'#22c55e':v<200?'#eab308':'#ef4444');
+  charts.lat.update('none');
 
-  const aiByProvider = getSumByLabel(metrics, 'ai_chat_requests_total', 'provider');
-  const aiLabels = Object.keys(aiByProvider);
-  const aiVals = aiLabels.map(k => aiByProvider[k]);
-  charts.ai.data.labels = aiLabels;
-  charts.ai.data.datasets[0].data = aiVals;
-  charts.ai.data.datasets[0].backgroundColor = ['#6366f1', '#22c55e', '#eab308', '#ef4444', '#3b82f6', '#a855f7'];
+  const ab=sumBy(m,'ai_chat_requests_total','provider');
+  charts.ai.data.labels=Object.keys(ab);
+  charts.ai.data.datasets[0].data=Object.values(ab);
+  charts.ai.data.datasets[0].backgroundColor=['#6366f1','#22c55e','#eab308','#ef4444','#3b82f6','#a855f7'];
   charts.ai.update('none');
 
-  const endpointCounts = getSumByLabels(metrics, 'http_requests_total');
-  const sorted = Object.entries(endpointCounts)
-    .map(([key, count]) => {
-      const [method, path, status] = key.split(' ');
-      const lat = latencyMap[path];
-      return { method, path, status, count, avg: lat ? (lat.sum / lat.count).toFixed(1) : '-' };
-    })
-    .sort((a, b) => b.count - a.count)
-    .slice(0, 15);
-  document.getElementById('endpoints').innerHTML = sorted.map(e =>
-    `<tr><td><code>${e.method}</code></td><td><code>${e.path}</code></td><td>${e.status}</td><td>${formatNum(e.count)}</td><td>${e.avg === '-' ? '-' : e.avg + ' ms'}</td></tr>`
-  ).join('');
-
-  document.getElementById('rawOutput').textContent = '';
+  const ep=sumByLabels(m,'http_requests_total');
+  const rows=Object.entries(ep).map(([k,c])=>{
+    const[method,path,status]=k.split(' ');
+    const d=dm[path];
+    return{method,path,status,c,a:d?(d.s/d.n).toFixed(1):'-'};
+  }).sort((a,b)=>b.c-a.c).slice(0,15);
+  document.getElementById('endpoints').innerHTML=rows.map(r=>{
+    const sc=r.status||'';const cls=sc.startsWith('2')?'s2':sc.startsWith('4')?'s4':sc.startsWith('5')?'s5':'';
+    return`<tr><td><span class="method ${r.method}">${r.method}</span></td><td class="path">${r.path}</td><td class="status-code ${cls}">${sc}</td><td>${fmt(r.c)}</td><td>${r.a==='-'?'-':r.a+'ms'}</td></tr>`;
+  }).join('');
 }
 
-async function fetchMetrics() {
-  try {
-    const res = await fetch('/metrics');
-    if (!res.ok) throw new Error(res.statusText);
-    const text = await res.text();
-    document.getElementById('rawOutput').textContent = text;
-    const metrics = parsePrometheus(text);
-    updateDashboard(metrics);
+async function poll(){
+  try{
+    const r=await fetch('/metrics');if(!r.ok)throw new Error(r.statusText);
+    const t=await r.text();
+    document.getElementById('rawOutput').textContent=t;
+    update(parsePrometheus(t));
     document.getElementById('statusDot').classList.add('ok');
-    document.getElementById('statusText').textContent = 'Connected - ' + new Date().toLocaleTimeString();
-  } catch (err) {
+    document.getElementById('statusText').textContent='Live';
+  }catch(e){
     document.getElementById('statusDot').classList.remove('ok');
-    document.getElementById('statusText').textContent = 'Error: ' + err.message;
+    document.getElementById('statusText').textContent='Error';
   }
-  document.getElementById('refreshFill').style.width = '100%';
-  setTimeout(() => { document.getElementById('refreshFill').style.width = '0%'; }, 200);
+  const bar=document.getElementById('refreshFill');
+  bar.style.transition='none';bar.style.width='0%';
+  requestAnimationFrame(()=>{bar.style.transition=`width ${POLL}ms linear`;bar.style.width='100%';});
 }
 
-initCharts();
-fetchMetrics();
-setInterval(fetchMetrics, POLL_INTERVAL);
+init();poll();setInterval(poll,POLL);
 </script>
 </body>
 </html>
