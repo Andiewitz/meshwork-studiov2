@@ -48,6 +48,7 @@ export function createLocalStrategy() {
         const lockoutStatus = await isAccountLocked(email);
         if (lockoutStatus.locked) {
           const lockedUntilTime = lockoutStatus.lockedUntil?.toLocaleString() || "unknown";
+          log.warn({ email, lockedUntil: lockedUntilTime }, "Login blocked: account locked");
           return done(null, false, { 
             message: "Account temporarily locked due to too many failed login attempts. Please try again later.",
             lockedUntil: lockoutStatus.lockedUntil,
@@ -64,7 +65,8 @@ export function createLocalStrategy() {
             .from(users)
             .where(eq(users.email, email));
           user = dbUser;
-        } catch (error) {
+        } catch (error: any) {
+          log.error({ err: error?.message, email }, "Local strategy: DB query failed, falling back to in-memory");
           // Fallback to in-memory users
           user = inMemoryUsers.get(email);
         }
@@ -72,6 +74,7 @@ export function createLocalStrategy() {
         if (!user) {
           // SECURITY: Record failed attempt and prevent email enumeration
           await recordFailedAttempt(email);
+          log.info({ email }, "Local strategy: no user found");
           return done(null, false, { message: "No account found with this email" });
         }
 
@@ -79,6 +82,7 @@ export function createLocalStrategy() {
         if (!user.passwordHash) {
           // SECURITY: Record failed attempt
           await recordFailedAttempt(email);
+          log.info({ email }, "Local strategy: user has no password (OAuth-only account)");
           return done(null, false, { message: "This account uses Google Login. Please sign in with Google." });
         }
 
@@ -94,6 +98,7 @@ export function createLocalStrategy() {
             ? `Incorrect password. Account locked due to too many failed attempts.`
             : `Incorrect password. Please try again.`;
           
+          log.info({ email, attemptsRemaining: failureInfo.attemptsRemaining, locked: failureInfo.locked }, "Local strategy: incorrect password");
           return done(null, false, { 
             message,
             lockedUntil: failureInfo.lockedUntil,
@@ -103,6 +108,7 @@ export function createLocalStrategy() {
         // Successful login - reset failed attempts
         await resetFailedAttempts(email);
 
+        log.info({ email, userId: user.id }, "Local strategy: authentication successful");
         return done(null, {
           id: user.id,
           email: user.email,
@@ -111,8 +117,8 @@ export function createLocalStrategy() {
           profileImageUrl: user.profileImageUrl,
           authProvider: user.authProvider,
         } as Express.User);
-      } catch (err) {
-        log.error({ err }, "Authentication error");
+      } catch (err: any) {
+        log.error({ err: err?.message, stack: err?.stack, email }, "Local strategy: unhandled exception");
         return done(err);
       }
     }

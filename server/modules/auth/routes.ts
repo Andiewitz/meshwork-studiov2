@@ -67,6 +67,8 @@ export function registerAuthRoutes(app: Express, context: AppContext): void {
     if (process.env.NODE_ENV === "development") {
       log.debug("CSRF disabled for register in development mode");
     }
+    const { email } = req.body || {};
+    log.info({ email }, "Register attempt received");
     try {
       const { email, password, firstName, lastName } = req.body;
 
@@ -120,11 +122,16 @@ export function registerAuthRoutes(app: Express, context: AppContext): void {
     if (process.env.NODE_ENV === "development") {
       log.debug("CSRF disabled for login in development mode");
     }
+    const { email } = req.body || {};
+    log.info({ email }, "Login attempt received");
+
     passport.authenticate("local", (err: any, user: any, info: any) => {
       if (err) {
+        log.error({ err, email }, "Login: passport authenticate callback error");
         return next(err);
       }
       if (!user) {
+        log.warn({ email, infoMessage: info?.message, lockedUntil: info?.lockedUntil }, "Login: authentication rejected by strategy");
         const response: any = { 
           message: info?.message || "Authentication failed - please check your credentials" 
         };
@@ -134,29 +141,41 @@ export function registerAuthRoutes(app: Express, context: AppContext): void {
         }
         return res.status(401).json(response);
       }
+
+      log.info({ userId: user.id, email }, "Login: strategy accepted, calling req.login");
+
       req.login(user, (err) => {
         if (err) {
+          log.error({ err, userId: user.id, email }, "Login: req.login (session serialization) failed");
           return next(err);
         }
 
-        const { accessToken, refreshToken } = generateTokens(user);
-        
-        const isProd = process.env.NODE_ENV === "production";
-        res.cookie("access_token", accessToken, {
-          httpOnly: true,
-          secure: isProd,
-          sameSite: "lax",
-          maxAge: 15 * 60 * 1000, // 15 minutes
-        });
-        
-        res.cookie("refresh_token", refreshToken, {
-          httpOnly: true,
-          secure: isProd,
-          sameSite: "lax",
-          maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
-        });
+        log.info({ userId: user.id, email }, "Login: req.login successful, generating tokens");
 
-        return res.json({ user });
+        try {
+          const { accessToken, refreshToken } = generateTokens(user);
+          
+          const isProd = process.env.NODE_ENV === "production";
+          res.cookie("access_token", accessToken, {
+            httpOnly: true,
+            secure: isProd,
+            sameSite: "lax",
+            maxAge: 15 * 60 * 1000, // 15 minutes
+          });
+          
+          res.cookie("refresh_token", refreshToken, {
+            httpOnly: true,
+            secure: isProd,
+            sameSite: "lax",
+            maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
+          });
+
+          log.info({ userId: user.id, email }, "Login: tokens set, response sent");
+          return res.json({ user });
+        } catch (tokenErr: any) {
+          log.error({ err: tokenErr, userId: user.id, email }, "Login: token generation or cookie setup failed");
+          return next(tokenErr);
+        }
       });
     })(req, res, next);
   });
