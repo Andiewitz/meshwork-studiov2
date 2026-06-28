@@ -147,7 +147,7 @@ app.get("/health", async (_req, res) => {
 // Readiness Probe
 app.get("/ready", (_req, res) => {
   if (isAppReady) {
-    res.status(200).json({ status: "ready" });
+    res.status(200).json({ status: "ready", timestamp: new Date().toISOString() });
   } else {
     res.status(503).json({ status: "not_ready" });
   }
