@@ -260,9 +260,10 @@ describe('Login Route Integration Tests', () => {
       .send({ email: 'test@example.com', password: 'correctpassword' });
 
     expect(res.status).toBe(200);
-    const cookies = res.headers['set-cookie'] as string[] | undefined;
+    const cookies = res.headers['set-cookie'];
     expect(cookies).toBeDefined();
-    const cookieStr = cookies?.join('; ') || '';
+    const cookieArr = Array.isArray(cookies) ? cookies : [cookies];
+    const cookieStr = cookieArr?.join('; ') || '';
     expect(cookieStr).toContain('access_token');
     expect(cookieStr).toContain('refresh_token');
   });
@@ -324,7 +325,8 @@ describe('Token Refresh Route Integration Tests', () => {
       .post('/api/v1/auth/login')
       .send({ email: 'refresh@example.com', password: 'password123' });
 
-    const cookies = loginRes.headers['set-cookie'] as string[];
+    const rawCookies = loginRes.headers['set-cookie'];
+    const cookies = (Array.isArray(rawCookies) ? rawCookies : rawCookies ? [rawCookies] : []).filter(Boolean) as string[];
     const refreshCookie = cookies?.find((c: string) => c.startsWith('refresh_token='));
 
     if (refreshCookie) {
@@ -363,7 +365,8 @@ describe('Logout Route Integration Tests', () => {
       .post('/api/v1/auth/login')
       .send({ email: 'logout@example.com', password: 'password123' });
 
-    const cookies = loginRes.headers['set-cookie'] as string[];
+    const rawCookies = loginRes.headers['set-cookie'];
+    const cookies = (Array.isArray(rawCookies) ? rawCookies : rawCookies ? [rawCookies] : []).filter(Boolean) as string[];
     const refreshCookie = cookies?.find((c: string) => c.startsWith('refresh_token='));
     const accessCookie = cookies?.find((c: string) => c.startsWith('access_token='));
 
@@ -389,7 +392,8 @@ describe('Logout Route Integration Tests', () => {
       .post('/api/v1/auth/login')
       .send({ email: 'revoke@example.com', password: 'password123' });
 
-    const cookies = loginRes.headers['set-cookie'] as string[];
+    const rawCookies = loginRes.headers['set-cookie'];
+    const cookies = (Array.isArray(rawCookies) ? rawCookies : rawCookies ? [rawCookies] : []).filter(Boolean) as string[];
     const refreshCookie = cookies?.find((c: string) => c.startsWith('refresh_token='));
 
     if (refreshCookie) {

@@ -8,7 +8,8 @@ import { db } from "../workspace/db";
 import { sessions, users } from "@shared/schema";
 import { eq } from "drizzle-orm";
 import { verifyToken } from "../auth/jwt";
-import { createRedisClient } from "../../lib/redis";
+import { getRedis, createRedisClient } from "../../lib/redis";
+import type { Redis as RedisType } from "ioredis";
 import { websocketConnectionsActive, websocketRoomsActive } from "../../lib/metrics";
 import crypto from "crypto";
 
@@ -17,6 +18,9 @@ const log = createChildLogger("websocket");
 // ─── Redis Pub/Sub Setup ─────────────────────────────────────────────
 const ORIGIN_SERVER_ID = crypto.randomUUID();
 
+let redisSub: RedisType | null = null;
+let redisPub: RedisType | null = null;
+
 // Initialize Redis subscription lazily
 let redisSubInitialized = false;
 
@@ -24,7 +28,7 @@ function initRedisSub() {
   if (redisSubInitialized) return;
   const sub = getRedisSub();
   if (sub) {
-    sub.on("message", (channel, message) => {
+    sub.on("message", (channel: string, message: string) => {
       if (!channel.startsWith("ws:room:")) return;
       try {
         const workspaceId = parseInt(channel.split(":")[2]);
@@ -49,6 +53,11 @@ function getRedisSub() {
   return redisSub;
 }
 
+function getRedisPub() {
+  if (!redisPub) redisPub = getRedis();
+  return redisPub;
+}
+
 function publishToRoom(workspaceId: number, message: ServerMessage, excludeUserId?: string) {
     // 1. Always broadcast to local clients on this node
     broadcastToRoom(workspaceId, message, excludeUserId);
@@ -62,7 +71,7 @@ function publishToRoom(workspaceId: number, message: ServerMessage, excludeUserI
             excludeUserId,
             data: message
         });
-        pub.publish(`ws:room:${workspaceId}`, payload).catch(err => {
+        pub.publish(`ws:room:${workspaceId}`, payload).catch((err: Error) => {
             log.error({ err, workspaceId }, "Redis publish failed");
         });
     }
@@ -142,7 +151,7 @@ function removeFromAllRooms(ws: WebSocket) {
                     rooms.delete(workspaceId);
                     websocketRoomsActive.set(rooms.size);
                     if (redisSub) {
-                        redisSub.unsubscribe(`ws:room:${workspaceId}`).catch(err => log.error({ err }, "Redis unsubscribe failed"));
+                        redisSub.unsubscribe(`ws:room:${workspaceId}`).catch((err: Error) => log.error({ err }, "Redis unsubscribe failed"));
                     }
                 }
                 return { workspaceId, userId };
@@ -254,7 +263,7 @@ export function initializeWebSocket(httpServer: HttpServer) {
                             rooms.set(msg.workspaceId, new Map());
                             websocketRoomsActive.set(rooms.size);
                             if (redisSub) {
-                                redisSub.subscribe(`ws:room:${msg.workspaceId}`).catch(err => log.error({ err }, "Redis subscribe failed"));
+                                redisSub.subscribe(`ws:room:${msg.workspaceId}`).catch((err: Error) => log.error({ err }, "Redis subscribe failed"));
                             }
                         }
 
