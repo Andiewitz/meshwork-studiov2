@@ -174,32 +174,13 @@ app.get("/ready", (_req, res) => {
       log.info(`Server started listening on port ${port} (initializing modules...)`);
     });
 
-    try {
-      log.info("Starting database migrations...");
-    try {
-      await db.execute(sql`ALTER TABLE workspaces ADD COLUMN IF NOT EXISTS updated_at timestamp DEFAULT CURRENT_TIMESTAMP`);
-      // Targeted hotfix: revert `updated_at` for legacy workspaces corrupted by the above DEFAULT CURRENT_TIMESTAMP
-      await db.execute(sql`UPDATE workspaces SET updated_at = created_at WHERE updated_at > '2026-04-19 07:00:00' AND updated_at < '2026-04-19 08:30:00' AND created_at < '2026-04-19 07:00:00'`);
-      log.info("Database migrations applied successfully");
-    } catch (dbErr) {
-      log.warn({ err: dbErr }, "Failed to apply DB migrations, might already exist or DB is unavailable");
-    }
-    
-    log.info("Starting module initialization...");
-    await registerRoutes(httpServer, app);
-    log.info("All modules initialized successfully");
-
-    // Initialize WebSocket presence server for real-time cursors
-    const { initializeWebSocket } = await import("./modules/team/websocket");
-    initializeWebSocket(httpServer);
-    log.info("WebSocket presence server initialized");
-
-    // Serve static files AFTER routes so API routes aren't caught by catch-all
+    // Serve static files FIRST so the frontend always loads, even if modules fail
     if (process.env.NODE_ENV === "production") {
       log.info("Serving static frontend files from /public");
       serveStatic(app);
     }
 
+    // Error handler — registered after static so it doesn't catch SPA routes
     app.use((err: any, _req: Request, res: Response, next: NextFunction) => {
       const status = err.status || err.statusCode || 500;
       const message = err.message || "Internal Server Error";
@@ -224,6 +205,26 @@ app.get("/ready", (_req, res) => {
       return res.status(status).json({ message });
     });
 
+    try {
+      log.info("Starting database migrations...");
+    try {
+      await db.execute(sql`ALTER TABLE workspaces ADD COLUMN IF NOT EXISTS updated_at timestamp DEFAULT CURRENT_TIMESTAMP`);
+      // Targeted hotfix: revert `updated_at` for legacy workspaces corrupted by the above DEFAULT CURRENT_TIMESTAMP
+      await db.execute(sql`UPDATE workspaces SET updated_at = created_at WHERE updated_at > '2026-04-19 07:00:00' AND updated_at < '2026-04-19 08:30:00' AND created_at < '2026-04-19 07:00:00'`);
+      log.info("Database migrations applied successfully");
+    } catch (dbErr) {
+      log.warn({ err: dbErr }, "Failed to apply DB migrations, might already exist or DB is unavailable");
+    }
+    
+    log.info("Starting module initialization...");
+    await registerRoutes(httpServer, app);
+    log.info("All modules initialized successfully");
+
+    // Initialize WebSocket presence server for real-time cursors
+    const { initializeWebSocket } = await import("./modules/team/websocket");
+    initializeWebSocket(httpServer);
+    log.info("WebSocket presence server initialized");
+
     // Importantly only setup vite in development and after
     // setting up all the other routes so the catch-all route
     // doesn't interfere with the other routes
@@ -235,6 +236,7 @@ app.get("/ready", (_req, res) => {
     isAppReady = true;
     log.info(`Server fully ready and serving on port ${port}`);
   } catch (error) {
+    console.error("CRITICAL FAILURE:", error);
     log.fatal({ err: error }, "CRITICAL FAILURE DURING SERVER INITIALIZATION");
     log.error("The server is still listening on /health but other routes may be broken.");
     // We do NOT exit to allow healthcheck to pass and logs to stay accessible.
