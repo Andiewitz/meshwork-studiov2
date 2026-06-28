@@ -1,0 +1,306 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Meshwork Studio - Metrics</title>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.7/dist/chart.umd.min.js"></script>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+:root{--bg:#0a0a0f;--card:#12121a;--border:#1e1e2e;--text:#e0e0e8;--muted:#6b7280;--accent:#6366f1;--green:#22c55e;--red:#ef4444;--yellow:#eab308;--blue:#3b82f6}
+body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',monospace;background:var(--bg);color:var(--text);padding:20px;min-height:100vh}
+.header{display:flex;align-items:center;justify-content:space-between;margin-bottom:24px}
+.header h1{font-size:20px;font-weight:600}
+.header h1 span{color:var(--accent)}
+.status{display:flex;align-items:center;gap:8px;font-size:13px;color:var(--muted)}
+.status .dot{width:8px;height:8px;border-radius:50%;background:var(--red)}
+.status .dot.ok{background:var(--green)}
+.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:16px;margin-bottom:24px}
+.card{background:var(--card);border:1px solid var(--border);border-radius:12px;padding:20px}
+.card-label{font-size:12px;color:var(--muted);text-transform:uppercase;letter-spacing:0.5px;margin-bottom:8px}
+.card-value{font-size:28px;font-weight:700}
+.card-sub{font-size:12px;color:var(--muted);margin-top:4px}
+.card-sub.up{color:var(--green)}
+.card-sub.down{color:var(--red)}
+.charts{display:grid;grid-template-columns:repeat(auto-fit,minmax(400px,1fr));gap:16px;margin-bottom:24px}
+.chart-card{background:var(--card);border:1px solid var(--border);border-radius:12px;padding:20px}
+.chart-card h3{font-size:14px;font-weight:600;margin-bottom:16px}
+.table-card{background:var(--card);border:1px solid var(--border);border-radius:12px;padding:20px;margin-bottom:24px}
+.table-card h3{font-size:14px;font-weight:600;margin-bottom:16px}
+table{width:100%;border-collapse:collapse}
+th{text-align:left;font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:0.5px;padding:8px 12px;border-bottom:1px solid var(--border)}
+td{padding:8px 12px;border-bottom:1px solid var(--border);font-size:13px}
+tr:last-child td{border-bottom:none}
+.latency-bar{height:6px;border-radius:3px;background:var(--border);overflow:hidden;min-width:60px}
+.latency-fill{height:100%;border-radius:3px;transition:width 0.3s}
+.raw-toggle{cursor:pointer;color:var(--accent);font-size:12px;border:none;background:none;font-family:inherit}
+.raw-toggle:hover{text-decoration:underline}
+pre.raw{background:#0d0d14;border:1px solid var(--border);border-radius:8px;padding:16px;font-size:11px;overflow-x:auto;white-space:pre-wrap;display:none;margin-top:12px;color:var(--muted);max-height:400px;overflow-y:auto}
+.refresh-bar{position:fixed;bottom:0;left:0;right:0;height:3px;background:var(--border)}
+.refresh-fill{height:100%;background:var(--accent);width:0;transition:width 0.1s linear}
+.empty{text-align:center;padding:40px;color:var(--muted);font-size:14px}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:0.5}}
+.loading{animation:pulse 1.5s infinite}
+</style>
+</head>
+<body>
+<div class="header">
+  <h1><span>meshwork</span> metrics</h1>
+  <div class="status">
+    <div class="dot" id="statusDot"></div>
+    <span id="statusText">Connecting...</span>
+    <button class="raw-toggle" onclick="toggleRaw()">Show Raw</button>
+  </div>
+</div>
+
+<div class="grid" id="cards"></div>
+<div class="charts">
+  <div class="chart-card"><h3>Request Rate (req/s)</h3><canvas id="requestRateChart"></canvas></div>
+  <div class="chart-card"><h3>Response Time Distribution</h3><canvas id="latencyChart"></canvas></div>
+</div>
+<div class="charts">
+  <div class="chart-card"><h3>Active Connections & Rooms</h3><canvas id="wsChart"></canvas></div>
+  <div class="chart-card"><h3>AI Requests</h3><canvas id="aiChart"></canvas></div>
+</div>
+<div class="table-card">
+  <h3>Top Endpoints by Request Count</h3>
+  <table><thead><tr><th>Method</th><th>Path</th><th>Status</th><th>Count</th><th>Avg Latency</th></tr></thead><tbody id="endpoints"></tbody></table>
+</div>
+<pre class="raw" id="rawOutput"></pre>
+<div class="refresh-bar"><div class="refresh-fill" id="refreshFill"></div></div>
+
+<script>
+const POLL_INTERVAL = 10000;
+const HISTORY_LEN = 60;
+let requestRateHistory = [];
+let wsHistory = [];
+let aiHistory = [];
+let rawVisible = false;
+let charts = {};
+
+function toggleRaw() {
+  rawVisible = !rawVisible;
+  document.getElementById('rawOutput').style.display = rawVisible ? 'block' : 'none';
+}
+
+function parsePrometheus(text) {
+  const lines = text.split('\n');
+  const metrics = {};
+  for (const line of lines) {
+    if (line.startsWith('#') || !line.trim()) continue;
+    const match = line.match(/^([a-zA-Z_:][a-zA-Z0-9_:]*)\{([^}]*)\}\s+([\d.eE+-]+)\s*(.*)$/);
+    if (match) {
+      const [, name, labelsStr, value] = match;
+      const labels = {};
+      if (labelsStr) {
+        for (const l of labelsStr.split(',')) {
+          const [k, v] = l.split('=');
+          labels[k.trim()] = v.replace(/"/g, '').trim();
+        }
+      }
+      if (!metrics[name]) metrics[name] = [];
+      metrics[name].push({ labels, value: parseFloat(value) });
+    } else {
+      const match2 = line.match(/^([a-zA-Z_:][a-zA-Z0-9_:]*)\s+([\d.eE+-]+)\s*(.*)$/);
+      if (match2) {
+        const [, name, value] = match2;
+        if (!metrics[name]) metrics[name] = [];
+        metrics[name].push({ labels: {}, value: parseFloat(value) });
+      }
+    }
+  }
+  return metrics;
+}
+
+function getMetricVal(metrics, name, labels = {}) {
+  const entries = metrics[name] || [];
+  for (const e of entries) {
+    let match = true;
+    for (const [k, v] of Object.entries(labels)) {
+      if (e.labels[k] !== v) { match = false; break; }
+    }
+    if (match) return e.value;
+  }
+  return 0;
+}
+
+function getSumByLabel(metrics, name, labelKey) {
+  const groups = {};
+  for (const e of (metrics[name] || [])) {
+    const key = e.labels[labelKey] || 'unknown';
+    groups[key] = (groups[key] || 0) + e.value;
+  }
+  return groups;
+}
+
+function getSumByLabels(metrics, name) {
+  const groups = {};
+  for (const e of (metrics[name] || [])) {
+    const key = `${e.labels.method || ''} ${e.labels.path || ''} ${e.labels.status_code || ''}`.trim();
+    groups[key] = (groups[key] || 0) + e.value;
+  }
+  return groups;
+}
+
+function getDurationByPath(metrics) {
+  const results = [];
+  for (const e of (metrics['http_request_duration_seconds'] || [])) {
+    results.push({ method: e.labels.method, path: e.labels.path, duration: e.value });
+  }
+  return results;
+}
+
+function formatNum(n) {
+  if (n >= 1e9) return (n / 1e9).toFixed(1) + 'B';
+  if (n >= 1e6) return (n / 1e6).toFixed(1) + 'M';
+  if (n >= 1e3) return (n / 1e3).toFixed(1) + 'K';
+  return n.toFixed(0);
+}
+
+function latencyColor(pct) {
+  if (pct < 50) return 'var(--green)';
+  if (pct < 200) return 'var(--yellow)';
+  return 'var(--red)';
+}
+
+const chartOpts = {
+  responsive: true,
+  maintainAspectRatio: false,
+  animation: { duration: 300 },
+  plugins: { legend: { display: false } },
+  scales: {
+    x: { display: false },
+    y: { beginAtZero: true, grid: { color: '#1e1e2e' }, ticks: { color: '#6b7280', font: { size: 10, family: 'monospace' } } }
+  },
+  elements: { point: { radius: 0 }, line: { tension: 0.3, borderWidth: 2 } }
+};
+
+function initCharts() {
+  const rc = document.getElementById('requestRateChart');
+  charts.requestRate = new Chart(rc, {
+    type: 'line',
+    data: { labels: Array(HISTORY_LEN).fill(''), datasets: [{ data: [], borderColor: '#6366f1', backgroundColor: 'rgba(99,102,241,0.1)', fill: true }] },
+    options: { ...chartOpts }
+  });
+
+  const lc = document.getElementById('latencyChart');
+  charts.latency = new Chart(lc, {
+    type: 'bar',
+    data: { labels: [], datasets: [{ data: [], backgroundColor: [] }] },
+    options: { ...chartOpts, scales: { ...chartOpts.scales, x: { display: true, grid: { display: false }, ticks: { color: '#6b7280', font: { size: 10, family: 'monospace' } } } } }
+  });
+
+  const wc = document.getElementById('wsChart');
+  charts.ws = new Chart(wc, {
+    type: 'line',
+    data: { labels: Array(HISTORY_LEN).fill(''), datasets: [
+      { label: 'Connections', data: [], borderColor: '#22c55e', backgroundColor: 'rgba(34,197,94,0.1)', fill: true },
+      { label: 'Rooms', data: [], borderColor: '#3b82f6', backgroundColor: 'rgba(59,130,246,0.1)', fill: true }
+    ] },
+    options: { ...chartOpts, plugins: { legend: { display: true, labels: { color: '#6b7280', font: { size: 10, family: 'monospace' } } } } }
+  });
+
+  const ac = document.getElementById('aiChart');
+  charts.ai = new Chart(ac, {
+    type: 'bar',
+    data: { labels: [], datasets: [{ data: [], backgroundColor: [] }] },
+    options: { ...chartOpts, indexAxis: 'y', scales: { x: { beginAtZero: true, grid: { color: '#1e1e2e' }, ticks: { color: '#6b7280', font: { size: 10, family: 'monospace' } } }, y: { display: true, grid: { display: false }, ticks: { color: '#6b7280', font: { size: 10, family: 'monospace' } } } } }
+  });
+}
+
+function updateDashboard(metrics) {
+  const totalReqs = (metrics['http_requests_total'] || []).reduce((s, e) => s + e.value, 0);
+  const memUsed = getMetricVal(metrics, 'meshwork_process_resident_memory_bytes') / (1024 * 1024);
+  const cpuUser = getMetricVal(metrics, 'meshwork_process_cpu_user_seconds_total');
+  const eventLoop = getMetricVal(metrics, 'meshwork_eventloop_lag_seconds') * 1000;
+  const wsConn = getMetricVal(metrics, 'websocket_connections_active');
+  const wsRooms = getMetricVal(metrics, 'websocket_rooms_active');
+  const aiTotal = (metrics['ai_chat_requests_total'] || []).reduce((s, e) => s + e.value, 0);
+
+  const cards = [
+    { label: 'Total Requests', value: formatNum(totalReqs), sub: 'all time' },
+    { label: 'Memory Usage', value: memUsed.toFixed(1) + ' MB', sub: `of ${Math.round(memUsed / 1024 * 100) / 100 || '?'} GB heap` },
+    { label: 'Event Loop Lag', value: eventLoop.toFixed(1) + ' ms', sub: eventLoop < 10 ? 'healthy' : 'under load', cls: eventLoop < 10 ? 'up' : 'down' },
+    { label: 'WebSocket', value: wsConn + ' conn', sub: wsRooms + ' active rooms' },
+    { label: 'AI Requests', value: formatNum(aiTotal), sub: 'all time' },
+    { label: 'CPU Time', value: cpuUser.toFixed(2) + 's', sub: 'user seconds' },
+  ];
+  document.getElementById('cards').innerHTML = cards.map(c =>
+    `<div class="card"><div class="card-label">${c.label}</div><div class="card-value">${c.value}</div><div class="card-sub ${c.cls||''}">${c.sub}</div></div>`
+  ).join('');
+
+  requestRateHistory.push(totalReqs);
+  if (requestRateHistory.length > HISTORY_LEN) requestRateHistory.shift();
+  const rateData = requestRateHistory.slice(1).map((v, i) => v - requestRateHistory[i]);
+  charts.requestRate.data.datasets[0].data = rateData;
+  charts.requestRate.update('none');
+
+  wsHistory.push({ conn: wsConn, rooms: wsRooms });
+  if (wsHistory.length > HISTORY_LEN) wsHistory.shift();
+  charts.ws.data.datasets[0].data = wsHistory.map(h => h.conn);
+  charts.ws.data.datasets[1].data = wsHistory.map(h => h.rooms);
+  charts.ws.update('none');
+
+  const latencyEntries = getDurationByPath(metrics);
+  const latencyMap = {};
+  for (const e of latencyEntries) {
+    const key = e.path || 'unknown';
+    if (!latencyMap[key]) latencyMap[key] = { sum: 0, count: 0 };
+    latencyMap[key].sum += e.duration * 1000;
+    latencyMap[key].count += 1;
+  }
+  const latencyLabels = Object.keys(latencyMap);
+  const latencyVals = latencyLabels.map(k => latencyMap[k].sum / latencyMap[k].count);
+  charts.latency.data.labels = latencyLabels.map(l => l.length > 20 ? l.slice(0, 20) + '...' : l);
+  charts.latency.data.datasets[0].data = latencyVals;
+  charts.latency.data.datasets[0].backgroundColor = latencyVals.map(v => latencyColor(v));
+  charts.latency.update('none');
+
+  const aiByProvider = getSumByLabel(metrics, 'ai_chat_requests_total', 'provider');
+  const aiLabels = Object.keys(aiByProvider);
+  const aiVals = aiLabels.map(k => aiByProvider[k]);
+  charts.ai.data.labels = aiLabels;
+  charts.ai.data.datasets[0].data = aiVals;
+  charts.ai.data.datasets[0].backgroundColor = ['#6366f1', '#22c55e', '#eab308', '#ef4444', '#3b82f6', '#a855f7'];
+  charts.ai.update('none');
+
+  const endpointCounts = getSumByLabels(metrics, 'http_requests_total');
+  const sorted = Object.entries(endpointCounts)
+    .map(([key, count]) => {
+      const [method, path, status] = key.split(' ');
+      const lat = latencyMap[path];
+      return { method, path, status, count, avg: lat ? (lat.sum / lat.count).toFixed(1) : '-' };
+    })
+    .sort((a, b) => b.count - a.count)
+    .slice(0, 15);
+  document.getElementById('endpoints').innerHTML = sorted.map(e =>
+    `<tr><td><code>${e.method}</code></td><td><code>${e.path}</code></td><td>${e.status}</td><td>${formatNum(e.count)}</td><td>${e.avg === '-' ? '-' : e.avg + ' ms'}</td></tr>`
+  ).join('');
+
+  document.getElementById('rawOutput').textContent = '';
+}
+
+async function fetchMetrics() {
+  try {
+    const res = await fetch('/metrics');
+    if (!res.ok) throw new Error(res.statusText);
+    const text = await res.text();
+    document.getElementById('rawOutput').textContent = text;
+    const metrics = parsePrometheus(text);
+    updateDashboard(metrics);
+    document.getElementById('statusDot').classList.add('ok');
+    document.getElementById('statusText').textContent = 'Connected - ' + new Date().toLocaleTimeString();
+  } catch (err) {
+    document.getElementById('statusDot').classList.remove('ok');
+    document.getElementById('statusText').textContent = 'Error: ' + err.message;
+  }
+  document.getElementById('refreshFill').style.width = '100%';
+  setTimeout(() => { document.getElementById('refreshFill').style.width = '0%'; }, 200);
+}
+
+initCharts();
+fetchMetrics();
+setInterval(fetchMetrics, POLL_INTERVAL);
+</script>
+</body>
+</html>

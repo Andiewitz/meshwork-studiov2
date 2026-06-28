@@ -16,6 +16,8 @@ import { apiLimiter } from "./middleware/rateLimit";
 import { isRedisAvailable } from "./lib/redis";
 import { metricsMiddleware } from "./middleware/metricsMiddleware";
 import { metricsRegistry } from "./lib/metrics";
+import path from "path";
+import fs from "fs";
 
 let isAppReady = false;
 
@@ -41,7 +43,7 @@ const frontendUrl = process.env.FRONTEND_URL || (process.env.NODE_ENV === "produ
 const cspConfig = {
   directives: {
     ...helmet.contentSecurityPolicy.getDefaultDirectives(),
-    "script-src": ["'self'", "'unsafe-inline'", "https://www.google.com", "https://www.gstatic.com"],
+    "script-src": ["'self'", "'unsafe-inline'", "https://www.google.com", "https://www.gstatic.com", "https://cdn.jsdelivr.net"],
     "frame-src": ["'self'", "https://www.google.com", "https://recaptcha.google.com"],
     "connect-src": ["'self'", frontendUrl, "https://www.google.com", "https://www.gstatic.com"],
     "img-src": ["'self'", "data:", "https://www.gstatic.com", "https://*.googleusercontent.com", "https://lh3.googleusercontent.com", "https://lh4.googleusercontent.com", "https://lh5.googleusercontent.com"],
@@ -162,6 +164,21 @@ app.get("/ready", (_req, res) => {
     } catch (err) {
       log.error({ err }, "Metrics endpoint error");
       res.status(500).send("Error generating metrics");
+    }
+  });
+
+  // Admin Metrics Dashboard
+  app.get("/admin", (_req, res) => {
+    try {
+      const htmlPath = path.resolve(__dirname, "admin.html");
+      if (fs.existsSync(htmlPath)) {
+        res.type("html").send(fs.readFileSync(htmlPath, "utf-8"));
+      } else {
+        res.status(404).send("Admin dashboard not found");
+      }
+    } catch (err) {
+      log.error({ err }, "Admin dashboard error");
+      res.status(500).send("Error loading dashboard");
     }
   });
 
