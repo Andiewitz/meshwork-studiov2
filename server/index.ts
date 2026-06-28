@@ -154,77 +154,34 @@ app.get("/ready", (_req, res) => {
 });
 
 // Prometheus Metrics Endpoint
-app.get("/metrics", async (_req, res) => {
-  try {
-    res.set("Content-Type", metricsRegistry.contentType);
-    const metrics = await metricsRegistry.metrics();
-    res.send(metrics);
-  } catch (err) {
-    log.error({ err }, "Metrics endpoint error");
-    res.status(500).send("Error generating metrics");
-  }
-});
-
-
-app.use((req, res, next) => {
-  const start = Date.now();
-  const path = req.path;
-  let capturedJsonResponse: Record<string, any> | undefined = undefined;
-
-  const originalResJson = res.json;
-  res.json = function (bodyJson, ...args) {
-    capturedJsonResponse = bodyJson;
-    return originalResJson.apply(res, [bodyJson, ...args]);
-  };
-
-  res.on("finish", () => {
-    const duration = Date.now() - start;
-    if (path.startsWith("/api")) {
-      const logData: Record<string, any> = {
-        method: req.method,
-        path,
-        status: res.statusCode,
-        duration,
-      };
-
-      // SECURITY: Sanitize logs to prevent leaking sensitive data (PII, tokens, etc.)
-      if (capturedJsonResponse && process.env.NODE_ENV === "production") {
-        const sanitized = { ...capturedJsonResponse };
-        const sensitiveKeys = ["email", "password", "token", "passwordHash", "apiKey", "secret"];
-        
-        const redact = (obj: any) => {
-          for (const key in obj) {
-            if (sensitiveKeys.some(sk => key.toLowerCase().includes(sk.toLowerCase()))) {
-              obj[key] = "[REDACTED]";
-            } else if (typeof obj[key] === "object" && obj[key] !== null) {
-              redact(obj[key]);
-            }
-          }
-        };
-        redact(sanitized);
-        logData.response = sanitized;
-      } else if (capturedJsonResponse) {
-        logData.response = capturedJsonResponse;
-      }
-
-      log.info(logData, `${req.method} ${path} ${res.statusCode} in ${duration}ms`);
+  app.get("/metrics", async (_req, res) => {
+    try {
+      res.set("Content-Type", metricsRegistry.contentType);
+      const metrics = await metricsRegistry.metrics();
+      res.send(metrics);
+    } catch (err) {
+      log.error({ err }, "Metrics endpoint error");
+      res.status(500).send("Error generating metrics");
     }
   });
 
-  next();
-});
+  // Serve static files early so the frontend works even if DB initialization fails
+  if (process.env.NODE_ENV === "production") {
+    log.info("Serving static frontend files from /public");
+    serveStatic(app);
+  }
 
-(async () => {
-  const port = parseInt(process.env.PORT || "5000", 10);
-  
-  // Start listening BEFORE expensive initialization to pass healthchecks early.
-  // Port 0.0.0.0 is required for Railway/Docker.
-  httpServer.listen(port, "0.0.0.0", () => {
-    log.info(`Server started listening on port ${port} (initializing modules...)`);
-  });
+  (async () => {
+    const port = parseInt(process.env.PORT || "5000", 10);
+    
+    // Start listening BEFORE expensive initialization to pass healthchecks early.
+    // Port 0.0.0.0 is required for Railway/Docker.
+    httpServer.listen(port, "0.0.0.0", () => {
+      log.info(`Server started listening on port ${port} (initializing modules...)`);
+    });
 
-  try {
-    log.info("Starting database migrations...");
+    try {
+      log.info("Starting database migrations...");
     try {
       await db.execute(sql`ALTER TABLE workspaces ADD COLUMN IF NOT EXISTS updated_at timestamp DEFAULT CURRENT_TIMESTAMP`);
       // Targeted hotfix: revert `updated_at` for legacy workspaces corrupted by the above DEFAULT CURRENT_TIMESTAMP
@@ -270,10 +227,7 @@ app.use((req, res, next) => {
     // Importantly only setup vite in development and after
     // setting up all the other routes so the catch-all route
     // doesn't interfere with the other routes
-    if (process.env.NODE_ENV === "production") {
-      log.info("Serving static frontend files from /public");
-      serveStatic(app);
-    } else {
+    if (process.env.NODE_ENV !== "production") {
       const { setupVite } = await import("./vite");
       await setupVite(httpServer, app);
     }
