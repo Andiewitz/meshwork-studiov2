@@ -16,24 +16,37 @@ const log = createChildLogger("websocket");
 
 // ─── Redis Pub/Sub Setup ─────────────────────────────────────────────
 const ORIGIN_SERVER_ID = crypto.randomUUID();
-const redisPub = createRedisClient();
-const redisSub = createRedisClient();
 
-if (redisSub) {
-    redisSub.on("message", (channel, message) => {
-        if (!channel.startsWith("ws:room:")) return;
-        try {
-            const workspaceId = parseInt(channel.split(":")[2]);
-            const payload = JSON.parse(message);
-            // Ignore messages originating from this server instance
-            if (payload.originServerId === ORIGIN_SERVER_ID) return;
-            
-            // Broadcast the message locally
-            broadcastToRoom(workspaceId, payload.data, payload.excludeUserId);
-        } catch (err) {
-            log.error({ err, channel }, "Error processing pub/sub message");
-        }
+// Initialize Redis subscription lazily
+let redisSubInitialized = false;
+
+function initRedisSub() {
+  if (redisSubInitialized) return;
+  const sub = getRedisSub();
+  if (sub) {
+    sub.on("message", (channel, message) => {
+      if (!channel.startsWith("ws:room:")) return;
+      try {
+        const workspaceId = parseInt(channel.split(":")[2]);
+        const payload = JSON.parse(message);
+        if (payload.originServerId === ORIGIN_SERVER_ID) return;
+        broadcastToRoom(workspaceId, payload.data, payload.excludeUserId);
+      } catch (err) {
+        log.error({ err, channel }, "Error processing pub/sub message");
+      }
     });
+    redisSubInitialized = true;
+  }
+}
+
+// Initialize on first publish
+function ensureRedisSub() {
+  if (!redisSubInitialized) initRedisSub();
+}
+
+function getRedisSub() {
+  if (!redisSub) redisSub = createRedisClient();
+  return redisSub;
 }
 
 function publishToRoom(workspaceId: number, message: ServerMessage, excludeUserId?: string) {
@@ -41,13 +54,15 @@ function publishToRoom(workspaceId: number, message: ServerMessage, excludeUserI
     broadcastToRoom(workspaceId, message, excludeUserId);
 
     // 2. Publish to Redis for other nodes
-    if (redisPub) {
+    const pub = getRedisPub();
+    if (pub) {
+        ensureRedisSub(); // Initialize subscription on first publish
         const payload = JSON.stringify({
             originServerId: ORIGIN_SERVER_ID,
             excludeUserId,
             data: message
         });
-        redisPub.publish(`ws:room:${workspaceId}`, payload).catch(err => {
+        pub.publish(`ws:room:${workspaceId}`, payload).catch(err => {
             log.error({ err, workspaceId }, "Redis publish failed");
         });
     }
