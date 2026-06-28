@@ -158,6 +158,7 @@ pre.raw{
 
   <div class="summary" id="summary"></div>
   <div class="stats" id="cards"></div>
+  <div class="stats" id="userCards" style="margin-bottom:20px"></div>
 
   <div class="chart-row">
     <div class="panel">
@@ -169,10 +170,10 @@ pre.raw{
     </div>
     <div class="panel">
       <div class="panel-header">
-        <span class="panel-title">Response Time</span>
-        <span class="panel-badge">ms avg</span>
+        <span class="panel-title">User Growth</span>
+        <span class="panel-badge">cumulative</span>
       </div>
-      <div class="chart-wrap"><canvas id="latencyChart"></canvas></div>
+      <div class="chart-wrap"><canvas id="userGrowthChart"></canvas></div>
     </div>
   </div>
 
@@ -272,6 +273,7 @@ const timeScaleOpts={
 
 function init(){
   charts.req=new Chart('requestRateChart',{type:'line',data:{labels:[],datasets:[{data:[],borderColor:'#FF8000',backgroundColor:'rgba(255,128,0,.06)',fill:true}]},options:{...CO}});
+  charts.userGrowth=new Chart('userGrowthChart',{type:'line',data:{labels:[],datasets:[{label:'Total Users',data:[],borderColor:'#FF8000',backgroundColor:'rgba(255,128,0,.06)',fill:true},{label:'Active 24h',data:[],borderColor:'#22C55E',backgroundColor:'rgba(34,197,94,.06)',fill:true},{label:'Workspaces',data:[],borderColor:'#3B82F6',backgroundColor:'rgba(59,130,246,.06)',fill:true}]},options:{...CO,plugins:{legend:{display:true,labels:{color:'#999999',font:{size:10},boxWidth:8,padding:12}}}}});
   charts.lat=new Chart('latencyChart',{type:'bar',data:{labels:[],datasets:[{data:[],backgroundColor:[]}]},options:{...CO,scales:{...CO.scales,x:{display:true,grid:{display:false},ticks:{color:'#555555',font:{size:9},maxRotation:0}}}}});
   charts.ws=new Chart('wsChart',{type:'line',data:{labels:[],datasets:[{label:'Connections',data:[],borderColor:'#22C55E',backgroundColor:'rgba(34,197,94,.06)',fill:true},{label:'Rooms',data:[],borderColor:'#3B82F6',backgroundColor:'rgba(59,130,246,.06)',fill:true}]},options:{...CO,plugins:{legend:{display:true,labels:{color:'#999999',font:{size:10},boxWidth:8,padding:12}}}}});
   charts.ai=new Chart('aiChart',{type:'bar',data:{labels:[],datasets:[{data:[],backgroundColor:[]}]},options:{...CO,indexAxis:'y',scales:{x:{beginAtZero:true,grid:{color:'#2E2E2E'},ticks:{color:'#555555',font:{size:10}}},y:{display:true,grid:{display:false},ticks:{color:'#999999',font:{size:10}}}}}});
@@ -297,6 +299,7 @@ function updateLive(m){
     {l:'CPU',v:cpu.toFixed(1)+'s',s:'user time'},
   ];
   document.getElementById('cards').innerHTML=stats.map(s=>`<div class="stat"><div class="stat-label">${s.l}</div><div class="stat-value">${s.v}</div><div class="stat-sub ${s.c||''}">${s.s}</div></div>`).join('');
+  document.getElementById('userCards').innerHTML='<div class="stat" style="grid-column:1/-1;text-align:center;color:#555">User metrics available in History view</div>';
   document.getElementById('summary').innerHTML='';
 
   // Request rate (live delta)
@@ -354,8 +357,8 @@ async function loadHistory(){
     // Summary
     document.getElementById('summary').innerHTML=[
       `<div class="summary-item"><strong>${fmt(summary.totalRequests||0)}</strong> total requests</div>`,
-      `<div class="summary-item"><strong>${fmt(summary.requestsLastHour||0)}</strong> requests (1h)</div>`,
-      `<div class="summary-item"><strong>${(summary.avgDurationLastHour||0).toFixed(1)}</strong> ms avg (1h)</div>`,
+      `<div class="summary-item"><strong>${summary.totalUsers||0}</strong> registered users</div>`,
+      `<div class="summary-item"><strong>${summary.activeUsers24h||0}</strong> active (24h)</div>`,
       `<div class="summary-item"><strong>${summary.totalSnapshots||0}</strong> snapshots stored</div>`,
     ].join('');
 
@@ -369,13 +372,30 @@ async function loadHistory(){
       {l:'Event Loop',v:(latest.eventLoopLagMs||0).toFixed(1)+' ms',s:(latest.eventLoopLagMs||0)<10?'healthy':'under load',c:(latest.eventLoopLagMs||0)<10?'ok':'err'},
       {l:'WebSocket',v:(latest.wsConnections||0)+' / '+((latest.wsRooms||0)),s:'conn / rooms'},
       {l:'AI Rate',v:(latest.aiRequests||0).toFixed(1),s:'req/s avg'},
-      {l:'Snapshots',v:historyData.length,data:true,s:'stored points'},
+      {l:'Snapshots',v:historyData.length,s:'stored points'},
     ].map(s=>`<div class="stat"><div class="stat-label">${s.l}</div><div class="stat-value">${s.v}</div><div class="stat-sub ${s.c||''}">${s.s}</div></div>`).join('');
+
+    // User stat cards
+    document.getElementById('userCards').innerHTML=[
+      {l:'Registered Users',v:(latest.totalUsers||0).toString(),s:'all time'},
+      {l:'Signups Today',v:(latest.newUsersToday||0).toString(),s:'new accounts'},
+      {l:'Active 24h',v:(latest.activeUsers24h||0).toString(),s:'unique users'},
+      {l:'Logins Today',v:(latest.loginsToday||0).toString(),s:'total logins'},
+      {l:'Workspaces',v:(latest.totalWorkspaces||0).toString(),s:'created'},
+      {l:'Teams',v:(latest.totalTeams||0).toString(),s:'created'},
+    ].map(s=>`<div class="stat"><div class="stat-label">${s.l}</div><div class="stat-value">${s.v}</div><div class="stat-sub">${s.s}</div></div>`).join('');
 
     // Request rate chart (stored)
     charts.req.data.labels=labels;
     charts.req.data.datasets[0].data=historyData.map(d=>d.requestRate);
     charts.req.update('none');
+
+    // User growth chart (stored)
+    charts.userGrowth.data.labels=labels;
+    charts.userGrowth.data.datasets[0].data=historyData.map(d=>d.totalUsers);
+    charts.userGrowth.data.datasets[1].data=historyData.map(d=>d.activeUsers24h);
+    charts.userGrowth.data.datasets[2].data=historyData.map(d=>d.totalWorkspaces);
+    charts.userGrowth.update('none');
 
     // Latency chart (stored - single bar for latest)
     charts.lat.data.labels=['Avg (1h)'];

@@ -60,10 +60,22 @@ export async function snapshotMetrics() {
     const aiRate = totalAi - previousAiRequests;
     previousAiRequests = totalAi;
 
+    // Query user/workspace/team counts from DB
+    const counts = await pool.query(`
+      SELECT
+        (SELECT COUNT(*) FROM users) as total_users,
+        (SELECT COUNT(*) FROM users WHERE created_at >= CURRENT_DATE) as new_users_today,
+        (SELECT COUNT(DISTINCT email) FROM login_attempts WHERE last_attempt >= NOW() - INTERVAL '24 hours') as active_users_24h,
+        (SELECT COUNT(*) FROM login_attempts WHERE last_attempt >= CURRENT_DATE) as logins_today,
+        (SELECT COUNT(*) FROM workspaces) as total_workspaces,
+        (SELECT COUNT(*) FROM teams) as total_teams
+    `);
+    const c = counts.rows[0];
+
     await pool.query(
       `INSERT INTO metrics_snapshots
-        (captured_at, total_requests, request_rate, avg_duration_ms, memory_mb, cpu_seconds, event_loop_lag_ms, ws_connections, ws_rooms, ai_requests)
-       VALUES (NOW(), $1, $2, $3, $4, $5, $6, $7, $8, $9)`,
+        (captured_at, total_requests, request_rate, avg_duration_ms, memory_mb, cpu_seconds, event_loop_lag_ms, ws_connections, ws_rooms, ai_requests, total_users, new_users_today, active_users_24h, logins_today, total_workspaces, total_teams)
+       VALUES (NOW(), $1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15)`,
       [
         totalReqs,
         requestRate,
@@ -74,10 +86,16 @@ export async function snapshotMetrics() {
         wsConnections,
         wsRooms,
         aiRate,
+        c.total_users || 0,
+        c.new_users_today || 0,
+        c.active_users_24h || 0,
+        c.logins_today || 0,
+        c.total_workspaces || 0,
+        c.total_teams || 0,
       ]
     );
 
-    log.debug({ totalReqs, requestRate, avgDurationMs: avgDurationMs.toFixed(1) }, "Metrics snapshot saved");
+    log.debug({ totalReqs, requestRate, totalUsers: c.total_users, activeUsers24h: c.active_users_24h }, "Metrics snapshot saved");
   } catch (err) {
     log.error({ err }, "Failed to snapshot metrics");
   }

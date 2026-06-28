@@ -267,6 +267,14 @@ export const metricsSnapshots = pgTable("metrics_snapshots", {
   wsRooms: integer("ws_rooms").notNull().default(0),
   // AI
   aiRequests: real("ai_requests").notNull().default(0),
+  // User metrics
+  totalUsers: integer("total_users").notNull().default(0),
+  newUsersToday: integer("new_users_today").notNull().default(0),
+  activeUsers24h: integer("active_users_24h").notNull().default(0),
+  loginsToday: integer("logins_today").notNull().default(0),
+  // Workspace metrics
+  totalWorkspaces: integer("total_workspaces").notNull().default(0),
+  totalTeams: integer("total_teams").notNull().default(0),
 }, (table) => [
   index("IDX_metrics_snapshots_captured_at").on(table.capturedAt),
 ]);

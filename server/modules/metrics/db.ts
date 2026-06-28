@@ -30,7 +30,13 @@ export async function createMetricsTable() {
         event_loop_lag_ms REAL NOT NULL DEFAULT 0,
         ws_connections INTEGER NOT NULL DEFAULT 0,
         ws_rooms INTEGER NOT NULL DEFAULT 0,
-        ai_requests REAL NOT NULL DEFAULT 0
+        ai_requests REAL NOT NULL DEFAULT 0,
+        total_users INTEGER NOT NULL DEFAULT 0,
+        new_users_today INTEGER NOT NULL DEFAULT 0,
+        active_users_24h INTEGER NOT NULL DEFAULT 0,
+        logins_today INTEGER NOT NULL DEFAULT 0,
+        total_workspaces INTEGER NOT NULL DEFAULT 0,
+        total_teams INTEGER NOT NULL DEFAULT 0
       );
     `);
     await pool.query(`
@@ -38,6 +44,18 @@ export async function createMetricsTable() {
       ON metrics_snapshots (captured_at DESC);
     `);
     log.info("Metrics snapshots table created/verified");
+
+    // Migrations for existing tables
+    const alters = [
+      `ALTER TABLE metrics_snapshots ADD COLUMN IF NOT EXISTS total_users INTEGER NOT NULL DEFAULT 0`,
+      `ALTER TABLE metrics_snapshots ADD COLUMN IF NOT EXISTS new_users_today INTEGER NOT NULL DEFAULT 0`,
+      `ALTER TABLE metrics_snapshots ADD COLUMN IF NOT EXISTS active_users_24h INTEGER NOT NULL DEFAULT 0`,
+      `ALTER TABLE metrics_snapshots ADD COLUMN IF NOT EXISTS logins_today INTEGER NOT NULL DEFAULT 0`,
+      `ALTER TABLE metrics_snapshots ADD COLUMN IF NOT EXISTS total_workspaces INTEGER NOT NULL DEFAULT 0`,
+      `ALTER TABLE metrics_snapshots ADD COLUMN IF NOT EXISTS total_teams INTEGER NOT NULL DEFAULT 0`,
+    ];
+    for (const q of alters) await pool.query(q);
+    log.info("Metrics migrations verified");
   } catch (err) {
     log.error({ err }, "Failed to create metrics_snapshots table");
   }

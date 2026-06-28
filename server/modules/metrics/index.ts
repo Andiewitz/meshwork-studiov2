@@ -26,7 +26,13 @@ export const MetricsModule = {
              event_loop_lag_ms as "eventLoopLagMs",
              ws_connections as "wsConnections",
              ws_rooms as "wsRooms",
-             ai_requests as "aiRequests"
+             ai_requests as "aiRequests",
+             total_users as "totalUsers",
+             new_users_today as "newUsersToday",
+             active_users_24h as "activeUsers24h",
+             logins_today as "loginsToday",
+             total_workspaces as "totalWorkspaces",
+             total_teams as "totalTeams"
            FROM metrics_snapshots
            ORDER BY captured_at DESC
            LIMIT $1`,
@@ -52,7 +58,13 @@ export const MetricsModule = {
             (SELECT SUM(ai_requests) FROM metrics_snapshots WHERE captured_at > NOW() - INTERVAL '1 hour') as "aiRequestsLastHour",
             (SELECT COUNT(*) FROM metrics_snapshots) as "totalSnapshots",
             (SELECT MIN(captured_at) FROM metrics_snapshots) as "firstSnapshot",
-            (SELECT MAX(captured_at) FROM metrics_snapshots) as "lastSnapshot"
+            (SELECT MAX(captured_at) FROM metrics_snapshots) as "lastSnapshot",
+            (SELECT total_users FROM metrics_snapshots ORDER BY captured_at DESC LIMIT 1) as "totalUsers",
+            (SELECT new_users_today FROM metrics_snapshots ORDER BY captured_at DESC LIMIT 1) as "newUsersToday",
+            (SELECT active_users_24h FROM metrics_snapshots ORDER BY captured_at DESC LIMIT 1) as "activeUsers24h",
+            (SELECT logins_today FROM metrics_snapshots ORDER BY captured_at DESC LIMIT 1) as "loginsToday",
+            (SELECT total_workspaces FROM metrics_snapshots ORDER BY captured_at DESC LIMIT 1) as "totalWorkspaces",
+            (SELECT total_teams FROM metrics_snapshots ORDER BY captured_at DESC LIMIT 1) as "totalTeams"
         `);
         res.json(result.rows[0]);
       } catch (err) {
