@@ -1,3 +1,9 @@
+# [1.1.0](https://github.com/Andiewitz/meshwork-studiov2/compare/v1.0.0...v1.1.0) (2026-06-30)
+
+### Features
+
+- replace profile hover logout with click dropdown (Settings + Logout) ([3ad78a7](https://github.com/Andiewitz/meshwork-studiov2/commit/3ad78a796376650e1f2acfdc8e434dcafc58cf32))
+
 # 1.0.0 (2026-06-30)
 
 ### Bug Fixes
