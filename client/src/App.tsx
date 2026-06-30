@@ -1,5 +1,11 @@
 import React, { Suspense } from "react";
-import { Switch, Route, Redirect, useLocation, Router as WouterRouter } from "wouter";
+import {
+  Switch,
+  Route,
+  Redirect,
+  useLocation,
+  Router as WouterRouter,
+} from "wouter";
 import { queryClient } from "./lib/queryClient";
 import { QueryClientProvider } from "@tanstack/react-query";
 import { Toaster } from "@/components/ui/toaster";
@@ -12,8 +18,7 @@ import { MobileGate } from "@/components/ui/mobile-gate";
 import { AnimatePresence, motion } from "framer-motion";
 import { DashboardLayout } from "@/components/layout/DashboardLayout";
 import { HelmetProvider } from "react-helmet-async";
-import { AuthModalProvider, useAuthModal } from "@/components/auth/AuthModalContext";
-import { AuthModal } from "@/components/auth/AuthModal";
+import { AuthModalProvider } from "@/components/auth/AuthModalContext";
 
 // Route-level code splitting via React.lazy
 const lazyMap = {
@@ -27,25 +32,47 @@ const lazyMap = {
   Templates: React.lazy(() => import("@/pages/Templates")),
   TermsOfService: React.lazy(() => import("@/pages/TermsOfService")),
   PrivacyPolicy: React.lazy(() => import("@/pages/PrivacyPolicy")),
+  AuthPage: React.lazy(() => import("@/pages/AuthPage")),
 };
 
-const { NotFound, Home, Landing, Settings, Workspace, Dev, Team, Templates, TermsOfService, PrivacyPolicy } = lazyMap;
+const {
+  NotFound,
+  Home,
+  Landing,
+  Settings,
+  Workspace,
+  Dev,
+  Team,
+  Templates,
+  TermsOfService,
+  PrivacyPolicy,
+  AuthPage,
+} = lazyMap;
 
 // Eagerly trigger import for the current route to parallelize with auth fetch
 const currentPath = window.location.pathname;
-if (currentPath === '/' || currentPath === '/landing') void import("@/pages/Landing");
-else if (currentPath === '/home' || currentPath === '/workspaces') void import("@/pages/Home");
-else if (currentPath === '/settings') void import("@/pages/Settings");
-else if (currentPath.startsWith('/workspace/')) void import("@/pages/Workspace");
-else if (currentPath === '/dev') void import("@/pages/Dev");
-else if (currentPath === '/team') void import("@/pages/Team");
-else if (currentPath === '/templates') void import("@/pages/Templates");
-else if (currentPath === '/terms') void import("@/pages/TermsOfService");
-else if (currentPath === '/privacy') void import("@/pages/PrivacyPolicy");
+if (currentPath === "/" || currentPath === "/landing")
+  void import("@/pages/Landing");
+else if (currentPath === "/home" || currentPath === "/workspaces")
+  void import("@/pages/Home");
+else if (currentPath === "/settings") void import("@/pages/Settings");
+else if (currentPath.startsWith("/workspace/"))
+  void import("@/pages/Workspace");
+else if (currentPath === "/dev") void import("@/pages/Dev");
+else if (currentPath === "/team") void import("@/pages/Team");
+else if (currentPath === "/templates") void import("@/pages/Templates");
+else if (currentPath === "/terms") void import("@/pages/TermsOfService");
+else if (currentPath === "/privacy") void import("@/pages/PrivacyPolicy");
+else if (currentPath === "/login" || currentPath === "/register")
+  void import("@/pages/AuthPage");
 
-function ProtectedRoute({ component: Component }: { component: React.ComponentType }) {
+function ProtectedRoute({
+  component: Component,
+}: {
+  component: React.ComponentType;
+}) {
   const { user, isLoading, isRedirecting } = useAuth();
-  const authModal = useAuthModal();
+  const [location] = useLocation();
   const [isMobile, setIsMobile] = React.useState(false);
 
   React.useEffect(() => {
@@ -55,20 +82,12 @@ function ProtectedRoute({ component: Component }: { component: React.ComponentTy
     return () => window.removeEventListener("resize", check);
   }, []);
 
-  // If not loading and no user, open the login modal
-  React.useEffect(() => {
-    if (!isLoading && !isRedirecting && !user) {
-      authModal.open('login');
-    }
-  }, [isLoading, isRedirecting, user, authModal]);
-
   if (isLoading || isRedirecting) {
     return <RedirectingScreen />;
   }
 
   if (!user) {
-    // Show a minimal screen while the modal is open
-    return <RedirectingScreen />;
+    return <Redirect to={`/login?redirect=${encodeURIComponent(location)}`} />;
   }
 
   if (isMobile) {
@@ -82,11 +101,10 @@ function Router() {
   const [location] = useLocation();
   const { user, isLoading, isRedirecting } = useAuth();
 
-  // Backwards compat: redirect old /auth/* routes to landing with query param
+  // Backwards compat: redirect old /auth/* routes to new full-page routes
   if (location.startsWith("/auth/")) {
     const mode = location.includes("register") ? "register" : "login";
-    const existingParams = window.location.search;
-    return <Redirect to={`/${existingParams ? existingParams + "&" : "?"}auth=${mode}`} />;
+    return <Redirect to={`/${mode}`} />;
   }
 
   // Show redirecting screen during auth transitions for protected routes
@@ -110,6 +128,27 @@ function Router() {
           className="min-h-screen"
         >
           <Landing />
+        </motion.div>
+      </AnimatePresence>
+    );
+  }
+
+  // Auth pages (login, register)
+  if (location === "/login" || location === "/register") {
+    if (user) {
+      return <Redirect to="/home" />;
+    }
+    return (
+      <AnimatePresence mode="wait">
+        <motion.div
+          key={location}
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          exit={{ opacity: 0 }}
+          transition={{ duration: 0.25 }}
+          className="min-h-screen"
+        >
+          <AuthPage />
         </motion.div>
       </AnimatePresence>
     );
@@ -148,10 +187,10 @@ function Router() {
           initial={{ opacity: 0, scale: 0.95 }}
           animate={{ opacity: 1, scale: 1 }}
           exit={{ opacity: 0, scale: 1.05 }}
-          transition={{ 
-            duration: 0.35, 
+          transition={{
+            duration: 0.35,
             ease: [0.25, 0.1, 0.25, 1],
-            opacity: { duration: 0.25 }
+            opacity: { duration: 0.25 },
           }}
           className="h-full"
           style={{ willChange: "opacity, transform" }}
@@ -217,7 +256,6 @@ function App() {
             <AuthModalProvider>
               <TooltipProvider>
                 <Toaster />
-                <AuthModal />
                 <Suspense fallback={<RedirectingScreen />}>
                   <Router />
                 </Suspense>
