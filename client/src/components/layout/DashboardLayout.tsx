@@ -11,6 +11,7 @@ import {
   LogOut,
   X,
   ArrowUpRight,
+  Newspaper,
 } from "lucide-react";
 import { useAuth } from "@/hooks/use-auth";
 import { MeshworkLogo } from "@/components/MeshworkLogo";
