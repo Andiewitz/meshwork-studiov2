@@ -11,7 +11,6 @@ import {
   LogOut,
   X,
   ArrowUpRight,
-  Newspaper
 } from "lucide-react";
 import { useAuth } from "@/hooks/use-auth";
 import { MeshworkLogo } from "@/components/MeshworkLogo";
@@ -42,11 +41,25 @@ export function DashboardLayout({ children }: { children: ReactNode }) {
   const isUnread  = !readIds.includes(1);
 
   const [panelOpen,    setPanelOpen]    = useState(false);
+  const [profileOpen,  setProfileOpen]  = useState(false);
   const [isRinging,    setIsRinging]    = useState(false);
   const [isNotifying,  setIsNotifying]  = useState(false);
   const [flyStart,     setFlyStart]     = useState({ x: 0, y: 0 });
   const [flyTarget,    setFlyTarget]    = useState({ x: 0, y: 0 });
   const bellRef = useRef<HTMLButtonElement>(null);
+  const profileRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    const handleClickOutside = (e: MouseEvent) => {
+      if (profileRef.current && !profileRef.current.contains(e.target as Node)) {
+        setProfileOpen(false);
+      }
+    };
+    if (profileOpen) {
+      document.addEventListener("mousedown", handleClickOutside);
+    }
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, [profileOpen]);
 
   // Onboarding gate
   const [onboardingComplete, setOnboardingComplete] = useState(() => useOnboardingComplete(user));
@@ -129,22 +142,42 @@ export function DashboardLayout({ children }: { children: ReactNode }) {
           <motion.a variants={itemVariants} href="https://github.com/Andiewitz/Meshwork-Studio_" target="_blank" rel="noopener noreferrer" className="text-[#777575] hover:text-white transition-colors" title="Help">
             <HelpCircle className="w-5 h-5" />
           </motion.a>
-          <Link href="/dev">
-            <motion.span variants={itemVariants} className="text-[#777575] hover:text-white transition-colors block" title="Blog">
-              <Newspaper className="w-5 h-5" />
-            </motion.span>
-          </Link>
-          <div className="relative group">
-            <motion.div variants={itemVariants} className="w-8 h-8 rounded-full overflow-hidden bg-[#1a1a1a] border border-white/10 flex items-center justify-center text-xs font-bold text-white cursor-pointer">
+          <div className="relative" ref={profileRef}>
+            <motion.div
+              variants={itemVariants}
+              onClick={() => setProfileOpen(v => !v)}
+              className="w-8 h-8 rounded-full overflow-hidden bg-[#1a1a1a] border border-white/10 flex items-center justify-center text-xs font-bold text-white cursor-pointer hover:border-primary/50 transition-colors"
+            >
               {user?.profileImageUrl
                 ? <img alt="" className="w-full h-full object-cover" src={user.profileImageUrl} />
                 : ((user?.firstName ?? user?.email ?? "U").charAt(0).toUpperCase())}
             </motion.div>
-            <div className="absolute left-full bottom-0 ml-4 px-3 py-2 bg-[#141414] border border-white/[0.06] rounded-lg opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all z-50 whitespace-nowrap">
-              <button onClick={() => logout()} className="text-[12px] text-white/60 flex items-center gap-2 hover:text-white transition-colors">
-                <LogOut className="w-3.5 h-3.5" /> Logout
-              </button>
-            </div>
+            <AnimatePresence>
+              {profileOpen && (
+                <motion.div
+                  initial={{ opacity: 0, scale: 0.95, y: -4 }}
+                  animate={{ opacity: 1, scale: 1, y: 0 }}
+                  exit={{ opacity: 0, scale: 0.95, y: -4 }}
+                  transition={{ duration: 0.15 }}
+                  className="absolute left-full bottom-0 ml-4 w-44 bg-[#141414] border border-white/[0.06] rounded-xl overflow-hidden shadow-2xl z-50"
+                >
+                  <div className="px-4 py-3 border-b border-white/[0.05]">
+                    <p className="text-[13px] font-semibold text-white truncate">{user?.firstName ?? "User"}</p>
+                    <p className="text-[10px] text-white/40 truncate">{user?.email}</p>
+                  </div>
+                  <div className="py-1">
+                    <Link href="/settings" onClick={() => setProfileOpen(false)}>
+                      <button className="w-full text-left px-4 py-2 text-[12px] text-white/60 hover:text-white hover:bg-white/[0.05] flex items-center gap-2.5 transition-colors">
+                        <Settings className="w-3.5 h-3.5" /> Settings
+                      </button>
+                    </Link>
+                    <button onClick={() => { setProfileOpen(false); logout(); }} className="w-full text-left px-4 py-2 text-[12px] text-red-400/70 hover:text-red-400 hover:bg-white/[0.05] flex items-center gap-2.5 transition-colors">
+                      <LogOut className="w-3.5 h-3.5" /> Logout
+                    </button>
+                  </div>
+                </motion.div>
+              )}
+            </AnimatePresence>
           </div>
         </div>
       </motion.aside>
@@ -176,11 +209,6 @@ export function DashboardLayout({ children }: { children: ReactNode }) {
             {isUnread && <span className="absolute top-1.5 right-1.5 w-1.5 h-1.5 rounded-full bg-primary shadow-[0_0_10px_rgba(255,102,0,0.8)]" />}
           </motion.button>
 
-          <Link href="/settings">
-            <button className="w-8 h-8 flex items-center justify-center text-white/40 hover:text-white/80 transition-colors">
-              <Settings className="w-4 h-4" />
-            </button>
-          </Link>
         </div>
       </motion.header>
 
