@@ -1,3 +1,9 @@
+# [1.2.0](https://github.com/Andiewitz/meshwork-studiov2/compare/v1.1.1...v1.2.0) (2026-06-30)
+
+### Features
+
+- redesign auth flow from modal to full-page layout ([a69a132](https://github.com/Andiewitz/meshwork-studiov2/commit/a69a1326f57cb73f481474e75bbbcca32a0caf96))
+
 ## [1.1.1](https://github.com/Andiewitz/meshwork-studiov2/compare/v1.1.0...v1.1.1) (2026-06-30)
 
 ### Bug Fixes
