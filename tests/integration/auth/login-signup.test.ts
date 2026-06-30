@@ -208,7 +208,7 @@ describe('Register Route Integration Tests', () => {
       .send({ email: 'existing@example.com', password: 'Test1234!' });
 
     expect(res.status).toBe(409);
-    expect(res.body.message).toContain('already registered');
+    expect(res.body.message).toContain('could not be completed');
   });
 
   it('should_accept_optional_name_fields', async () => {
