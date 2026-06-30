@@ -71,7 +71,7 @@ export function AnimatedButton({
         "group mx-auto flex cursor-pointer items-center justify-center gap-0 rounded-full border-none bg-transparent px-0 py-5 font-normal shadow-none hover:bg-transparent",
         className,
       )}
-      {...(props as useRender.ComponentProps<"button">)}
+      {...props}
     >
       {/* Label pill */}
       <span className="rounded-full bg-primary px-6 py-3 text-black font-sans font-bold tracking-wide duration-500 ease-in-out group-hover:bg-white/10 group-hover:text-primary group-hover:transition-colors">

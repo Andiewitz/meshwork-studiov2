@@ -6,26 +6,12 @@ import { fireEnterNode } from '@/features/workspace/utils/canvasEvents';
 import * as Lucide from 'lucide-react';
 import {
     User as UserIcon,
-    Type,
-    Circle,
     Server as LucideServer,
-    Database as LucideDatabase,
     Globe as LucideGlobe,
-    Cpu as LucideCpu,
     Box as LucideBox,
-    HardDrive as LucideHardDrive,
     Zap as LucideZap,
-    MessageSquare as LucideMessageSquare,
-    Share2 as LucideShare2,
     Lock as LucideLock,
-    Shield as LucideShield,
     Activity as LucideActivity,
-    CreditCard as LucideCreditCard,
-    ShoppingCart as LucideShoppingCart,
-    Key as LucideKey,
-    BarChart3 as LucideBarChart3,
-    PieChart as LucidePieChart,
-    Layers as LucideLayers
 } from 'lucide-react';
 import { 
     SiLinux, SiDocker, SiCelery, SiAwslambda, SiPostgresql, SiRedis, SiAmazons3, 
@@ -119,23 +105,32 @@ const providerBrands: Record<string, NodeBrand> = {
     dynamodb: { Icon: SiAmazondynamodb, isReactIcon: true, color: '#4053D6', borderColor: '#3342AB', label: 'DYNAMODB' },
 };
 
-export function SystemNode({ id, data, selected, type, width, height, style }: NodeProps & { style?: any }) {
+interface NodeStyle {
+    backgroundColor?: string;
+    borderColor?: string;
+    borderRadius?: number;
+    opacity?: number;
+    fontColor?: string;
+    fontSize?: number;
+    icon?: string;
+    theme?: string;
+}
+
+export function SystemNode({ id, data, selected, type, width, style }: NodeProps & { style?: NodeStyle }) {
     const [isHovered, setIsHovered] = useState(false);
-    const provider = (data.provider as string || '').toLowerCase();
+    const provider = ((data.provider as string | undefined) ?? '').toLowerCase();
     const isInfrastructure = type === 'vpc' || type === 'region';
     const isNote = type === 'note';
-    const isKubernetes = (type as string)?.startsWith('k8s-');
+    const isKubernetes = type.startsWith('k8s-');
     const isK8sNamespace = type === 'k8s-namespace';
-    const isData = (data.category as string || '').toLowerCase() === 'data';
-    const k8sStatus = (data.status as string) || '';
+    const k8sStatus = (data.status as string | undefined) ?? '';
 
-    // Calculate dynamic font sizes based on container width
     const zoneLabelSize = width ? Math.max(9, Math.floor(width / 40)) : 9;
     const zoneIconSize = width ? Math.max(12, Math.floor(width / 30)) : 12;
 
     const brand: NodeBrand = isKubernetes
-        ? { Icon: K8sLogo, isReactIcon: true, color: '#326CE5', borderColor: '#2457B5', label: (type as string)?.replace('k8s-', '').toUpperCase() || 'K8S' }
-        : (providerBrands[provider] || nodeBrands[type as string] || { Icon: '', color: '#4F46E5', borderColor: '#4338CA', label: (type as string || 'NODE').toUpperCase() });
+        ? { Icon: K8sLogo, isReactIcon: true, color: '#326CE5', borderColor: '#2457B5', label: type.replace('k8s-', '').toUpperCase() || 'K8S' }
+        : (providerBrands[provider] || nodeBrands[type] || { Icon: '', color: '#4F46E5', borderColor: '#4338CA', label: (type || 'NODE').toUpperCase() });
 
     const statusOverrides: Record<string, { color: string; borderColor: string }> = {
         healthy: { color: '#22C55E', borderColor: '#16A34A' },
@@ -144,19 +139,17 @@ export function SystemNode({ id, data, selected, type, width, height, style }: N
     };
     const statusBrand = isKubernetes && k8sStatus ? statusOverrides[k8sStatus] : null;
     const userAccent = data.accentColor as string | undefined;
-    const finalColor = userAccent || statusBrand?.color || brand.color;
-    const finalBorder = userAccent || statusBrand?.borderColor || brand.borderColor;
+    const finalColor = userAccent ?? statusBrand?.color ?? brand.color;
+    const finalBorder = userAccent ?? statusBrand?.borderColor ?? brand.borderColor;
 
-    // Custom properties from style schema
-    const nodeStyle = (style || {}) as any;
-    const customBg = nodeStyle.backgroundColor;
-    const customBorder = nodeStyle.borderColor;
-    const customRadius = nodeStyle.borderRadius;
-    const customOpacity = nodeStyle.opacity;
-    const customFontColor = nodeStyle.fontColor;
-    const customFontSize = nodeStyle.fontSize;
-    const customIconName = nodeStyle.icon;
-    const customTheme = nodeStyle.theme || 'default';
+    const customBg = style?.backgroundColor;
+    const customBorder = style?.borderColor;
+    const customRadius = style?.borderRadius;
+    const customOpacity = style?.opacity;
+    const customFontColor = style?.fontColor;
+    const customFontSize = style?.fontSize;
+    const customIconName = style?.icon;
+    const customTheme = style?.theme ?? 'default';
 
     const finalBorderColor = customBorder || finalBorder;
     const finalRadius = customRadius !== undefined ? `${customRadius}px` : undefined;
@@ -209,8 +202,6 @@ export function SystemNode({ id, data, selected, type, width, height, style }: N
     const selectionRing = selected 
         ? 'ring-2 ring-blue-500/40 shadow-[0_0_20px_rgba(59,130,246,0.15)]' 
         : '';
-    const nodeFont = "font-[Inter,var(--font-label),sans-serif]";
-
     return (
         <>
             <NodeResizer

@@ -5,12 +5,11 @@ import { QueryClientProvider } from "@tanstack/react-query";
 import { Toaster } from "@/components/ui/toaster";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { useAuth } from "@/hooks/use-auth";
-import { useTheme, ThemeProvider } from "@/hooks/use-theme";
+import { ThemeProvider } from "@/hooks/use-theme";
 import { useCsrfTokenInitializer } from "@/lib/csrf-init";
 import { RedirectingScreen } from "@/components/ui/loading-screen";
 import { MobileGate } from "@/components/ui/mobile-gate";
 import { AnimatePresence, motion } from "framer-motion";
-import { cn } from "@/lib/utils";
 import { DashboardLayout } from "@/components/layout/DashboardLayout";
 import { HelmetProvider } from "react-helmet-async";
 import { AuthModalProvider, useAuthModal } from "@/components/auth/AuthModalContext";
@@ -34,15 +33,15 @@ const { NotFound, Home, Landing, Settings, Workspace, Dev, Team, Templates, Term
 
 // Eagerly trigger import for the current route to parallelize with auth fetch
 const currentPath = window.location.pathname;
-if (currentPath === '/' || currentPath === '/landing') import("@/pages/Landing");
-else if (currentPath === '/home' || currentPath === '/workspaces') import("@/pages/Home");
-else if (currentPath === '/settings') import("@/pages/Settings");
-else if (currentPath.startsWith('/workspace/')) import("@/pages/Workspace");
-else if (currentPath === '/dev') import("@/pages/Dev");
-else if (currentPath === '/team') import("@/pages/Team");
-else if (currentPath === '/templates') import("@/pages/Templates");
-else if (currentPath === '/terms') import("@/pages/TermsOfService");
-else if (currentPath === '/privacy') import("@/pages/PrivacyPolicy");
+if (currentPath === '/' || currentPath === '/landing') void import("@/pages/Landing");
+else if (currentPath === '/home' || currentPath === '/workspaces') void import("@/pages/Home");
+else if (currentPath === '/settings') void import("@/pages/Settings");
+else if (currentPath.startsWith('/workspace/')) void import("@/pages/Workspace");
+else if (currentPath === '/dev') void import("@/pages/Dev");
+else if (currentPath === '/team') void import("@/pages/Team");
+else if (currentPath === '/templates') void import("@/pages/Templates");
+else if (currentPath === '/terms') void import("@/pages/TermsOfService");
+else if (currentPath === '/privacy') void import("@/pages/PrivacyPolicy");
 
 function ProtectedRoute({ component: Component }: { component: React.ComponentType }) {
   const { user, isLoading, isRedirecting } = useAuth();
@@ -79,23 +78,6 @@ function ProtectedRoute({ component: Component }: { component: React.ComponentTy
   return <Component />;
 }
 
-const PageTransition = ({ children, className }: { children: React.ReactNode; className?: string }) => (
-  <motion.div
-    initial={{ opacity: 0, y: 20, scale: 0.98 }}
-    animate={{ opacity: 1, y: 0, scale: 1 }}
-    exit={{ opacity: 0, y: -20, scale: 0.98 }}
-    transition={{ 
-      duration: 0.3, 
-      ease: [0.25, 0.1, 0.25, 1],
-      opacity: { duration: 0.2 }
-    }}
-    className={cn("flex-1", className)}
-    style={{ willChange: "opacity, transform" }}
-  >
-    {children}
-  </motion.div>
-);
-
 function Router() {
   const [location] = useLocation();
   const { user, isLoading, isRedirecting } = useAuth();
@@ -103,9 +85,7 @@ function Router() {
   // Backwards compat: redirect old /auth/* routes to landing with query param
   if (location.startsWith("/auth/")) {
     const mode = location.includes("register") ? "register" : "login";
-    // Preserve any query params (like ?error=google)
     const existingParams = window.location.search;
-    const separator = existingParams ? "&" : "?";
     return <Redirect to={`/${existingParams ? existingParams + "&" : "?"}auth=${mode}`} />;
   }
 

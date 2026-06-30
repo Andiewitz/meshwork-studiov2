@@ -34,8 +34,8 @@ interface CollaboratorCursorProps {
 }
 
 function CollaboratorCursor({ user }: CollaboratorCursorProps) {
-  const [pos, setPos] = useState(user.cursor || { x: 0, y: 0 });
-  const targetRef = useRef(user.cursor || { x: 0, y: 0 });
+  const [pos, setPos] = useState(user.cursor ?? { x: 0, y: 0 });
+  const targetRef = useRef(user.cursor ?? { x: 0, y: 0 });
   const animFrameRef = useRef<number>();
 
   useEffect(() => {
@@ -133,7 +133,7 @@ export function PresenceIndicator({ collaborators, isConnected }: PresenceIndica
             }}
             title={user.name}
           >
-            {user.name[0]?.toUpperCase()}
+            {user.name.charAt(0).toUpperCase()}
           </div>
         ))}
       </div>
