@@ -1,5 +1,5 @@
 # Build stage
-FROM node:20-alpine AS builder
+FROM node:26-alpine AS builder
 
 WORKDIR /app
 
@@ -21,7 +21,7 @@ RUN npm prune --omit=dev --legacy-peer-deps
 RUN npm install drizzle-kit tsx --no-save --legacy-peer-deps
 
 # Runtime stage
-FROM node:20-alpine
+FROM node:26-alpine
 
 RUN apk add --no-cache libc6-compat
 
