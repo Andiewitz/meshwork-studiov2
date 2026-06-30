@@ -1,3 +1,9 @@
+## [1.1.1](https://github.com/Andiewitz/meshwork-studiov2/compare/v1.1.0...v1.1.1) (2026-06-30)
+
+### Bug Fixes
+
+- add Newspaper back to imports (still used in nav bar) ([185d43c](https://github.com/Andiewitz/meshwork-studiov2/commit/185d43cd86c1812b6db423b16f8f7ed0b1e2d138))
+
 # [1.1.0](https://github.com/Andiewitz/meshwork-studiov2/compare/v1.0.0...v1.1.0) (2026-06-30)
 
 ### Features
