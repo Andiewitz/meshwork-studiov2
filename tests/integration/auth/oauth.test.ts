@@ -23,6 +23,7 @@ vi.mock('@server/modules/auth/password', () => ({
 
 vi.mock('@server/middleware/rateLimit', () => ({
   authLimiter: (req: any, res: any, next: any) => next(),
+  refreshLimiter: (req: any, res: any, next: any) => next(),
   apiLimiter: (req: any, res: any, next: any) => next(),
 }));
 

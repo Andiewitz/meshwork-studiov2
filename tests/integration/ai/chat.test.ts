@@ -58,7 +58,7 @@ describe('AI Chat Route Integration Tests', () => {
         .send({ provider: 'openrouter' }); // missing model and messages
 
       expect(res.status).toBe(400);
-      expect(res.body.error).toContain('provider, model, and messages are required');
+      expect(res.body.message).toContain('provider, model, and messages are required');
     });
 
     it('should return 404 if no API key is found in DB or ENV', async () => {
@@ -76,7 +76,7 @@ describe('AI Chat Route Integration Tests', () => {
         });
 
       expect(res.status).toBe(404);
-      expect(res.body.error).toContain('No API key found for provider: openrouter');
+      expect(res.body.message).toContain('No API key found for provider: openrouter');
 
       // Restore ENV
       if (originalKey) process.env.OPENROUTER_API_KEY = originalKey;
