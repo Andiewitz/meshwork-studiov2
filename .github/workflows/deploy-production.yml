@@ -34,8 +34,12 @@ jobs:
           NODE_ENV: production
           VITE_API_URL: ${{ secrets.VITE_API_URL }}
 
+      - name: Link Railway Project
+        run: npx railway link --project ${{ secrets.RAILWAY_PROJECT_ID }}
+        env:
+          RAILWAY_TOKEN: ${{ secrets.RAILWAY_PROD_TOKEN }}
       - name: Deploy to Railway (Production)
-        run: npx railway up --service meshwork-studio-production
+        run: npx railway up --ci --service meshwork-studio-production
         env:
           RAILWAY_TOKEN: ${{ secrets.RAILWAY_PROD_TOKEN }}
 
