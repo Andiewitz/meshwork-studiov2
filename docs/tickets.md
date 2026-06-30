@@ -6,7 +6,7 @@ This document contains actionable, structured tickets for the issues and improve
 
 ## [TICKET-01] Implement Real API Key Verification on Test Route
 
-* **Status**: Todo
+* **Status**: Done
 * **Priority**: High
 * **Component**: Backend (AI Module)
 
@@ -22,15 +22,18 @@ The endpoint `POST /api/ai/keys/test` currently only validates key formats (e.g.
   - Implement and call `validateOpenRouterKey` in [server/modules/ai/providers/openrouter.ts](file:///c:/Users/VMedia/Desktop/PROJECTS/Meshwork%20Studio/server/modules/ai/providers/openrouter.ts).
 
 ### Acceptance Criteria
-- [ ] Submitting a request to `/api/ai/keys/test` with a syntactically correct but invalid API key returns `valid: false` and a `400 Bad Request` or user-friendly error payload.
-- [ ] Submitting a request with a valid working key returns `valid: true`.
-- [ ] OpenAI, Anthropic, and OpenRouter validation are fully integrated.
+- [x] Submitting a request to `/api/ai/keys/test` with a syntactically correct but invalid API key returns `valid: false` and a user-friendly error payload.
+- [x] Submitting a request with a valid working key returns `valid: true`.
+- [x] OpenAI, Anthropic, and OpenRouter validation are fully integrated.
+
+### Completion Notes
+Implemented real provider validation calls in `/keys/test`. The endpoint now calls `validateOpenAIKey`, `validateAnthropicKey`, or `validateOpenRouterKey` to verify the key against the actual provider API before returning `valid: true/false`.
 
 ---
 
 ## [TICKET-02] Implement OpenRouter Validation and Dynamic Header Configuration
 
-* **Status**: Todo
+* **Status**: Done
 * **Priority**: Medium
 * **Component**: Backend (AI Module / OpenRouter)
 
@@ -43,8 +46,11 @@ OpenRouter integration lacks a key validation function. Additionally, `openroute
   - Retrieve the application URL dynamically using `process.env.APP_URL` or fallback to localhost, passing it into the `HTTP-Referer` header configuration.
 
 ### Acceptance Criteria
-- [ ] `validateOpenRouterKey` successfully parses keys and flags invalid ones.
-- [ ] HTTP requests to OpenRouter include dynamic referer URLs matching the deployed environment.
+- [x] `validateOpenRouterKey` successfully parses keys and flags invalid ones.
+- [x] HTTP requests to OpenRouter include dynamic referer URLs matching the deployed environment.
+
+### Completion Notes
+Implemented `validateOpenRouterKey` using `https://openrouter.ai/api/v1/auth/key`. Replaced hardcoded `http://localhost:5173` referer with dynamic `getAppUrl()` helper that reads `APP_URL` or `FRONTEND_URL` env vars.
 
 ---
 
@@ -69,7 +75,7 @@ Brute force protection currently utilizes an in-memory Map (`inMemoryLoginAttemp
 
 ## [TICKET-04] Configurable Local CSRF Verification Toggle
 
-* **Status**: Todo
+* **Status**: Done
 * **Priority**: Low
 * **Component**: Backend (Security Middleware)
 
@@ -79,10 +85,15 @@ CSRF protection middleware is automatically bypassed when `process.env.NODE_ENV 
 ### Technical Details & Files to Modify
 - **File**: [server/modules/auth/routes.ts](file:///c:/Users/VMedia/Desktop/PROJECTS/Meshwork%20Studio/server/modules/auth/routes.ts)
   - Replace hardcoded `NODE_ENV === "production"` checks for `csrfProtection` with a configuration flag, e.g., `process.env.ENABLE_CSRF === "true" || process.env.NODE_ENV === "production"`.
+- **File**: [server/modules/ai/routes.ts](file:///c:/Users/VMedia/Desktop/PROJECTS/Meshwork%20Studio/server/modules/ai/routes.ts)
+  - Same `ENABLE_CSRF` flag applied to all AI state-changing endpoints.
 
 ### Acceptance Criteria
-- [ ] Setting `ENABLE_CSRF=true` in `.env` triggers active CSRF token verification locally in development mode.
-- [ ] Bypasses remain the default behavior if the flag is omitted in local development to avoid breaking quick starts.
+- [x] Setting `ENABLE_CSRF=true` in `.env` triggers active CSRF token verification locally in development mode.
+- [x] Bypasses remain the default behavior if the flag is omitted in local development to avoid breaking quick starts.
+
+### Completion Notes
+Replaced hardcoded `NODE_ENV === "production"` checks with `process.env.ENABLE_CSRF === "true" || process.env.NODE_ENV === "production"` in both auth and AI route files. A single `conditionalCsrf` middleware is now shared across all state-changing endpoints.
 
 ---
 

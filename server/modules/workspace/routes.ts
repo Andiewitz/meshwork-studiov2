@@ -3,7 +3,10 @@ import { workspaceStorage } from "./storage";
 import { api } from "@shared/routes";
 import { z } from "zod";
 import { csrfProtection } from "../../middleware/csrf";
+import { createChildLogger } from "../../lib/logger";
 import type { AppContext } from "../../lib/registry";
+
+const log = createChildLogger("workspace");
 
 export function registerWorkspaceRoutes(app: Express, context: AppContext) {
     const isAuthenticated = context.registry.get<any>("isAuthenticated");
@@ -27,7 +30,8 @@ export function registerWorkspaceRoutes(app: Express, context: AppContext) {
             });
             res.status(201).json(collection);
         } catch (err) {
-            res.status(400).json({ message: err instanceof Error ? err.message : "Failed to create collection" });
+            log.error({ err, userId: req.user!.id }, "Failed to create collection");
+            res.status(400).json({ message: "Failed to create collection" });
         }
     });
 
@@ -37,7 +41,7 @@ export function registerWorkspaceRoutes(app: Express, context: AppContext) {
         if (!collection) return res.status(404).json({ message: "Collection not found" });
 
         const userId = req.user!.id;
-        if (collection.userId !== userId) return res.status(401).json({ message: "Unauthorized" });
+        if (collection.userId !== userId) return res.status(403).json({ message: "You do not have access to this collection" });
 
         res.json(collection);
     });
@@ -48,7 +52,7 @@ export function registerWorkspaceRoutes(app: Express, context: AppContext) {
         if (!existing) return res.status(404).json({ message: "Collection not found" });
 
         const userId = req.user!.id;
-        if (existing.userId !== userId) return res.status(401).json({ message: "Unauthorized" });
+        if (existing.userId !== userId) return res.status(403).json({ message: "You do not have access to this collection" });
 
         const updated = await workspaceStorage.updateCollection(id, req.body);
         res.json(updated);
@@ -60,7 +64,7 @@ export function registerWorkspaceRoutes(app: Express, context: AppContext) {
         if (!existing) return res.status(404).json({ message: "Collection not found" });
 
         const userId = req.user!.id;
-        if (existing.userId !== userId) return res.status(401).json({ message: "Unauthorized" });
+        if (existing.userId !== userId) return res.status(403).json({ message: "You do not have access to this collection" });
 
         await workspaceStorage.deleteCollection(id);
         res.status(204).send();
@@ -80,7 +84,7 @@ export function registerWorkspaceRoutes(app: Express, context: AppContext) {
 
         const userId = req.user!.id;
         const hasAccess = await teamStorage.canAccessWorkspace(userId, workspace.id);
-        if (!hasAccess) return res.status(401).json({ message: "Unauthorized" });
+        if (!hasAccess) return res.status(403).json({ message: "You do not have access to this workspace" });
 
         res.json(workspace);
     });
@@ -98,6 +102,7 @@ export function registerWorkspaceRoutes(app: Express, context: AppContext) {
             if (err instanceof z.ZodError) {
                 return res.status(400).json({ message: err.errors[0].message });
             }
+            log.error({ err, userId: req.user!.id }, "Failed to create workspace");
             throw err;
         }
     });
@@ -121,6 +126,7 @@ export function registerWorkspaceRoutes(app: Express, context: AppContext) {
             if (err instanceof z.ZodError) {
                 return res.status(400).json({ message: err.errors[0].message });
             }
+            log.error({ err, userId: req.user!.id, workspaceId: Number(req.params.id) }, "Failed to update workspace");
             throw err;
         }
     });

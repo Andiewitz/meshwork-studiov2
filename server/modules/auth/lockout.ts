@@ -1,6 +1,9 @@
 import { db } from "./db";
 import { loginAttempts, users } from "@shared/schema";
 import { eq, and, gt } from "drizzle-orm";
+import { createChildLogger } from "../../lib/logger";
+
+const log = createChildLogger("lockout");
 
 const MAX_FAILED_ATTEMPTS = 5; // Lock after 5 failed attempts
 const BASE_LOCKOUT_MINUTES = 15; // Initial lockout duration
@@ -69,7 +72,8 @@ export async function isAccountLocked(email: string): Promise<{ locked: boolean;
 
     return { locked: false };
   } catch (error) {
-    // Fallback to in-memory storage for development mode
+    // Fallback to in-memory storage — lockout enforcement is degraded
+    log.warn({ err: error, email }, "DB unavailable for lockout check, using in-memory fallback");
     const attempt = inMemoryLoginAttempts.get(email);
 
     if (!attempt || !attempt.lockedUntil) {
@@ -150,7 +154,8 @@ export async function recordFailedAttempt(email: string): Promise<{ locked: bool
       attemptsRemaining: Math.max(0, MAX_FAILED_ATTEMPTS - failedCount + 1),
     };
   } catch (error) {
-    // Fallback to in-memory storage for development mode
+    // Fallback to in-memory storage — lockout enforcement is degraded
+    log.warn({ err: error, email }, "DB unavailable for recording failed attempt, using in-memory fallback");
     const now = new Date();
     let failedCount = 1;
     let lockedUntil: Date | null = null;
@@ -204,7 +209,8 @@ export async function resetFailedAttempts(email: string): Promise<void> {
       })
       .where(eq(loginAttempts.email, email));
   } catch (error) {
-    // Fallback to in-memory storage for development mode
+    // Fallback to in-memory storage — lockout enforcement is degraded
+    log.warn({ err: error, email }, "DB unavailable for resetting lockout, using in-memory fallback");
     const now = new Date();
     const attempt = inMemoryLoginAttempts.get(email);
     

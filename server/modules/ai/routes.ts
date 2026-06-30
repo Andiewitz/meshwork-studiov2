@@ -3,6 +3,8 @@ import { createChildLogger } from "../../lib/logger";
 import { createApiKey, deleteApiKey, getUserApiKeys, toggleKeyStatus, getApiKeyWithPlaintext, getActiveKeyForProvider } from "./db";
 import { validateKeyFormat } from "./encryption";
 import { aiChatRequestsTotal, aiChatDurationSeconds } from "../../lib/metrics";
+import { csrfProtection } from "../../middleware/csrf";
+import { aiChatLimiter } from "../../middleware/rateLimit";
 import type { AppContext } from "../../lib/registry";
 
 const log = createChildLogger("ai");
@@ -10,6 +12,10 @@ const log = createChildLogger("ai");
 export default function createAIRoutes(context: AppContext) {
   const router = Router();
   const isAuthenticated = context.registry.get<any>("isAuthenticated");
+
+  // CSRF is active in production by default; set ENABLE_CSRF=true in .env to test locally
+  const csrfEnabled = process.env.ENABLE_CSRF === "true" || process.env.NODE_ENV === "production";
+  const conditionalCsrf = csrfEnabled ? csrfProtection : (_req: any, _res: any, next: any) => next();
 
   /**
    * GET /api/ai/keys
@@ -29,8 +35,8 @@ export default function createAIRoutes(context: AppContext) {
       createdAt: key.createdAt,
     })));
   } catch (error) {
-    log.error({ err: error }, "Failed to list keys");
-    res.status(500).json({ error: "Failed to retrieve API keys" });
+    log.error({ err: error, userId: req.user?.id }, "Failed to list keys");
+    res.status(500).json({ message: "Failed to retrieve API keys" });
   }
 });
 
@@ -38,20 +44,20 @@ export default function createAIRoutes(context: AppContext) {
  * POST /api/ai/keys
  * Add a new API key (encrypted and stored)
  */
-router.post("/keys", isAuthenticated, async (req: Request, res: Response) => {
+router.post("/keys", isAuthenticated, conditionalCsrf, async (req: Request, res: Response) => {
   try {
     const userId = req.user!.id;
     const { provider, apiKey } = req.body;
     
     // Validate input
     if (!provider || !apiKey) {
-      return res.status(400).json({ error: "Provider and apiKey are required" });
+      return res.status(400).json({ message: "Provider and apiKey are required" });
     }
     
     // Validate key format
     if (!validateKeyFormat(provider, apiKey)) {
       return res.status(400).json({ 
-        error: `Invalid API key format for ${provider}` 
+        message: `Invalid API key format for ${provider}` 
       });
     }
     
@@ -66,8 +72,8 @@ router.post("/keys", isAuthenticated, async (req: Request, res: Response) => {
       createdAt: key.createdAt,
     });
   } catch (error) {
-    log.error({ err: error }, "Failed to create key");
-    res.status(500).json({ error: "Failed to store API key" });
+    log.error({ err: error, userId: req.user?.id, provider: req.body?.provider }, "Failed to create key");
+    res.status(500).json({ message: "Failed to store API key" });
   }
 });
 
@@ -80,26 +86,49 @@ router.post("/keys/test", isAuthenticated, async (req: Request, res: Response) =
     const { provider, apiKey } = req.body;
     
     if (!provider || !apiKey) {
-      return res.status(400).json({ error: "Provider and apiKey are required" });
+      return res.status(400).json({ message: "Provider and apiKey are required" });
     }
     
     // Validate format
     if (!validateKeyFormat(provider, apiKey)) {
       return res.status(400).json({ 
-        error: `Invalid API key format for ${provider}` 
+        message: `Invalid API key format for ${provider}` 
       });
     }
     
-    // TODO: Actually test the key by making a small request to the provider
-    // For now, just validate format
+    // Validate the key against the actual provider API
+    let valid = false;
+    let validationError = "";
+    
+    try {
+      if (provider === "openai") {
+        const { validateOpenAIKey } = await import("./providers/openai");
+        valid = await validateOpenAIKey(apiKey);
+      } else if (provider === "anthropic") {
+        const { validateAnthropicKey } = await import("./providers/anthropic");
+        valid = await validateAnthropicKey(apiKey);
+      } else if (provider === "openrouter") {
+        const { validateOpenRouterKey } = await import("./providers/openrouter");
+        valid = await validateOpenRouterKey(apiKey);
+      } else {
+        return res.status(400).json({ message: `Unsupported provider: ${provider}` });
+      }
+    } catch (validationErr: any) {
+      log.error({ err: validationErr, provider }, "Key validation call failed");
+      validationError = "Could not reach provider to validate key";
+    }
+    
+    if (!valid && !validationError) {
+      validationError = `API key is not valid for ${provider}`;
+    }
     
     res.json({ 
-      valid: true, 
-      message: "Key format is valid (actual API test not implemented yet)" 
+      valid, 
+      message: valid ? "API key is valid and working" : validationError
     });
   } catch (error) {
-    log.error({ err: error }, "Failed to test key");
-    res.status(500).json({ error: "Failed to test API key" });
+    log.error({ err: error, provider: req.body?.provider }, "Failed to test key");
+    res.status(500).json({ message: "Failed to test API key" });
   }
 });
 
@@ -107,7 +136,7 @@ router.post("/keys/test", isAuthenticated, async (req: Request, res: Response) =
  * DELETE /api/ai/keys/:id
  * Delete an API key
  */
-router.delete("/keys/:id", isAuthenticated, async (req: Request, res: Response) => {
+router.delete("/keys/:id", isAuthenticated, conditionalCsrf, async (req: Request, res: Response) => {
   try {
     const userId = req.user!.id;
     const keyId = req.params.id as string;
@@ -115,13 +144,13 @@ router.delete("/keys/:id", isAuthenticated, async (req: Request, res: Response) 
     const deleted = await deleteApiKey(userId, keyId);
     
     if (!deleted) {
-      return res.status(404).json({ error: "API key not found" });
+      return res.status(404).json({ message: "API key not found" });
     }
     
     res.json({ success: true });
   } catch (error) {
-    log.error({ err: error }, "Failed to delete key");
-    res.status(500).json({ error: "Failed to delete API key" });
+    log.error({ err: error, userId: req.user?.id, keyId: req.params.id }, "Failed to delete key");
+    res.status(500).json({ message: "Failed to delete API key" });
   }
 });
 
@@ -129,20 +158,20 @@ router.delete("/keys/:id", isAuthenticated, async (req: Request, res: Response) 
  * POST /api/ai/keys/:id/toggle
  * Toggle key active status
  */
-router.post("/keys/:id/toggle", isAuthenticated, async (req: Request, res: Response) => {
+router.post("/keys/:id/toggle", isAuthenticated, conditionalCsrf, async (req: Request, res: Response) => {
   try {
     const userId = req.user!.id;
     const keyId = req.params.id as string;
     const { isActive } = req.body;
     
     if (typeof isActive !== "boolean") {
-      return res.status(400).json({ error: "isActive boolean is required" });
+      return res.status(400).json({ message: "isActive boolean is required" });
     }
     
     const key = await toggleKeyStatus(userId, keyId, isActive);
     
     if (!key) {
-      return res.status(404).json({ error: "API key not found" });
+      return res.status(404).json({ message: "API key not found" });
     }
     
     res.json({
@@ -152,8 +181,8 @@ router.post("/keys/:id/toggle", isAuthenticated, async (req: Request, res: Respo
       isActive: key.isActive,
     });
   } catch (error) {
-    log.error({ err: error }, "Failed to toggle key");
-    res.status(500).json({ error: "Failed to update API key" });
+    log.error({ err: error, userId: req.user?.id, keyId: req.params.id }, "Failed to toggle key");
+    res.status(500).json({ message: "Failed to update API key" });
   }
 });
 
@@ -161,13 +190,13 @@ router.post("/keys/:id/toggle", isAuthenticated, async (req: Request, res: Respo
  * POST /api/ai/chat
  * Proxy chat completion request to AI provider using user's stored key
  */
-router.post("/chat", isAuthenticated, async (req: Request, res: Response) => {
+router.post("/chat", isAuthenticated, conditionalCsrf, aiChatLimiter, async (req: Request, res: Response) => {
   try {
     const userId = req.user!.id;
     const { provider, model, messages, temperature, maxTokens, stream } = req.body;
     
     if (!provider || !model || !messages || !Array.isArray(messages)) {
-      return res.status(400).json({ error: "provider, model, and messages are required" });
+      return res.status(400).json({ message: "provider, model, and messages are required" });
     }
 
     const start = process.hrtime();
@@ -183,28 +212,23 @@ router.post("/chat", isAuthenticated, async (req: Request, res: Response) => {
     // Get user's API key for this provider
     let apiKey = "";
     
-    // For openrouter, we check ENV first as a fallback for this test
-    if (provider === "openrouter" && process.env.OPENROUTER_API_KEY) {
-      apiKey = process.env.OPENROUTER_API_KEY.trim().replace(/^["']|["']$/g, '');
-    } else {
-      const activeKey = await getActiveKeyForProvider(userId, provider);
-      
-      if (!activeKey) {
-        return res.status(404).json({ 
-          error: `No API key found for provider: ${provider}. Please add a key in settings.` 
-        });
-      }
-      
-      const apiKeyRecord = await getApiKeyWithPlaintext(userId, activeKey.id);
-      
-      if (!apiKeyRecord) {
-        return res.status(404).json({ 
-          error: `Failed to retrieve API key details.` 
-        });
-      }
-      
-      apiKey = apiKeyRecord.plaintextKey;
+    const activeKey = await getActiveKeyForProvider(userId, provider);
+    
+    if (!activeKey) {
+      return res.status(404).json({ 
+        message: `No API key found for provider: ${provider}. Please add a key in settings.` 
+      });
     }
+    
+    const apiKeyRecord = await getApiKeyWithPlaintext(userId, activeKey.id);
+    
+    if (!apiKeyRecord) {
+      return res.status(404).json({ 
+        message: "Failed to retrieve API key details." 
+      });
+    }
+    
+    apiKey = apiKeyRecord.plaintextKey;
     
     // Route to appropriate provider
     if (provider === "openai") {
@@ -307,11 +331,11 @@ router.post("/chat", isAuthenticated, async (req: Request, res: Response) => {
         res.json(response);
       }
     } else {
-      return res.status(400).json({ error: `Unsupported provider: ${provider}` });
+      return res.status(400).json({ message: `Unsupported provider: ${provider}` });
     }
   } catch (error: any) {
-    log.error({ err: error }, "Chat completion failed");
-    res.status(500).json({ error: error.message || "Failed to complete chat request" });
+    log.error({ err: error, userId: req.user?.id, provider: req.body?.provider, model: req.body?.model }, "Chat completion failed");
+    res.status(500).json({ message: "Failed to complete chat request" });
   }
 });
 
@@ -319,53 +343,45 @@ router.post("/chat", isAuthenticated, async (req: Request, res: Response) => {
  * POST /api/ai/suggestions
  * Generate contextual next-step suggestions based on the current canvas state.
  */
-router.post("/suggestions", isAuthenticated, async (req: Request, res: Response) => {
+router.post("/suggestions", isAuthenticated, conditionalCsrf, async (req: Request, res: Response) => {
   try {
     const userId = req.user!.id;
     const { canvas } = req.body; // { nodes, edges }
 
-    // Find the first active provider/key or check env
+    // Find the first active provider/key for the user
     let provider = "";
     let apiKey = "";
     let model = "";
 
-    // 1. Check openrouter env first
-    if (process.env.OPENROUTER_API_KEY) {
-      provider = "openrouter";
-      apiKey = process.env.OPENROUTER_API_KEY.trim().replace(/^["']|["']$/g, '');
-      model = "gpt-oss-120b:free";
-    } else {
-      // 2. Otherwise find the first active key in user database
-      const keys = await getUserApiKeys(userId);
-      const activeKey = keys.find(k => k.isActive);
-      
-      if (!activeKey) {
-        // Fallback gracefully to default suggestions if no key is configured
-        return res.json([
-          "Design a scalable Kubernetes microservices architecture",
-          "Set up a high-availability Postgres cluster",
-          "Build a serverless event-driven data pipeline",
-          "Create a secure AWS VPC with public/private subnets"
-        ]);
-      }
+    const keys = await getUserApiKeys(userId);
+    const activeKey = keys.find(k => k.isActive);
+    
+    if (!activeKey) {
+      // Return fallback suggestions if no key is configured
+      return res.json([
+        "Design a scalable Kubernetes microservices architecture",
+        "Set up a high-availability Postgres cluster",
+        "Build a serverless event-driven data pipeline",
+        "Create a secure AWS VPC with public/private subnets"
+      ]);
+    }
 
-      provider = activeKey.provider;
-      const keyDetails = await getApiKeyWithPlaintext(userId, activeKey.id);
-      if (!keyDetails) {
-        return res.status(500).json({ error: "Failed to load API key details" });
-      }
-      apiKey = keyDetails.plaintextKey;
-      
-      // Select model based on provider
-      if (provider === "openai") {
-        model = "gpt-4o-mini";
-      } else if (provider === "anthropic") {
-        model = "claude-3-5-haiku-20241022";
-      } else if (provider === "openrouter") {
-        model = "gpt-oss-120b:free";
-      } else {
-        return res.status(400).json({ error: `Unsupported provider for suggestions: ${provider}` });
-      }
+    provider = activeKey.provider;
+    const keyDetails = await getApiKeyWithPlaintext(userId, activeKey.id);
+    if (!keyDetails) {
+      return res.status(500).json({ message: "Failed to decrypt API key. The key may be corrupted — try removing and re-adding it." });
+    }
+    apiKey = keyDetails.plaintextKey;
+    
+    // Select model based on provider
+    if (provider === "openai") {
+      model = "gpt-4o-mini";
+    } else if (provider === "anthropic") {
+      model = "claude-3-5-haiku-20241022";
+    } else if (provider === "openrouter") {
+      model = "meta-llama/llama-3-8b-instruct:free";
+    } else {
+      return res.status(400).json({ message: `Unsupported provider for suggestions: ${provider}` });
     }
 
     const canvasNodes = canvas?.nodes || [];
@@ -439,23 +455,11 @@ Do NOT wrap the output in markdown code blocks like \`\`\`json. Return only the 
       throw new Error("Response was not a JSON array");
     } catch (e) {
       log.warn({ response: responseText, err: e }, "Failed to parse suggestions response");
-      // Fallback suggestions
-      return res.json([
-        "Design a scalable Kubernetes microservices architecture",
-        "Set up a high-availability Postgres cluster",
-        "Build a serverless event-driven data pipeline",
-        "Create a secure AWS VPC with public/private subnets"
-      ]);
+      return res.status(502).json({ message: "AI provider returned an unparseable response" });
     }
   } catch (error: any) {
-    log.error({ err: error }, "Suggestions failed");
-    // Return fallback suggestions on error rather than breaking the UI
-    res.json([
-      "Design a scalable Kubernetes microservices architecture",
-      "Set up a high-availability Postgres cluster",
-      "Build a serverless event-driven data pipeline",
-      "Create a secure AWS VPC with public/private subnets"
-    ]);
+    log.error({ err: error, userId: req.user?.id }, "Suggestions failed");
+    res.status(500).json({ message: "Suggestions generation failed" });
   }
 });
 
@@ -467,8 +471,7 @@ router.get("/providers", isAuthenticated, async (_req: Request, res: Response) =
   res.json([
     { id: "openai", name: "OpenAI", models: ["gpt-4", "gpt-4-turbo", "gpt-3.5-turbo"] },
     { id: "anthropic", name: "Anthropic", models: ["claude-3-5-sonnet", "claude-3-opus"] },
-    { id: "google", name: "Google AI", models: ["gemini-pro"] },
-    { id: "openrouter", name: "OpenRouter", models: ["meta-llama/llama-3-8b-instruct:free", "google/gemini-2.5-flash:free", "gpt-oss-120b:free", "gpt-oss-120b"] },
+    { id: "openrouter", name: "OpenRouter", models: ["meta-llama/llama-3-8b-instruct:free", "google/gemini-2.5-flash:free"] },
   ]);
 });
 

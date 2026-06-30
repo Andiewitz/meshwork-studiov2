@@ -3,7 +3,10 @@ import { teamStorage } from "./storage";
 import { joinTeamSchema, updateMemberRoleSchema } from "@shared/schema";
 import { csrfProtection } from "../../middleware/csrf";
 import { z } from "zod";
+import { createChildLogger } from "../../lib/logger";
 import type { AppContext } from "../../lib/registry";
+
+const log = createChildLogger("team");
 
 export function registerTeamRoutes(app: Express, context: AppContext) {
     const isAuthenticated = context.registry.get<any>("isAuthenticated");
@@ -24,7 +27,8 @@ export function registerTeamRoutes(app: Express, context: AppContext) {
             const team = await teamStorage.createTeam(name.trim(), userId);
             res.status(201).json(team);
         } catch (err) {
-            res.status(400).json({ message: err instanceof Error ? err.message : "Failed to create team" });
+            log.error({ err, userId: req.user!.id }, "Failed to create team");
+            res.status(400).json({ message: "Failed to create team" });
         }
     });
 
@@ -61,7 +65,8 @@ export function registerTeamRoutes(app: Express, context: AppContext) {
             if (err instanceof z.ZodError) {
                 return res.status(400).json({ message: err.errors[0].message });
             }
-            res.status(400).json({ message: err instanceof Error ? err.message : "Failed to join team" });
+            log.error({ err, userId: req.user!.id }, "Failed to join team");
+            res.status(400).json({ message: "Failed to join team" });
         }
     });
 
@@ -109,7 +114,8 @@ export function registerTeamRoutes(app: Express, context: AppContext) {
             const tw = await teamStorage.shareWorkspace(teamId, workspaceId);
             res.status(201).json(tw);
         } catch (err) {
-            res.status(400).json({ message: err instanceof Error ? err.message : "Failed to share workspace" });
+            log.error({ err, userId: req.user!.id, teamId: req.params.id }, "Failed to share workspace");
+            res.status(400).json({ message: "Failed to share workspace" });
         }
     });
 
@@ -202,7 +208,8 @@ export function registerTeamRoutes(app: Express, context: AppContext) {
             if (err instanceof z.ZodError) {
                 return res.status(400).json({ message: err.errors[0]?.message || "Invalid role" });
             }
-            res.status(400).json({ message: err instanceof Error ? err.message : "Failed to update role" });
+            log.error({ err, userId: req.user!.id, teamId: req.params.id, targetUserId: req.params.userId }, "Failed to update member role");
+            res.status(400).json({ message: "Failed to update role" });
         }
     });
 

@@ -20,7 +20,7 @@ export class AIModule {
     // Mount AI routes under /api/v1/ai
     app.use("/api/v1/ai", aiRoutes(context));
     
-    log.info("AI service initialized at /api/ai");
+    log.info("AI service initialized at /api/v1/ai");
   }
 }
 

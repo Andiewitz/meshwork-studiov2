@@ -41,7 +41,7 @@ export const MetricsModule = {
         res.json(result.rows.reverse()); // oldest first for charts
       } catch (err) {
         log.error({ err }, "Failed to query metrics history");
-        res.status(500).json({ error: "Failed to query metrics history" });
+        res.status(500).json({ message: "Failed to query metrics history" });
       }
     });
 
@@ -69,7 +69,7 @@ export const MetricsModule = {
         res.json(result.rows[0]);
       } catch (err) {
         log.error({ err }, "Failed to query metrics summary");
-        res.status(500).json({ error: "Failed to query metrics summary" });
+        res.status(500).json({ message: "Failed to query metrics summary" });
       }
     });
 
@@ -82,7 +82,7 @@ export const MetricsModule = {
         res.json({ deleted: result.rowCount });
       } catch (err) {
         log.error({ err }, "Failed to cleanup metrics");
-        res.status(500).json({ error: "Failed to cleanup metrics" });
+        res.status(500).json({ message: "Failed to cleanup metrics" });
       }
     });
 

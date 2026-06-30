@@ -3,7 +3,10 @@ import { canvasStorage } from "./storage";
 import { api } from "@shared/routes";
 import { z } from "zod";
 import { csrfProtection } from "../../middleware/csrf";
+import { createChildLogger } from "../../lib/logger";
 import type { AppContext } from "../../lib/registry";
+
+const log = createChildLogger("canvas");
 
 export function registerCanvasRoutes(app: Express, context: AppContext) {
     const isAuthenticated = context.registry.get<any>("isAuthenticated");
@@ -18,7 +21,7 @@ export function registerCanvasRoutes(app: Express, context: AppContext) {
 
         const userId = req.user!.id;
         const hasAccess = await teamStorage.canAccessWorkspace(userId, workspace.id);
-        if (!hasAccess) return res.status(401).json({ message: "Unauthorized" });
+        if (!hasAccess) return res.status(403).json({ message: "You do not have access to this workspace" });
 
         const nodes = await canvasStorage.getNodes(id);
         const edges = await canvasStorage.getEdges(id);

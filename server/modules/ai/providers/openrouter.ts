@@ -14,6 +14,14 @@ export interface ChatCompletionRequest {
 }
 
 /**
+ * Get the application URL for OpenRouter referer header.
+ * Uses APP_URL or FRONTEND_URL env var, falling back to localhost for development.
+ */
+function getAppUrl(): string {
+  return process.env.APP_URL || process.env.FRONTEND_URL || "http://localhost:5173";
+}
+
+/**
  * OpenRouter Provider Handler
  * Makes requests to OpenRouter API
  */
@@ -25,8 +33,8 @@ export async function createOpenRouterChatCompletion(
     apiKey,
     baseURL: "https://openrouter.ai/api/v1",
     defaultHeaders: {
-      "HTTP-Referer": "http://localhost:5173", // Optional, for including your app on openrouter.ai rankings
-      "X-Title": "Meshwork Studio", // Optional, shows in rankings
+      "HTTP-Referer": getAppUrl(),
+      "X-Title": "Meshwork Studio",
     },
   });
 
@@ -52,7 +60,7 @@ export async function* streamOpenRouterChatCompletion(
     apiKey,
     baseURL: "https://openrouter.ai/api/v1",
     defaultHeaders: {
-      "HTTP-Referer": "http://localhost:5173",
+      "HTTP-Referer": getAppUrl(),
       "X-Title": "Meshwork Studio",
     },
   });
@@ -72,3 +80,19 @@ export async function* streamOpenRouterChatCompletion(
     }
   }
 }
+
+/**
+ * Validate an OpenRouter API key by querying the auth/key endpoint.
+ * Returns true if the key is valid and has quota.
+ */
+export async function validateOpenRouterKey(apiKey: string): Promise<boolean> {
+  try {
+    const response = await fetch("https://openrouter.ai/api/v1/auth/key", {
+      headers: { Authorization: `Bearer ${apiKey}` },
+    });
+    return response.ok;
+  } catch {
+    return false;
+  }
+}
+

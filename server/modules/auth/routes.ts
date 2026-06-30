@@ -4,11 +4,11 @@ import passport from "passport";
 import { db } from "./db";
 import { users } from "@shared/schema";
 import { eq, and, inArray } from "drizzle-orm";
-import { hashPassword, verifyPassword } from "./password";
+import { hashPassword, verifyPassword, validatePasswordStrength } from "./password";
 import { generateTokens, verifyToken, revokeRefreshToken, isRefreshTokenRevoked } from "./jwt";
 import { isAuthenticated } from "./authCore";
 import { optionalCaptchaMiddleware } from "./captcha";
-import { authLimiter } from "../../middleware/rateLimit";
+import { authLimiter, refreshLimiter } from "../../middleware/rateLimit";
 import { csrfProtection } from "../../middleware/csrf";
 import { validate } from "../../middleware/validate";
 import { registerSchema, loginSchema, changePasswordSchema } from "./schemas";
@@ -26,14 +26,17 @@ export function registerAuthRoutes(app: Express, context: AppContext): void {
   app.get("/api/v1/auth/google/callback", (req: Request, res: Response, next) => {
     passport.authenticate("google", (err: any, user: any, info: any) => {
       if (err) {
+        log.warn({ err }, "Google OAuth callback error");
         return res.redirect("/?auth=login&error=google");
       }
       if (!user) {
+        log.warn({ info }, "Google OAuth rejected — no user returned");
         return res.redirect("/?auth=login&error=google");
       }
       
       req.login(user, (err) => {
         if (err) {
+          log.error({ err, userId: user.id }, "Google OAuth session login failed");
           return res.redirect("/?auth=login&error=google");
         }
 
@@ -60,19 +63,19 @@ export function registerAuthRoutes(app: Express, context: AppContext): void {
   });
 
   // Register with email/password (with CAPTCHA and CSRF protection)
-  // In development, skip CSRF to allow testing without full setup
-  const registerCsrfMiddleware = process.env.NODE_ENV === "production" ? csrfProtection : (_req: any, _res: any, next: any) => next();
+  // CSRF is active in production by default; set ENABLE_CSRF=true in .env to test locally
+  const csrfEnabled = process.env.ENABLE_CSRF === "true" || process.env.NODE_ENV === "production";
+  const conditionalCsrf = csrfEnabled ? csrfProtection : (_req: any, _res: any, next: any) => next();
   
-  app.post("/api/v1/auth/register", authLimiter, registerCsrfMiddleware, optionalCaptchaMiddleware, validate({ body: registerSchema }), async (req: Request, res: Response) => {
-    if (process.env.NODE_ENV === "development") {
-      log.debug("CSRF disabled for register in development mode");
+  app.post("/api/v1/auth/register", authLimiter, conditionalCsrf, optionalCaptchaMiddleware, validate({ body: registerSchema }), async (req: Request, res: Response) => {
+    if (!csrfEnabled) {
+      log.debug("CSRF disabled for register (set ENABLE_CSRF=true to enable)");
     }
     log.info({ email: req.body?.email }, "Register attempt received");
     try {
       const { email, password, firstName, lastName } = req.body;
 
       // SECURITY: Validate password strength
-      const { validatePasswordStrength } = await import("./password");
       const validation = validatePasswordStrength(password);
       if (!validation.valid) {
         return res.status(400).json({ message: "Password does not meet security requirements", errors: validation.errors });
@@ -85,7 +88,8 @@ export function registerAuthRoutes(app: Express, context: AppContext): void {
         .where(eq(users.email, email));
 
       if (existingUser) {
-        return res.status(409).json({ message: "Email already registered" });
+        // SECURITY: Generic message prevents email enumeration
+        return res.status(409).json({ message: "Registration could not be completed" });
       }
 
       // Hash password
@@ -108,18 +112,17 @@ export function registerAuthRoutes(app: Express, context: AppContext): void {
         userId: newUser.id,
       });
     } catch (err: any) {
-      log.error({ err }, "Registration error");
-      res.status(500).json({ message: err.message || "Registration failed due to server error" });
+      log.error({ err, email: req.body?.email }, "Registration error");
+      res.status(500).json({ message: "Registration failed due to a server error" });
     }
   });
 
   // Login with email/password (NO CAPTCHA for returning users, with CSRF protection)
-  // In development, skip CSRF to allow testing
-  const loginCsrfMiddleware = process.env.NODE_ENV === "production" ? csrfProtection : (_req: any, _res: any, next: any) => next();
+  // Uses the same csrfEnabled flag as register (ENABLE_CSRF=true or production)
   
-  app.post("/api/v1/auth/login", authLimiter, loginCsrfMiddleware, validate({ body: loginSchema }), (req: Request, res: Response, next) => {
-    if (process.env.NODE_ENV === "development") {
-      log.debug("CSRF disabled for login in development mode");
+  app.post("/api/v1/auth/login", authLimiter, conditionalCsrf, validate({ body: loginSchema }), (req: Request, res: Response, next) => {
+    if (!csrfEnabled) {
+      log.debug("CSRF disabled for login (set ENABLE_CSRF=true to enable)");
     }
     const { email } = req.body || {};
     log.info({ email }, "Login attempt received");
@@ -180,7 +183,7 @@ export function registerAuthRoutes(app: Express, context: AppContext): void {
   });
 
   // Refresh Token endpoint
-  app.post("/api/v1/auth/refresh", async (req: Request, res: Response) => {
+  app.post("/api/v1/auth/refresh", refreshLimiter, async (req: Request, res: Response) => {
     const refreshToken = req.cookies?.refresh_token;
     
     if (!refreshToken) {
@@ -203,6 +206,24 @@ export function registerAuthRoutes(app: Express, context: AppContext): void {
         res.clearCookie("refresh_token");
         return res.status(401).json({ message: "Token has been revoked" });
       }
+    }
+
+    // SECURITY: Verify the user still exists and is not deleted before minting new tokens
+    try {
+      const [existingUser] = await db
+        .select({ id: users.id })
+        .from(users)
+        .where(eq(users.id, payload.userId));
+
+      if (!existingUser) {
+        log.warn({ userId: payload.userId }, "Refresh attempt for non-existent user");
+        res.clearCookie("access_token");
+        res.clearCookie("refresh_token");
+        return res.status(401).json({ message: "User no longer exists" });
+      }
+    } catch (dbError) {
+      log.error({ err: dbError, userId: payload.userId }, "Database error during refresh user check");
+      return res.status(503).json({ message: "Service temporarily unavailable" });
     }
 
     // Generate new access token
@@ -235,7 +256,7 @@ export function registerAuthRoutes(app: Express, context: AppContext): void {
 
     req.logout((err) => {
       if (err) {
-        log.error({ err }, "Logout error");
+        log.error({ err, userId: (req as any).user?.id }, "Logout error");
         return res.status(500).json({ message: "Logout failed" });
       }
       res.json({ message: "Logged out successfully" });
@@ -266,8 +287,14 @@ export function registerAuthRoutes(app: Express, context: AppContext): void {
           .where(eq(users.id, userId));
         user = dbUser;
       } catch (dbError) {
-        // Fallback to in-memory user from Passport session
-        // This is sufficient for development/testing
+        log.error({ err: dbError, userId }, "Database error fetching user in /auth/me");
+
+        if (process.env.NODE_ENV === "production") {
+          return res.status(503).json({ message: "Service temporarily unavailable" });
+        }
+
+        // Fallback to in-memory user from Passport session (development only)
+        log.warn({ userId }, "Using session fallback for /auth/me (development mode)");
         user = {
           id: req.user.id,
           email: req.user.email,
@@ -287,7 +314,7 @@ export function registerAuthRoutes(app: Express, context: AppContext): void {
 
       res.json(user);
     } catch (error) {
-      log.error({ err: error }, "Error fetching user");
+      log.error({ err: error, userId: req.user?.id }, "Error fetching user");
       res.status(500).json({ message: "Failed to fetch user profile - please try again" });
     }
   });
@@ -318,7 +345,7 @@ export function registerAuthRoutes(app: Express, context: AppContext): void {
 
       res.json(updatedUser);
     } catch (error) {
-      log.error({ err: error }, "Error updating preferences");
+      log.error({ err: error, userId: req.user?.id }, "Error updating preferences");
       res.status(500).json({ message: "Failed to update preferences" });
     }
   });
@@ -348,7 +375,7 @@ export function registerAuthRoutes(app: Express, context: AppContext): void {
 
       res.json(updatedUser);
     } catch (error) {
-      log.error({ err: error }, "Error updating profile");
+      log.error({ err: error, userId: req.user?.id }, "Error updating profile");
       res.status(500).json({ message: "Failed to update profile" });
     }
   });
@@ -360,7 +387,6 @@ export function registerAuthRoutes(app: Express, context: AppContext): void {
       const { currentPassword, newPassword } = req.body;
 
       // SECURITY: Validate new password strength
-      const { validatePasswordStrength } = await import("./password");
       const validation = validatePasswordStrength(newPassword);
       if (!validation.valid) {
         return res.status(400).json({ message: "New password does not meet security requirements", errors: validation.errors });
@@ -393,7 +419,7 @@ export function registerAuthRoutes(app: Express, context: AppContext): void {
 
       res.json({ message: "Password changed successfully" });
     } catch (error) {
-      log.error({ err: error }, "Error changing password");
+      log.error({ err: error, userId: req.user?.id }, "Error changing password");
       res.status(500).json({ message: "Failed to change password" });
     }
   });
@@ -410,7 +436,7 @@ export function registerAuthRoutes(app: Express, context: AppContext): void {
 
       res.json({ message: "All data deleted successfully" });
     } catch (error) {
-      log.error({ err: error }, "Error deleting user data");
+      log.error({ err: error, userId: req.user?.id }, "Error deleting user data");
       res.status(500).json({ message: "Failed to delete user data" });
     }
   });
@@ -433,7 +459,7 @@ export function registerAuthRoutes(app: Express, context: AppContext): void {
         res.json({ message: "Account deleted successfully" });
       });
     } catch (error) {
-      log.error({ err: error }, "Error deleting account");
+      log.error({ err: error, userId: req.user?.id }, "Error deleting account");
       res.status(500).json({ message: "Failed to delete account" });
     }
   });

@@ -194,31 +194,6 @@ app.get("/ready", (_req, res) => {
       log.info(`Server started listening on port ${port} (initializing modules...)`);
     });
 
-    // Error handler
-    app.use((err: any, _req: Request, res: Response, next: NextFunction) => {
-      const status = err.status || err.statusCode || 500;
-      const message = err.message || "Internal Server Error";
-
-      log.error({ err }, "Internal Server Error");
-
-      if (res.headersSent) {
-        return next(err);
-      }
-
-      // Handle Postgres database constraint errors
-      if (err.code === '23505') {
-        return res.status(400).json({ message: "A record with this value already exists. Please use a unique value." });
-      }
-      if (err.code === '23503') {
-        return res.status(400).json({ message: "Referenced record does not exist or cannot be deleted." });
-      }
-      if (err.code === '22P02') {
-        return res.status(400).json({ message: "Invalid data format provided." });
-      }
-
-      return res.status(status).json({ message });
-    });
-
     try {
       log.info("Starting database migrations...");
     try {
@@ -245,6 +220,35 @@ app.get("/ready", (_req, res) => {
       const { setupVite } = await import("./vite");
       await setupVite(httpServer, app);
     }
+
+    // Global error handler — MUST be registered AFTER all routes
+    app.use((err: any, _req: Request, res: Response, next: NextFunction) => {
+      const status = err.status || err.statusCode || 500;
+
+      log.error({ err, status }, "Unhandled error reached global handler");
+
+      if (res.headersSent) {
+        return next(err);
+      }
+
+      // Handle Postgres database constraint errors
+      if (err.code === '23505') {
+        return res.status(400).json({ message: "A record with this value already exists. Please use a unique value." });
+      }
+      if (err.code === '23503') {
+        return res.status(400).json({ message: "Referenced record does not exist or cannot be deleted." });
+      }
+      if (err.code === '22P02') {
+        return res.status(400).json({ message: "Invalid data format provided." });
+      }
+
+      // SECURITY: Never forward raw error messages to clients in production
+      const clientMessage = process.env.NODE_ENV === "production"
+        ? "An unexpected error occurred"
+        : err.message || "Internal Server Error";
+
+      return res.status(status).json({ message: clientMessage });
+    });
     
     isAppReady = true;
     log.info(`Server fully ready and serving on port ${port}`);

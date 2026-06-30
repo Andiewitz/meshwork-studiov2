@@ -31,8 +31,10 @@ This document outlines the security audit performed on the Meshwork-Studio codeb
 ### 4. ✅ Insecure Session Cookie Settings (RESOLVED)
 - **Issue**: `sameSite="none"` increased CSRF vulnerability
 - **Fix Applied**:
-  - Changed to `sameSite="strict"` for enhanced CSRF protection
+  - Changed to `sameSite="lax"` for CSRF protection while maintaining OAuth compatibility
+  - Note: `"strict"` would break Google OAuth redirect-back flow (Passport cannot restore the session). `"lax"` is the correct setting for apps using OAuth providers.
   - Made `secure` flag conditional based on `NODE_ENV`
+  - CSRF protection is additionally enforced via `csurf` tokens on all state-changing endpoints
 
 ---
 
@@ -122,6 +124,17 @@ This document outlines the security audit performed on the Meshwork-Studio codeb
     - `POST /api/workspaces/:id/duplicate` - with CSRF
     - `POST /api/workspaces/:id/sync-canvas` - with CSRF
     - `POST /api/workspaces/:id/duplicate-canvas` - with CSRF
+    - `POST /api/v1/ai/keys` - with CSRF
+    - `DELETE /api/v1/ai/keys/:id` - with CSRF
+    - `POST /api/v1/ai/keys/:id/toggle` - with CSRF
+    - `POST /api/v1/ai/chat` - with CSRF
+    - `POST /api/v1/ai/suggestions` - with CSRF
+
+- **CSRF Development Mode**:
+  - CSRF is automatically active in production (`NODE_ENV=production`)
+  - In development, CSRF is disabled by default for ease of testing
+  - Set `ENABLE_CSRF=true` in `.env` to enable CSRF locally for integration testing
+  - This behavior is configurable, not hardcoded to `NODE_ENV`
 
 - **Implementation Details**:
   - Double-submit cookie pattern (CSRF token stored in secure HttpOnly cookie + header)
@@ -162,14 +175,16 @@ This document outlines the security audit performed on the Meshwork-Studio codeb
 
 - **Priority**: HIGH (now complete)
 
-### 3. ⚠️ No Rate Limiting
-- **Status**: Not yet implemented
-- **Recommendation**:
-  - Install `express-rate-limit`
-  - Apply strict limits to:
-    - `/api/auth/login` - 5 attempts per 15 minutes per IP
-    - `/api/auth/register` - 3 per hour per IP
-    - `/api/auth/refresh` - 100 per hour per IP
+### 3. ✅ Rate Limiting (IMPLEMENTED)
+- **Status**: Implemented
+- **Solution Applied**:
+  - Installed `express-rate-limit`
+  - Applied strict limits to:
+    - `/api/v1/auth/login` - 10 attempts per 15 minutes per IP
+    - `/api/v1/auth/register` - 10 per 15 minutes per IP
+    - `/api/v1/auth/refresh` - 100 per hour per IP
+    - `/api/v1/ai/chat` - 30 per minute per IP
+  - Global API limiter: 100 requests per minute per IP
 
 ### 4. ⚠️ No MFA/2FA Implementation
 - **Status**: Not implemented
