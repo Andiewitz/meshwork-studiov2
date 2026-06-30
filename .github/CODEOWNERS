@@ -1,0 +1,19 @@
+# Default owners for the entire repository
+* @VMedia
+
+# CI/CD configuration
+.github/ @VMedia
+
+# Security-sensitive areas
+server/modules/auth/ @VMedia
+server/middleware/ @VMedia
+
+# Client core
+client/src/ @VMedia
+
+# Shared types
+shared/ @VMedia
+
+# Database schema
+shared/schema.ts @VMedia
+drizzle.config.ts @VMedia

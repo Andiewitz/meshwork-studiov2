@@ -18,7 +18,12 @@
     "test:coverage": "vitest run --coverage",
     "test:auth": "vitest tests/unit/auth tests/integration/auth",
     "test:lockout": "vitest tests/unit/auth/lockout.test.ts tests/integration/auth/lockout-routes.test.ts",
-    "test:e2e": "playwright test"
+    "test:e2e": "playwright test",
+    "lint": "eslint .",
+    "lint:fix": "eslint . --fix",
+    "format": "prettier --check .",
+    "format:fix": "prettier --write .",
+    "prepare": "husky"
   },
   "dependencies": {
     "@base-ui/react": "^1.6.0",
@@ -83,6 +88,9 @@
     "zod": "^3.24.2"
   },
   "devDependencies": {
+    "@commitlint/cli": "^21.1.0",
+    "@commitlint/config-conventional": "^21.1.0",
+    "@eslint/js": "^10.0.1",
     "@playwright/test": "^1.59.0",
     "@tailwindcss/typography": "^0.5.15",
     "@types/bcrypt": "^5.0.2",
@@ -109,17 +117,34 @@
     "autoprefixer": "^10.4.20",
     "drizzle-kit": "^0.31.8",
     "esbuild": "^0.25.0",
+    "eslint": "^10.6.0",
+    "eslint-config-prettier": "^10.1.8",
+    "eslint-plugin-no-secrets": "^2.3.3",
+    "eslint-plugin-security": "^4.0.1",
     "happy-dom": "^20.8.8",
+    "husky": "^9.1.7",
+    "lint-staged": "^16.4.0",
     "pino-pretty": "^13.1.3",
     "playwright": "^1.59.0",
     "postcss": "^8.4.47",
+    "prettier": "^3.9.4",
     "sharp": "^0.34.5",
     "supertest": "^7.2.2",
     "tailwindcss": "^3.4.17",
     "tsx": "^4.20.5",
     "typescript": "5.6.3",
+    "typescript-eslint": "^8.62.1",
     "vite": "^7.3.0",
     "vitest": "^4.1.1"
+  },
+  "lint-staged": {
+    "*.{ts,tsx}": [
+      "eslint --fix",
+      "prettier --write"
+    ],
+    "*.{json,md,css}": [
+      "prettier --write"
+    ]
   },
   "overrides": {
     "drizzle-kit": {

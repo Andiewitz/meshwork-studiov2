@@ -2,86 +2,175 @@ name: CI/CD Pipeline
 
 on:
   push:
-    branches: [main]
+    branches: [main, develop]
   pull_request:
-    branches: [main]
+    branches: [main, develop]
 
-# Cancel in-progress runs for the same branch — only the latest push matters
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
   cancel-in-progress: true
 
+env:
+  NODE_VERSION: "20"
+
+defaults:
+  run:
+    shell: bash
+
 jobs:
-  # ── Job 1: Type checking (fast, runs in parallel with tests) ────────────────
+  # ── Static Analysis (parallel) ──────────────────────────────────────────
+  lint:
+    name: Lint
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: "npm"
+      - run: npm ci
+      - run: npm run lint
+
   typecheck:
     name: Type Check
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout Code
-        uses: actions/checkout@v4
-
-      - name: Setup Node.js
-        uses: actions/setup-node@v4
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
         with:
-          node-version: '20'
-          cache: 'npm'
+          node-version: ${{ env.NODE_VERSION }}
+          cache: "npm"
+      - run: npm ci
+      - run: npm run check
 
-      - name: Install Dependencies
-        run: npm ci
-
-      - name: Type Check
-        run: npm run check
-
-  # ── Job 2: Tests (unit + integration) ───────────────────────────────────────
-  test:
-    name: Run Tests
+  # ── Security (parallel) ─────────────────────────────────────────────────
+  dependency-audit:
+    name: Dependency Audit
     runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: "npm"
+      - run: npm ci
+      - run: npm audit --audit-level=high
+        continue-on-error: true
+
+  secrets-scan:
+    name: Secrets Scan
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: TruffleHog Scan
+        uses: trufflesecurity/trufflehog@v3
+        with:
+          extra_args: --only-verified --results=verified,unknown
+
+  # ── Tests (runs after lint + typecheck) ─────────────────────────────────
+  test:
+    name: Unit & Integration Tests
+    runs-on: ubuntu-latest
+    needs: [lint, typecheck]
     env:
       NODE_ENV: test
-      # Fake secrets — only used to satisfy module imports in test environment.
-      # All DB calls and auth are mocked in tests; these values are never sent anywhere.
       DATABASE_URL: postgresql://user:password@localhost:5432/test_db
       AUTH_DATABASE_URL: postgresql://user:password@localhost:5432/test_auth_db
       SESSION_SECRET: ci-test-session-secret-not-used-in-prod
       ENCRYPTION_KEY: ci-test-encryption-key-32-bytes00000
     steps:
-      - name: Checkout Code
-        uses: actions/checkout@v4
-
-      - name: Setup Node.js
-        uses: actions/setup-node@v4
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
         with:
-          node-version: '20'
-          cache: 'npm'
+          node-version: ${{ env.NODE_VERSION }}
+          cache: "npm"
+      - run: npm ci
+      - run: npm run test:run -- --coverage
+      - uses: actions/upload-artifact@v4
+        with:
+          name: coverage-report
+          path: coverage/
+          retention-days: 7
 
-      - name: Install Dependencies
-        run: npm ci
+  e2e:
+    name: E2E Tests
+    runs-on: ubuntu-latest
+    needs: [lint, typecheck]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: "npm"
+      - name: Cache Playwright browsers
+        uses: actions/cache@v4
+        with:
+          path: ~/.cache/ms-playwright
+          key: playwright-${{ runner.os }}-${{ hashFiles('package-lock.json') }}
+          restore-keys: |
+            playwright-${{ runner.os }}-
+      - run: npm ci
+      - run: npx playwright install --with-deps chromium
+      - run: npm run test:e2e
+      - uses: actions/upload-artifact@v4
+        if: failure()
+        with:
+          name: playwright-report
+          path: playwright-report/
+          retention-days: 14
 
-      - name: Run Tests
-        run: npm run test:run
-
-  # ── Job 3: Build (validates the production bundle compiles) ─────────────────
+  # ── Build & Package (runs after tests) ──────────────────────────────────
   build:
     name: Build Application
     runs-on: ubuntu-latest
-    needs: [typecheck, test]   # Only build if both checks pass
+    needs: [test, e2e]
     steps:
-      - name: Checkout Code
-        uses: actions/checkout@v4
-
-      - name: Setup Node.js
-        uses: actions/setup-node@v4
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
         with:
-          node-version: '20'
-          cache: 'npm'
-
-      - name: Install Dependencies
-        run: npm ci   # No NODE_ENV here — must install devDeps (tsx, vite, esbuild)
-
-      - name: Build Application
-        run: npm run build
+          node-version: ${{ env.NODE_VERSION }}
+          cache: "npm"
+      - run: npm ci
+      - run: npm run build
         env:
-          NODE_ENV: production          # Only set for the build step itself
+          NODE_ENV: production
           VITE_API_URL: ${{ secrets.VITE_API_URL }}
+      - uses: actions/upload-artifact@v4
+        with:
+          name: build-output
+          path: dist/
+          retention-days: 3
 
+  docker-verify:
+    name: Docker Build Verification
+    runs-on: ubuntu-latest
+    needs: [build]
+    steps:
+      - uses: actions/checkout@v4
+      - run: docker build -t meshwork-studio:ci .
 
+  coverage:
+    name: Coverage Check
+    runs-on: ubuntu-latest
+    needs: [test]
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          name: coverage-report
+          path: coverage/
+      - name: Enforce coverage threshold
+        run: |
+          if [ ! -f coverage/coverage-summary.json ]; then
+            echo "No coverage-summary.json found — skipping threshold check"
+            exit 0
+          fi
+          COVERAGE=$(jq -r '.total.lines.pct' coverage/coverage-summary.json)
+          THRESHOLD=80
+          echo "Line coverage: ${COVERAGE}%"
+          if (( $(echo "$COVERAGE < $THRESHOLD" | bc -l) )); then
+            echo "FAIL: Coverage ${COVERAGE}% is below threshold ${THRESHOLD}%"
+            exit 1
+          fi
+          echo "PASS: Coverage ${COVERAGE}% meets threshold ${THRESHOLD}%"
