@@ -1,3 +1,9 @@
+## [1.2.1](https://github.com/Andiewitz/meshwork-studiov2/compare/v1.2.0...v1.2.1) (2026-07-01)
+
+### Bug Fixes
+
+- update OpenRouter model ID to include required vendor prefix ([19a8f23](https://github.com/Andiewitz/meshwork-studiov2/commit/19a8f23d1de3e37ce6df39ecaac19a3b8ded6532))
+
 # [1.2.0](https://github.com/Andiewitz/meshwork-studiov2/compare/v1.1.1...v1.2.0) (2026-06-30)
 
 ### Features
