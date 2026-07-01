@@ -1,3 +1,9 @@
+## [1.2.2](https://github.com/Andiewitz/meshwork-studiov2/compare/v1.2.1...v1.2.2) (2026-07-01)
+
+### Bug Fixes
+
+- set correct document titles for each page section ([616f464](https://github.com/Andiewitz/meshwork-studiov2/commit/616f464cd5e5d14e19a31e13960a838cfeba659f))
+
 ## [1.2.1](https://github.com/Andiewitz/meshwork-studiov2/compare/v1.2.0...v1.2.1) (2026-07-01)
 
 ### Bug Fixes
