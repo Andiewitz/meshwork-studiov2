@@ -1,3 +1,9 @@
+# [1.3.0](https://github.com/Andiewitz/meshwork-studiov2/compare/v1.2.2...v1.3.0) (2026-07-01)
+
+### Features
+
+- add global ErrorBoundary to fix blank screen during navigation ([b3d51cc](https://github.com/Andiewitz/meshwork-studiov2/commit/b3d51cc488ff15086a2f88d9b2a02443677536e7))
+
 ## [1.2.2](https://github.com/Andiewitz/meshwork-studiov2/compare/v1.2.1...v1.2.2) (2026-07-01)
 
 ### Bug Fixes
