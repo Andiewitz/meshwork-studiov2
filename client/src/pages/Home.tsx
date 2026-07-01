@@ -1,4 +1,5 @@
 import { useState, useMemo, useEffect } from "react";
+import { Helmet } from "react-helmet-async";
 import { Link, useLocation } from "wouter";
 import { useWorkspaces, useDeleteWorkspace, useCreateWorkspace } from "@/hooks/use-workspaces";
 import { useAuth } from "@/hooks/use-auth";
@@ -144,6 +145,9 @@ export default function Home() {
 
   return (
     <>
+      <Helmet>
+        <title>{isWorkspacesPage ? "Workspaces — Meshwork Studio" : "Home — Meshwork Studio"}</title>
+      </Helmet>
       <div className="w-full max-w-[1400px] mx-auto">
         <AnimatePresence mode="wait">
           {!isWorkspacesPage ? (

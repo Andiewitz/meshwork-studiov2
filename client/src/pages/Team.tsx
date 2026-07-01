@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Link } from "wouter";
+import { Helmet } from "react-helmet-async";
 import {
   Users, Plus, Copy, Check, LogOut, Trash2, RefreshCw, ArrowRight,
   Crown, Share2, ExternalLink, Calendar, UserMinus, Loader2,
@@ -115,6 +116,9 @@ export default function Team() {
 
   return (
     <>
+      <Helmet>
+        <title>Team — Meshwork Studio</title>
+      </Helmet>
       <motion.div
         initial="hidden"
         animate="visible"

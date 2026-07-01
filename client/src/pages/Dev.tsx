@@ -1,4 +1,5 @@
 import { useState, useEffect, useMemo } from "react";
+import { Helmet } from "react-helmet-async";
 import { Search, ChevronRight, Menu, X, Copy, BookOpen } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { cn } from "@/lib/utils";
@@ -364,6 +365,9 @@ export default function DevDocs() {
 
   return (
     <div className="flex min-h-[calc(100vh-64px)] bg-[#0A0A0A] text-white">
+      <Helmet>
+        <title>Dev Docs — Meshwork Studio</title>
+      </Helmet>
       {/* Desktop Sidebar */}
       <aside className="hidden lg:block w-[280px] shrink-0 sticky top-16 h-[calc(100vh-64px)] overflow-hidden">
         <Sidebar />
