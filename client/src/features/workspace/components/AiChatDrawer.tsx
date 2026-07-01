@@ -297,7 +297,7 @@ export function AiChatDrawer({
               provider: "openrouter",
               // GPT OSS 120B — powerful reasoning and instruction-following model
               // Tested working: GPT OSS 120B Free > openrouter/free
-              model: "gpt-oss-120b:free",
+              model: "openai/gpt-oss-120b:free",
               messages: payloadMessages,
               stream: false,
             }),
