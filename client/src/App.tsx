@@ -19,6 +19,7 @@ import { AnimatePresence, motion } from "framer-motion";
 import { DashboardLayout } from "@/components/layout/DashboardLayout";
 import { HelmetProvider } from "react-helmet-async";
 import { AuthModalProvider } from "@/components/auth/AuthModalContext";
+import { ErrorBoundary } from "@/components/ui/error-boundary";
 
 // Route-level code splitting via React.lazy
 const lazyMap = {
@@ -256,9 +257,11 @@ function App() {
             <AuthModalProvider>
               <TooltipProvider>
                 <Toaster />
-                <Suspense fallback={<RedirectingScreen />}>
-                  <Router />
-                </Suspense>
+                <ErrorBoundary>
+                  <Suspense fallback={<RedirectingScreen />}>
+                    <Router />
+                  </Suspense>
+                </ErrorBoundary>
               </TooltipProvider>
             </AuthModalProvider>
           </WouterRouter>
