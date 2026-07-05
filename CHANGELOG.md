@@ -1,3 +1,9 @@
+## [1.4.9](https://github.com/Andiewitz/meshwork-studiov2/compare/v1.4.8...v1.4.9) (2026-07-05)
+
+### Bug Fixes
+
+- **e2e:** expand mock user and bypass auth/me db fetch ([d9ad67d](https://github.com/Andiewitz/meshwork-studiov2/commit/d9ad67d57142ba62c19d5f7f501461851d0f7d00))
+
 ## [1.4.8](https://github.com/Andiewitz/meshwork-studiov2/compare/v1.4.7...v1.4.8) (2026-07-05)
 
 ### Bug Fixes
