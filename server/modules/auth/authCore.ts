@@ -13,29 +13,34 @@ const log = createChildLogger("auth");
 
 const getSession = () => {
   const sessionTtl = 7 * 24 * 60 * 60 * 1000; // 1 week
-  const connectionString = process.env.AUTH_DATABASE_URL || process.env.DATABASE_URL;
-  
+  const connectionString =
+    process.env.AUTH_DATABASE_URL || process.env.DATABASE_URL;
+
   // SECURITY: Require SESSION_SECRET in production - fallback to temporary secret if missing to avoid healthcheck crash
   if (!process.env.SESSION_SECRET) {
     log.error("CRITICAL: SESSION_SECRET environment variable is missing!");
     if (process.env.NODE_ENV === "production") {
-      log.error("Using emergency fallback secret. SESSIONS WILL NOT BE SECURE UNTIL FIXED.");
+      log.error(
+        "Using emergency fallback secret. SESSIONS WILL NOT BE SECURE UNTIL FIXED.",
+      );
     }
   }
 
   const redisClient = getRedis();
 
   if (!redisClient) {
-    log.warn("Redis client not available, falling back to in-memory session store (development only)");
+    log.warn(
+      "Redis client not available, falling back to in-memory session store (development only)",
+    );
     const MemoryStore = memorystore(session);
     return session({
       secret: process.env.SESSION_SECRET || "dev_only_insecure_dev_key_12345",
       resave: false,
       saveUninitialized: false,
       store: new MemoryStore({
-        checkPeriod: 86400000
+        checkPeriod: 86400000,
       }),
-      cookie: { secure: false }
+      cookie: { secure: false },
     });
   }
 
@@ -46,7 +51,9 @@ const getSession = () => {
   });
 
   return session({
-    secret: process.env.SESSION_SECRET || "emergency_fallback_secret_not_real_production_key_12345",
+    secret:
+      process.env.SESSION_SECRET ||
+      "emergency_fallback_secret_not_real_production_key_12345",
     store: sessionStore,
     resave: false,
     saveUninitialized: false,
@@ -81,6 +88,12 @@ export async function setupAuth(app: Express) {
 }
 
 export const isAuthenticated: RequestHandler = (req, res, next) => {
+  // E2E Test Auth Bypass — allow mock dashboard/canvas testing without active session cookie
+  if (process.env.E2E_BYPASS_AUTH === "true") {
+    req.user = { id: "mock-id-1" } as any;
+    return next();
+  }
+
   // First check if the user is authenticated via Passport session (useful during transition/OAuth)
   if (req.isAuthenticated && req.isAuthenticated()) {
     return next();
