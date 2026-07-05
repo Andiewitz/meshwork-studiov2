@@ -23,13 +23,28 @@ declare global {
  */
 
 // Initialize CSRF protection with cookie-based storage
-export const csrfProtection = csrf({
+const _csrfMiddleware = csrf({
   cookie: {
     httpOnly: true,
     secure: process.env.NODE_ENV === "production",
     sameSite: "strict",
   },
 });
+
+/**
+ * CSRF middleware — skipped when E2E_BYPASS_AUTH=true so Playwright tests can
+ * make mutating API calls without needing to pre-seed a csurf cookie.
+ */
+export const csrfProtection: import("express").RequestHandler = (
+  req,
+  res,
+  next,
+) => {
+  if (process.env.E2E_BYPASS_AUTH === "true") {
+    return next();
+  }
+  return _csrfMiddleware(req, res, next);
+};
 
 /**
  * Middleware to generate CSRF token
