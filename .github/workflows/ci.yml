@@ -98,6 +98,26 @@ jobs:
     name: E2E Tests
     runs-on: ubuntu-latest
     needs: [lint, typecheck]
+    services:
+      postgres:
+        image: postgres:15
+        env:
+          POSTGRES_USER: user
+          POSTGRES_PASSWORD: password
+          POSTGRES_DB: test_db
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+    env:
+      NODE_ENV: test
+      DATABASE_URL: postgresql://user:password@localhost:5432/test_db
+      AUTH_DATABASE_URL: postgresql://user:password@localhost:5432/test_db
+      SESSION_SECRET: ci-test-session-secret-not-used-in-prod
+      ENCRYPTION_KEY: ci-test-encryption-key-32-bytes00000
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
