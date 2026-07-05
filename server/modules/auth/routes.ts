@@ -107,9 +107,46 @@ export function registerAuthRoutes(app: Express, context: AppContext): void {
         })
         .returning();
 
-      res.status(201).json({
-        message: "Registration successful",
-        userId: newUser.id,
+      // Log the new user in immediately (same as login route)
+      req.login(newUser, (err) => {
+        if (err) {
+          log.error({ err, userId: newUser.id, email }, "Register: req.login (session serialization) failed");
+          // Account was created successfully even if auto-login fails — fall back to old behavior
+          return res.status(201).json({
+            message: "Registration successful",
+            userId: newUser.id,
+          });
+        }
+
+        try {
+          const { accessToken, refreshToken } = generateTokens(newUser);
+          const isProd = process.env.NODE_ENV === "production";
+
+          res.cookie("access_token", accessToken, {
+            httpOnly: true,
+            secure: isProd,
+            sameSite: "lax",
+            maxAge: 15 * 60 * 1000, // 15 minutes
+          });
+
+          res.cookie("refresh_token", refreshToken, {
+            httpOnly: true,
+            secure: isProd,
+            sameSite: "lax",
+            maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
+          });
+
+          log.info({ userId: newUser.id, email }, "Register: tokens set, response sent");
+          // Return user object like login does (for client query cache)
+          return res.status(201).json({ user: newUser });
+        } catch (tokenErr: any) {
+          log.error({ err: tokenErr, userId: newUser.id, email }, "Register: token generation or cookie setup failed");
+          // Fall back to old behavior
+          return res.status(201).json({
+            message: "Registration successful",
+            userId: newUser.id,
+          });
+        }
       });
     } catch (err: any) {
       log.error({ err, email: req.body?.email }, "Registration error");

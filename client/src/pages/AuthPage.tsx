@@ -378,14 +378,15 @@ function RegisterForm() {
         lastName: formData.lastName,
         captchaToken: captchaToken || "dev_bypass_token",
       });
-      const data: ApiErrorResponse = (await res.json()) as ApiErrorResponse;
+      const data = (await res.json()) as ApiErrorResponse & ApiLoginResponse;
 
       if (res.ok) {
         toast({
           title: "Account created!",
-          description: "You can now sign in.",
+          description: "Welcome to Meshwork.",
         });
-        setLocation("/login");
+        queryClient.setQueryData(["/api/v1/auth/me"], data.user);
+        setLocation("/home");
       } else {
         const errorMsg = data.message ?? "Something went wrong";
         const lower = errorMsg.toLowerCase();

@@ -208,8 +208,9 @@ function LoginForm() {
 // REGISTER FORM
 // ─────────────────────────────────────────────
 function RegisterForm() {
+  const [, setLocation] = useLocation();
   const { toast } = useToast();
-  const { switchMode } = useAuthModal();
+  const { close, switchMode } = useAuthModal();
   const [isLoading, setIsLoading] = useState(false);
   const [captchaToken, setCaptchaToken] = useState("");
   const recaptchaRef = useRef<ReCAPTCHA>(null);
@@ -253,13 +254,19 @@ function RegisterForm() {
         lastName: formData.lastName,
         captchaToken: captchaToken || "dev_bypass_token",
       });
-      const data: ApiErrorResponse = await res.json() as ApiErrorResponse;
+      const data: ApiErrorResponse | ApiLoginResponse = await res.json() as ApiErrorResponse | ApiLoginResponse;
 
       if (res.ok) {
-        toast({ title: "Account created!", description: "You can now sign in." });
-        switchMode('login');
+        // Auto-login successful - prime auth cache and redirect to app
+        if ("user" in data) {
+          queryClient.setQueryData(["/api/v1/auth/me"], data.user);
+        }
+        toast({ title: "Account created!", description: "Welcome to Meshwork." });
+        close();
+        setLocation("/home");
       } else {
-        const errorMsg = data.message ?? "Something went wrong";
+        // Error response - message is guaranteed to exist on ApiErrorResponse
+        const errorMsg = (data as ApiErrorResponse).message ?? "Something went wrong";
         const lower = errorMsg.toLowerCase();
         if (lower.includes("email")) {
           setFormErrors({ email: errorMsg });
