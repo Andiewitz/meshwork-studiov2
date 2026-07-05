@@ -107,12 +107,10 @@ export function registerAuthRoutes(app: Express, context: AppContext): void {
         // SECURITY: Validate password strength
         const validation = validatePasswordStrength(password);
         if (!validation.valid) {
-          return res
-            .status(400)
-            .json({
-              message: "Password does not meet security requirements",
-              errors: validation.errors,
-            });
+          return res.status(400).json({
+            message: "Password does not meet security requirements",
+            errors: validation.errors,
+          });
         }
 
         // Check if user already exists
@@ -406,6 +404,11 @@ export function registerAuthRoutes(app: Express, context: AppContext): void {
       try {
         const userId = req.user.id;
 
+        // E2E bypass — return the mock user directly, skip DB
+        if (process.env.E2E_BYPASS_AUTH === "true") {
+          return res.json(req.user);
+        }
+
         // Try to fetch from database first
         let user;
         try {
@@ -559,12 +562,10 @@ export function registerAuthRoutes(app: Express, context: AppContext): void {
         // SECURITY: Validate new password strength
         const validation = validatePasswordStrength(newPassword);
         if (!validation.valid) {
-          return res
-            .status(400)
-            .json({
-              message: "New password does not meet security requirements",
-              errors: validation.errors,
-            });
+          return res.status(400).json({
+            message: "New password does not meet security requirements",
+            errors: validation.errors,
+          });
         }
 
         // Get user with password hash

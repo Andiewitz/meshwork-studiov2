@@ -90,7 +90,17 @@ export async function setupAuth(app: Express) {
 export const isAuthenticated: RequestHandler = (req, res, next) => {
   // E2E Test Auth Bypass — allow mock dashboard/canvas testing without active session cookie
   if (process.env.E2E_BYPASS_AUTH === "true") {
-    req.user = { id: "mock-id-1" } as any;
+    req.user = {
+      id: "mock-id-1",
+      email: "architect@meshwork.dev",
+      firstName: "Test",
+      lastName: "User",
+      profileImageUrl: null,
+      authProvider: "local",
+      hasNotifiedTeam: false,
+      readNotificationIds: [],
+      createdAt: new Date(),
+    } as any;
     return next();
   }
 
