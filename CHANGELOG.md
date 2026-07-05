@@ -1,3 +1,9 @@
+## [1.3.5](https://github.com/Andiewitz/meshwork-studiov2/compare/v1.3.4...v1.3.5) (2026-07-05)
+
+### Bug Fixes
+
+- **ci:** use main branch for trufflehog action ([7936ffe](https://github.com/Andiewitz/meshwork-studiov2/commit/7936ffe9edf1aa54b951352b8282afbe9571635e))
+
 ## [1.3.4](https://github.com/Andiewitz/meshwork-studiov2/compare/v1.3.3...v1.3.4) (2026-07-05)
 
 ### Bug Fixes
