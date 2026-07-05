@@ -1,3 +1,9 @@
+## [1.3.2](https://github.com/Andiewitz/meshwork-studiov2/compare/v1.3.1...v1.3.2) (2026-07-05)
+
+### Bug Fixes
+
+- auto-login after registration ([4a2086e](https://github.com/Andiewitz/meshwork-studiov2/commit/4a2086ec45c05c4df7cce01f4fdccdc3f1ec8c05))
+
 ## [1.3.1](https://github.com/Andiewitz/meshwork-studiov2/compare/v1.3.0...v1.3.1) (2026-07-05)
 
 ### Bug Fixes
