@@ -4,17 +4,38 @@ import {
   createApiKey,
   deleteApiKey,
   getUserApiKeys,
-  toggleKeyStatus,
   getApiKeyWithPlaintext,
   getActiveKeyForProvider,
 } from "./db";
 import { validateKeyFormat } from "./encryption";
 import { aiChatRequestsTotal, aiChatDurationSeconds } from "../../lib/metrics";
 import { csrfProtection } from "../../middleware/csrf";
-import { aiChatLimiter } from "../../middleware/rateLimit";
+import { aiChatLimiter, aiFreeTierLimiter } from "../../middleware/rateLimit";
+import {
+  resolveProviderForRequest,
+  ProviderResolutionError,
+  DEFAULT_PROVIDER,
+} from "./resolver";
 import type { AppContext } from "../../lib/registry";
 
 const log = createChildLogger("ai");
+
+// ---------------------------------------------------------------------------
+// Error mapping — ProviderResolutionError → HTTP response
+// ---------------------------------------------------------------------------
+
+function handleResolutionError(error: ProviderResolutionError, res: Response) {
+  switch (error.code) {
+    case "BYOK_DECRYPT_FAILED":
+      return res.status(500).json({ code: error.code, message: error.message });
+    case "NO_ACTIVE_KEY":
+      return res.status(404).json({ code: error.code, message: error.message });
+    case "FALLBACK_NOT_CONFIGURED":
+      return res.status(503).json({ code: error.code, message: error.message });
+    default:
+      return res.status(500).json({ message: error.message });
+  }
+}
 
 export default function createAIRoutes(context: AppContext) {
   const router = Router();
@@ -55,6 +76,7 @@ export default function createAIRoutes(context: AppContext) {
   /**
    * POST /api/ai/keys
    * Add a new API key (encrypted and stored)
+   * Uses transactional deactivate-then-insert to prevent duplicate active keys.
    */
   router.post(
     "/keys",
@@ -79,7 +101,7 @@ export default function createAIRoutes(context: AppContext) {
           });
         }
 
-        // Create encrypted key
+        // Create encrypted key (deactivates previous key in a transaction)
         const key = await createApiKey({ userId, provider, apiKey });
 
         res.status(201).json({
@@ -201,50 +223,13 @@ export default function createAIRoutes(context: AppContext) {
   );
 
   /**
-   * POST /api/ai/keys/:id/toggle
-   * Toggle key active status
-   */
-  router.post(
-    "/keys/:id/toggle",
-    isAuthenticated,
-    conditionalCsrf,
-    async (req: Request, res: Response) => {
-      try {
-        const userId = req.user!.id;
-        const keyId = req.params.id as string;
-        const { isActive } = req.body;
-
-        if (typeof isActive !== "boolean") {
-          return res
-            .status(400)
-            .json({ message: "isActive boolean is required" });
-        }
-
-        const key = await toggleKeyStatus(userId, keyId, isActive);
-
-        if (!key) {
-          return res.status(404).json({ message: "API key not found" });
-        }
-
-        res.json({
-          id: key.id,
-          provider: key.provider,
-          keyHint: key.keyHint,
-          isActive: key.isActive,
-        });
-      } catch (error) {
-        log.error(
-          { err: error, userId: req.user?.id, keyId: req.params.id },
-          "Failed to toggle key",
-        );
-        res.status(500).json({ message: "Failed to update API key" });
-      }
-    },
-  );
-
-  /**
    * POST /api/ai/chat
-   * Proxy chat completion request to AI provider using user's stored key
+   * Proxy chat completion request to AI provider.
+   *
+   * Uses resolveProviderForRequest() as the single decision point:
+   * - If provider is omitted or is the default → free-tier fallback (env key)
+   * - If provider is a BYOK provider → user's stored key
+   * - Failures are specific (BYOK_DECRYPT_FAILED, NO_ACTIVE_KEY, etc.)
    */
   router.post(
     "/chat",
@@ -257,45 +242,72 @@ export default function createAIRoutes(context: AppContext) {
         const { provider, model, messages, temperature, maxTokens, stream } =
           req.body;
 
-        if (!provider || !model || !messages || !Array.isArray(messages)) {
+        // messages is always required; provider and model are optional
+        // (omitting them triggers the free-tier fallback).
+        if (!messages || !Array.isArray(messages)) {
           return res
             .status(400)
-            .json({ message: "provider, model, and messages are required" });
+            .json({ message: "messages array is required" });
         }
 
         const start = process.hrtime();
+
+        // ---------------------------------------------------------------
+        // Resolve provider — the ONE decision point
+        // ---------------------------------------------------------------
+        let resolved;
+        try {
+          resolved = await resolveProviderForRequest(userId, provider, model);
+        } catch (error) {
+          if (error instanceof ProviderResolutionError) {
+            return handleResolutionError(error, res);
+          }
+          throw error;
+        }
+
+        // Apply tighter rate limit for free-tier requests (app's money)
+        if (resolved.source === "fallback") {
+          const freeTierAllowed = await new Promise<boolean>((resolve) => {
+            aiFreeTierLimiter(req, res, (err?: any) => {
+              if (err) {
+                resolve(false);
+              } else {
+                resolve(!res.headersSent);
+              }
+            });
+          });
+          if (!freeTierAllowed || res.headersSent) return;
+        }
+
         res.on("finish", () => {
           const duration = process.hrtime(start);
           const durationInSeconds = duration[0] + duration[1] / 1e9;
           const status = res.statusCode >= 400 ? "error" : "success";
 
-          aiChatRequestsTotal.labels(provider, model, status).inc();
-          aiChatDurationSeconds.labels(provider).observe(durationInSeconds);
+          aiChatRequestsTotal
+            .labels(resolved.provider, resolved.model, status)
+            .inc();
+          aiChatDurationSeconds
+            .labels(resolved.provider)
+            .observe(durationInSeconds);
         });
 
-        // Get user's API key for this provider
-        let apiKey = "";
+        const apiKey = resolved.apiKey;
+        const resolvedProvider = resolved.provider;
+        const resolvedModel = resolved.model;
 
-        const activeKey = await getActiveKeyForProvider(userId, provider);
-
-        if (!activeKey) {
-          return res.status(404).json({
-            message: `No API key found for provider: ${provider}. Please add a key in settings.`,
-          });
-        }
-
-        const apiKeyRecord = await getApiKeyWithPlaintext(userId, activeKey.id);
-
-        if (!apiKeyRecord) {
-          return res.status(404).json({
-            message: "Failed to retrieve API key details.",
-          });
-        }
-
-        apiKey = apiKeyRecord.plaintextKey;
+        log.info(
+          {
+            userId,
+            provider: resolvedProvider,
+            model: resolvedModel,
+            source: resolved.source,
+          },
+          "Chat request resolved",
+        );
 
         // Route to appropriate provider
-        if (provider === "openai") {
+        if (resolvedProvider === "openai") {
           const { createOpenAIChatCompletion } =
             await import("./providers/openai");
 
@@ -306,15 +318,15 @@ export default function createAIRoutes(context: AppContext) {
 
             const { streamOpenAIChatCompletion } =
               await import("./providers/openai");
-            const stream = streamOpenAIChatCompletion(apiKey, {
-              model,
+            const sseStream = streamOpenAIChatCompletion(apiKey, {
+              model: resolvedModel,
               messages,
               temperature,
               maxTokens,
               stream: true,
             });
 
-            for await (const chunk of stream) {
+            for await (const chunk of sseStream) {
               res.write(`data: ${JSON.stringify({ content: chunk })}\n\n`);
             }
 
@@ -322,7 +334,7 @@ export default function createAIRoutes(context: AppContext) {
             res.end();
           } else {
             const response = await createOpenAIChatCompletion(apiKey, {
-              model,
+              model: resolvedModel,
               messages,
               temperature,
               maxTokens,
@@ -330,7 +342,7 @@ export default function createAIRoutes(context: AppContext) {
             });
             res.json(response);
           }
-        } else if (provider === "anthropic") {
+        } else if (resolvedProvider === "anthropic") {
           const {
             createAnthropicChatCompletion,
             streamAnthropicChatCompletion,
@@ -341,15 +353,15 @@ export default function createAIRoutes(context: AppContext) {
             res.setHeader("Cache-Control", "no-cache");
             res.setHeader("Connection", "keep-alive");
 
-            const stream = streamAnthropicChatCompletion(apiKey, {
-              model,
+            const sseStream = streamAnthropicChatCompletion(apiKey, {
+              model: resolvedModel,
               messages,
               temperature,
               maxTokens,
               stream: true,
             });
 
-            for await (const chunk of stream) {
+            for await (const chunk of sseStream) {
               res.write(`data: ${JSON.stringify({ content: chunk })}\n\n`);
             }
 
@@ -357,7 +369,7 @@ export default function createAIRoutes(context: AppContext) {
             res.end();
           } else {
             const response = await createAnthropicChatCompletion(apiKey, {
-              model,
+              model: resolvedModel,
               messages,
               temperature,
               maxTokens,
@@ -367,7 +379,7 @@ export default function createAIRoutes(context: AppContext) {
             const data = await response.json();
             res.json(data);
           }
-        } else if (provider === "openrouter") {
+        } else if (resolvedProvider === "openrouter") {
           const {
             createOpenRouterChatCompletion,
             streamOpenRouterChatCompletion,
@@ -378,15 +390,15 @@ export default function createAIRoutes(context: AppContext) {
             res.setHeader("Cache-Control", "no-cache");
             res.setHeader("Connection", "keep-alive");
 
-            const stream = streamOpenRouterChatCompletion(apiKey, {
-              model,
+            const sseStream = streamOpenRouterChatCompletion(apiKey, {
+              model: resolvedModel,
               messages,
               temperature,
               maxTokens,
               stream: true,
             });
 
-            for await (const chunk of stream) {
+            for await (const chunk of sseStream) {
               res.write(`data: ${JSON.stringify({ content: chunk })}\n\n`);
             }
 
@@ -394,7 +406,7 @@ export default function createAIRoutes(context: AppContext) {
             res.end();
           } else {
             const response = await createOpenRouterChatCompletion(apiKey, {
-              model,
+              model: resolvedModel,
               messages,
               temperature,
               maxTokens,
@@ -405,7 +417,7 @@ export default function createAIRoutes(context: AppContext) {
         } else {
           return res
             .status(400)
-            .json({ message: `Unsupported provider: ${provider}` });
+            .json({ message: `Unsupported provider: ${resolvedProvider}` });
         }
       } catch (error: any) {
         log.error(
@@ -417,7 +429,16 @@ export default function createAIRoutes(context: AppContext) {
           },
           "Chat completion failed",
         );
-        res.status(500).json({ message: "Failed to complete chat request" });
+
+        // Pass through upstream provider errors with useful context
+        const statusCode = error.status || error.statusCode || 502;
+        const message = error.message || "AI provider returned an error";
+        res
+          .status(statusCode >= 400 && statusCode < 600 ? statusCode : 502)
+          .json({
+            code: "PROVIDER_ERROR",
+            message,
+          });
       }
     },
   );
@@ -425,6 +446,7 @@ export default function createAIRoutes(context: AppContext) {
   /**
    * POST /api/ai/suggestions
    * Generate contextual next-step suggestions based on the current canvas state.
+   * Uses the same resolver as /chat — no independent key-lookup logic.
    */
   router.post(
     "/suggestions",
@@ -435,49 +457,41 @@ export default function createAIRoutes(context: AppContext) {
         const userId = req.user!.id;
         const { canvas } = req.body; // { nodes, edges }
 
-        // Find the first active provider/key for the user
-        let provider = "";
-        let apiKey = "";
-        let model = "";
-
-        const keys = await getUserApiKeys(userId);
-        const activeKey = keys.find((k) => k.isActive);
-
-        if (!activeKey) {
-          // Return fallback suggestions if no key is configured
-          return res.json([
-            "Design a scalable Kubernetes microservices architecture",
-            "Set up a high-availability Postgres cluster",
-            "Build a serverless event-driven data pipeline",
-            "Create a secure AWS VPC with public/private subnets",
-          ]);
+        // Resolve provider — use free tier by default for suggestions
+        let resolved;
+        try {
+          resolved = await resolveProviderForRequest(
+            userId,
+            undefined,
+            undefined,
+          );
+        } catch (error) {
+          if (error instanceof ProviderResolutionError) {
+            // If we can't resolve any provider, return static fallback suggestions
+            return res.json([
+              "Design a scalable Kubernetes microservices architecture",
+              "Set up a high-availability Postgres cluster",
+              "Build a serverless event-driven data pipeline",
+              "Create a secure AWS VPC with public/private subnets",
+            ]);
+          }
+          throw error;
         }
 
-        provider = activeKey.provider;
-        const keyDetails = await getApiKeyWithPlaintext(userId, activeKey.id);
-        if (!keyDetails) {
-          return res
-            .status(500)
-            .json({
-              message:
-                "Failed to decrypt API key. The key may be corrupted — try removing and re-adding it.",
-            });
-        }
-        apiKey = keyDetails.plaintextKey;
+        const { provider, apiKey } = resolved;
 
-        // Select model based on provider
+        // Select a lightweight model for suggestions (cheaper than full chat)
+        let suggestionsModel: string;
         if (provider === "openai") {
-          model = "gpt-4o-mini";
+          suggestionsModel = "gpt-4o-mini";
         } else if (provider === "anthropic") {
-          model = "claude-3-5-haiku-20241022";
+          suggestionsModel = "claude-3-5-haiku-20241022";
         } else if (provider === "openrouter") {
-          model = "meta-llama/llama-3-8b-instruct:free";
+          suggestionsModel = "meta-llama/llama-3-8b-instruct:free";
         } else {
-          return res
-            .status(400)
-            .json({
-              message: `Unsupported provider for suggestions: ${provider}`,
-            });
+          return res.status(400).json({
+            message: `Unsupported provider for suggestions: ${provider}`,
+          });
         }
 
         const canvasNodes = canvas?.nodes || [];
@@ -505,7 +519,7 @@ Do NOT wrap the output in markdown code blocks like \`\`\`json. Return only the 
           const { createOpenRouterChatCompletion } =
             await import("./providers/openrouter");
           const response: any = await createOpenRouterChatCompletion(apiKey, {
-            model,
+            model: suggestionsModel,
             messages: [{ role: "user", content: prompt }],
             temperature: 0.5,
             maxTokens: 200,
@@ -516,7 +530,7 @@ Do NOT wrap the output in markdown code blocks like \`\`\`json. Return only the 
           const { createOpenAIChatCompletion } =
             await import("./providers/openai");
           const response: any = await createOpenAIChatCompletion(apiKey, {
-            model,
+            model: suggestionsModel,
             messages: [{ role: "user", content: prompt }],
             temperature: 0.5,
             maxTokens: 200,
@@ -527,7 +541,7 @@ Do NOT wrap the output in markdown code blocks like \`\`\`json. Return only the 
           const { createAnthropicChatCompletion } =
             await import("./providers/anthropic");
           const response = await createAnthropicChatCompletion(apiKey, {
-            model,
+            model: suggestionsModel,
             messages: [{ role: "user", content: prompt }],
             temperature: 0.5,
             maxTokens: 200,
@@ -572,7 +586,9 @@ Do NOT wrap the output in markdown code blocks like \`\`\`json. Return only the 
 
   /**
    * GET /api/ai/providers
-   * List supported AI providers
+   * List supported AI providers.
+   * Marks the default free-tier provider and only lists providers with
+   * working adapter files.
    */
   router.get(
     "/providers",
@@ -583,19 +599,24 @@ Do NOT wrap the output in markdown code blocks like \`\`\`json. Return only the 
           id: "openai",
           name: "OpenAI",
           models: ["gpt-4", "gpt-4-turbo", "gpt-3.5-turbo"],
+          requiresByok: true,
         },
         {
           id: "anthropic",
           name: "Anthropic",
           models: ["claude-3-5-sonnet", "claude-3-opus"],
+          requiresByok: true,
         },
         {
           id: "openrouter",
           name: "OpenRouter",
           models: [
+            "openai/gpt-oss-120b:free",
             "meta-llama/llama-3-8b-instruct:free",
             "google/gemini-2.5-flash:free",
           ],
+          requiresByok: false,
+          isDefault: true,
         },
       ]);
     },

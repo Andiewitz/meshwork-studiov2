@@ -17,17 +17,19 @@ const KEY_LENGTH = 32; // bytes (256 bits)
  */
 function getMasterKey(): Buffer {
   const keyBase64 = process.env.ENCRYPTION_KEY;
-  
+
   if (!keyBase64) {
     throw new Error("ENCRYPTION_KEY environment variable is required");
   }
-  
+
   const key = Buffer.from(keyBase64, "base64");
-  
+
   if (key.length !== KEY_LENGTH) {
-    throw new Error(`ENCRYPTION_KEY must be ${KEY_LENGTH} bytes when decoded, got ${key.length}`);
+    throw new Error(
+      `ENCRYPTION_KEY must be ${KEY_LENGTH} bytes when decoded, got ${key.length}`,
+    );
   }
-  
+
   return key;
 }
 
@@ -43,21 +45,21 @@ function generateIV(): Buffer {
  * @param plaintext - The API key to encrypt
  * @returns Object containing encrypted data, IV, and auth tag (all base64 encoded)
  */
-export function encryptApiKey(plaintext: string): { 
-  encryptedData: string; 
-  iv: string; 
+export function encryptApiKey(plaintext: string): {
+  encryptedData: string;
+  iv: string;
   authTag: string;
 } {
   const key = getMasterKey();
   const iv = generateIV();
-  
+
   const cipher = crypto.createCipheriv(ALGORITHM, key, iv);
-  
+
   let encrypted = cipher.update(plaintext, "utf8", "base64");
   encrypted += cipher.final("base64");
-  
+
   const authTag = cipher.getAuthTag();
-  
+
   return {
     encryptedData: encrypted,
     iv: iv.toString("base64"),
@@ -73,29 +75,33 @@ export function encryptApiKey(plaintext: string): {
  * @returns Decrypted API key
  */
 export function decryptApiKey(
-  encryptedData: string, 
-  iv: string, 
-  authTag: string
+  encryptedData: string,
+  iv: string,
+  authTag: string,
 ): string {
   const key = getMasterKey();
-  
+
   const ivBuffer = Buffer.from(iv, "base64");
   const authTagBuffer = Buffer.from(authTag, "base64");
-  
+
   if (ivBuffer.length !== IV_LENGTH) {
-    throw new Error(`Invalid IV length: expected ${IV_LENGTH}, got ${ivBuffer.length}`);
+    throw new Error(
+      `Invalid IV length: expected ${IV_LENGTH}, got ${ivBuffer.length}`,
+    );
   }
-  
+
   if (authTagBuffer.length !== AUTH_TAG_LENGTH) {
-    throw new Error(`Invalid auth tag length: expected ${AUTH_TAG_LENGTH}, got ${authTagBuffer.length}`);
+    throw new Error(
+      `Invalid auth tag length: expected ${AUTH_TAG_LENGTH}, got ${authTagBuffer.length}`,
+    );
   }
-  
+
   const decipher = crypto.createDecipheriv(ALGORITHM, key, ivBuffer);
   decipher.setAuthTag(authTagBuffer);
-  
+
   let decrypted = decipher.update(encryptedData, "base64", "utf8");
   decrypted += decipher.final("utf8");
-  
+
   return decrypted;
 }
 
@@ -123,12 +129,12 @@ export function validateKeyFormat(provider: string, apiKey: string): boolean {
     case "anthropic":
       // Anthropic keys start with "sk-ant-"
       return apiKey.startsWith("sk-ant-") && apiKey.length >= 20;
-    case "google":
-      // Google AI keys vary but are typically long
-      return apiKey.length >= 20;
+    case "openrouter":
+      // OpenRouter keys start with "sk-or-"
+      return apiKey.startsWith("sk-or-") && apiKey.length >= 20;
     default:
-      // Generic validation - just needs to be reasonable length
-      return apiKey.length >= 10;
+      // Unknown provider — reject rather than silently accept
+      return false;
   }
 }
 

@@ -5,7 +5,9 @@ import rateLimit from "express-rate-limit";
 export const apiLimiter = rateLimit({
   windowMs: 60 * 1000, // 1 minute
   max: 100, // Limit each IP to 100 requests per window
-  message: { message: "Too many requests from this IP, please try again after a minute." },
+  message: {
+    message: "Too many requests from this IP, please try again after a minute.",
+  },
   standardHeaders: true, // Return rate limit info in the `RateLimit-*` headers
   legacyHeaders: false, // Disable the `X-RateLimit-*` headers
 });
@@ -15,7 +17,10 @@ export const apiLimiter = rateLimit({
 export const authLimiter = rateLimit({
   windowMs: 15 * 60 * 1000, // 15 minutes
   max: 10, // Limit each IP to 10 requests per window
-  message: { message: "Too many authentication attempts, please try again after 15 minutes." },
+  message: {
+    message:
+      "Too many authentication attempts, please try again after 15 minutes.",
+  },
   standardHeaders: true,
   legacyHeaders: false,
 });
@@ -25,7 +30,9 @@ export const authLimiter = rateLimit({
 export const refreshLimiter = rateLimit({
   windowMs: 60 * 60 * 1000, // 1 hour
   max: 100, // Limit each IP to 100 refresh requests per window
-  message: { message: "Too many token refresh requests, please try again later." },
+  message: {
+    message: "Too many token refresh requests, please try again later.",
+  },
   standardHeaders: true,
   legacyHeaders: false,
 });
@@ -38,4 +45,23 @@ export const aiChatLimiter = rateLimit({
   message: { message: "Too many AI requests, please slow down." },
   standardHeaders: true,
   legacyHeaders: false,
+});
+
+// Tighter rate limiter for free-tier AI requests (app-owned key).
+// BYOK users spend their own money; free-tier spends ours — cap it harder.
+// Applied conditionally by the route handler after provider resolution.
+export const aiFreeTierLimiter = rateLimit({
+  windowMs: 60 * 1000, // 1 minute
+  max: 10, // 10 req/min on free tier (vs 30 for BYOK)
+  message: {
+    message:
+      "Free tier rate limit reached. Add your own API key in settings for higher limits.",
+  },
+  standardHeaders: true,
+  legacyHeaders: false,
+  keyGenerator: (req: any) => {
+    // Key by user ID (not IP) so per-user limits are accurate.
+    // This middleware only runs behind isAuthenticated, so req.user is always set.
+    return req.user?.id ?? "anonymous";
+  },
 });

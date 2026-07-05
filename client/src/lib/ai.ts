@@ -59,19 +59,12 @@ export const aiService = {
   },
 
   /**
-   * Toggle key active status
-   */
-  async toggleKeyStatus(keyId: string, isActive: boolean): Promise<ApiKey> {
-    const res = await apiRequest("POST", `/api/v1/ai/keys/${keyId}/toggle`, {
-      isActive,
-    });
-    return res.json();
-  },
-
-  /**
    * Test an API key without storing it
    */
-  async testApiKey(provider: string, apiKey: string): Promise<{ valid: boolean; message?: string }> {
+  async testApiKey(
+    provider: string,
+    apiKey: string,
+  ): Promise<{ valid: boolean; message?: string }> {
     const res = await apiRequest("POST", "/api/v1/ai/keys/test", {
       provider,
       apiKey,
@@ -83,8 +76,8 @@ export const aiService = {
    * Send a chat completion request (non-streaming)
    */
   async chat(params: {
-    provider: string;
-    model: string;
+    provider?: string;
+    model?: string;
     messages: ChatMessage[];
     temperature?: number;
     maxTokens?: number;
@@ -100,9 +93,9 @@ export const aiService = {
    * Send a streaming chat completion request
    * Returns an async generator that yields content chunks
    */
-  async* streamChat(params: {
-    provider: string;
-    model: string;
+  async *streamChat(params: {
+    provider?: string;
+    model?: string;
     messages: ChatMessage[];
     temperature?: number;
     maxTokens?: number;

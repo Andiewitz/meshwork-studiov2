@@ -1,4 +1,4 @@
-import { eq, and } from "drizzle-orm";
+import { eq, and, desc } from "drizzle-orm";
 import { drizzle } from "drizzle-orm/node-postgres";
 import pg from "pg";
 import { createChildLogger } from "../../lib/logger";
@@ -12,7 +12,9 @@ const { Pool } = pg;
 const connectionString = process.env.DATABASE_URL;
 
 if (!connectionString) {
-  log.error("DATABASE_URL not set. AI module will fall back to placeholder mode.");
+  log.error(
+    "DATABASE_URL not set. AI module will fall back to placeholder mode.",
+  );
 }
 
 let db: any = null;
@@ -22,7 +24,9 @@ if (connectionString) {
 } else {
   // Placeholder db for development without database
   db = {
-    select: () => ({ from: () => ({ where: () => ({ limit: () => Promise.resolve([]) }) }) }),
+    select: () => ({
+      from: () => ({ where: () => ({ limit: () => Promise.resolve([]) }) }),
+    }),
     insert: () => ({ values: () => Promise.resolve([]) }),
     update: () => ({ set: () => ({ where: () => Promise.resolve({}) }) }),
     delete: () => ({ from: () => ({ where: () => Promise.resolve({}) }) }),
@@ -56,26 +60,42 @@ export interface KeyWithPlaintext extends UserApiKey {
 export async function createApiKey(input: CreateKeyInput): Promise<UserApiKey> {
   // Encrypt the API key
   const { encryptedData, iv, authTag } = encryptApiKey(input.apiKey);
-  
+
   // Generate hint for UI
   const keyHint = generateKeyHint(input.apiKey);
-  
-  const insertData: InsertUserApiKey = {
-    userId: input.userId,
-    provider: input.provider,
-    encryptedKey: encryptedData,
-    iv,
-    authTag,
-    keyHint,
-    isActive: true,
-  };
-  
-  const [result] = await db
-    .insert(schema.userApiKeys)
-    .values(insertData)
-    .returning();
-  
-  return result;
+
+  // Wrap in a transaction: deactivate any existing active key for this
+  // user+provider BEFORE inserting the new one. This closes the race window
+  // where two concurrent "add key" requests could both land as active.
+  // The partial unique index in the schema is the belt; this is the suspenders.
+  return await db.transaction(async (tx: any) => {
+    // Deactivate existing active key(s) for this user+provider
+    await tx
+      .update(schema.userApiKeys)
+      .set({ isActive: false, updatedAt: new Date() })
+      .where(
+        and(
+          eq(schema.userApiKeys.userId, input.userId),
+          eq(schema.userApiKeys.provider, input.provider),
+          eq(schema.userApiKeys.isActive, true),
+        ),
+      );
+
+    const [result] = await tx
+      .insert(schema.userApiKeys)
+      .values({
+        userId: input.userId,
+        provider: input.provider,
+        encryptedKey: encryptedData,
+        iv,
+        authTag,
+        keyHint,
+        isActive: true,
+      })
+      .returning();
+
+    return result;
+  });
 }
 
 /**
@@ -94,8 +114,8 @@ export async function getUserApiKeys(userId: string): Promise<UserApiKey[]> {
  * Returns encrypted data - must be decrypted before use
  */
 export async function getActiveKeyForProvider(
-  userId: string, 
-  provider: string
+  userId: string,
+  provider: string,
 ): Promise<UserApiKey | null> {
   const [result] = await db
     .select()
@@ -104,11 +124,12 @@ export async function getActiveKeyForProvider(
       and(
         eq(schema.userApiKeys.userId, userId),
         eq(schema.userApiKeys.provider, provider),
-        eq(schema.userApiKeys.isActive, true)
-      )
+        eq(schema.userApiKeys.isActive, true),
+      ),
     )
+    .orderBy(desc(schema.userApiKeys.createdAt))
     .limit(1);
-  
+
   return result || null;
 }
 
@@ -118,7 +139,7 @@ export async function getActiveKeyForProvider(
  */
 export async function getApiKeyWithPlaintext(
   userId: string,
-  keyId: string
+  keyId: string,
 ): Promise<KeyWithPlaintext | null> {
   const [result] = await db
     .select()
@@ -126,22 +147,22 @@ export async function getApiKeyWithPlaintext(
     .where(
       and(
         eq(schema.userApiKeys.id, keyId),
-        eq(schema.userApiKeys.userId, userId)
-      )
+        eq(schema.userApiKeys.userId, userId),
+      ),
     )
     .limit(1);
-  
+
   if (!result) {
     return null;
   }
-  
+
   // Decrypt the key
   const plaintextKey = decryptApiKey(
     result.encryptedKey,
     result.iv,
-    result.authTag
+    result.authTag,
   );
-  
+
   return {
     ...result,
     plaintextKey,
@@ -151,17 +172,20 @@ export async function getApiKeyWithPlaintext(
 /**
  * Delete an API key
  */
-export async function deleteApiKey(userId: string, keyId: string): Promise<boolean> {
+export async function deleteApiKey(
+  userId: string,
+  keyId: string,
+): Promise<boolean> {
   const result = await db
     .delete(schema.userApiKeys)
     .where(
       and(
         eq(schema.userApiKeys.id, keyId),
-        eq(schema.userApiKeys.userId, userId)
-      )
+        eq(schema.userApiKeys.userId, userId),
+      ),
     )
     .returning();
-  
+
   return result.length > 0;
 }
 
@@ -169,9 +193,9 @@ export async function deleteApiKey(userId: string, keyId: string): Promise<boole
  * Toggle key active status
  */
 export async function toggleKeyStatus(
-  userId: string, 
-  keyId: string, 
-  isActive: boolean
+  userId: string,
+  keyId: string,
+  isActive: boolean,
 ): Promise<UserApiKey | null> {
   const [result] = await db
     .update(schema.userApiKeys)
@@ -179,11 +203,11 @@ export async function toggleKeyStatus(
     .where(
       and(
         eq(schema.userApiKeys.id, keyId),
-        eq(schema.userApiKeys.userId, userId)
-      )
+        eq(schema.userApiKeys.userId, userId),
+      ),
     )
     .returning();
-  
+
   return result || null;
 }
 
@@ -191,8 +215,8 @@ export async function toggleKeyStatus(
  * Check if user has any keys for a provider
  */
 export async function hasKeyForProvider(
-  userId: string, 
-  provider: string
+  userId: string,
+  provider: string,
 ): Promise<boolean> {
   const result = await db
     .select({ count: schema.userApiKeys.id })
@@ -201,10 +225,10 @@ export async function hasKeyForProvider(
       and(
         eq(schema.userApiKeys.userId, userId),
         eq(schema.userApiKeys.provider, provider),
-        eq(schema.userApiKeys.isActive, true)
-      )
+        eq(schema.userApiKeys.isActive, true),
+      ),
     )
     .limit(1);
-  
+
   return result.length > 0;
 }

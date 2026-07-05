@@ -320,10 +320,9 @@ export function AiChatDrawer({
             headers: { "Content-Type": "application/json" },
             credentials: "include",
             body: JSON.stringify({
-              provider: "openrouter",
-              // GPT OSS 120B — powerful reasoning and instruction-following model
-              // Tested working: GPT OSS 120B Free > openrouter/free
-              model: "openai/gpt-oss-120b:free",
+              // provider and model are intentionally omitted here.
+              // The backend resolver uses the free-tier fallback (OpenRouter /
+              // GPT OSS 120B) by default, or a user's BYOK key if configured.
               messages: payloadMessages,
               stream: false,
             }),
