@@ -1,3 +1,9 @@
+## [1.4.4](https://github.com/Andiewitz/meshwork-studiov2/compare/v1.4.3...v1.4.4) (2026-07-05)
+
+### Bug Fixes
+
+- **e2e:** bypass auth check for playwright runs via E2E_BYPASS_AUTH ([23db900](https://github.com/Andiewitz/meshwork-studiov2/commit/23db9003494e982ff8cf4e916ceff8cd47da37e8))
+
 ## [1.4.3](https://github.com/Andiewitz/meshwork-studiov2/compare/v1.4.2...v1.4.3) (2026-07-05)
 
 ### Bug Fixes
