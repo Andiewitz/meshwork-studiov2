@@ -1,3 +1,9 @@
+## [1.3.4](https://github.com/Andiewitz/meshwork-studiov2/compare/v1.3.3...v1.3.4) (2026-07-05)
+
+### Bug Fixes
+
+- resolve CI/CD lint and secrets scan failures ([7f89e8c](https://github.com/Andiewitz/meshwork-studiov2/commit/7f89e8c9b3bfba42627998c5d950d038fa8eaeea))
+
 ## [1.3.3](https://github.com/Andiewitz/meshwork-studiov2/compare/v1.3.2...v1.3.3) (2026-07-05)
 
 ### Bug Fixes
