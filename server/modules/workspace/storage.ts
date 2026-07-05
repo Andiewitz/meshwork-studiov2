@@ -260,7 +260,9 @@ export class WorkspaceInMemoryStorage implements IWorkspaceStorage {
   ): Promise<Workspace[]> {
     return this.workspaces
       .filter((w) => w.userId === userId && w.collectionId === collectionId)
-      .sort((a, b) => b.createdAt.getTime() - a.createdAt.getTime());
+      .sort(
+        (a, b) => (b.createdAt?.getTime() ?? 0) - (a.createdAt?.getTime() ?? 0),
+      );
   }
 
   async getWorkspace(id: number): Promise<Workspace | undefined> {
@@ -319,8 +321,8 @@ export class WorkspaceInMemoryStorage implements IWorkspaceStorage {
       description: existing.description,
       author: existing.author,
       aiContext: existing.aiContext,
-      groups: existing.groups,
-      tags: existing.tags,
+      groups: existing.groups || [],
+      tags: existing.tags || [],
     });
   }
 
