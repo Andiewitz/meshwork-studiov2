@@ -1,3 +1,9 @@
+## [1.4.6](https://github.com/Andiewitz/meshwork-studiov2/compare/v1.4.5...v1.4.6) (2026-07-05)
+
+### Bug Fixes
+
+- **e2e:** bypass rate limiters in test mode and optimize E2E specs ([8ec1e48](https://github.com/Andiewitz/meshwork-studiov2/commit/8ec1e48435792d0ed75601c09234acdbf69dcacb))
+
 ## [1.4.5](https://github.com/Andiewitz/meshwork-studiov2/compare/v1.4.4...v1.4.5) (2026-07-05)
 
 ### Bug Fixes
