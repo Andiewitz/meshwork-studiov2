@@ -65,7 +65,7 @@ class MemAuthStorage implements IAuthStorage {
   async upsertUser(userData: UpsertUser): Promise<User> {
     if (!userData.id) throw new Error("User ID is required");
     const now = new Date();
-    const existing = this.users.get(userData.id!);
+    const existing = this.users.get(userData.id);
     const user: User = {
       ...userData,
       createdAt: existing?.createdAt ?? now, // Keep existing createdAt if present
@@ -75,7 +75,7 @@ class MemAuthStorage implements IAuthStorage {
     // Ensure all mandatory fields from User interface are present if they are not in UpsertUser
     // Assuming User extends UpsertUser plus createdAt, updatedAt
 
-    this.users.set(userData.id!, user);
+    this.users.set(userData.id, user);
     return user;
   }
   async updateUser(id: string, data: Partial<User>): Promise<User> {
@@ -87,4 +87,7 @@ class MemAuthStorage implements IAuthStorage {
   }
 }
 
-export const authStorage = process.env.AUTH_DATABASE_URL || process.env.DATABASE_URL ? new AuthStorage() : new MemAuthStorage();
+export const authStorage =
+  process.env.AUTH_DATABASE_URL || process.env.DATABASE_URL
+    ? new AuthStorage()
+    : new MemAuthStorage();

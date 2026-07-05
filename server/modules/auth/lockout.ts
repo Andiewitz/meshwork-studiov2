@@ -30,18 +30,22 @@ function calculateLockoutDuration(failedAttempts: number): number {
   if (failedAttempts <= MAX_FAILED_ATTEMPTS) {
     return 0; // Not locked
   }
-  
+
   // Exponential backoff: 15m, 30m, 60m, 120m, etc.
-  const exponentialMinutes = BASE_LOCKOUT_MINUTES * Math.pow(2, failedAttempts - MAX_FAILED_ATTEMPTS - 1);
+  const exponentialMinutes =
+    BASE_LOCKOUT_MINUTES *
+    Math.pow(2, failedAttempts - MAX_FAILED_ATTEMPTS - 1);
   const maxMinutes = 8 * 60; // 8 hours cap
-  
+
   return Math.min(exponentialMinutes, maxMinutes);
 }
 
 /**
  * Check if an email is currently locked out
  */
-export async function isAccountLocked(email: string): Promise<{ locked: boolean; lockedUntil?: Date }> {
+export async function isAccountLocked(
+  email: string,
+): Promise<{ locked: boolean; lockedUntil?: Date }> {
   try {
     const [attempt] = await db
       .select()
@@ -49,7 +53,7 @@ export async function isAccountLocked(email: string): Promise<{ locked: boolean;
       .where(eq(loginAttempts.email, email))
       .limit(1);
 
-    if (!attempt || !attempt.lockedUntil) {
+    if (!attempt?.lockedUntil) {
       return { locked: false };
     }
 
@@ -73,10 +77,13 @@ export async function isAccountLocked(email: string): Promise<{ locked: boolean;
     return { locked: false };
   } catch (error) {
     // Fallback to in-memory storage — lockout enforcement is degraded
-    log.warn({ err: error, email }, "DB unavailable for lockout check, using in-memory fallback");
+    log.warn(
+      { err: error, email },
+      "DB unavailable for lockout check, using in-memory fallback",
+    );
     const attempt = inMemoryLoginAttempts.get(email);
 
-    if (!attempt || !attempt.lockedUntil) {
+    if (!attempt?.lockedUntil) {
       return { locked: false };
     }
 
@@ -102,7 +109,13 @@ export async function isAccountLocked(email: string): Promise<{ locked: boolean;
 /**
  * Record a failed login attempt
  */
-export async function recordFailedAttempt(email: string): Promise<{ locked: boolean; lockedUntil?: Date | null; attemptsRemaining?: number }> {
+export async function recordFailedAttempt(
+  email: string,
+): Promise<{
+  locked: boolean;
+  lockedUntil?: Date | null;
+  attemptsRemaining?: number;
+}> {
   try {
     const [existingAttempt] = await db
       .select()
@@ -155,7 +168,10 @@ export async function recordFailedAttempt(email: string): Promise<{ locked: bool
     };
   } catch (error) {
     // Fallback to in-memory storage — lockout enforcement is degraded
-    log.warn({ err: error, email }, "DB unavailable for recording failed attempt, using in-memory fallback");
+    log.warn(
+      { err: error, email },
+      "DB unavailable for recording failed attempt, using in-memory fallback",
+    );
     const now = new Date();
     let failedCount = 1;
     let lockedUntil: Date | null = null;
@@ -199,7 +215,7 @@ export async function recordFailedAttempt(email: string): Promise<{ locked: bool
 export async function resetFailedAttempts(email: string): Promise<void> {
   try {
     const now = new Date();
-    
+
     await db
       .update(loginAttempts)
       .set({
@@ -210,10 +226,13 @@ export async function resetFailedAttempts(email: string): Promise<void> {
       .where(eq(loginAttempts.email, email));
   } catch (error) {
     // Fallback to in-memory storage — lockout enforcement is degraded
-    log.warn({ err: error, email }, "DB unavailable for resetting lockout, using in-memory fallback");
+    log.warn(
+      { err: error, email },
+      "DB unavailable for resetting lockout, using in-memory fallback",
+    );
     const now = new Date();
     const attempt = inMemoryLoginAttempts.get(email);
-    
+
     if (attempt) {
       inMemoryLoginAttempts.set(email, {
         ...attempt,

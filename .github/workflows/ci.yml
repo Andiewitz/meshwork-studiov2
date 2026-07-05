@@ -67,7 +67,7 @@ jobs:
       - name: TruffleHog Scan
         uses: trufflesecurity/trufflehog@v3
         with:
-          extra_args: --only-verified --results=verified,unknown
+          extra_args: --only-verified
 
   # ── Tests (runs after lint + typecheck) ─────────────────────────────────
   test:

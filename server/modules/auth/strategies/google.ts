@@ -88,8 +88,8 @@ export function createGoogleStrategy() {
         } as Express.User);
       } catch (err) {
         log.error({ err }, "Google authentication error");
-        return done(err as Error);
+        return done(err);
       }
-    }
+    },
   );
 }

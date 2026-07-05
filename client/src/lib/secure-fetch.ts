@@ -6,7 +6,7 @@ import { useQueryClient } from "@tanstack/react-query";
 function getCsrfTokenFromCache(): string {
   try {
     const queryClient = useQueryClient();
-    return (queryClient.getQueryData(["csrf-token"]) as string) || "";
+    return queryClient.getQueryData(["csrf-token"])! || "";
   } catch {
     return "";
   }
@@ -14,11 +14,11 @@ function getCsrfTokenFromCache(): string {
 
 /**
  * Enhanced fetch function that automatically includes CSRF token
- * 
+ *
  * This wraps the native fetch API to automatically add:
  * - X-CSRF-Token header for state-changing requests
  * - Proper error handling
- * 
+ *
  * Usage is identical to fetch():
  * ```tsx
  * const response = await secureFetch('/api/v1/auth/register', {
@@ -29,14 +29,14 @@ function getCsrfTokenFromCache(): string {
  */
 export async function secureFetch(
   input: RequestInfo | URL,
-  init?: RequestInit
+  init?: RequestInit,
 ): Promise<Response> {
   const method = (init?.method || "GET").toUpperCase();
-  
+
   // Only add CSRF token for state-changing requests
   if (!["GET", "HEAD", "OPTIONS"].includes(method)) {
     const csrfToken = getCsrfToken();
-    
+
     // Initialize headers if not present
     if (!init) {
       init = {};
@@ -46,13 +46,13 @@ export async function secureFetch(
     }
 
     // Ensure headers is a plain object (can be HeadersInit)
-    const headers = new Headers(init.headers as HeadersInit);
-    
+    const headers = new Headers(init.headers);
+
     // Add CSRF token
     if (csrfToken) {
       headers.set("X-CSRF-Token", csrfToken);
     }
-    
+
     init.headers = headers;
   }
 
@@ -62,7 +62,12 @@ export async function secureFetch(
   // If the request fails with 401 and it's not the refresh endpoint itself,
   // we try to use the refresh_token cookie to get a new access_token cookie.
   const urlString = input.toString();
-  if (response.status === 401 && !urlString.includes("/api/v1/auth/refresh") && !urlString.includes("/api/v1/auth/login") && !urlString.includes("/api/v1/auth/logout")) {
+  if (
+    response.status === 401 &&
+    !urlString.includes("/api/v1/auth/refresh") &&
+    !urlString.includes("/api/v1/auth/login") &&
+    !urlString.includes("/api/v1/auth/logout")
+  ) {
     try {
       const refreshResponse = await fetch("/api/v1/auth/refresh", {
         method: "POST",

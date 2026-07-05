@@ -14,7 +14,7 @@ declare global {
 
 /**
  * CSRF Protection Middleware
- * 
+ *
  * Uses double-submit cookie pattern for CSRF protection.
  * The token should be:
  * 1. Generated for each session
@@ -35,7 +35,11 @@ export const csrfProtection = csrf({
  * Middleware to generate CSRF token
  * This should be called on the initial page load or login
  */
-export const generateCsrfToken = (req: Request, res: Response, next: NextFunction) => {
+export const generateCsrfToken = (
+  req: Request,
+  res: Response,
+  next: NextFunction,
+) => {
   // Generate token and attach to response header
   const token = req.csrfToken();
   res.set("X-CSRF-Token", token);
@@ -48,7 +52,11 @@ export const generateCsrfToken = (req: Request, res: Response, next: NextFunctio
  * 1. X-CSRF-Token header (preferred for APIs)
  * 2. _csrf body field (for form submissions)
  */
-export const validateCsrfToken = (req: Request, res: Response, next: NextFunction) => {
+export const validateCsrfToken = (
+  req: Request,
+  res: Response,
+  next: NextFunction,
+) => {
   // Skip CSRF check for GET/HEAD/OPTIONS (idempotent methods)
   if (["GET", "HEAD", "OPTIONS"].includes(req.method)) {
     return next();
@@ -62,7 +70,10 @@ export const validateCsrfToken = (req: Request, res: Response, next: NextFunctio
   csrfProtection(req, res, (err: any) => {
     if (err) {
       // CSRF token validation failed
-      log.warn({ method: req.method, path: req.path, error: err.message }, "Token validation failed");
+      log.warn(
+        { method: req.method, path: req.path, error: err.message },
+        "Token validation failed",
+      );
       return res.status(403).json({
         message: "CSRF validation failed",
         error: process.env.NODE_ENV === "production" ? undefined : err.message,
@@ -77,9 +88,5 @@ export const validateCsrfToken = (req: Request, res: Response, next: NextFunctio
  * Used internally to verify token presence
  */
 export const getCsrfToken = (req: Request): string | null => {
-  return (
-    req.get("X-CSRF-Token") ||
-    (req.body && req.body._csrf) ||
-    null
-  );
+  return req.get("X-CSRF-Token") || req.body?._csrf || null;
 };

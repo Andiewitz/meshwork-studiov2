@@ -23,7 +23,8 @@ const blogPosts: BlogPost[] = [
   {
     id: 1,
     title: "Canvas Engine Pipeline & Architecture",
-    subtitle: "Render math, DAG layouts, interaction modes, and PostgreSQL diffing strategies.",
+    subtitle:
+      "Render math, DAG layouts, interaction modes, and PostgreSQL diffing strategies.",
     date: "May 10, 2026",
     category: "Engineering",
     readTime: "12 min read",
@@ -46,7 +47,7 @@ Interaction states are explicitly decoupled to prevent layout destruction:
 The client calculates a deterministic hash of the initial canvas state. On autosave, the engine diffs the current state against the hash. Only modified nodes/edges are sent to the API.
 
 The backend executes PostgreSQL \`ON CONFLICT (id) DO UPDATE\` queries with this partial payload. This avoids row-deletion/re-insertion, reducing lock contention and decreasing payload size by up to 98% for large documents.
-    `
+    `,
   },
   {
     id: 2,
@@ -70,12 +71,13 @@ Since streaming JSON is malformed until completion, the client uses a fault-tole
 ## Exponential Backoff Resilience
 
 LLM providers return HTTP 429 and 503 frequently under load. Meshwork handles these natively. The client pauses the stream and enters a retry loop using: \`wait_time = base_delay * (2 ^ attempt_count)\`. Jitter is applied to prevent thundering herd problems on proxy servers.
-    `
+    `,
   },
   {
     id: 3,
     title: "Security Posture & API Defenses",
-    subtitle: "Middleware boundaries, Redis lockouts, and recursive log sanitization.",
+    subtitle:
+      "Middleware boundaries, Redis lockouts, and recursive log sanitization.",
     date: "May 5, 2026",
     category: "Engineering",
     readTime: "6 min read",
@@ -94,12 +96,13 @@ API endpoints enforce sliding-window rate limits (e.g., 100 requests / 15 min). 
 ## Log Sanitization
 
 The application logger uses a recursive redaction transport. Before payloads write to standard output, they are scanned for sensitive keys (e.g., \`password\`, \`token\`, \`email\`, \`apiKey\`). Values are replaced with an irreversible \`[REDACTED]\` string, ensuring zero credentials enter the log pipeline.
-    `
+    `,
   },
   {
     id: 4,
     title: "Design System Implementation",
-    subtitle: "Tailwind utility architecture, opacity mapping, and accessible primitives.",
+    subtitle:
+      "Tailwind utility architecture, opacity mapping, and accessible primitives.",
     date: "May 2, 2026",
     category: "Design",
     readTime: "5 min read",
@@ -116,12 +119,13 @@ The root theme maps semantic color variables (\`--primary\`) to raw HSL values r
 ## Accessible React Primitives
 
 Interactive components (Dialogs, Dropdowns, Tooltips, Accordions) use Radix UI primitives. This delegates focus management, keyboard navigation (Escape, Arrow keys), and ARIA attribute assignment to the primitive layer. Tooltips render descriptions via React portals to escape hidden overflow boundaries while maintaining context to the targeted node.
-    `
+    `,
   },
   {
     id: 5,
     title: "Canvas Node & Workspace Schema",
-    subtitle: "The complete JSON data model behind every node, edge, and diagram in Meshwork Studio.",
+    subtitle:
+      "The complete JSON data model behind every node, edge, and diagram in Meshwork Studio.",
     date: "June 7, 2026",
     category: "Technical",
     readTime: "10 min read",
@@ -170,20 +174,23 @@ Every node and edge carries an \`ai\` sub-object — never rendered directly in 
 ## JSON Schema & Validation
 
 A full Draft-07 JSON Schema covering every field, enum, and constraint lives at \`docs/canvas-schema.json\` in the repository. Integrate it with any JSON Schema validator (e.g. Ajv) to validate canvas payloads in CI pipelines, import tools, or external editors. The \`validateAndRepairCanvas\` runtime utility in \`client/src/lib/ai-canvas-utils.ts\` performs a repair pass instead of hard rejection — correcting types, deduplicating IDs, and placing orphaned nodes at safe fallback coordinates.
-    `
-  }
+    `,
+  },
 ];
 
 // Helper to extract headings from markdown for the right-side TOC
 function extractHeadings(markdown: string) {
   const headings: { level: number; text: string; id: string }[] = [];
-  const lines = markdown.split('\n');
-  lines.forEach(line => {
-    const match = line.match(/^(#{2,3})\s+(.*)$/);
+  const lines = markdown.split("\n");
+  lines.forEach((line) => {
+    const match = /^(#{2,3})\s+(.*)$/.exec(line);
     if (match) {
       const level = match[1].length;
       const text = match[2];
-      const id = text.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '');
+      const id = text
+        .toLowerCase()
+        .replace(/[^a-z0-9]+/g, "-")
+        .replace(/(^-|-$)/g, "");
       headings.push({ level, text, id });
     }
   });
@@ -197,13 +204,19 @@ export default function DevDocs() {
   const [activeHeadingId, setActiveHeadingId] = useState<string>("");
   const { toast } = useToast();
 
-  const activePost = useMemo(() => blogPosts.find(p => p.id === activePostId) || blogPosts[0], [activePostId]);
-  const headings = useMemo(() => activePost.content ? extractHeadings(activePost.content) : [], [activePost]);
+  const activePost = useMemo(
+    () => blogPosts.find((p) => p.id === activePostId) || blogPosts[0],
+    [activePostId],
+  );
+  const headings = useMemo(
+    () => (activePost.content ? extractHeadings(activePost.content) : []),
+    [activePost],
+  );
 
   // Group posts by category
   const categoriesMap = useMemo(() => {
     const map: Record<string, BlogPost[]> = {};
-    blogPosts.forEach(post => {
+    blogPosts.forEach((post) => {
       if (!map[post.category]) map[post.category] = [];
       map[post.category].push(post);
     });
@@ -228,7 +241,7 @@ export default function DevDocs() {
           }
         });
       },
-      { rootMargin: "0px 0px -80% 0px" } // trigger near top
+      { rootMargin: "0px 0px -80% 0px" }, // trigger near top
     );
 
     headings.forEach((heading) => {
@@ -242,19 +255,69 @@ export default function DevDocs() {
   // Custom Markdown Components
   const markdownComponents: any = {
     h2: ({ node, children, ...props }: any) => {
-      const text = String(children).replace(/\n/g, '');
-      const id = text.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '');
-      return <h2 id={id} className="text-2xl font-semibold mt-16 mb-4 text-white/90 border-b border-white/10 pb-2 font-sans tracking-tight" {...props}>{children}</h2>
+      const text = String(children).replace(/\n/g, "");
+      const id = text
+        .toLowerCase()
+        .replace(/[^a-z0-9]+/g, "-")
+        .replace(/(^-|-$)/g, "");
+      return (
+        <h2
+          id={id}
+          className="text-2xl font-semibold mt-16 mb-4 text-white/90 border-b border-white/10 pb-2 font-sans tracking-tight"
+          {...props}
+        >
+          {children}
+        </h2>
+      );
     },
     h3: ({ node, children, ...props }: any) => {
-      const text = String(children).replace(/\n/g, '');
-      const id = text.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '');
-      return <h3 id={id} className="text-xl font-medium mt-8 mb-4 text-white/80 font-sans tracking-tight" {...props}>{children}</h3>
+      const text = String(children).replace(/\n/g, "");
+      const id = text
+        .toLowerCase()
+        .replace(/[^a-z0-9]+/g, "-")
+        .replace(/(^-|-$)/g, "");
+      return (
+        <h3
+          id={id}
+          className="text-xl font-medium mt-8 mb-4 text-white/80 font-sans tracking-tight"
+          {...props}
+        >
+          {children}
+        </h3>
+      );
     },
-    p: ({ node, children, ...props }: any) => <p className="leading-relaxed mb-6 text-white/70 font-sans font-light" {...props}>{children}</p>,
-    a: ({ node, children, ...props }: any) => <a className="text-blue-400 hover:text-blue-300 underline underline-offset-2 transition-colors" {...props}>{children}</a>,
-    ul: ({ node, children, ...props }: any) => <ul className="list-disc list-outside ml-6 mb-6 space-y-2 text-white/70 font-sans font-light" {...props}>{children}</ul>,
-    ol: ({ node, children, ...props }: any) => <ol className="list-decimal list-outside ml-6 mb-6 space-y-2 text-white/70 font-sans font-light" {...props}>{children}</ol>,
+    p: ({ node, children, ...props }: any) => (
+      <p
+        className="leading-relaxed mb-6 text-white/70 font-sans font-light"
+        {...props}
+      >
+        {children}
+      </p>
+    ),
+    a: ({ node, children, ...props }: any) => (
+      <a
+        className="text-blue-400 hover:text-blue-300 underline underline-offset-2 transition-colors"
+        {...props}
+      >
+        {children}
+      </a>
+    ),
+    ul: ({ node, children, ...props }: any) => (
+      <ul
+        className="list-disc list-outside ml-6 mb-6 space-y-2 text-white/70 font-sans font-light"
+        {...props}
+      >
+        {children}
+      </ul>
+    ),
+    ol: ({ node, children, ...props }: any) => (
+      <ol
+        className="list-decimal list-outside ml-6 mb-6 space-y-2 text-white/70 font-sans font-light"
+        {...props}
+      >
+        {children}
+      </ol>
+    ),
     li: ({ node, children, ...props }: any) => <li {...props}>{children}</li>,
     blockquote: ({ node, children, ...props }: any) => {
       // Look for github style alerts like > [!NOTE]
@@ -262,7 +325,9 @@ export default function DevDocs() {
       if (textContent.includes("[!NOTE]")) {
         return (
           <div className="border border-blue-500/30 bg-blue-500/10 p-4 rounded-lg my-8 flex gap-3 text-white/80">
-            <div className="text-blue-400 mt-0.5"><BookOpen className="w-5 h-5" /></div>
+            <div className="text-blue-400 mt-0.5">
+              <BookOpen className="w-5 h-5" />
+            </div>
             <div>{children}</div>
           </div>
         );
@@ -270,23 +335,28 @@ export default function DevDocs() {
       if (textContent.includes("[!IMPORTANT]")) {
         return (
           <div className="border border-purple-500/30 bg-purple-500/10 p-4 rounded-lg my-8 flex gap-3 text-white/80">
-            <div className="text-purple-400 mt-0.5"><BookOpen className="w-5 h-5" /></div>
+            <div className="text-purple-400 mt-0.5">
+              <BookOpen className="w-5 h-5" />
+            </div>
             <div>{children}</div>
           </div>
         );
       }
       return (
-        <blockquote className="border-l-4 border-[#3a3a3a] pl-4 my-6 italic text-white/60" {...props}>
+        <blockquote
+          className="border-l-4 border-[#3a3a3a] pl-4 my-6 italic text-white/60"
+          {...props}
+        >
           {children}
         </blockquote>
-      )
+      );
     },
     code: ({ node, inline, className, children, ...props }: any) => {
-      const match = /language-(\w+)/.exec(className || '')
+      const match = /language-(\w+)/.exec(className || "");
       return !inline ? (
         <div className="rounded-xl overflow-hidden border border-white/10 my-8 shadow-lg shadow-black/50">
           <div className="bg-[#1a1a1a] px-4 py-2.5 text-xs text-white/40 font-mono border-b border-white/5 flex justify-between items-center">
-            <span>{match ? match[1] : 'text'}</span>
+            <span>{match ? match[1] : "text"}</span>
           </div>
           <pre className="p-5 overflow-x-auto text-[13px] bg-[#0A0A0A] leading-relaxed">
             <code className={className} {...props}>
@@ -295,18 +365,37 @@ export default function DevDocs() {
           </pre>
         </div>
       ) : (
-        <code className="bg-white/10 px-1.5 py-0.5 rounded-md text-[0.9em] font-mono text-blue-300" {...props}>
+        <code
+          className="bg-white/10 px-1.5 py-0.5 rounded-md text-[0.9em] font-mono text-blue-300"
+          {...props}
+        >
           {children}
         </code>
-      )
+      );
     },
     table: ({ node, children, ...props }: any) => (
       <div className="overflow-x-auto my-8 border border-white/10 rounded-xl">
-        <table className="w-full text-left text-sm text-white/70" {...props}>{children}</table>
+        <table className="w-full text-left text-sm text-white/70" {...props}>
+          {children}
+        </table>
       </div>
     ),
-    th: ({ node, children, ...props }: any) => <th className="bg-[#1a1a1a] px-5 py-4 font-medium text-white/90 border-b border-white/10 whitespace-nowrap" {...props}>{children}</th>,
-    td: ({ node, children, ...props }: any) => <td className="px-5 py-4 border-b border-white/5 last:border-0 bg-[#0A0A0A]" {...props}>{children}</td>,
+    th: ({ node, children, ...props }: any) => (
+      <th
+        className="bg-[#1a1a1a] px-5 py-4 font-medium text-white/90 border-b border-white/10 whitespace-nowrap"
+        {...props}
+      >
+        {children}
+      </th>
+    ),
+    td: ({ node, children, ...props }: any) => (
+      <td
+        className="px-5 py-4 border-b border-white/5 last:border-0 bg-[#0A0A0A]"
+        {...props}
+      >
+        {children}
+      </td>
+    ),
   };
 
   const Sidebar = () => (
@@ -314,44 +403,49 @@ export default function DevDocs() {
       <div className="p-4 sticky top-0 bg-[#0A0A0A]/95 backdrop-blur-xl z-10 border-b border-white/5">
         <div className="relative">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-white/30" />
-          <Input 
-            placeholder="Search docs..." 
+          <Input
+            placeholder="Search docs..."
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
             className="pl-9 bg-[#1a1a1a] border-white/10 text-white placeholder:text-white/30 h-9 rounded-lg text-sm"
           />
         </div>
       </div>
-      
+
       <div className="flex-1 overflow-y-auto p-4 space-y-8 scrollbar-hide">
         {Object.entries(categoriesMap).map(([category, posts]) => {
-          const filtered = posts.filter(p => 
-            p.title.toLowerCase().includes(searchTerm.toLowerCase()) || 
-            p.subtitle.toLowerCase().includes(searchTerm.toLowerCase())
+          const filtered = posts.filter(
+            (p) =>
+              p.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
+              p.subtitle.toLowerCase().includes(searchTerm.toLowerCase()),
           );
           if (filtered.length === 0) return null;
-          
+
           return (
             <div key={category}>
-              <h4 className="text-xs font-bold tracking-wider uppercase text-white/40 mb-3 px-2 font-sans">{category}</h4>
+              <h4 className="text-xs font-bold tracking-wider uppercase text-white/40 mb-3 px-2 font-sans">
+                {category}
+              </h4>
               <ul className="space-y-1">
-                {filtered.map(post => (
+                {filtered.map((post) => (
                   <li key={post.id}>
                     <button
                       onClick={() => {
                         setActivePostId(post.id);
                         setIsMobileNavOpen(false);
-                        window.scrollTo({ top: 0, behavior: 'smooth' });
+                        window.scrollTo({ top: 0, behavior: "smooth" });
                       }}
                       className={cn(
                         "w-full text-left px-2 py-1.5 rounded-md text-[14px] transition-colors font-sans flex items-center justify-between group",
-                        activePostId === post.id 
-                          ? "bg-white/10 text-white font-medium" 
-                          : "text-white/60 hover:text-white hover:bg-white/5"
+                        activePostId === post.id
+                          ? "bg-white/10 text-white font-medium"
+                          : "text-white/60 hover:text-white hover:bg-white/5",
                       )}
                     >
                       <span className="truncate">{post.title}</span>
-                      {activePostId === post.id && <ChevronRight className="w-3.5 h-3.5 text-white/40" />}
+                      {activePostId === post.id && (
+                        <ChevronRight className="w-3.5 h-3.5 text-white/40" />
+                      )}
                     </button>
                   </li>
                 ))}
@@ -379,7 +473,10 @@ export default function DevDocs() {
           <BookOpen className="w-4 h-4 text-blue-400" />
           <span>Documentation</span>
         </div>
-        <button onClick={() => setIsMobileNavOpen(true)} className="p-2 -mr-2 text-white/60 hover:text-white">
+        <button
+          onClick={() => setIsMobileNavOpen(true)}
+          className="p-2 -mr-2 text-white/60 hover:text-white"
+        >
           <Menu className="w-5 h-5" />
         </button>
       </div>
@@ -388,18 +485,25 @@ export default function DevDocs() {
       <AnimatePresence>
         {isMobileNavOpen && (
           <>
-            <motion.div 
-              initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
               onClick={() => setIsMobileNavOpen(false)}
               className="fixed inset-0 bg-black/60 backdrop-blur-sm z-[60] lg:hidden"
             />
-            <motion.div 
-              initial={{ x: "-100%" }} animate={{ x: 0 }} exit={{ x: "-100%" }}
+            <motion.div
+              initial={{ x: "-100%" }}
+              animate={{ x: 0 }}
+              exit={{ x: "-100%" }}
               transition={{ type: "spring", damping: 25, stiffness: 200 }}
               className="fixed top-0 left-0 bottom-0 w-[280px] bg-[#0A0A0A] z-[70] lg:hidden shadow-2xl border-r border-white/10"
             >
               <div className="absolute top-2 right-2 z-10">
-                <button onClick={() => setIsMobileNavOpen(false)} className="p-2 text-white/50 hover:text-white">
+                <button
+                  onClick={() => setIsMobileNavOpen(false)}
+                  className="p-2 text-white/50 hover:text-white"
+                >
                   <X className="w-5 h-5" />
                 </button>
               </div>
@@ -419,10 +523,12 @@ export default function DevDocs() {
               <ChevronRight className="w-3.5 h-3.5" />
               <span>{activePost.category}</span>
               <ChevronRight className="w-3.5 h-3.5" />
-              <span className="text-white/70 truncate max-w-[200px]">{activePost.title}</span>
+              <span className="text-white/70 truncate max-w-[200px]">
+                {activePost.title}
+              </span>
             </div>
-            
-            <button 
+
+            <button
               onClick={handleCopyLink}
               className="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-white/5 hover:bg-white/10 border border-white/10 text-xs font-medium text-white/70 transition-colors"
             >
@@ -431,7 +537,7 @@ export default function DevDocs() {
             </button>
           </div>
 
-          <motion.article 
+          <motion.article
             key={activePost.id}
             initial={{ opacity: 0, y: 10 }}
             animate={{ opacity: 1, y: 0 }}
@@ -449,14 +555,14 @@ export default function DevDocs() {
 
             {/* Markdown Body */}
             <div className="prose prose-invert prose-blue max-w-none prose-pre:bg-transparent prose-pre:p-0 prose-p:leading-relaxed">
-              <ReactMarkdown 
+              <ReactMarkdown
                 remarkPlugins={[remarkGfm]}
                 components={markdownComponents}
               >
                 {activePost.content || ""}
               </ReactMarkdown>
             </div>
-            
+
             {/* Footer */}
             <div className="mt-20 pt-8 border-t border-white/10 flex flex-col sm:flex-row items-center justify-between text-sm text-white/40 gap-4">
               <div>Last updated: {activePost.date}</div>
@@ -468,24 +574,28 @@ export default function DevDocs() {
         {/* Right Sidebar (Table of Contents) */}
         {headings.length > 0 && (
           <aside className="hidden xl:block w-[240px] shrink-0 sticky top-16 h-[calc(100vh-64px)] overflow-y-auto py-16 pr-8 pl-4 border-l border-white/5 scrollbar-hide">
-            <h4 className="text-xs font-bold tracking-wider uppercase text-white/40 mb-4 font-sans">On this page</h4>
+            <h4 className="text-xs font-bold tracking-wider uppercase text-white/40 mb-4 font-sans">
+              On this page
+            </h4>
             <ul className="space-y-2.5 text-[13px] font-sans font-medium">
               {headings.map((heading) => (
-                <li 
-                  key={heading.id} 
+                <li
+                  key={heading.id}
                   style={{ paddingLeft: `${(heading.level - 2) * 12}px` }}
                 >
-                  <a 
+                  <a
                     href={`#${heading.id}`}
                     className={cn(
                       "block transition-colors leading-snug",
-                      activeHeadingId === heading.id 
-                        ? "text-blue-400" 
-                        : "text-white/50 hover:text-white/80"
+                      activeHeadingId === heading.id
+                        ? "text-blue-400"
+                        : "text-white/50 hover:text-white/80",
                     )}
                     onClick={(e) => {
                       e.preventDefault();
-                      document.getElementById(heading.id)?.scrollIntoView({ behavior: 'smooth' });
+                      document
+                        .getElementById(heading.id)
+                        ?.scrollIntoView({ behavior: "smooth" });
                     }}
                   >
                     {heading.text}

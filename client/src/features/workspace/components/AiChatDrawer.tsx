@@ -1,6 +1,14 @@
 import React, { useState, useRef, useEffect, useCallback } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Send, Sparkles, Bot, Loader2, ChevronDown, Wand2, Zap } from "lucide-react";
+import {
+  Send,
+  Sparkles,
+  Bot,
+  Loader2,
+  ChevronDown,
+  Wand2,
+  Zap,
+} from "lucide-react";
 import { useReactFlow, useNodes, useEdges } from "@xyflow/react";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
@@ -165,12 +173,12 @@ const DEFAULT_SUGGESTIONS = [
   "Create a secure AWS VPC with public/private subnets",
 ];
 
-export function AiChatDrawer({ 
-  isLeftSidebarOpen = false, 
-  isRightSidebarOpen = false 
-}: { 
-  isLeftSidebarOpen?: boolean; 
-  isRightSidebarOpen?: boolean; 
+export function AiChatDrawer({
+  isLeftSidebarOpen = false,
+  isRightSidebarOpen = false,
+}: {
+  isLeftSidebarOpen?: boolean;
+  isRightSidebarOpen?: boolean;
 }) {
   const [isOpen, setIsOpen] = useState(false);
   const [messages, setMessages] = useState<Message[]>([]);
@@ -179,15 +187,16 @@ export function AiChatDrawer({
   const [isDesigning, setIsDesigning] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
-  const { setNodes, setEdges, fitView, getNodes, getEdges, getViewport } = useReactFlow();
+  const { setNodes, setEdges, fitView, getNodes, getEdges, getViewport } =
+    useReactFlow();
 
   const nodes = useNodes();
   const edges = useEdges();
   const [suggestions, setSuggestions] = useState<string[]>(DEFAULT_SUGGESTIONS);
   const [isLoadingSuggestions, setIsLoadingSuggestions] = useState(false);
 
-  const nodesKey = nodes.map(n => `${n.id}:${n.type}`).join(",");
-  const edgesKey = edges.map(e => `${e.source}->${e.target}`).join(",");
+  const nodesKey = nodes.map((n) => `${n.id}:${n.type}`).join(",");
+  const edgesKey = edges.map((e) => `${e.source}->${e.target}`).join(",");
 
   useEffect(() => {
     if (!isOpen) return;
@@ -200,8 +209,8 @@ export function AiChatDrawer({
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
-            canvas: { nodes, edges }
-          })
+            canvas: { nodes, edges },
+          }),
         });
 
         if (response.ok) {
@@ -230,12 +239,15 @@ export function AiChatDrawer({
 
   useEffect(() => {
     if (isOpen) {
-      setTimeout(() => messagesEndRef.current?.scrollIntoView({ behavior: "smooth" }), 50);
+      setTimeout(
+        () => messagesEndRef.current?.scrollIntoView({ behavior: "smooth" }),
+        50,
+      );
     }
   }, [messages, isOpen]);
 
   const parseAIResponse = useCallback((content: string) => {
-    const jsonMatch = content.match(/```(?:json)?\n([\s\S]*?)\n```/);
+    const jsonMatch = /```(?:json)?\n([\s\S]*?)\n```/.exec(content);
     const display = content.replace(/```(?:json)?\n[\s\S]*?\n```/g, "").trim();
     return { display, jsonBlock: jsonMatch ? jsonMatch[1].trim() : null };
   }, []);
@@ -245,9 +257,16 @@ export function AiChatDrawer({
     if (!input.trim() || isLoading) return;
 
     const userInput = input;
-    const isArchitectureTask = /design|create|build|add|connect|attach|draw|architecture|system|app|generate|make|put/i.test(userInput);
+    const isArchitectureTask =
+      /design|create|build|add|connect|attach|draw|architecture|system|app|generate|make|put/i.test(
+        userInput,
+      );
 
-    const userMsg: Message = { id: Date.now().toString(), role: "user", content: userInput };
+    const userMsg: Message = {
+      id: Date.now().toString(),
+      role: "user",
+      content: userInput,
+    };
     setMessages((prev) => [...prev, userMsg]);
     setInput("");
     if (textareaRef.current) textareaRef.current.style.height = "auto";
@@ -260,7 +279,11 @@ export function AiChatDrawer({
     setIsLoading(true);
     setIsDesigning(isArchitectureTask);
     if (isArchitectureTask) {
-      window.dispatchEvent(new CustomEvent('mosh:designing', { detail: { active: true, x: centerX, y: centerY } }));
+      window.dispatchEvent(
+        new CustomEvent("mosh:designing", {
+          detail: { active: true, x: centerX, y: centerY },
+        }),
+      );
     }
 
     try {
@@ -270,15 +293,18 @@ export function AiChatDrawer({
       const currentNodes = getNodes();
       const currentEdges = getEdges();
 
-      const canvasContext = currentNodes.length > 0
-        ? `\n\nCURRENT CANVAS (${currentNodes.length} nodes, ${currentEdges.length} edges):\n\`\`\`json\n${JSON.stringify({ nodes: currentNodes, edges: currentEdges })}\n\`\`\`\nVIEWPORT CENTER: approximately x=${centerX}, y=${centerY}. Place new nodes near this center.\nWhen modifying, emit the COMPLETE updated nodes+edges.`
-        : `\n\nThe canvas is empty. VIEWPORT CENTER: x=${centerX}, y=${centerY}. Start your diagram near this point.`;
+      const canvasContext =
+        currentNodes.length > 0
+          ? `\n\nCURRENT CANVAS (${currentNodes.length} nodes, ${currentEdges.length} edges):\n\`\`\`json\n${JSON.stringify({ nodes: currentNodes, edges: currentEdges })}\n\`\`\`\nVIEWPORT CENTER: approximately x=${centerX}, y=${centerY}. Place new nodes near this center.\nWhen modifying, emit the COMPLETE updated nodes+edges.`
+          : `\n\nThe canvas is empty. VIEWPORT CENTER: x=${centerX}, y=${centerY}. Start your diagram near this point.`;
 
       const fullSystemPrompt = SYSTEM_PROMPT + canvasContext;
 
       const payloadMessages = [
         { role: "system", content: fullSystemPrompt },
-        ...messages.filter((m) => m.id !== "init").map((m) => ({ role: m.role, content: m.content })),
+        ...messages
+          .filter((m) => m.id !== "init")
+          .map((m) => ({ role: m.role, content: m.content })),
         { role: "user", content: userMsg.content },
       ];
 
@@ -310,9 +336,13 @@ export function AiChatDrawer({
           if (response.status === 429 || response.status >= 500) {
             attempt++;
             if (attempt >= maxAttempts) break;
-            
-            console.warn(`[Mosh] Request failed with status ${response.status}. Retrying attempt ${attempt}/${maxAttempts}...`);
-            await new Promise(res => setTimeout(res, baseDelay * Math.pow(1.5, attempt - 1)));
+
+            console.warn(
+              `[Mosh] Request failed with status ${response.status}. Retrying attempt ${attempt}/${maxAttempts}...`,
+            );
+            await new Promise((res) =>
+              setTimeout(res, baseDelay * Math.pow(1.5, attempt - 1)),
+            );
           } else {
             // Client error (400, 401, 403, etc) -> don't retry
             break;
@@ -321,24 +351,35 @@ export function AiChatDrawer({
           // Network errors (e.g., DNS, disconnect)
           attempt++;
           if (attempt >= maxAttempts) throw err;
-          
-          console.warn(`[Mosh] Network error: ${err}. Retrying attempt ${attempt}/${maxAttempts}...`);
-          await new Promise(res => setTimeout(res, baseDelay * Math.pow(1.5, attempt - 1)));
+
+          console.warn(
+            `[Mosh] Network error: ${err}. Retrying attempt ${attempt}/${maxAttempts}...`,
+          );
+          await new Promise((res) =>
+            setTimeout(res, baseDelay * Math.pow(1.5, attempt - 1)),
+          );
         }
       }
 
-      if (!response || !response.ok) {
+      if (!response?.ok) {
         const err = await response?.json().catch(() => ({}));
-        throw new Error(err?.error || err?.message || `Error ${response?.status || 'Unknown after retries'}`);
+        throw new Error(
+          err?.error ||
+            err?.message ||
+            `Error ${response?.status || "Unknown after retries"}`,
+        );
       }
 
       const data = await response.json();
-      
-      if (!data.choices || !data.choices[0]) {
-        throw new Error(`Invalid response format from AI provider: ${JSON.stringify(data)}`);
+
+      if (!data.choices?.[0]) {
+        throw new Error(
+          `Invalid response format from AI provider: ${JSON.stringify(data)}`,
+        );
       }
 
-      const rawContent = data.choices[0]?.message?.content || "No response generated.";
+      const rawContent =
+        data.choices[0]?.message?.content || "No response generated.";
       const { display, jsonBlock } = parseAIResponse(rawContent);
 
       let appliedToCanvas = false;
@@ -348,8 +389,8 @@ export function AiChatDrawer({
           const parsed = JSON.parse(jsonBlock);
           const repaired = validateAndRepairCanvas(parsed);
           if (repaired) {
-            setNodes(repaired.nodes as any);
-            setEdges(repaired.edges as any);
+            setNodes(repaired.nodes);
+            setEdges(repaired.edges);
             setTimeout(() => fitView({ duration: 700, padding: 0.2 }), 100);
             appliedToCanvas = true;
           }
@@ -370,9 +411,14 @@ export function AiChatDrawer({
     } catch (error: any) {
       let errorMessage = "An unexpected error occurred.";
       if (error.message.includes("key") || error.message.includes("API")) {
-        errorMessage = "No API key configured. Please ensure your provider API key is set correctly.";
-      } else if (error.message.includes("429") || error.message.toLowerCase().includes("rate limit")) {
-        errorMessage = "Rate limit exceeded. Please try again in a few moments.";
+        errorMessage =
+          "No API key configured. Please ensure your provider API key is set correctly.";
+      } else if (
+        error.message.includes("429") ||
+        error.message.toLowerCase().includes("rate limit")
+      ) {
+        errorMessage =
+          "Rate limit exceeded. Please try again in a few moments.";
       } else if (error.message) {
         errorMessage = error.message;
       }
@@ -388,7 +434,9 @@ export function AiChatDrawer({
     } finally {
       setIsLoading(false);
       setIsDesigning(false);
-      window.dispatchEvent(new CustomEvent('mosh:designing', { detail: { active: false } }));
+      window.dispatchEvent(
+        new CustomEvent("mosh:designing", { detail: { active: false } }),
+      );
     }
   };
 
@@ -400,12 +448,12 @@ export function AiChatDrawer({
   };
 
   return (
-    <div 
+    <div
       className="fixed bottom-0 left-1/2 z-50 flex flex-col items-center pointer-events-none transition-transform duration-300 ease-[cubic-bezier(0.16,1,0.3,1)]"
       style={{
         transform: `translate(calc(-50% + ${
           (isLeftSidebarOpen ? 130 : 0) - (isRightSidebarOpen ? 140 : 0)
-        }px), 0)`
+        }px), 0)`,
       }}
     >
       {/* Pull Tab */}
@@ -415,14 +463,24 @@ export function AiChatDrawer({
         whileHover={{ y: -2 }}
         whileTap={{ scale: 0.97 }}
       >
-        <motion.div animate={{ rotate: isOpen ? 180 : 0 }} transition={{ type: "spring", stiffness: 300, damping: 25 }}>
+        <motion.div
+          animate={{ rotate: isOpen ? 180 : 0 }}
+          transition={{ type: "spring", stiffness: 300, damping: 25 }}
+        >
           <ChevronDown className="w-3.5 h-3.5 text-white/50" />
         </motion.div>
-        <motion.div animate={{ scale: [1, 1.2, 1], opacity: [0.7, 1, 0.7] }} transition={{ repeat: Infinity, duration: 2, ease: "easeInOut" }}>
+        <motion.div
+          animate={{ scale: [1, 1.2, 1], opacity: [0.7, 1, 0.7] }}
+          transition={{ repeat: Infinity, duration: 2, ease: "easeInOut" }}
+        >
           <Bot className="w-3.5 h-3.5 text-[#10B981]" />
         </motion.div>
-        <span className="text-[11px] font-semibold tracking-widest uppercase text-white/60">Mosh</span>
-        <span className="text-[9px] text-white/25 border border-white/10 px-1.5 py-0.5 rounded-md font-mono">BETA</span>
+        <span className="text-[11px] font-semibold tracking-widest uppercase text-white/60">
+          Mosh
+        </span>
+        <span className="text-[9px] text-white/25 border border-white/10 px-1.5 py-0.5 rounded-md font-mono">
+          BETA
+        </span>
       </motion.button>
 
       {/* Drawer */}
@@ -438,21 +496,40 @@ export function AiChatDrawer({
             {/* Header */}
             <div className="flex items-center justify-between px-5 py-4 border-b border-white/[0.04]">
               <div className="flex items-center gap-3">
-                <div className="w-7 h-7 rounded-lg flex items-center justify-center" style={{ background: "linear-gradient(135deg, #10B981, #059669)", boxShadow: "0 2px 12px rgba(16, 185, 129, 0.4)" }}>
+                <div
+                  className="w-7 h-7 rounded-lg flex items-center justify-center"
+                  style={{
+                    background: "linear-gradient(135deg, #10B981, #059669)",
+                    boxShadow: "0 2px 12px rgba(16, 185, 129, 0.4)",
+                  }}
+                >
                   <Bot className="w-4 h-4 text-white" />
                 </div>
                 <div>
                   <div className="flex items-center gap-2">
-                    <span className="text-[12px] font-semibold text-white/90 tracking-wide">MOSH</span>
-                    <span className="text-[9px] text-[#10B981]/70 border border-[#10B981]/20 bg-[#10B981]/5 px-1.5 py-0.5 rounded font-mono tracking-wider">BETA</span>
+                    <span className="text-[12px] font-semibold text-white/90 tracking-wide">
+                      MOSH
+                    </span>
+                    <span className="text-[9px] text-[#10B981]/70 border border-[#10B981]/20 bg-[#10B981]/5 px-1.5 py-0.5 rounded font-mono tracking-wider">
+                      BETA
+                    </span>
                   </div>
                   <div className="flex items-center gap-1.5 mt-0.5">
-                    <motion.div className="w-1.5 h-1.5 rounded-full bg-emerald-400" animate={{ opacity: [1, 0.4, 1] }} transition={{ repeat: Infinity, duration: 2 }} />
-                    <span className="text-[10px] text-white/30">GPT OSS 120B · Canvas-aware</span>
+                    <motion.div
+                      className="w-1.5 h-1.5 rounded-full bg-emerald-400"
+                      animate={{ opacity: [1, 0.4, 1] }}
+                      transition={{ repeat: Infinity, duration: 2 }}
+                    />
+                    <span className="text-[10px] text-white/30">
+                      GPT OSS 120B · Canvas-aware
+                    </span>
                   </div>
                 </div>
               </div>
-              <button onClick={() => setIsOpen(false)} className="w-8 h-8 flex items-center justify-center rounded-xl text-white/20 hover:text-white/60 hover:bg-white/5 transition-all">
+              <button
+                onClick={() => setIsOpen(false)}
+                className="w-8 h-8 flex items-center justify-center rounded-xl text-white/20 hover:text-white/60 hover:bg-white/5 transition-all"
+              >
                 <ChevronDown className="w-4 h-4" />
               </button>
             </div>
@@ -461,40 +538,51 @@ export function AiChatDrawer({
             <div className="flex-1 overflow-y-auto px-5 py-5 space-y-5 scrollbar-thin scrollbar-thumb-white/[0.06]">
               {/* Empty State & Suggestions */}
               {messages.length === 0 && (
-                <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.15 }} className="flex flex-col items-center justify-center text-center mt-8 mb-6 space-y-6">
+                <motion.div
+                  initial={{ opacity: 0, y: 8 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: 0.15 }}
+                  className="flex flex-col items-center justify-center text-center mt-8 mb-6 space-y-6"
+                >
                   <div className="w-16 h-16 rounded-2xl flex items-center justify-center bg-white/[0.02] border border-white/[0.05] shadow-lg">
                     <Bot className="w-8 h-8 text-[#10B981]" />
                   </div>
                   <div className="space-y-1">
-                    <h3 className="text-white font-medium text-sm">I'm Mosh. Let's design.</h3>
-                    <p className="text-white/40 text-xs max-w-[240px]">Describe your cloud infrastructure or ask me to modify the canvas.</p>
+                    <h3 className="text-white font-medium text-sm">
+                      I'm Mosh. Let's design.
+                    </h3>
+                    <p className="text-white/40 text-xs max-w-[240px]">
+                      Describe your cloud infrastructure or ask me to modify the
+                      canvas.
+                    </p>
                   </div>
                   <div className="flex flex-col w-full gap-2 px-2 mt-4">
-                    {isLoadingSuggestions ? (
-                      Array.from({ length: 4 }).map((_, i) => (
-                        <div
-                          key={i}
-                          className="h-[38px] w-full rounded-xl bg-white/[0.02] border border-white/[0.04] animate-pulse flex items-center px-3"
-                        >
-                          <Bot className="w-3.5 h-3.5 text-[#10B981]/30 mr-2 shrink-0" />
-                          <div className="h-3 bg-white/[0.06] rounded w-2/3" />
-                        </div>
-                      ))
-                    ) : (
-                      suggestions.map((s, i) => (
-                        <motion.button
-                          key={s}
-                          initial={{ opacity: 0, x: -10 }}
-                          animate={{ opacity: 1, x: 0 }}
-                          transition={{ delay: 0.2 + i * 0.05 }}
-                          onClick={() => { setInput(s); textareaRef.current?.focus(); }}
-                          className="flex items-center gap-2 px-3 py-2.5 rounded-xl text-[12px] text-white/60 border border-white/[0.06] hover:border-[#10B981]/40 hover:text-white/90 hover:bg-[#10B981]/10 transition-all cursor-pointer text-left w-full group"
-                        >
-                          <Bot className="w-3.5 h-3.5 text-[#10B981]/60 group-hover:text-[#10B981] transition-colors shrink-0" />
-                          <span className="truncate">{s}</span>
-                        </motion.button>
-                      ))
-                    )}
+                    {isLoadingSuggestions
+                      ? Array.from({ length: 4 }).map((_, i) => (
+                          <div
+                            key={i}
+                            className="h-[38px] w-full rounded-xl bg-white/[0.02] border border-white/[0.04] animate-pulse flex items-center px-3"
+                          >
+                            <Bot className="w-3.5 h-3.5 text-[#10B981]/30 mr-2 shrink-0" />
+                            <div className="h-3 bg-white/[0.06] rounded w-2/3" />
+                          </div>
+                        ))
+                      : suggestions.map((s, i) => (
+                          <motion.button
+                            key={s}
+                            initial={{ opacity: 0, x: -10 }}
+                            animate={{ opacity: 1, x: 0 }}
+                            transition={{ delay: 0.2 + i * 0.05 }}
+                            onClick={() => {
+                              setInput(s);
+                              textareaRef.current?.focus();
+                            }}
+                            className="flex items-center gap-2 px-3 py-2.5 rounded-xl text-[12px] text-white/60 border border-white/[0.06] hover:border-[#10B981]/40 hover:text-white/90 hover:bg-[#10B981]/10 transition-all cursor-pointer text-left w-full group"
+                          >
+                            <Bot className="w-3.5 h-3.5 text-[#10B981]/60 group-hover:text-[#10B981] transition-colors shrink-0" />
+                            <span className="truncate">{s}</span>
+                          </motion.button>
+                        ))}
                   </div>
                 </motion.div>
               )}
@@ -509,25 +597,48 @@ export function AiChatDrawer({
                   className={`flex gap-3 ${msg.role === "user" ? "justify-end" : "justify-start"}`}
                 >
                   {msg.role === "assistant" && (
-                    <div className="w-7 h-7 rounded-lg shrink-0 flex items-center justify-center mt-0.5 border border-white/[0.06]" style={{ background: "linear-gradient(145deg, #1E1E1E, #141414)" }}>
+                    <div
+                      className="w-7 h-7 rounded-lg shrink-0 flex items-center justify-center mt-0.5 border border-white/[0.06]"
+                      style={{
+                        background: "linear-gradient(145deg, #1E1E1E, #141414)",
+                      }}
+                    >
                       <Bot className="w-3.5 h-3.5 text-[#10B981]" />
                     </div>
                   )}
                   <div
                     className={`max-w-[82%] rounded-2xl px-4 py-3 text-[13px] leading-relaxed ${msg.role === "user" ? "rounded-tr-sm text-white/90" : "rounded-tl-sm text-white/80"}`}
-                    style={msg.role === "user"
-                      ? { background: "linear-gradient(135deg, rgba(16,185,129,0.15), rgba(5,150,105,0.08))", border: "1px solid rgba(16,185,129,0.2)" }
-                      : { background: "rgba(255,255,255,0.03)", border: "1px solid rgba(255,255,255,0.055)" }}
+                    style={
+                      msg.role === "user"
+                        ? {
+                            background:
+                              "linear-gradient(135deg, rgba(16,185,129,0.15), rgba(5,150,105,0.08))",
+                            border: "1px solid rgba(16,185,129,0.2)",
+                          }
+                        : {
+                            background: "rgba(255,255,255,0.03)",
+                            border: "1px solid rgba(255,255,255,0.055)",
+                          }
+                    }
                   >
                     {msg.role === "assistant" ? (
                       <>
                         <div className="prose prose-invert prose-sm max-w-none prose-p:my-1.5 prose-p:leading-relaxed prose-headings:text-white/90 prose-headings:font-semibold prose-headings:my-2 prose-ul:my-1.5 prose-li:my-0.5 prose-li:text-white/70 prose-strong:text-white/90 prose-code:text-[#34D399] prose-code:bg-white/[0.06] prose-code:px-1 prose-code:py-0.5 prose-code:rounded prose-code:text-[12px] prose-code:font-mono">
-                          <ReactMarkdown remarkPlugins={[remarkGfm]}>{msg.content}</ReactMarkdown>
+                          <ReactMarkdown remarkPlugins={[remarkGfm]}>
+                            {msg.content}
+                          </ReactMarkdown>
                         </div>
                         {msg.appliedToCanvas && (
-                          <motion.div initial={{ opacity: 0, y: 4 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.3 }} className="flex items-center gap-1.5 mt-2.5 pt-2.5 border-t border-white/[0.06]">
+                          <motion.div
+                            initial={{ opacity: 0, y: 4 }}
+                            animate={{ opacity: 1, y: 0 }}
+                            transition={{ delay: 0.3 }}
+                            className="flex items-center gap-1.5 mt-2.5 pt-2.5 border-t border-white/[0.06]"
+                          >
                             <div className="w-1.5 h-1.5 rounded-full bg-emerald-400/80" />
-                            <span className="text-[11px] text-emerald-400/60 font-medium">Applied to canvas</span>
+                            <span className="text-[11px] text-emerald-400/60 font-medium">
+                              Applied to canvas
+                            </span>
                           </motion.div>
                         )}
                       </>
@@ -541,11 +652,27 @@ export function AiChatDrawer({
               {/* Loading */}
               <AnimatePresence>
                 {isLoading && (
-                  <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: 4 }} className="flex gap-3">
-                    <div className="w-7 h-7 rounded-lg shrink-0 flex items-center justify-center mt-0.5 border border-white/[0.06]" style={{ background: "linear-gradient(145deg, #1E1E1E, #141414)" }}>
+                  <motion.div
+                    initial={{ opacity: 0, y: 12 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    exit={{ opacity: 0, y: 4 }}
+                    className="flex gap-3"
+                  >
+                    <div
+                      className="w-7 h-7 rounded-lg shrink-0 flex items-center justify-center mt-0.5 border border-white/[0.06]"
+                      style={{
+                        background: "linear-gradient(145deg, #1E1E1E, #141414)",
+                      }}
+                    >
                       <Loader2 className="w-3.5 h-3.5 text-[#10B981] animate-spin" />
                     </div>
-                    <div className="px-4 py-3 rounded-2xl rounded-tl-sm flex w-full max-w-[82%]" style={{ background: "rgba(255,255,255,0.03)", border: "1px solid rgba(255,255,255,0.055)" }}>
+                    <div
+                      className="px-4 py-3 rounded-2xl rounded-tl-sm flex w-full max-w-[82%]"
+                      style={{
+                        background: "rgba(255,255,255,0.03)",
+                        border: "1px solid rgba(255,255,255,0.055)",
+                      }}
+                    >
                       <MoshLoadingIndicator isDesigning={isDesigning} />
                     </div>
                   </motion.div>
@@ -560,7 +687,10 @@ export function AiChatDrawer({
               <form
                 onSubmit={handleSubmit}
                 className="relative flex items-end gap-2 rounded-2xl p-1.5 transition-all"
-                style={{ background: "rgba(20,20,20,0.9)", border: "1px solid rgba(255,255,255,0.08)" }}
+                style={{
+                  background: "rgba(20,20,20,0.9)",
+                  border: "1px solid rgba(255,255,255,0.08)",
+                }}
               >
                 <textarea
                   ref={textareaRef}
@@ -575,16 +705,30 @@ export function AiChatDrawer({
                   type="submit"
                   disabled={!input.trim() || isLoading}
                   className="w-10 h-10 shrink-0 flex items-center justify-center mb-0.5 rounded-xl text-white transition-all cursor-pointer disabled:cursor-default"
-                  style={{ background: input.trim() && !isLoading ? "linear-gradient(135deg, #10B981, #059669)" : "rgba(255,255,255,0.04)", boxShadow: input.trim() && !isLoading ? "0 4px 16px rgba(16,185,129,0.35)" : "none" }}
+                  style={{
+                    background:
+                      input.trim() && !isLoading
+                        ? "linear-gradient(135deg, #10B981, #059669)"
+                        : "rgba(255,255,255,0.04)",
+                    boxShadow:
+                      input.trim() && !isLoading
+                        ? "0 4px 16px rgba(16,185,129,0.35)"
+                        : "none",
+                  }}
                   whileHover={input.trim() && !isLoading ? { scale: 1.05 } : {}}
                   whileTap={input.trim() && !isLoading ? { scale: 0.95 } : {}}
                 >
-                  <Send className="w-4 h-4" style={{ opacity: input.trim() && !isLoading ? 1 : 0.25 }} />
+                  <Send
+                    className="w-4 h-4"
+                    style={{ opacity: input.trim() && !isLoading ? 1 : 0.25 }}
+                  />
                 </motion.button>
               </form>
               <div className="flex items-center justify-center gap-1.5 mt-2.5">
                 <Sparkles className="w-2.5 h-2.5 text-white/15" />
-                <span className="text-[10px] text-white/20 tracking-wide">Enter to send · Shift+Enter for new line</span>
+                <span className="text-[10px] text-white/20 tracking-wide">
+                  Enter to send · Shift+Enter for new line
+                </span>
               </div>
             </div>
           </motion.div>
@@ -616,7 +760,17 @@ function MoshLoadingIndicator({ isDesigning }: { isDesigning: boolean }) {
     return (
       <div className="flex items-center gap-1">
         {[0, 0.15, 0.3].map((delay, i) => (
-          <motion.div key={i} className="w-1.5 h-1.5 rounded-full bg-[#10B981]/60" animate={{ y: [0, -4, 0], opacity: [0.4, 1, 0.4] }} transition={{ repeat: Infinity, duration: 0.9, delay, ease: "easeInOut" }} />
+          <motion.div
+            key={i}
+            className="w-1.5 h-1.5 rounded-full bg-[#10B981]/60"
+            animate={{ y: [0, -4, 0], opacity: [0.4, 1, 0.4] }}
+            transition={{
+              repeat: Infinity,
+              duration: 0.9,
+              delay,
+              ease: "easeInOut",
+            }}
+          />
         ))}
       </div>
     );
@@ -625,7 +779,7 @@ function MoshLoadingIndicator({ isDesigning }: { isDesigning: boolean }) {
   return (
     <div className="flex flex-col w-full gap-2">
       <div className="flex items-center justify-between">
-        <motion.span 
+        <motion.span
           key={phraseIndex}
           initial={{ opacity: 0, y: 4 }}
           animate={{ opacity: 1, y: 0 }}
@@ -634,13 +788,20 @@ function MoshLoadingIndicator({ isDesigning }: { isDesigning: boolean }) {
         >
           {DESIGN_PHRASES[phraseIndex]}
         </motion.span>
-        <span className="text-[9px] text-white/30 font-mono animate-pulse">GENERATING</span>
+        <span className="text-[9px] text-white/30 font-mono animate-pulse">
+          GENERATING
+        </span>
       </div>
       <div className="h-1.5 w-full bg-white/[0.05] rounded-full overflow-hidden relative">
-        <motion.div 
+        <motion.div
           className="absolute top-0 bottom-0 w-1/3 bg-gradient-to-r from-transparent via-[#10B981] to-transparent"
           animate={{ left: ["-30%", "100%"] }}
-          transition={{ duration: 1.5, ease: "easeInOut", repeat: Infinity, repeatType: "reverse" }}
+          transition={{
+            duration: 1.5,
+            ease: "easeInOut",
+            repeat: Infinity,
+            repeatType: "reverse",
+          }}
         />
       </div>
     </div>
