@@ -1,3 +1,9 @@
+## [1.3.1](https://github.com/Andiewitz/meshwork-studiov2/compare/v1.3.0...v1.3.1) (2026-07-05)
+
+### Bug Fixes
+
+- permission system rewrite - centralize role hierarchy, fix viewer delete bug ([2650f7e](https://github.com/Andiewitz/meshwork-studiov2/commit/2650f7edc7560892bb0cb64c0f409638590e475a))
+
 # [1.3.0](https://github.com/Andiewitz/meshwork-studiov2/compare/v1.2.2...v1.3.0) (2026-07-01)
 
 ### Features
