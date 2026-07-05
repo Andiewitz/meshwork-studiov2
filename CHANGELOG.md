@@ -1,3 +1,9 @@
+## [1.4.5](https://github.com/Andiewitz/meshwork-studiov2/compare/v1.4.4...v1.4.5) (2026-07-05)
+
+### Bug Fixes
+
+- **e2e:** rewrite specs to be self-contained and bypass CSRF in E2E mode ([1de2c7f](https://github.com/Andiewitz/meshwork-studiov2/commit/1de2c7ff076317ee36205ad0518b3fe9bf16e816))
+
 ## [1.4.4](https://github.com/Andiewitz/meshwork-studiov2/compare/v1.4.3...v1.4.4) (2026-07-05)
 
 ### Bug Fixes
