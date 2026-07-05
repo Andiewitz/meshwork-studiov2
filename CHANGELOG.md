@@ -1,3 +1,9 @@
+## [1.4.7](https://github.com/Andiewitz/meshwork-studiov2/compare/v1.4.6...v1.4.7) (2026-07-05)
+
+### Bug Fixes
+
+- **e2e:** mock workspace storage and bypass csrf token endpoint crash ([94fe471](https://github.com/Andiewitz/meshwork-studiov2/commit/94fe47138c0fb782651e1540c3bf2b37ad926de1))
+
 ## [1.4.6](https://github.com/Andiewitz/meshwork-studiov2/compare/v1.4.5...v1.4.6) (2026-07-05)
 
 ### Bug Fixes
