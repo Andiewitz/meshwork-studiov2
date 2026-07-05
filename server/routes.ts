@@ -21,20 +21,29 @@ const log = createChildLogger("server");
 
 export async function registerRoutes(
   httpServer: Server,
-  app: Express
+  app: Express,
 ): Promise<Server> {
   // CSRF token endpoint — must be available before auth middleware
-  app.get("/api/v1/csrf-token", csrfProtection, generateCsrfToken, (req: Request, res: Response) => {
-    try {
-      const token = (req as any).csrfToken();
-      res.json({ csrfToken: token, message: "CSRF token generated" });
-    } catch (error) {
-      res.status(500).json({
-        message: "Failed to generate CSRF token",
-        error: process.env.NODE_ENV === "production" ? undefined : String(error),
-      });
-    }
-  });
+  app.get(
+    "/api/v1/csrf-token",
+    csrfProtection,
+    generateCsrfToken,
+    (req: Request, res: Response) => {
+      try {
+        const token =
+          typeof (req as any).csrfToken === "function"
+            ? (req as any).csrfToken()
+            : "mock-csrf-token";
+        res.json({ csrfToken: token, message: "CSRF token generated" });
+      } catch (error) {
+        res.status(500).json({
+          message: "Failed to generate CSRF token",
+          error:
+            process.env.NODE_ENV === "production" ? undefined : String(error),
+        });
+      }
+    },
+  );
 
   // Setup Service Registry and Event Bus
   const registry = new AppRegistry();

@@ -202,4 +202,136 @@ export class WorkspaceDatabaseStorage implements IWorkspaceStorage {
   }
 }
 
-export const workspaceStorage = new WorkspaceDatabaseStorage();
+export class WorkspaceInMemoryStorage implements IWorkspaceStorage {
+  private collections: Collection[] = [];
+  private workspaces: Workspace[] = [];
+  private currentCollectionId = 1;
+  private currentWorkspaceId = 1;
+
+  async getCollections(
+    userId: string,
+    parentId: number | null = null,
+  ): Promise<Collection[]> {
+    return this.collections.filter(
+      (c) => c.userId === userId && c.parentId === parentId,
+    );
+  }
+
+  async getCollectionById(id: number): Promise<Collection | undefined> {
+    return this.collections.find((c) => c.id === id);
+  }
+
+  async createCollection(
+    insertCollection: InsertCollection,
+  ): Promise<Collection> {
+    const col: Collection = {
+      id: this.currentCollectionId++,
+      title: insertCollection.title,
+      description: insertCollection.description ?? null,
+      userId: insertCollection.userId ?? null,
+      parentId: insertCollection.parentId ?? null,
+      createdAt: new Date(),
+    };
+    this.collections.push(col);
+    return col;
+  }
+
+  async updateCollection(
+    id: number,
+    updates: Partial<InsertCollection>,
+  ): Promise<Collection> {
+    const index = this.collections.findIndex((c) => c.id === id);
+    if (index === -1) throw new Error("Collection not found");
+    const updated = {
+      ...this.collections[index],
+      ...updates,
+    };
+    this.collections[index] = updated;
+    return updated;
+  }
+
+  async deleteCollection(id: number): Promise<void> {
+    this.collections = this.collections.filter((c) => c.id !== id);
+  }
+
+  async getWorkspaces(
+    userId: string,
+    collectionId: number | null = null,
+  ): Promise<Workspace[]> {
+    return this.workspaces
+      .filter((w) => w.userId === userId && w.collectionId === collectionId)
+      .sort((a, b) => b.createdAt.getTime() - a.createdAt.getTime());
+  }
+
+  async getWorkspace(id: number): Promise<Workspace | undefined> {
+    return this.workspaces.find((w) => w.id === id);
+  }
+
+  async createWorkspace(insertWorkspace: InsertWorkspace): Promise<Workspace> {
+    const ws: Workspace = {
+      id: this.currentWorkspaceId++,
+      title: insertWorkspace.title,
+      type: insertWorkspace.type ?? "system",
+      icon: insertWorkspace.icon ?? "box",
+      isFavorite: insertWorkspace.isFavorite ?? false,
+      userId: insertWorkspace.userId ?? null,
+      collectionId: insertWorkspace.collectionId ?? null,
+      description: insertWorkspace.description ?? null,
+      author: insertWorkspace.author ?? null,
+      aiContext: insertWorkspace.aiContext ?? null,
+      groups: insertWorkspace.groups ?? [],
+      tags: insertWorkspace.tags ?? [],
+      createdAt: new Date(),
+      updatedAt: new Date(),
+    };
+    this.workspaces.push(ws);
+    return ws;
+  }
+
+  async updateWorkspace(
+    id: number,
+    updates: Partial<InsertWorkspace>,
+  ): Promise<Workspace> {
+    const index = this.workspaces.findIndex((w) => w.id === id);
+    if (index === -1) throw new Error("Workspace not found");
+    const updated = {
+      ...this.workspaces[index],
+      ...updates,
+      updatedAt: new Date(),
+    };
+    this.workspaces[index] = updated;
+    return updated;
+  }
+
+  async deleteWorkspace(id: number): Promise<void> {
+    this.workspaces = this.workspaces.filter((w) => w.id !== id);
+  }
+
+  async duplicateWorkspace(id: number, newTitle?: string): Promise<Workspace> {
+    const existing = await this.getWorkspace(id);
+    if (!existing) throw new Error("Workspace not found");
+    return this.createWorkspace({
+      title: newTitle || `${existing.title} (Copy)`,
+      type: existing.type,
+      icon: existing.icon,
+      userId: existing.userId,
+      collectionId: existing.collectionId,
+      description: existing.description,
+      author: existing.author,
+      aiContext: existing.aiContext,
+      groups: existing.groups,
+      tags: existing.tags,
+    });
+  }
+
+  async deleteAllUserData(userId: number): Promise<void> {
+    const userIdStr = String(userId);
+    this.workspaces = this.workspaces.filter((w) => w.userId !== userIdStr);
+    this.collections = this.collections.filter((c) => c.userId !== userIdStr);
+  }
+}
+
+export const workspaceStorage =
+  process.env.E2E_BYPASS_AUTH === "true"
+    ? new WorkspaceInMemoryStorage()
+    : new WorkspaceDatabaseStorage();

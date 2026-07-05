@@ -56,7 +56,8 @@ export const generateCsrfToken = (
   next: NextFunction,
 ) => {
   // Generate token and attach to response header
-  const token = req.csrfToken();
+  const token =
+    typeof req.csrfToken === "function" ? req.csrfToken() : "mock-csrf-token";
   res.set("X-CSRF-Token", token);
   next();
 };
