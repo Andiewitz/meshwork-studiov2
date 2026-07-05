@@ -131,7 +131,7 @@ export function validateKeyFormat(provider: string, apiKey: string): boolean {
       return apiKey.startsWith("sk-ant-") && apiKey.length >= 20;
     case "openrouter":
       // OpenRouter keys start with "sk-or-"
-      return apiKey.startsWith("sk-or-") && apiKey.length >= 20;
+      return apiKey.startsWith("sk-or-") && apiKey.length >= 10;
     default:
       // Unknown provider — reject rather than silently accept
       return false;
