@@ -38,7 +38,7 @@ jobs:
             @semantic-release/github@11
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          GIT_AUTHOR_NAME: meshwork-bot
-          GIT_AUTHOR_EMAIL: bot@meshwork.studio
-          GIT_COMMITTER_NAME: meshwork-bot
-          GIT_COMMITTER_EMAIL: bot@meshwork.studio
+          GIT_AUTHOR_NAME: "github-actions[bot]"
+          GIT_AUTHOR_EMAIL: "41898282+github-actions[bot]@users.noreply.github.com"
+          GIT_COMMITTER_NAME: "github-actions[bot]"
+          GIT_COMMITTER_EMAIL: "41898282+github-actions[bot]@users.noreply.github.com"
