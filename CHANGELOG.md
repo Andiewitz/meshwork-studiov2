@@ -1,3 +1,9 @@
+## [1.4.2](https://github.com/Andiewitz/meshwork-studiov2/compare/v1.4.1...v1.4.2) (2026-07-05)
+
+### Bug Fixes
+
+- fix openrouter validation and update register integration tests ([c141a44](https://github.com/Andiewitz/meshwork-studiov2/commit/c141a44c104391ca03bceda48631129e53698739))
+
 ## [1.4.1](https://github.com/Andiewitz/meshwork-studiov2/compare/v1.4.0...v1.4.1) (2026-07-05)
 
 ### Bug Fixes
