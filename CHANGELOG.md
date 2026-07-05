@@ -1,3 +1,9 @@
+## [1.4.1](https://github.com/Andiewitz/meshwork-studiov2/compare/v1.4.0...v1.4.1) (2026-07-05)
+
+### Bug Fixes
+
+- resolve pre-existing TypeScript and ESLint configuration errors ([f4e49af](https://github.com/Andiewitz/meshwork-studiov2/commit/f4e49aff6719ec88f4c3bb0174e3615feb8c8c9d))
+
 # [1.4.0](https://github.com/Andiewitz/meshwork-studiov2/compare/v1.3.6...v1.4.0) (2026-07-05)
 
 ### Features
