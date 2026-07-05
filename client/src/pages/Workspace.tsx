@@ -1339,13 +1339,16 @@ function WorkspaceView() {
     setSelectedEdgeId(null);
     setActiveTab("properties");
     setTimeout(() => {
-      const input = document.querySelector('[data-property-input="true"]')!;
-      input?.focus();
-      if (
-        input instanceof HTMLTextAreaElement ||
-        input instanceof HTMLInputElement
-      )
-        input.select();
+      const input = document.querySelector('[data-property-input="true"]');
+      if (input instanceof HTMLElement) {
+        input.focus();
+        if (
+          input instanceof HTMLTextAreaElement ||
+          input instanceof HTMLInputElement
+        ) {
+          input.select();
+        }
+      }
     }, 50);
   }, []);
 
