@@ -1,3 +1,9 @@
+## [1.4.3](https://github.com/Andiewitz/meshwork-studiov2/compare/v1.4.2...v1.4.3) (2026-07-05)
+
+### Bug Fixes
+
+- **ci:** add postgres service and env variables to e2e test job ([6700f49](https://github.com/Andiewitz/meshwork-studiov2/commit/6700f494834bfadac05812a26d89a4b3e3b00b48))
+
 ## [1.4.2](https://github.com/Andiewitz/meshwork-studiov2/compare/v1.4.1...v1.4.2) (2026-07-05)
 
 ### Bug Fixes
