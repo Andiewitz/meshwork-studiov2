@@ -1,3 +1,9 @@
+# [1.4.0](https://github.com/Andiewitz/meshwork-studiov2/compare/v1.3.6...v1.4.0) (2026-07-05)
+
+### Features
+
+- **ai:** redesign Mosh AI Provider System with resolver and schema fixes ([38532f9](https://github.com/Andiewitz/meshwork-studiov2/commit/38532f9207c0dcffbf9283bc7755b803f08294df))
+
 ## [1.3.6](https://github.com/Andiewitz/meshwork-studiov2/compare/v1.3.5...v1.3.6) (2026-07-05)
 
 ### Bug Fixes
