@@ -1,3 +1,9 @@
+## [1.3.6](https://github.com/Andiewitz/meshwork-studiov2/compare/v1.3.5...v1.3.6) (2026-07-05)
+
+### Bug Fixes
+
+- **auth:** fix 403 on register by including credentials in csrf initialization ([c944f44](https://github.com/Andiewitz/meshwork-studiov2/commit/c944f4412e4d5b883e9a3629e6c41d2c52586ab5))
+
 ## [1.3.5](https://github.com/Andiewitz/meshwork-studiov2/compare/v1.3.4...v1.3.5) (2026-07-05)
 
 ### Bug Fixes
