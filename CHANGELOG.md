@@ -1,3 +1,9 @@
+## [1.3.3](https://github.com/Andiewitz/meshwork-studiov2/compare/v1.3.2...v1.3.3) (2026-07-05)
+
+### Bug Fixes
+
+- workspace title property (was .name, should be .title) ([a74580b](https://github.com/Andiewitz/meshwork-studiov2/commit/a74580bbbccbe1dd41123159630fe73dde4465ba))
+
 ## [1.3.2](https://github.com/Andiewitz/meshwork-studiov2/compare/v1.3.1...v1.3.2) (2026-07-05)
 
 ### Bug Fixes
