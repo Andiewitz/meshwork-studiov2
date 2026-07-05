@@ -13,8 +13,6 @@ test.describe("Dashboard Feature Tests", () => {
   test.beforeEach(async ({ page }) => {
     // Navigate to dashboard — the dev-mode auth bypass on the client returns mock-id-1
     await page.goto("/home");
-    // Wait for the main content to be visible before each test
-    await page.waitForLoadState("networkidle");
   });
 
   test("should render the dashboard without a white screen or React crash", async ({
@@ -70,7 +68,6 @@ test.describe("Dashboard Feature Tests", () => {
 
     // --- Step 3: Reload so the new workspace appears in the list ---
     await page.reload();
-    await page.waitForLoadState("networkidle");
 
     // The workspace name should be visible somewhere on the dashboard
     await expect(page.locator(`text=${wsName}`)).toBeVisible({
@@ -97,7 +94,6 @@ test.describe("Dashboard Feature Tests", () => {
 
     // --- Step 3: Reload and locate the first workspace card ---
     await page.reload();
-    await page.waitForLoadState("networkidle");
 
     // Find the star/favourite button on the first card in Recent Projects
     const firstCard = page

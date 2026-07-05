@@ -10,6 +10,7 @@ export const apiLimiter = rateLimit({
   },
   standardHeaders: true, // Return rate limit info in the `RateLimit-*` headers
   legacyHeaders: false, // Disable the `X-RateLimit-*` headers
+  skip: () => process.env.NODE_ENV === "test",
 });
 
 // Strict authentication rate limiter - protects against credential stuffing
@@ -23,6 +24,7 @@ export const authLimiter = rateLimit({
   },
   standardHeaders: true,
   legacyHeaders: false,
+  skip: () => process.env.NODE_ENV === "test",
 });
 
 // Refresh token rate limiter - prevents token farming
@@ -35,6 +37,7 @@ export const refreshLimiter = rateLimit({
   },
   standardHeaders: true,
   legacyHeaders: false,
+  skip: () => process.env.NODE_ENV === "test",
 });
 
 // AI chat rate limiter - prevents cost exfiltration via unmetered proxy
@@ -45,6 +48,7 @@ export const aiChatLimiter = rateLimit({
   message: { message: "Too many AI requests, please slow down." },
   standardHeaders: true,
   legacyHeaders: false,
+  skip: () => process.env.NODE_ENV === "test",
 });
 
 // Tighter rate limiter for free-tier AI requests (app-owned key).
@@ -59,6 +63,7 @@ export const aiFreeTierLimiter = rateLimit({
   },
   standardHeaders: true,
   legacyHeaders: false,
+  skip: () => process.env.NODE_ENV === "test",
   keyGenerator: (req: any) => {
     // Key by user ID (not IP) so per-user limits are accurate.
     // This middleware only runs behind isAuthenticated, so req.user is always set.

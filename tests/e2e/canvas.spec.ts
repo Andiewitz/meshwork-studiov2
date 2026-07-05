@@ -10,7 +10,6 @@ test.describe("Meshwork Studio - Core E2E Tests", () => {
 
     // Navigate to root — in E2E bypass mode the client auto-sets the mock user
     await page.goto("/");
-    await page.waitForLoadState("networkidle");
 
     // Title should be set (not blank Vite placeholder)
     const title = await page.title();
@@ -29,7 +28,6 @@ test.describe("Meshwork Studio - Core E2E Tests", () => {
     page,
   }) => {
     await page.goto("/home");
-    await page.waitForLoadState("networkidle");
 
     // The dashboard page should load without a white screen
     await expect(page.locator("body")).toBeVisible();
