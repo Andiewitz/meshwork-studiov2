@@ -1,3 +1,9 @@
+## [1.4.8](https://github.com/Andiewitz/meshwork-studiov2/compare/v1.4.7...v1.4.8) (2026-07-05)
+
+### Bug Fixes
+
+- **e2e:** resolve TypeScript errors in WorkspaceInMemoryStorage ([a023948](https://github.com/Andiewitz/meshwork-studiov2/commit/a0239483390aefe0a2936b1927a02951986231f9))
+
 ## [1.4.7](https://github.com/Andiewitz/meshwork-studiov2/compare/v1.4.6...v1.4.7) (2026-07-05)
 
 ### Bug Fixes
