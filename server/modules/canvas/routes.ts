@@ -6,6 +6,8 @@ import { csrfProtection } from "../../middleware/csrf";
 import { createChildLogger } from "../../lib/logger";
 import type { AppContext } from "../../lib/registry";
 
+import { canEditWorkspace } from "../team/permissions";
+
 const log = createChildLogger("canvas");
 
 export function registerCanvasRoutes(app: Express, context: AppContext) {
@@ -35,8 +37,8 @@ export function registerCanvasRoutes(app: Express, context: AppContext) {
 
         const userId = req.user!.id;
         const role = await teamStorage.getWorkspaceRole(workspace.id, userId);
-        if (!role || role === 'viewer') {
-            return res.status(403).json({ message: "Forbidden: Viewer access cannot modify canvas" });
+        if (!canEditWorkspace(role)) {
+            return res.status(403).json({ message: "Forbidden: Insufficient permissions to modify canvas" });
         }
 
         const { nodes, edges } = api.workspaces.syncCanvas.input.parse(req.body);
@@ -54,8 +56,8 @@ export function registerCanvasRoutes(app: Express, context: AppContext) {
 
         const userId = req.user!.id;
         const role = await teamStorage.getWorkspaceRole(workspace.id, userId);
-        if (!role || role === 'viewer') {
-            return res.status(403).json({ message: "Forbidden: Viewer access cannot duplicate canvas" });
+        if (!canEditWorkspace(role)) {
+            return res.status(403).json({ message: "Forbidden: Insufficient permissions to duplicate canvas" });
         }
 
         // Validate destination workspace — must be owned by the user

@@ -3,6 +3,7 @@ import { api, buildUrl } from "@shared/routes";
 import { type CreateWorkspaceRequest, type UpdateWorkspaceRequest } from "@shared/schema";
 import { secureFetch } from "../lib/secure-fetch";
 import { useAuth } from "./use-auth";
+import { type WorkspaceRole, canDelete, canManage, canEdit, canView, rank } from "@shared/permissions";
 
 const API_BASE_URL = import.meta.env.VITE_API_URL || "";
 
@@ -171,7 +172,7 @@ export function useDuplicateWorkspace() {
 }
 
 // Hook to fetch user's role for a workspace
-export type WorkspaceRole = 'workspace-owner' | 'owner' | 'admin' | 'editor' | 'viewer' | 'none';
+export { type WorkspaceRole, canDelete, canManage, canEdit, canView, rank } from "@shared/permissions";
 
 export function useWorkspaceRole(workspaceId: number | null) {
   return useQuery<{ role: WorkspaceRole }>({

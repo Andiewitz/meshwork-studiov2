@@ -155,7 +155,7 @@ export class TeamDatabaseStorage implements ITeamStorage {
 
         const [member] = await db
             .insert(teamMembers)
-            .values({ teamId: team.id, userId, role: "member", color })
+            .values({ teamId: team.id, userId, role: "viewer", color })
             .returning();
 
         return { team, member };

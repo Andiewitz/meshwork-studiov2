@@ -29,7 +29,8 @@ import {
 
 import '@xyflow/react/dist/style.css';
 import { useCanvas, saveCanvasToLocalCache, getCanvasFromLocalCache } from '@/hooks/use-canvas';
-import { useWorkspace, useDeleteWorkspace, useWorkspaceRole, useWorkspaceMembers, useUpdateMemberRole, useUpdateWorkspace, useDuplicateWorkspace, type WorkspaceRole } from '@/hooks/use-workspaces';
+import { useWorkspace, useDeleteWorkspace, useWorkspaceRole, useWorkspaceMembers, useUpdateMemberRole, useUpdateWorkspace, useDuplicateWorkspace } from '@/hooks/use-workspaces';
+import { canDelete as canDeleteWorkspace, canEdit as canEditWorkspace, canManage as canManageWorkspace, isOwner } from '@shared/permissions';
 import { useParams, Link, useLocation } from 'wouter';
 import {
     Download,
@@ -186,10 +187,10 @@ function WorkspaceView() {
 
     // ── Role-based access control ──
     const { data: roleData } = useWorkspaceRole(workspaceId);
-    const userRole: WorkspaceRole = roleData?.role || 'none';
-    const canEdit = userRole === 'workspace-owner' || userRole === 'owner' || userRole === 'admin' || userRole === 'editor';
-    const canManage = userRole === 'workspace-owner' || userRole === 'owner' || userRole === 'admin';
-    const canDelete = userRole === 'workspace-owner' || userRole === 'owner' || userRole === 'admin';
+    const userRole = roleData?.role || 'none';
+    const canEdit = canEditWorkspace(userRole);
+    const canManage = canManageWorkspace(userRole);
+    const canDelete = canDeleteWorkspace(userRole);
 
     // ── Members list for role management ──
     const { data: membersData } = useWorkspaceMembers(workspaceId);
@@ -1555,8 +1556,8 @@ function WorkspaceView() {
                                                             const icon = r === 'owner' ? <Crown className="w-3 h-3 text-amber-400" /> : r === 'admin' ? <ShieldCheck className="w-3 h-3 text-blue-400" /> : r === 'editor' ? <Pen className="w-3 h-3 text-emerald-400" /> : <Eye className="w-3 h-3 text-white/30" />;
                                                             const label = r === 'owner' ? 'Owner' : r === 'admin' ? 'Admin' : r === 'editor' ? 'Editor' : 'Viewer';
                                                             const color = r === 'owner' ? 'text-amber-400/80' : r === 'admin' ? 'text-blue-400/80' : r === 'editor' ? 'text-emerald-400/80' : 'text-white/30';
-                                                            const canChangeThis = canManage && r !== 'owner' && !isMe && !!teamId;
-                                                            const isOwnerActor = userRole === 'workspace-owner' || userRole === 'owner';
+const canChangeThis = canManage && r !== 'owner' && !isMe && !!teamId;
+                                                             const isOwnerActor = isOwner(userRole);
 
                                                             return (
                                                                 <div key={member.userId} className="px-2 py-1">

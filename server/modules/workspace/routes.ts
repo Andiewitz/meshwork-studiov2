@@ -5,6 +5,7 @@ import { z } from "zod";
 import { csrfProtection } from "../../middleware/csrf";
 import { createChildLogger } from "../../lib/logger";
 import type { AppContext } from "../../lib/registry";
+import { canEditWorkspace, canDeleteWorkspace } from "../team/permissions";
 
 const log = createChildLogger("workspace");
 
@@ -116,8 +117,8 @@ export function registerWorkspaceRoutes(app: Express, context: AppContext) {
 
             const userId = req.user!.id;
             const role = await teamStorage.getWorkspaceRole(id, userId);
-            if (!role || role === 'viewer') {
-                return res.status(403).json({ message: "Forbidden: Viewer access cannot modify workspace metadata" });
+            if (!canEditWorkspace(role)) {
+                return res.status(403).json({ message: "Forbidden: Insufficient permissions to modify workspace" });
             }
 
             const updated = await workspaceStorage.updateWorkspace(id, input);
@@ -137,8 +138,14 @@ export function registerWorkspaceRoutes(app: Express, context: AppContext) {
         if (!existing) return res.status(404).json({ message: "Not found" });
 
         const userId = req.user!.id;
+
+        // Defense-in-depth: first check basic access
+        const hasAccess = await teamStorage.canAccessWorkspace(userId, id);
+        if (!hasAccess) return res.status(403).json({ message: "No access to this workspace" });
+
+        // Then check role for delete permission
         const role = await teamStorage.getWorkspaceRole(id, userId);
-        if (role !== 'workspace-owner' && role !== 'owner' && role !== 'admin') {
+        if (!canDeleteWorkspace(role)) {
             return res.status(403).json({ message: "Forbidden: Only admins and owners can delete this workspace" });
         }
 
@@ -156,7 +163,7 @@ export function registerWorkspaceRoutes(app: Express, context: AppContext) {
 
         const userId = req.user!.id;
         const role = await teamStorage.getWorkspaceRole(id, userId);
-        if (role !== 'workspace-owner' && role !== 'owner' && role !== 'admin') {
+        if (!canDeleteWorkspace(role)) {
             return res.status(403).json({ message: "Forbidden: Only admins and owners can duplicate this workspace" });
         }
 
