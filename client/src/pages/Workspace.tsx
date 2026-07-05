@@ -1157,7 +1157,7 @@ function WorkspaceView() {
     return (
         <div className="h-screen w-screen overflow-hidden font-sans text-sm selection:bg-white/10 technical-gradient text-white relative">
             <Helmet>
-                <title>{workspace?.name ? `${workspace.name} — Meshwork Studio` : "Workspace — Meshwork Studio"}</title>
+                <title>{workspace?.title ? `${workspace.title} — Meshwork Studio` : "Workspace — Meshwork Studio"}</title>
             </Helmet>
             {canEdit && <NodeLibrarySidebar onDragStart={onDragStart} collapsed={sidebarCollapsed} setCollapsed={setSidebarCollapsed} />}
 
