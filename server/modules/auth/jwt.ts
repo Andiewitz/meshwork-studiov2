@@ -11,12 +11,18 @@ export const ACCESS_TOKEN_EXPIRATION = "15m";
 export const REFRESH_TOKEN_EXPIRATION = "7d";
 
 // Ensure we have a secret in production
-const JWT_SECRET = process.env.JWT_SECRET || "dev_insecure_jwt_secret_1234567890";
+
+const JWT_SECRET =
+  process.env.JWT_SECRET || "dev_insecure_jwt_secret_1234567890";
 
 if (!process.env.JWT_SECRET) {
-  log.warn("JWT_SECRET environment variable is missing! Using insecure default for development.");
+  log.warn(
+    "JWT_SECRET environment variable is missing! Using insecure default for development.",
+  );
   if (process.env.NODE_ENV === "production") {
-    log.error("CRITICAL: JWT_SECRET MUST be set in production to secure tokens!");
+    log.error(
+      "CRITICAL: JWT_SECRET MUST be set in production to secure tokens!",
+    );
   }
 }
 
@@ -24,14 +30,14 @@ export interface JwtPayload {
   userId: string;
   type: "access" | "refresh";
   // Used for revocation via Redis
-  jti?: string; 
+  jti?: string;
 }
 
 export function generateTokens(user: Pick<User, "id">) {
   const accessToken = jwt.sign(
     { userId: user.id, type: "access" },
     JWT_SECRET,
-    { expiresIn: ACCESS_TOKEN_EXPIRATION }
+    { expiresIn: ACCESS_TOKEN_EXPIRATION },
   );
 
   // We add a random 'jti' to the refresh token so it can be uniquely revoked later
@@ -39,17 +45,23 @@ export function generateTokens(user: Pick<User, "id">) {
   const refreshToken = jwt.sign(
     { userId: user.id, type: "refresh", jti },
     JWT_SECRET,
-    { expiresIn: REFRESH_TOKEN_EXPIRATION }
+    { expiresIn: REFRESH_TOKEN_EXPIRATION },
   );
 
   return { accessToken, refreshToken, jti };
 }
 
-export function verifyToken(token: string, expectedType: "access" | "refresh"): JwtPayload | null {
+export function verifyToken(
+  token: string,
+  expectedType: "access" | "refresh",
+): JwtPayload | null {
   try {
     const decoded = jwt.verify(token, JWT_SECRET) as JwtPayload;
     if (decoded.type !== expectedType) {
-      log.warn({ expectedType, actualType: decoded.type }, "Token type mismatch");
+      log.warn(
+        { expectedType, actualType: decoded.type },
+        "Token type mismatch",
+      );
       return null;
     }
     return decoded;
@@ -68,7 +80,9 @@ export function verifyToken(token: string, expectedType: "access" | "refresh"): 
 export async function revokeRefreshToken(jti: string): Promise<void> {
   const redis = getRedis();
   if (!redis) {
-    log.warn("Redis is not available, token revocation will not be persisted across restarts");
+    log.warn(
+      "Redis is not available, token revocation will not be persisted across restarts",
+    );
     // Fallback? We don't have a reliable in-memory fallback here for cluster mode,
     // but in dev it's fine. For production, Redis is required.
     return;
@@ -90,7 +104,7 @@ export async function revokeRefreshToken(jti: string): Promise<void> {
 export async function isRefreshTokenRevoked(jti: string): Promise<boolean> {
   const redis = getRedis();
   if (!redis) {
-    // If Redis is down, we fail open (allow the token) to prevent complete outage, 
+    // If Redis is down, we fail open (allow the token) to prevent complete outage,
     // or fail closed depending on security posture. Let's fail open but log a warning.
     log.warn("Redis is not available, cannot verify token revocation status");
     return false;

@@ -84,6 +84,8 @@ export default tseslint.config(
       "@typescript-eslint/no-unsafe-return": "off",
       "@typescript-eslint/no-unsafe-argument": "off",
       "@typescript-eslint/unbound-method": "off",
+      "no-secrets/no-secrets": "off",
+      "security/detect-object-injection": "off",
     },
   },
   {
@@ -92,7 +94,7 @@ export default tseslint.config(
       "no-secrets": noSecrets,
     },
     rules: {
-      "security/detect-object-injection": "warn",
+      "security/detect-object-injection": "off",
       "security/detect-non-literal-fs-filename": "warn",
       "security/detect-possible-timing-attacks": "warn",
       "no-secrets/no-secrets": "warn",

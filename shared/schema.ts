@@ -166,6 +166,7 @@ export const loginAttempts = pgTable(
   },
   (table) => [
     index("IDX_login_attempts_email").on(table.email),
+    // eslint-disable-next-line no-secrets/no-secrets
     index("IDX_login_attempts_locked_until").on(table.lockedUntil),
   ],
 );

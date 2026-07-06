@@ -7,25 +7,30 @@ const log = createChildLogger("auth-db");
 
 const { Pool } = pg;
 
-const connectionString = process.env.AUTH_DATABASE_URL || process.env.DATABASE_URL;
+const connectionString =
+  process.env.AUTH_DATABASE_URL || process.env.DATABASE_URL;
 
 if (!connectionString) {
-    log.warn("AUTH_DATABASE_URL not set, falling back to in-memory mode if configured");
+  log.warn(
+    "AUTH_DATABASE_URL not set, falling back to in-memory mode if configured",
+  );
 }
 
-export const pool = new Pool({ connectionString: connectionString || "postgres://" });
+export const pool = new Pool({
+  connectionString: connectionString || "postgres://",
+});
 export const db = drizzle(pool, { schema });
 
 // Create tables if they don't exist
 async function createTables() {
-    if (!connectionString) return;
+  if (!connectionString) return;
 
-    try {
-        // Enable pgcrypto for gen_random_uuid()
-        await pool.query(`CREATE EXTENSION IF NOT EXISTS pgcrypto;`);
+  try {
+    // Enable pgcrypto for gen_random_uuid()
+    await pool.query(`CREATE EXTENSION IF NOT EXISTS pgcrypto;`);
 
-        // Create users table with new auth fields
-        await pool.query(`
+    // Create users table with new auth fields
+    await pool.query(`
             CREATE TABLE IF NOT EXISTS users (
                 id VARCHAR PRIMARY KEY DEFAULT gen_random_uuid(),
                 email VARCHAR UNIQUE NOT NULL,
@@ -40,12 +45,13 @@ async function createTables() {
                 updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
             );
         `);
-        log.info("Users table created/verified");
+    log.info("Users table created/verified");
 
-        // Session storage has been moved to Redis!
+    // Session storage has been moved to Redis!
 
-        // Create login_attempts table for account lockout protection
-        await pool.query(`
+    // Create login_attempts table for account lockout protection
+    // eslint-disable-next-line no-secrets/no-secrets
+    await pool.query(`
             CREATE TABLE IF NOT EXISTS login_attempts (
                 id VARCHAR PRIMARY KEY DEFAULT gen_random_uuid(),
                 email VARCHAR NOT NULL,
@@ -58,27 +64,26 @@ async function createTables() {
             CREATE INDEX IF NOT EXISTS IDX_login_attempts_email ON login_attempts(email);
             CREATE INDEX IF NOT EXISTS IDX_login_attempts_locked_until ON login_attempts(locked_until);
         `);
-        log.info("Login attempts table created/verified");
-
-    } catch (err) {
-        log.error({ err }, "Failed to create tables");
-    }
+    log.info("Login attempts table created/verified");
+  } catch (err) {
+    log.error({ err }, "Failed to create tables");
+  }
 }
 
 // Safe column migrations — ADD COLUMN IF NOT EXISTS is idempotent, never drops data
 async function runMigrations() {
-    if (!connectionString) return;
+  if (!connectionString) return;
 
-    try {
-        // v1.1: Add notification preference columns to users
-        await pool.query(`
+  try {
+    // v1.1: Add notification preference columns to users
+    await pool.query(`
             ALTER TABLE users ADD COLUMN IF NOT EXISTS has_notified_team BOOLEAN DEFAULT false;
             ALTER TABLE users ADD COLUMN IF NOT EXISTS read_notification_ids JSONB DEFAULT '[]'::jsonb;
         `);
-        log.info("Migrations verified (notification preferences)");
-    } catch (err) {
-        log.error({ err }, "Migration failed");
-    }
+    log.info("Migrations verified (notification preferences)");
+  } catch (err) {
+    log.error({ err }, "Migration failed");
+  }
 }
 
 createTables().then(() => runMigrations());

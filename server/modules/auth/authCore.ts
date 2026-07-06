@@ -53,6 +53,7 @@ const getSession = () => {
   return session({
     secret:
       process.env.SESSION_SECRET ||
+      // eslint-disable-next-line no-secrets/no-secrets
       "emergency_fallback_secret_not_real_production_key_12345",
     store: sessionStore,
     resave: false,

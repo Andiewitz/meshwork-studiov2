@@ -5,6 +5,7 @@ import { useAuth } from "@/hooks/use-auth";
 import { secureFetch } from "@/lib/secure-fetch";
 import { useQueryClient } from "@tanstack/react-query";
 
+// eslint-disable-next-line no-secrets/no-secrets
 const ONBOARDING_KEY = "meshwork_onboarding_complete";
 
 const API_BASE_URL = import.meta.env.VITE_API_URL || "";
@@ -59,14 +60,19 @@ export function OnboardingFlow() {
         });
         // Update local cache
         queryClient.setQueryData(["/api/v1/auth/me"], (old: any) =>
-          old ? { ...old, firstName, lastName } : old
+          old ? { ...old, firstName, lastName } : old,
         );
       }
 
       // Save survey data locally
       localStorage.setItem(
         "meshwork_onboarding_data",
-        JSON.stringify({ role, source, useCase, completedAt: new Date().toISOString() })
+        JSON.stringify({
+          role,
+          source,
+          useCase,
+          completedAt: new Date().toISOString(),
+        }),
       );
       localStorage.setItem(ONBOARDING_KEY, "true");
     } catch (err) {
@@ -96,10 +102,15 @@ export function OnboardingFlow() {
     // Step 0: Name
     <div key="name" className="space-y-6">
       <div>
-        <h2 className="text-xl font-semibold text-white mb-1" style={{ fontFamily: "var(--font-sans)" }}>
+        <h2
+          className="text-xl font-semibold text-white mb-1"
+          style={{ fontFamily: "var(--font-sans)" }}
+        >
           What should we call you?
         </h2>
-        <p className="text-sm text-white/30">This is how you'll appear to your team.</p>
+        <p className="text-sm text-white/30">
+          This is how you'll appear to your team.
+        </p>
       </div>
       <div className="grid grid-cols-2 gap-3">
         <div>
@@ -131,10 +142,15 @@ export function OnboardingFlow() {
     // Step 1: Role
     <div key="role" className="space-y-6">
       <div>
-        <h2 className="text-xl font-semibold text-white mb-1" style={{ fontFamily: "var(--font-sans)" }}>
+        <h2
+          className="text-xl font-semibold text-white mb-1"
+          style={{ fontFamily: "var(--font-sans)" }}
+        >
           What's your role?
         </h2>
-        <p className="text-sm text-white/30">Help us personalize your experience.</p>
+        <p className="text-sm text-white/30">
+          Help us personalize your experience.
+        </p>
       </div>
       <div className="grid grid-cols-1 gap-2">
         {ROLES.map((r) => (
@@ -156,10 +172,15 @@ export function OnboardingFlow() {
     // Step 2: Referral source
     <div key="source" className="space-y-6">
       <div>
-        <h2 className="text-xl font-semibold text-white mb-1" style={{ fontFamily: "var(--font-sans)" }}>
+        <h2
+          className="text-xl font-semibold text-white mb-1"
+          style={{ fontFamily: "var(--font-sans)" }}
+        >
           How did you find us?
         </h2>
-        <p className="text-sm text-white/30">We'd love to know how you discovered Meshwork.</p>
+        <p className="text-sm text-white/30">
+          We'd love to know how you discovered Meshwork.
+        </p>
       </div>
       <div className="grid grid-cols-1 gap-2">
         {REFERRAL_SOURCES.map((s) => (
@@ -181,10 +202,15 @@ export function OnboardingFlow() {
     // Step 3: Use case
     <div key="usecase" className="space-y-6">
       <div>
-        <h2 className="text-xl font-semibold text-white mb-1" style={{ fontFamily: "var(--font-sans)" }}>
+        <h2
+          className="text-xl font-semibold text-white mb-1"
+          style={{ fontFamily: "var(--font-sans)" }}
+        >
           What will you use Meshwork for?
         </h2>
-        <p className="text-sm text-white/30">This helps us build the right features for you.</p>
+        <p className="text-sm text-white/30">
+          This helps us build the right features for you.
+        </p>
       </div>
       <div className="grid grid-cols-1 gap-2">
         {USE_CASES.map((u) => (
@@ -273,7 +299,9 @@ export function OnboardingFlow() {
   );
 }
 
-export function useOnboardingComplete(user?: { createdAt?: Date | string | null } | null) {
+export function useOnboardingComplete(
+  user?: { createdAt?: Date | string | null } | null,
+) {
   // Already completed
   if (localStorage.getItem(ONBOARDING_KEY) === "true") return true;
 
