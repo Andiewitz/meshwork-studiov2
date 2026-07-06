@@ -8,13 +8,23 @@ const log = createChildLogger("metrics-module");
 
 export const MetricsModule = {
   async initialize(app: Express) {
-    await createMetricsTable();
-    startCollector(30000); // snapshot every 30s
+    try {
+      await createMetricsTable();
+      startCollector(30000); // snapshot every 30s
+    } catch (err) {
+      log.warn(
+        { err },
+        "Failed to initialize metrics table, skipping collector",
+      );
+    }
 
     // Query stored metrics history
     app.get("/api/v1/metrics/history", async (req: Request, res: Response) => {
       try {
-        const limit = Math.min(parseInt(req.query.limit as string) || 120, 1440);
+        const limit = Math.min(
+          parseInt(req.query.limit as string) || 120,
+          1440,
+        );
         const result = await pool.query(
           `SELECT
              captured_at as "capturedAt",
@@ -36,7 +46,7 @@ export const MetricsModule = {
            FROM metrics_snapshots
            ORDER BY captured_at DESC
            LIMIT $1`,
-          [limit]
+          [limit],
         );
         res.json(result.rows.reverse()); // oldest first for charts
       } catch (err) {
@@ -74,17 +84,20 @@ export const MetricsModule = {
     });
 
     // Cleanup old snapshots (keep last 7 days)
-    app.post("/api/v1/metrics/cleanup", async (_req: Request, res: Response) => {
-      try {
-        const result = await pool.query(
-          `DELETE FROM metrics_snapshots WHERE captured_at < NOW() - INTERVAL '7 days'`
-        );
-        res.json({ deleted: result.rowCount });
-      } catch (err) {
-        log.error({ err }, "Failed to cleanup metrics");
-        res.status(500).json({ message: "Failed to cleanup metrics" });
-      }
-    });
+    app.post(
+      "/api/v1/metrics/cleanup",
+      async (_req: Request, res: Response) => {
+        try {
+          const result = await pool.query(
+            `DELETE FROM metrics_snapshots WHERE captured_at < NOW() - INTERVAL '7 days'`,
+          );
+          res.json({ deleted: result.rowCount });
+        } catch (err) {
+          log.error({ err }, "Failed to cleanup metrics");
+          res.status(500).json({ message: "Failed to cleanup metrics" });
+        }
+      },
+    );
 
     log.info("Metrics module initialized");
   },

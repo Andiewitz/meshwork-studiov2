@@ -56,3 +56,14 @@ replit.nix
 # Planning & Investigations
 plans/
 investigations/
+
+# Test artifacts (Playwright / Vitest)
+playwright-report/
+test-results/
+.last-run.json
+
+# Scratch / lint output
+get-errors.js
+lint.json
+lint-results.json
+npm-audit.json
