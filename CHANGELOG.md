@@ -1,3 +1,9 @@
+## [1.4.10](https://github.com/Andiewitz/meshwork-studiov2/compare/v1.4.9...v1.4.10) (2026-07-06)
+
+### Bug Fixes
+
+- **lint:** suppress false-positive security warnings ([045d052](https://github.com/Andiewitz/meshwork-studiov2/commit/045d0525cd4f6c4afe95ddf7068a254140ceca0c))
+
 ## [1.4.9](https://github.com/Andiewitz/meshwork-studiov2/compare/v1.4.8...v1.4.9) (2026-07-05)
 
 ### Bug Fixes
