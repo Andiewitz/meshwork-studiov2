@@ -1,4 +1,5 @@
 import rateLimit from "express-rate-limit";
+import type { Request } from "express";
 
 // Global API rate limiter - protects against general DoS
 // Limit each IP to 100 requests per 1 minute window
@@ -64,7 +65,7 @@ export const aiFreeTierLimiter = rateLimit({
   standardHeaders: true,
   legacyHeaders: false,
   skip: () => process.env.NODE_ENV === "test",
-  keyGenerator: (req: any) => {
+  keyGenerator: (req: Request) => {
     // Key by user ID (not IP) so per-user limits are accurate.
     // This middleware only runs behind isAuthenticated, so req.user is always set.
     return req.user?.id ?? "anonymous";

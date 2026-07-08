@@ -17,6 +17,8 @@ import {
   type Node,
   type Edge,
   type Connection,
+  type NodeChange,
+  type EdgeChange,
   Panel,
   useReactFlow,
   ConnectionMode,
@@ -284,10 +286,10 @@ function WorkspaceView() {
     try {
       await exportAsPng(rfInstance, workspace?.title);
       toast({ title: "Exported as PNG" });
-    } catch (e: any) {
+    } catch (e: unknown) {
       toast({
         title: "Export failed",
-        description: e.message,
+        description: e instanceof Error ? e.message : String(e),
         variant: "destructive",
       });
     }
@@ -297,10 +299,10 @@ function WorkspaceView() {
     try {
       await exportAsSvg(rfInstance, workspace?.title);
       toast({ title: "Exported as SVG" });
-    } catch (e: any) {
+    } catch (e: unknown) {
       toast({
         title: "Export failed",
-        description: e.message,
+        description: e instanceof Error ? e.message : String(e),
         variant: "destructive",
       });
     }
@@ -318,13 +320,13 @@ function WorkspaceView() {
       try {
         const { nodes: importedNodes, edges: importedEdges } =
           await importFromJson(file);
-        setNodes(importedNodes as any);
-        setEdges(importedEdges as any);
+        setNodes(importedNodes as Node[]);
+        setEdges(importedEdges as Edge[]);
         toast({ title: `Imported ${importedNodes.length} nodes` });
-      } catch (err: any) {
+      } catch (err: unknown) {
         toast({
           title: "Import failed",
-          description: err.message,
+          description: err instanceof Error ? err.message : String(err),
           variant: "destructive",
         });
       }
@@ -356,7 +358,7 @@ function WorkspaceView() {
           toast({ title: "Renamed" });
           setIsRenaming(false);
         },
-        onError: (e: any) => {
+        onError: (e: Error) => {
           toast({
             title: "Rename failed",
             description: e.message,
@@ -371,7 +373,7 @@ function WorkspaceView() {
     duplicateWorkspace.mutate(
       { id: workspaceId, title: `Copy of ${workspace?.title || "Untitled"}` },
       {
-        onSuccess: (ws: any) => {
+        onSuccess: (ws: { title?: string }) => {
           toast({ title: `Duplicated as "${ws.title}"` });
         },
         onError: () => {
@@ -472,7 +474,7 @@ function WorkspaceView() {
   );
 
   const handleRemoteNodesChange = useCallback(
-    (changes: any[]) => {
+    (changes: NodeChange[]) => {
       isRemoteUpdate.current = true;
       setNodes((nds) => applyNodeChanges(changes, nds));
       requestAnimationFrame(() => {
@@ -483,7 +485,7 @@ function WorkspaceView() {
   );
 
   const handleRemoteEdgesChange = useCallback(
-    (changes: any[]) => {
+    (changes: EdgeChange[]) => {
       isRemoteUpdate.current = true;
       setEdges((eds) => applyEdgeChanges(changes, eds));
       requestAnimationFrame(() => {
@@ -512,7 +514,7 @@ function WorkspaceView() {
   const canvasWrapperRef = useRef<HTMLDivElement>(null);
 
   const onNodesChange = useCallback(
-    (changes: any[]) => {
+    (changes: NodeChange[]) => {
       setNodes((nds) => applyNodeChanges(changes, nds));
       // Prevent broadcasting updates caused by remote changes
       if (!isRemoteUpdate.current) {
@@ -523,7 +525,7 @@ function WorkspaceView() {
   );
 
   const onEdgesChange = useCallback(
-    (changes: any[]) => {
+    (changes: EdgeChange[]) => {
       setEdges((eds) => applyEdgeChanges(changes, eds));
       if (!isRemoteUpdate.current) {
         sendEdgesChange(changes);
@@ -606,7 +608,8 @@ function WorkspaceView() {
 
       // Phase 2: after zoom, swap content and fade in
       setTimeout(() => {
-        const subCanvas = (node.data as any)?.subCanvas || {
+        const subCanvas = (node.data?.subCanvas as
+          { nodes?: Node[]; edges?: Edge[] } | undefined) ?? {
           nodes: [],
           edges: [],
         };
@@ -846,8 +849,7 @@ function WorkspaceView() {
           onSuccess: () => {
             setSaveStatus("saved");
           },
-          onError: (err: any) => {
-            setSaveStatus("offline_saved");
+          onError: (err: Error) => {
             toast({
               title: "Offline Save",
               description: "Could not reach the server. Changes saved locally.",
@@ -865,26 +867,27 @@ function WorkspaceView() {
 
   useEffect(() => {
     setEdges((eds) =>
-      eds.map((edge) => {
-        const currentStyle = (edge.style as any) || {};
+      eds.map((edge): Edge => {
+        const currentStyle = (edge.style as Record<string, unknown>) ?? {};
         const newStyle = {
           ...currentStyle,
           stroke: isSimulating ? "#FFFFFF" : "#555",
         };
 
-        let newMarkerEnd = edge.markerEnd as any;
-        if (newMarkerEnd && typeof newMarkerEnd === "object") {
-          newMarkerEnd = {
-            ...newMarkerEnd,
-            color: isSimulating ? "#FFFFFF" : "#555",
-          };
-        }
+        const prevMarkerEnd = edge.markerEnd;
+        const newMarkerEnd =
+          prevMarkerEnd && typeof prevMarkerEnd === "object"
+            ? {
+                ...(prevMarkerEnd as Record<string, unknown>),
+                color: isSimulating ? "#FFFFFF" : "#555",
+              }
+            : prevMarkerEnd;
 
         return {
           ...edge,
           animated: isSimulating,
           style: newStyle,
-          markerEnd: newMarkerEnd,
+          markerEnd: newMarkerEnd as Edge["markerEnd"],
         };
       }),
     );
@@ -919,16 +922,16 @@ function WorkspaceView() {
           borderColor: brand.borderColor,
           borderRadius: 8,
           opacity: 1,
-          fontColor: "#ffffff",
           fontSize: 13,
-          icon: null,
-          theme: "default",
-        } as any,
+        },
         data: {
           label: label,
           category: nodeTypeInfo?.category || "Core",
           description: NODE_DESCRIPTIONS[type] || "",
           tags: [],
+          fontColor: "#ffffff",
+          icon: null,
+          theme: "default",
           ai: {
             summary: "",
             notes: "",
@@ -964,7 +967,7 @@ function WorkspaceView() {
   );
 
   const updateNodeData = useCallback(
-    (id: string, newData: any) => {
+    (id: string, newData: Partial<Record<string, unknown>>) => {
       takeSnapshot();
       setNodes((nds) =>
         nds.map((node) => {
@@ -979,10 +982,9 @@ function WorkspaceView() {
   );
 
   const updateNodeStyle = useCallback(
-    (id: string, style: any) => {
+    (id: string, style: Partial<Record<string, unknown>>) => {
       takeSnapshot();
-      const snappedStyle =
-        typeof style === "object" ? { ...style } : { border: style };
+      const snappedStyle: Record<string, unknown> = { ...style };
 
       if (typeof snappedStyle.width === "number")
         snappedStyle.width = Math.round(snappedStyle.width / 24) * 24;
@@ -1002,10 +1004,10 @@ function WorkspaceView() {
   );
 
   const updateEdgeData = useCallback(
-    (id: string, newData: any) => {
+    (id: string, newData: Partial<Record<string, unknown>>) => {
       takeSnapshot();
       setEdges((eds) =>
-        eds.map((edge) => {
+        eds.map((edge): Edge => {
           if (edge.id === id) {
             const labelVal =
               newData.label !== undefined
@@ -1013,7 +1015,7 @@ function WorkspaceView() {
                 : edge.data?.label || edge.label || "";
             return {
               ...edge,
-              label: labelVal,
+              label: labelVal as string | undefined,
               data: { ...edge.data, ...newData },
             };
           }
@@ -1036,7 +1038,7 @@ function WorkspaceView() {
   const onConnect = useCallback(
     (params: Connection) => {
       takeSnapshot();
-      const style: any = { stroke: "#555", strokeWidth: 2 };
+      const style: React.CSSProperties = { stroke: "#555", strokeWidth: 2 };
       if (edgeStyle === "dashed") style.strokeDasharray = "5 5";
       if (edgeStyle === "dotted") style.strokeDasharray = "2 2";
 
@@ -1048,7 +1050,7 @@ function WorkspaceView() {
             style,
             animated: isSimulating,
             markerEnd: hasArrow
-              ? { type: "arrowclosed" as any, color: "#555" }
+              ? { type: "arrowclosed" as const, color: "#555" }
               : undefined,
             data: {
               label: "",
@@ -1327,13 +1329,13 @@ function WorkspaceView() {
     [nodes, setNodes, takeSnapshot],
   );
 
-  const onNodeClick = useCallback((_: any, node: Node) => {
+  const onNodeClick = useCallback((_: React.MouseEvent, node: Node) => {
     setSelectedNodeId(node.id);
     setSelectedEdgeId(null);
     setActiveTab("properties");
   }, []);
 
-  const onNodeDoubleClick = useCallback((_: any, node: Node) => {
+  const onNodeDoubleClick = useCallback((_: React.MouseEvent, node: Node) => {
     // Double-click always opens properties for inline editing
     setSelectedNodeId(node.id);
     setSelectedEdgeId(null);
@@ -1352,7 +1354,7 @@ function WorkspaceView() {
     }, 50);
   }, []);
 
-  const onEdgeClick = useCallback((_: any, edge: Edge) => {
+  const onEdgeClick = useCallback((_: React.MouseEvent, edge: Edge) => {
     setSelectedEdgeId(edge.id);
     setSelectedNodeId(null);
     setActiveTab("properties");
@@ -1363,7 +1365,7 @@ function WorkspaceView() {
   }, [takeSnapshot]);
 
   const onNodeDrag = useCallback(
-    (_: any, node: Node) => {
+    (_: React.MouseEvent, node: Node) => {
       const now = Date.now();
       if (now - lastNodeMoveSent.current < 50) return; // Throttle to ~20fps
       lastNodeMoveSent.current = now;
@@ -1397,7 +1399,7 @@ function WorkspaceView() {
   );
 
   const onNodeDragStop = useCallback(
-    (_: any, node: Node) => {
+    (_: React.MouseEvent, node: Node) => {
       const { parentId, localPosition } = calculateContainment(node, nodes);
 
       if (parentId) {
@@ -2890,9 +2892,12 @@ function MoshZoneOverlay() {
   const { x, y, zoom } = useViewport();
 
   useEffect(() => {
-    const handleDesigning = (e: any) => {
-      if (e.detail?.active) {
-        setZone({ active: true, x: e.detail.x, y: e.detail.y });
+    const handleDesigning = (e: Event) => {
+      const detail = (
+        e as CustomEvent<{ active?: boolean; x?: number; y?: number }>
+      ).detail;
+      if (detail?.active) {
+        setZone({ active: true, x: detail.x ?? 0, y: detail.y ?? 0 });
       } else {
         setZone((prev) => ({ ...prev, active: false }));
       }

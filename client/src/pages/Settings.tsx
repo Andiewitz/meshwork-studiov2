@@ -174,10 +174,11 @@ export default function Settings() {
         title: "Profile updated",
         description: "Your changes have been saved.",
       });
-    } catch (error: any) {
+    } catch (error: unknown) {
       toast({
         title: "Error",
-        description: error.message,
+        description:
+          error instanceof Error ? error.message : "An error occurred",
         variant: "destructive",
       });
     } finally {
@@ -217,10 +218,11 @@ export default function Settings() {
       setCurrentPassword("");
       setNewPassword("");
       setConfirmPassword("");
-    } catch (error: any) {
+    } catch (error: unknown) {
       toast({
         title: "Error",
-        description: error.message,
+        description:
+          error instanceof Error ? error.message : "An error occurred",
         variant: "destructive",
       });
     } finally {
@@ -246,10 +248,11 @@ export default function Settings() {
         description: "Your account has been permanently removed.",
       });
       logout();
-    } catch (error: any) {
+    } catch (error: unknown) {
       toast({
         title: "Error",
-        description: error.message,
+        description:
+          error instanceof Error ? error.message : "An error occurred",
         variant: "destructive",
       });
       setIsDeletingAccount(false);
@@ -274,10 +277,11 @@ export default function Settings() {
         description: "All your workspaces and projects have been removed.",
       });
       setDeleteDataConfirmText("");
-    } catch (error: any) {
+    } catch (error: unknown) {
       toast({
         title: "Error",
-        description: error.message,
+        description:
+          error instanceof Error ? error.message : "An error occurred",
         variant: "destructive",
       });
     } finally {

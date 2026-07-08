@@ -33,7 +33,8 @@ if (connectionString) {
     insert: () => ({ values: () => Promise.resolve([]) }),
     update: () => ({ set: () => ({ where: () => Promise.resolve({}) }) }),
     delete: () => ({ from: () => ({ where: () => Promise.resolve({}) }) }),
-    transaction: (callback: any) => callback(db),
+    transaction: (callback: (tx: NodePgDatabase<typeof schema>) => unknown) =>
+      callback(db),
   } as unknown as NodePgDatabase<typeof schema>;
 }
 

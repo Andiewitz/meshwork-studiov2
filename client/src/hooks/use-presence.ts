@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState, useCallback } from "react";
+import type { NodeChange, EdgeChange } from "@xyflow/react";
 
 // ─── Types ───────────────────────────────────────────────────────────
 
@@ -9,8 +10,21 @@ export interface PresenceUser {
   cursor: { x: number; y: number } | null;
 }
 
+/** Serialised node/edge shape sent over the WebSocket wire */
+type SerializedNode = Record<string, unknown>;
+type SerializedEdge = Record<string, unknown>;
+
 interface ServerMessage {
-  type: "presence" | "cursor" | "joined" | "left" | "error" | "node-move" | "canvas-sync" | "nodes-change" | "edges-change";
+  type:
+    | "presence"
+    | "cursor"
+    | "joined"
+    | "left"
+    | "error"
+    | "node-move"
+    | "canvas-sync"
+    | "nodes-change"
+    | "edges-change";
   users?: PresenceUser[];
   userId?: string;
   name?: string;
@@ -22,19 +36,24 @@ interface ServerMessage {
   nodeX?: number;
   nodeY?: number;
   parentId?: string | null;
-  nodes?: any[];
-  edges?: any[];
-  changes?: any[];
+  nodes?: SerializedNode[];
+  edges?: SerializedEdge[];
+  changes?: NodeChange[] | EdgeChange[];
 }
 
 // ─── Hook ────────────────────────────────────────────────────────────
 
 export function usePresence(
   workspaceId: number | null,
-  onNodeMove?: (nodeId: string, x: number, y: number, parentId?: string | null) => void,
-  onCanvasSync?: (nodes: any[], edges: any[]) => void,
-  onNodesChange?: (changes: any[]) => void,
-  onEdgesChange?: (changes: any[]) => void,
+  onNodeMove?: (
+    nodeId: string,
+    x: number,
+    y: number,
+    parentId?: string | null,
+  ) => void,
+  onCanvasSync?: (nodes: SerializedNode[], edges: SerializedEdge[]) => void,
+  onNodesChange?: (changes: NodeChange[]) => void,
+  onEdgesChange?: (changes: EdgeChange[]) => void,
 ) {
   const wsRef = useRef<WebSocket | null>(null);
   const onNodeMoveRef = useRef(onNodeMove);
@@ -45,7 +64,9 @@ export function usePresence(
   onNodesChangeRef.current = onNodesChange;
   const onEdgesChangeRef = useRef(onEdgesChange);
   onEdgesChangeRef.current = onEdgesChange;
-  const [collaborators, setCollaborators] = useState<Map<string, PresenceUser>>(new Map());
+  const [collaborators, setCollaborators] = useState<Map<string, PresenceUser>>(
+    new Map(),
+  );
   const [isConnected, setIsConnected] = useState(false);
   const reconnectTimer = useRef<ReturnType<typeof setTimeout>>();
 
@@ -55,7 +76,7 @@ export function usePresence(
     // Build WS URL from current location
     const protocol = window.location.protocol === "https:" ? "wss:" : "ws:";
     const host = import.meta.env.VITE_API_URL
-      ? new URL(import.meta.env.VITE_API_URL).host
+      ? new URL(import.meta.env.VITE_API_URL as string).host
       : window.location.host;
     const url = `${protocol}//${host}/ws`;
 
@@ -70,7 +91,7 @@ export function usePresence(
 
     ws.onmessage = (event) => {
       try {
-        const msg: ServerMessage = JSON.parse(event.data);
+        const msg: ServerMessage = JSON.parse(event.data as string);
 
         switch (msg.type) {
           case "presence": {
@@ -134,7 +155,12 @@ export function usePresence(
 
           case "node-move": {
             if (msg.nodeId != null && msg.nodeX != null && msg.nodeY != null) {
-              onNodeMoveRef.current?.(msg.nodeId, msg.nodeX, msg.nodeY, msg.parentId);
+              onNodeMoveRef.current?.(
+                msg.nodeId,
+                msg.nodeX,
+                msg.nodeY,
+                msg.parentId,
+              );
             }
             break;
           }
@@ -148,14 +174,14 @@ export function usePresence(
 
           case "nodes-change": {
             if (msg.changes) {
-              onNodesChangeRef.current?.(msg.changes);
+              onNodesChangeRef.current?.(msg.changes as NodeChange[]);
             }
             break;
           }
 
           case "edges-change": {
             if (msg.changes) {
-              onEdgesChangeRef.current?.(msg.changes);
+              onEdgesChangeRef.current?.(msg.changes as EdgeChange[]);
             }
             break;
           }
@@ -200,25 +226,41 @@ export function usePresence(
     }
   }, []);
 
-  const sendNodeMove = useCallback((nodeId: string, x: number, y: number, parentId?: string | null) => {
-    if (wsRef.current?.readyState === WebSocket.OPEN) {
-      wsRef.current.send(JSON.stringify({ type: "node-move", nodeId, nodeX: x, nodeY: y, parentId: parentId ?? null }));
-    }
-  }, []);
+  const sendNodeMove = useCallback(
+    (nodeId: string, x: number, y: number, parentId?: string | null) => {
+      if (wsRef.current?.readyState === WebSocket.OPEN) {
+        wsRef.current.send(
+          JSON.stringify({
+            type: "node-move",
+            nodeId,
+            nodeX: x,
+            nodeY: y,
+            parentId: parentId ?? null,
+          }),
+        );
+      }
+    },
+    [],
+  );
 
-  const sendCanvasSync = useCallback((nodes: any[], edges: any[]) => {
-    if (wsRef.current?.readyState === WebSocket.OPEN) {
-      wsRef.current.send(JSON.stringify({ type: "canvas-sync", nodes, edges }));
-    }
-  }, []);
+  const sendCanvasSync = useCallback(
+    (nodes: SerializedNode[], edges: SerializedEdge[]) => {
+      if (wsRef.current?.readyState === WebSocket.OPEN) {
+        wsRef.current.send(
+          JSON.stringify({ type: "canvas-sync", nodes, edges }),
+        );
+      }
+    },
+    [],
+  );
 
-  const sendNodesChange = useCallback((changes: any[]) => {
+  const sendNodesChange = useCallback((changes: NodeChange[]) => {
     if (wsRef.current?.readyState === WebSocket.OPEN) {
       wsRef.current.send(JSON.stringify({ type: "nodes-change", changes }));
     }
   }, []);
 
-  const sendEdgesChange = useCallback((changes: any[]) => {
+  const sendEdgesChange = useCallback((changes: EdgeChange[]) => {
     if (wsRef.current?.readyState === WebSocket.OPEN) {
       wsRef.current.send(JSON.stringify({ type: "edges-change", changes }));
     }

@@ -63,10 +63,12 @@ export default function Home() {
             tags: [template.category],
           });
 
-          const normalizedEdges = template.edges.map((edge: any) => ({
-            ...edge,
-            animated: edge.animated ? 1 : 0,
-          }));
+          const normalizedEdges = template.edges.map(
+            (edge: { animated?: boolean; [key: string]: unknown }) => ({
+              ...edge,
+              animated: edge.animated ? 1 : 0,
+            }),
+          );
 
           // 2. Sync nodes and edges
           await secureFetch(`/api/v1/workspaces/${ws.id}/canvas`, {

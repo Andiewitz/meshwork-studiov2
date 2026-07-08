@@ -1,5 +1,17 @@
 import { Router, Request, Response, RequestHandler } from "express";
-import { type Node, type Edge } from "@shared/schema";
+
+/** Minimal canvas node shape used for AI prompt serialization */
+interface CanvasNode {
+  id: string;
+  type?: string;
+  source?: string;
+  data?: Record<string, unknown>;
+}
+/** Minimal canvas edge shape used for AI prompt serialization */
+interface CanvasEdge {
+  source: string;
+  target: string;
+}
 
 interface ChatCompletionResponse {
   choices?: {
@@ -481,7 +493,7 @@ export default function createAIRoutes(context: AppContext) {
       try {
         const userId = req.user!.id;
         const { canvas } = req.body as {
-          canvas?: { nodes?: Node[]; edges?: Edge[] };
+          canvas?: { nodes?: CanvasNode[]; edges?: CanvasEdge[] };
         }; // { nodes, edges }
 
         // Resolve provider — use free tier by default for suggestions
@@ -521,14 +533,14 @@ export default function createAIRoutes(context: AppContext) {
           });
         }
 
-        const canvasNodes: Node[] = canvas?.nodes ?? [];
-        const canvasEdges: Edge[] = canvas?.edges ?? [];
+        const canvasNodes: CanvasNode[] = canvas?.nodes ?? [];
+        const canvasEdges: CanvasEdge[] = canvas?.edges ?? [];
 
         const prompt = `You are Mosh, the expert cloud architecture co-pilot for Meshwork Studio. 
 Based on the current canvas state, generate 4 short, highly relevant, and actionable next-step suggestions or starter layout ideas for the user.
 
 Current canvas contains:
-- Nodes: ${JSON.stringify(canvasNodes.map((n) => ({ id: n.id, type: n.type, label: (n.data as Record<string, unknown>)?.label ?? n.type })))}
+- Nodes: ${JSON.stringify(canvasNodes.map((n) => ({ id: n.id, type: n.type, label: n.data?.label ?? n.type })))}
 - Edges: ${JSON.stringify(canvasEdges.map((e) => ({ source: e.source, target: e.target })))}
 
 Each suggestion MUST be extremely short (under 6 words).

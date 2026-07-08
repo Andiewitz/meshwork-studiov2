@@ -137,10 +137,10 @@ export default function Team() {
         title: "Team created",
         description: "Your collaborative space is ready.",
       });
-    } catch (err: any) {
+    } catch (err: unknown) {
       toast({
         title: "Error",
-        description: err.message,
+        description: err instanceof Error ? err.message : "An error occurred",
         variant: "destructive",
       });
     }
@@ -152,10 +152,10 @@ export default function Team() {
       await joinTeam.mutateAsync(joinCode.trim());
       setJoinCode("");
       toast({ title: "Joined!", description: "You're now part of the team." });
-    } catch (err: any) {
+    } catch (err: unknown) {
       toast({
         title: "Failed to join",
-        description: err.message,
+        description: err instanceof Error ? err.message : "An error occurred",
         variant: "destructive",
       });
     }
@@ -175,10 +175,10 @@ export default function Team() {
         title: "Shared",
         description: "All team members can now access this workspace.",
       });
-    } catch (err: any) {
+    } catch (err: unknown) {
       toast({
         title: "Error",
-        description: err.message,
+        description: err instanceof Error ? err.message : "An error occurred",
         variant: "destructive",
       });
     }
@@ -194,7 +194,7 @@ export default function Team() {
 
   const unsharedWorkspaces =
     workspaces?.filter(
-      (ws: any) => !teamWorkspaces?.some((tw) => tw.id === ws.id),
+      (ws) => !teamWorkspaces?.some((tw) => tw.id === ws.id),
     ) || [];
 
   return (
@@ -630,7 +630,7 @@ export default function Team() {
                         <Plus className="w-3.5 h-3.5" /> Share a Workspace
                       </h3>
                       <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
-                        {unsharedWorkspaces.map((ws: any) => (
+                        {unsharedWorkspaces.map((ws) => (
                           <motion.button
                             key={ws.id}
                             whileHover={{

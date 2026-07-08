@@ -110,9 +110,9 @@ interface ClientMessage {
   nodeX?: number;
   nodeY?: number;
   parentId?: string | null;
-  nodes?: any[];
-  edges?: any[];
-  changes?: any[];
+  nodes?: Record<string, unknown>[];
+  edges?: Record<string, unknown>[];
+  changes?: Record<string, unknown>[];
 }
 
 interface ServerMessage {
@@ -126,7 +126,7 @@ interface ServerMessage {
     | "canvas-sync"
     | "nodes-change"
     | "edges-change";
-  [key: string]: any;
+  [key: string]: unknown;
 }
 
 // ─── Room Management ─────────────────────────────────────────────────

@@ -253,8 +253,14 @@ export default function DevDocs() {
   }, [headings, activePostId]);
 
   // Custom Markdown Components
-  const markdownComponents: any = {
-    h2: ({ node, children, ...props }: any) => {
+  type MdNode = Record<string, unknown>;
+  type MdProps<T extends keyof JSX.IntrinsicElements> =
+    React.ComponentPropsWithoutRef<T> & {
+      node?: MdNode;
+      children?: React.ReactNode;
+    };
+  const markdownComponents: Record<string, React.FC<MdProps<never>>> = {
+    h2: ({ children, node: _node, ...props }: MdProps<"h2">) => {
       const text = String(children).replace(/\n/g, "");
       const id = text
         .toLowerCase()
@@ -270,7 +276,7 @@ export default function DevDocs() {
         </h2>
       );
     },
-    h3: ({ node, children, ...props }: any) => {
+    h3: ({ children, node: _node, ...props }: MdProps<"h3">) => {
       const text = String(children).replace(/\n/g, "");
       const id = text
         .toLowerCase()
@@ -286,7 +292,7 @@ export default function DevDocs() {
         </h3>
       );
     },
-    p: ({ node, children, ...props }: any) => (
+    p: ({ children, node: _node, ...props }: MdProps<"p">) => (
       <p
         className="leading-relaxed mb-6 text-white/70 font-sans font-light"
         {...props}
@@ -294,7 +300,7 @@ export default function DevDocs() {
         {children}
       </p>
     ),
-    a: ({ node, children, ...props }: any) => (
+    a: ({ children, node: _node, ...props }: MdProps<"a">) => (
       <a
         className="text-blue-400 hover:text-blue-300 underline underline-offset-2 transition-colors"
         {...props}
@@ -302,7 +308,7 @@ export default function DevDocs() {
         {children}
       </a>
     ),
-    ul: ({ node, children, ...props }: any) => (
+    ul: ({ children, node: _node, ...props }: MdProps<"ul">) => (
       <ul
         className="list-disc list-outside ml-6 mb-6 space-y-2 text-white/70 font-sans font-light"
         {...props}
@@ -310,7 +316,7 @@ export default function DevDocs() {
         {children}
       </ul>
     ),
-    ol: ({ node, children, ...props }: any) => (
+    ol: ({ children, node: _node, ...props }: MdProps<"ol">) => (
       <ol
         className="list-decimal list-outside ml-6 mb-6 space-y-2 text-white/70 font-sans font-light"
         {...props}
@@ -318,10 +324,18 @@ export default function DevDocs() {
         {children}
       </ol>
     ),
-    li: ({ node, children, ...props }: any) => <li {...props}>{children}</li>,
-    blockquote: ({ node, children, ...props }: any) => {
+    li: ({ children, node: _node, ...props }: MdProps<"li">) => (
+      <li {...props}>{children}</li>
+    ),
+    blockquote: ({
+      children,
+      node: _node,
+      ...props
+    }: MdProps<"blockquote">) => {
       // Look for github style alerts like > [!NOTE]
-      const textContent = String(children?.[1]?.props?.children?.[0] || "");
+      const textContent = String(
+        (children as React.ReactElement[])?.[1]?.props?.children?.[0] || "",
+      );
       if (textContent.includes("[!NOTE]")) {
         return (
           <div className="border border-blue-500/30 bg-blue-500/10 p-4 rounded-lg my-8 flex gap-3 text-white/80">
@@ -351,9 +365,15 @@ export default function DevDocs() {
         </blockquote>
       );
     },
-    code: ({ node, inline, className, children, ...props }: any) => {
-      const match = /language-(\w+)/.exec(className || "");
-      return !inline ? (
+    code: ({
+      children,
+      node: _node,
+      className,
+      ...props
+    }: MdProps<"code"> & { inline?: boolean }) => {
+      const match = /language-(\w+)/.exec(className ?? "");
+      const isBlock = !!(className && match);
+      return isBlock ? (
         <div className="rounded-xl overflow-hidden border border-white/10 my-8 shadow-lg shadow-black/50">
           <div className="bg-[#1a1a1a] px-4 py-2.5 text-xs text-white/40 font-mono border-b border-white/5 flex justify-between items-center">
             <span>{match ? match[1] : "text"}</span>
@@ -373,14 +393,14 @@ export default function DevDocs() {
         </code>
       );
     },
-    table: ({ node, children, ...props }: any) => (
+    table: ({ children, node: _node, ...props }: MdProps<"table">) => (
       <div className="overflow-x-auto my-8 border border-white/10 rounded-xl">
         <table className="w-full text-left text-sm text-white/70" {...props}>
           {children}
         </table>
       </div>
     ),
-    th: ({ node, children, ...props }: any) => (
+    th: ({ children, node: _node, ...props }: MdProps<"th">) => (
       <th
         className="bg-[#1a1a1a] px-5 py-4 font-medium text-white/90 border-b border-white/10 whitespace-nowrap"
         {...props}
@@ -388,7 +408,7 @@ export default function DevDocs() {
         {children}
       </th>
     ),
-    td: ({ node, children, ...props }: any) => (
+    td: ({ children, node: _node, ...props }: MdProps<"td">) => (
       <td
         className="px-5 py-4 border-b border-white/5 last:border-0 bg-[#0A0A0A]"
         {...props}

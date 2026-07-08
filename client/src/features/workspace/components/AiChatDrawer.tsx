@@ -1,14 +1,6 @@
 import React, { useState, useRef, useEffect, useCallback } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import {
-  Send,
-  Sparkles,
-  Bot,
-  Loader2,
-  ChevronDown,
-  Wand2,
-  Zap,
-} from "lucide-react";
+import { Send, Sparkles, Bot, Loader2, ChevronDown } from "lucide-react";
 import { useReactFlow, useNodes, useEdges } from "@xyflow/react";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
@@ -214,7 +206,7 @@ export function AiChatDrawer({
         });
 
         if (response.ok) {
-          const data = await response.json();
+          const data = (await response.json()) as string[];
           if (Array.isArray(data)) {
             setSuggestions(data);
           }
@@ -352,7 +344,7 @@ export function AiChatDrawer({
           if (attempt >= maxAttempts) throw err;
 
           console.warn(
-            `[Mosh] Network error: ${err}. Retrying attempt ${attempt}/${maxAttempts}...`,
+            `[Mosh] Network error: ${String(err)}. Retrying attempt ${attempt}/${maxAttempts}...`,
           );
           await new Promise((res) =>
             setTimeout(res, baseDelay * Math.pow(1.5, attempt - 1)),
@@ -361,24 +353,29 @@ export function AiChatDrawer({
       }
 
       if (!response?.ok) {
-        const err = await response?.json().catch(() => ({}));
+        const errBody = (await response?.json().catch(() => ({}))) as {
+          error?: string;
+          message?: string;
+        };
         throw new Error(
-          err?.error ||
-            err?.message ||
-            `Error ${response?.status || "Unknown after retries"}`,
+          errBody?.error ??
+            errBody?.message ??
+            `Error ${response?.status ?? "Unknown after retries"}`,
         );
       }
 
-      const data = await response.json();
+      const aiResponse = (await response.json()) as {
+        choices?: { message?: { content?: string } }[];
+      };
 
-      if (!data.choices?.[0]) {
+      if (!aiResponse.choices?.[0]) {
         throw new Error(
-          `Invalid response format from AI provider: ${JSON.stringify(data)}`,
+          `Invalid response format from AI provider: ${JSON.stringify(aiResponse)}`,
         );
       }
 
       const rawContent =
-        data.choices[0]?.message?.content || "No response generated.";
+        aiResponse.choices[0]?.message?.content ?? "No response generated.";
       const { display, jsonBlock } = parseAIResponse(rawContent);
 
       let appliedToCanvas = false;
@@ -407,19 +404,20 @@ export function AiChatDrawer({
           appliedToCanvas,
         },
       ]);
-    } catch (error: any) {
+    } catch (error: unknown) {
+      const errMsg = error instanceof Error ? error.message : "";
       let errorMessage = "An unexpected error occurred.";
-      if (error.message.includes("key") || error.message.includes("API")) {
+      if (errMsg.includes("key") || errMsg.includes("API")) {
         errorMessage =
           "No API key configured. Please ensure your provider API key is set correctly.";
       } else if (
-        error.message.includes("429") ||
-        error.message.toLowerCase().includes("rate limit")
+        errMsg.includes("429") ||
+        errMsg.toLowerCase().includes("rate limit")
       ) {
         errorMessage =
           "Rate limit exceeded. Please try again in a few moments.";
-      } else if (error.message) {
-        errorMessage = error.message;
+      } else if (errMsg) {
+        errorMessage = errMsg;
       }
 
       setMessages((prev) => [
@@ -442,7 +440,7 @@ export function AiChatDrawer({
   const handleKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
     if (e.key === "Enter" && !e.shiftKey) {
       e.preventDefault();
-      handleSubmit();
+      void handleSubmit();
     }
   };
 

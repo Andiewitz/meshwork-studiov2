@@ -31,8 +31,8 @@ export async function registerRoutes(
     (req: Request, res: Response) => {
       try {
         const token =
-          typeof (req as any).csrfToken === "function"
-            ? (req as any).csrfToken()
+          typeof req.csrfToken === "function"
+            ? req.csrfToken()
             : "mock-csrf-token";
         res.json({ csrfToken: token, message: "CSRF token generated" });
       } catch (error) {

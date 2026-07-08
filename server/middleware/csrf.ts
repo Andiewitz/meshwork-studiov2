@@ -83,16 +83,18 @@ export const validateCsrfToken = (
     return next();
   }
 
-  csrfProtection(req, res, (err: any) => {
+  csrfProtection(req, res, (err: unknown) => {
     if (err) {
+      const csrfErr = err as { message?: string };
       // CSRF token validation failed
       log.warn(
-        { method: req.method, path: req.path, error: err.message },
+        { method: req.method, path: req.path, error: csrfErr.message },
         "Token validation failed",
       );
       return res.status(403).json({
         message: "CSRF validation failed",
-        error: process.env.NODE_ENV === "production" ? undefined : err.message,
+        error:
+          process.env.NODE_ENV === "production" ? undefined : csrfErr.message,
       });
     }
     next();

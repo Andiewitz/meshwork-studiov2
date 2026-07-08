@@ -63,13 +63,19 @@ export function getRedis(): RedisType | null {
 
     // Attempt connection (non-blocking)
     redis.connect().catch((err) => {
-      log.warn({ err: err.message }, "Initial connection failed (degrading gracefully)");
+      log.warn(
+        { err: err.message },
+        "Initial connection failed (degrading gracefully)",
+      );
       redisAvailable = false;
     });
 
     return redis;
-  } catch (err: any) {
-    log.warn({ err: err.message }, "Failed to create client");
+  } catch (err: unknown) {
+    log.warn(
+      { err: err instanceof Error ? err.message : String(err) },
+      "Failed to create client",
+    );
     return null;
   }
 }
@@ -83,7 +89,7 @@ export function createRedisClient(): RedisType | null {
   try {
     const url = getRedisUrl();
     if (!url) return null;
-    
+
     const client = new Redis(url, {
       maxRetriesPerRequest: 3,
       retryStrategy(times) {
@@ -92,8 +98,11 @@ export function createRedisClient(): RedisType | null {
       },
     });
     return client;
-  } catch (err: any) {
-    log.warn({ err: err.message }, "Failed to create pub/sub client");
+  } catch (err: unknown) {
+    log.warn(
+      { err: err instanceof Error ? err.message : String(err) },
+      "Failed to create pub/sub client",
+    );
     return null;
   }
 }

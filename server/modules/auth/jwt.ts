@@ -65,9 +65,10 @@ export function verifyToken(
       return null;
     }
     return decoded;
-  } catch (err: any) {
-    if (err.name !== "TokenExpiredError") {
-      log.warn({ err: err.message }, "Token verification failed");
+  } catch (err: unknown) {
+    const jwtErr = err as { name?: string; message?: string };
+    if (jwtErr.name !== "TokenExpiredError") {
+      log.warn({ err: jwtErr.message }, "Token verification failed");
     }
     return null;
   }

@@ -101,7 +101,7 @@ export const isAuthenticated: RequestHandler = (req, res, next) => {
       hasNotifiedTeam: false,
       readNotificationIds: [],
       createdAt: new Date(),
-    } as any;
+    } as Express.User;
     return next();
   }
 
@@ -122,6 +122,6 @@ export const isAuthenticated: RequestHandler = (req, res, next) => {
   }
 
   // Map the JWT payload to req.user so downstream handlers work seamlessly
-  req.user = { id: payload.userId } as any;
+  req.user = { id: payload.userId } as Express.User;
   next();
 };
