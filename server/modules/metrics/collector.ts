@@ -70,8 +70,17 @@ export async function snapshotMetrics() {
     const aiRate = totalAi - previousAiRequests;
     previousAiRequests = totalAi;
 
+    interface MetricCounts {
+      total_users?: string | number | null;
+      new_users_today?: string | number | null;
+      active_users_24h?: string | number | null;
+      logins_today?: string | number | null;
+      total_workspaces?: string | number | null;
+      total_teams?: string | number | null;
+    }
+
     // Query user/workspace/team counts from DB
-    const counts = await pool.query(`
+    const counts = await pool.query<MetricCounts>(`
       SELECT
         (SELECT COUNT(*) FROM users) as total_users,
         (SELECT COUNT(*) FROM users WHERE created_at >= CURRENT_DATE) as new_users_today,
@@ -80,7 +89,7 @@ export async function snapshotMetrics() {
         (SELECT COUNT(*) FROM workspaces) as total_workspaces,
         (SELECT COUNT(*) FROM teams) as total_teams
     `);
-    const c = counts.rows[0];
+    const c = counts.rows[0] ?? {};
 
     await pool.query(
       `INSERT INTO metrics_snapshots
@@ -96,12 +105,12 @@ export async function snapshotMetrics() {
         wsConnections,
         wsRooms,
         aiRate,
-        c.total_users || 0,
-        c.new_users_today || 0,
-        c.active_users_24h || 0,
-        c.logins_today || 0,
-        c.total_workspaces || 0,
-        c.total_teams || 0,
+        Number(c.total_users ?? 0),
+        Number(c.new_users_today ?? 0),
+        Number(c.active_users_24h ?? 0),
+        Number(c.logins_today ?? 0),
+        Number(c.total_workspaces ?? 0),
+        Number(c.total_teams ?? 0),
       ],
     );
 
@@ -114,7 +123,7 @@ export async function snapshotMetrics() {
       },
       "Metrics snapshot saved",
     );
-  } catch (err) {
+  } catch (err: unknown) {
     log.error({ err }, "Failed to snapshot metrics");
   }
 }
@@ -125,8 +134,10 @@ export function startCollector(intervalMs = 30000) {
 
   // Take first snapshot after a short delay
   setTimeout(() => {
-    snapshotMetrics();
-    setInterval(snapshotMetrics, intervalMs);
+    void snapshotMetrics();
+    setInterval(() => {
+      void snapshotMetrics();
+    }, intervalMs);
   }, intervalMs);
 
   log.info({ intervalMs }, "Metrics collector started");
