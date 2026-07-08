@@ -1,4 +1,13 @@
-import { Router, Request, Response } from "express";
+import { Router, Request, Response, RequestHandler } from "express";
+import { type Node, type Edge } from "@shared/schema";
+
+interface ChatCompletionResponse {
+  choices?: {
+    message?: {
+      content?: string | null;
+    };
+  }[];
+}
 import { createChildLogger } from "../../lib/logger";
 import {
   createApiKey,
@@ -39,14 +48,15 @@ function handleResolutionError(error: ProviderResolutionError, res: Response) {
 
 export default function createAIRoutes(context: AppContext) {
   const router = Router();
-  const isAuthenticated = context.registry.get<any>("isAuthenticated");
+  const isAuthenticated =
+    context.registry.get<RequestHandler>("isAuthenticated");
 
   // CSRF is active in production by default; set ENABLE_CSRF=true in .env to test locally
   const csrfEnabled =
     process.env.ENABLE_CSRF === "true" || process.env.NODE_ENV === "production";
   const conditionalCsrf = csrfEnabled
     ? csrfProtection
-    : (_req: any, _res: any, next: any) => next();
+    : (_req: Request, _res: Response, next: () => void) => next();
 
   /**
    * GET /api/ai/keys
@@ -166,7 +176,7 @@ export default function createAIRoutes(context: AppContext) {
               .status(400)
               .json({ message: `Unsupported provider: ${provider}` });
           }
-        } catch (validationErr: any) {
+        } catch (validationErr: unknown) {
           log.error(
             { err: validationErr, provider },
             "Key validation call failed",
@@ -240,7 +250,17 @@ export default function createAIRoutes(context: AppContext) {
       try {
         const userId = req.user!.id;
         const { provider, model, messages, temperature, maxTokens, stream } =
-          req.body;
+          req.body as {
+            provider?: string;
+            model?: string;
+            messages: {
+              role: "user" | "assistant" | "system";
+              content: string;
+            }[];
+            temperature?: number;
+            maxTokens?: number;
+            stream?: boolean;
+          };
 
         // messages is always required; provider and model are optional
         // (omitting them triggers the free-tier fallback).
@@ -268,7 +288,7 @@ export default function createAIRoutes(context: AppContext) {
         // Apply tighter rate limit for free-tier requests (app's money)
         if (resolved.source === "fallback") {
           const freeTierAllowed = await new Promise<boolean>((resolve) => {
-            aiFreeTierLimiter(req, res, (err?: any) => {
+            aiFreeTierLimiter(req, res, (err?: unknown) => {
               if (err) {
                 resolve(false);
               } else {
@@ -419,20 +439,25 @@ export default function createAIRoutes(context: AppContext) {
             .status(400)
             .json({ message: `Unsupported provider: ${resolvedProvider}` });
         }
-      } catch (error: any) {
+      } catch (error: unknown) {
         log.error(
           {
             err: error,
             userId: req.user?.id,
-            provider: req.body?.provider,
-            model: req.body?.model,
           },
           "Chat completion failed",
         );
 
         // Pass through upstream provider errors with useful context
-        const statusCode = error.status || error.statusCode || 502;
-        const message = error.message || "AI provider returned an error";
+        const providerError = error as {
+          status?: number;
+          statusCode?: number;
+          message?: string;
+        };
+        const statusCode =
+          providerError.status ?? providerError.statusCode ?? 502;
+        const message =
+          providerError.message ?? "AI provider returned an error";
         res
           .status(statusCode >= 400 && statusCode < 600 ? statusCode : 502)
           .json({
@@ -455,7 +480,9 @@ export default function createAIRoutes(context: AppContext) {
     async (req: Request, res: Response) => {
       try {
         const userId = req.user!.id;
-        const { canvas } = req.body; // { nodes, edges }
+        const { canvas } = req.body as {
+          canvas?: { nodes?: Node[]; edges?: Edge[] };
+        }; // { nodes, edges }
 
         // Resolve provider — use free tier by default for suggestions
         let resolved;
@@ -494,15 +521,15 @@ export default function createAIRoutes(context: AppContext) {
           });
         }
 
-        const canvasNodes = canvas?.nodes || [];
-        const canvasEdges = canvas?.edges || [];
+        const canvasNodes: Node[] = canvas?.nodes ?? [];
+        const canvasEdges: Edge[] = canvas?.edges ?? [];
 
         const prompt = `You are Mosh, the expert cloud architecture co-pilot for Meshwork Studio. 
 Based on the current canvas state, generate 4 short, highly relevant, and actionable next-step suggestions or starter layout ideas for the user.
 
 Current canvas contains:
-- Nodes: ${JSON.stringify(canvasNodes.map((n: any) => ({ id: n.id, type: n.type, label: n.data?.label || n.type })))}
-- Edges: ${JSON.stringify(canvasEdges.map((e: any) => ({ source: e.source, target: e.target })))}
+- Nodes: ${JSON.stringify(canvasNodes.map((n) => ({ id: n.id, type: n.type, label: (n.data as Record<string, unknown>)?.label ?? n.type })))}
+- Edges: ${JSON.stringify(canvasEdges.map((e) => ({ source: e.source, target: e.target })))}
 
 Each suggestion MUST be extremely short (under 6 words).
 Provide suggestions that represent logical additions, connections, security settings, or best practices for the current nodes.
@@ -518,25 +545,25 @@ Do NOT wrap the output in markdown code blocks like \`\`\`json. Return only the 
         if (provider === "openrouter") {
           const { createOpenRouterChatCompletion } =
             await import("./providers/openrouter");
-          const response: any = await createOpenRouterChatCompletion(apiKey, {
+          const response = (await createOpenRouterChatCompletion(apiKey, {
             model: suggestionsModel,
             messages: [{ role: "user", content: prompt }],
             temperature: 0.5,
             maxTokens: 200,
             stream: false,
-          });
-          responseText = response.choices?.[0]?.message?.content || "";
+          })) as ChatCompletionResponse;
+          responseText = response.choices?.[0]?.message?.content ?? "";
         } else if (provider === "openai") {
           const { createOpenAIChatCompletion } =
             await import("./providers/openai");
-          const response: any = await createOpenAIChatCompletion(apiKey, {
+          const response = (await createOpenAIChatCompletion(apiKey, {
             model: suggestionsModel,
             messages: [{ role: "user", content: prompt }],
             temperature: 0.5,
             maxTokens: 200,
             stream: false,
-          });
-          responseText = response.choices?.[0]?.message?.content || "";
+          })) as ChatCompletionResponse;
+          responseText = response.choices?.[0]?.message?.content ?? "";
         } else if (provider === "anthropic") {
           const { createAnthropicChatCompletion } =
             await import("./providers/anthropic");
@@ -577,7 +604,7 @@ Do NOT wrap the output in markdown code blocks like \`\`\`json. Return only the 
             .status(502)
             .json({ message: "AI provider returned an unparseable response" });
         }
-      } catch (error: any) {
+      } catch (error: unknown) {
         log.error({ err: error, userId: req.user?.id }, "Suggestions failed");
         res.status(500).json({ message: "Suggestions generation failed" });
       }

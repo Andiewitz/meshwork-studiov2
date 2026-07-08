@@ -1,6 +1,6 @@
-import { Strategy as LocalStrategy, VerifyFunction } from "passport-local";
+import { Strategy as LocalStrategy } from "passport-local";
 import { db } from "../db";
-import { users } from "@shared/schema";
+import { users, type User } from "@shared/schema";
 import { eq } from "drizzle-orm";
 import { createChildLogger } from "../../../lib/logger";
 import { verifyPassword } from "../password";
@@ -62,27 +62,29 @@ export function createLocalStrategy() {
           return done(null, false, {
             message:
               "Account temporarily locked due to too many failed login attempts. Please try again later.",
-            lockedUntil: lockoutStatus.lockedUntil,
-          } as any);
+          });
         }
 
         // SECURITY: Minimal logging - never log email or auth attempts
 
         // Find user by email (with database fallback)
-        let user: any = null;
+        let user: User | InMemoryUser | null = null;
         try {
           const [dbUser] = await db
             .select()
             .from(users)
             .where(eq(users.email, email));
-          user = dbUser;
-        } catch (error: any) {
+          user = dbUser ?? null;
+        } catch (error: unknown) {
           log.error(
-            { err: error?.message, email },
+            {
+              err: error instanceof Error ? error.message : String(error),
+              email,
+            },
             "Local strategy: DB query failed, falling back to in-memory",
           );
           // Fallback to in-memory users
-          user = inMemoryUsers.get(email);
+          user = inMemoryUsers.get(email) ?? null;
         }
 
         if (!user) {
@@ -128,10 +130,7 @@ export function createLocalStrategy() {
             },
             "Local strategy: incorrect password",
           );
-          return done(null, false, {
-            message,
-            lockedUntil: failureInfo.lockedUntil,
-          } as any);
+          return done(null, false, { message });
         }
 
         // Successful login - reset failed attempts
@@ -149,12 +148,16 @@ export function createLocalStrategy() {
           profileImageUrl: user.profileImageUrl,
           authProvider: user.authProvider,
         } as Express.User);
-      } catch (err: any) {
+      } catch (err: unknown) {
         log.error(
-          { err: err?.message, stack: err?.stack, email },
+          {
+            err: err instanceof Error ? err.message : String(err),
+            stack: err instanceof Error ? err.stack : undefined,
+            email,
+          },
           "Local strategy: unhandled exception",
         );
-        return done(err);
+        return done(err instanceof Error ? err : new Error(String(err)));
       }
     },
   );

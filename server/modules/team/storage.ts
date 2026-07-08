@@ -81,6 +81,7 @@ export interface ITeamStorage {
     workspaceId: number,
     userId: string,
   ): Promise<TeamRole | "workspace-owner" | null>;
+  canAccessWorkspace(userId: string, workspaceId: number): Promise<boolean>;
   deleteAllUserData(userId: string, tx?: DrizzleTx): Promise<void>;
 }
 

@@ -4,6 +4,7 @@
  */
 
 import { createChildLogger } from "../../lib/logger";
+import type { Request, Response, NextFunction } from "express";
 
 const log = createChildLogger("captcha");
 
@@ -128,7 +129,11 @@ export async function verifyCaptcha(
       };
     }
 
-    const data = await response.json();
+    const data = (await response.json()) as {
+      success: boolean;
+      score?: number;
+      "error-codes"?: string[];
+    };
 
     if (data.success) {
       // For reCAPTCHA v3, check score
@@ -156,7 +161,7 @@ export async function verifyCaptcha(
 
       return { success: true, score: data.score };
     } else {
-      const errorCodes = data["error-codes"] || [];
+      const errorCodes = data["error-codes"] ?? [];
       log.warn(
         { provider: config.provider, errorCodes },
         "Verification failed",
@@ -198,10 +203,16 @@ function mapErrorCodes(errorCodes: string[], provider: string): string {
  * Middleware to verify CAPTCHA token from request body
  * Production-grade with proper error handling
  */
-export function captchaMiddleware(req: any, res: any, next: any) {
+export function captchaMiddleware(
+  req: Request,
+  res: Response,
+  next: NextFunction,
+) {
   const token = req.body.captchaToken;
   const remoteIp =
-    req.ip || req.connection?.remoteAddress || req.headers["x-forwarded-for"];
+    req.ip ??
+    req.socket.remoteAddress ??
+    (req.headers["x-forwarded-for"] as string | undefined);
 
   if (!token) {
     return res.status(400).json({
@@ -214,7 +225,8 @@ export function captchaMiddleware(req: any, res: any, next: any) {
     .then((result) => {
       if (result.success) {
         // Attach score to request for potential additional checks
-        req.captchaScore = result.score;
+        (req as Request & { captchaScore?: number }).captchaScore =
+          result.score;
         next();
       } else {
         res.status(400).json({
@@ -235,7 +247,11 @@ export function captchaMiddleware(req: any, res: any, next: any) {
  * Skip CAPTCHA middleware for development/testing
  * Use environment variable to control
  */
-export function optionalCaptchaMiddleware(req: any, res: any, next: any) {
+export function optionalCaptchaMiddleware(
+  req: Request,
+  res: Response,
+  next: NextFunction,
+) {
   // Only enforce CAPTCHA if keys are configured.
   // This allows the user to enable/disable CAPTCHA by simply adding/removing the env var.
   const config = getCaptchaConfig();
