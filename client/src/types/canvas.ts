@@ -1,3 +1,5 @@
+import { Node, Edge } from "@xyflow/react";
+
 /**
  * Canonical data shapes for canvas nodes and edges.
  * These types represent the structured data stored inside @xyflow/react Node.data and Edge.data fields.
@@ -27,6 +29,11 @@ export interface NodeData extends Record<string, unknown> {
   /** K8s nodes: deployment status */
   status?: string;
   ai?: NodeAiData;
+  /** Nested/sub-canvas content for drill-down nodes */
+  subCanvas?: {
+    nodes?: Node[];
+    edges?: Edge[];
+  };
 }
 
 /** Data stored inside a canvas edge (Edge.data) */

@@ -1,8 +1,9 @@
 import React, { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Handle, Position, NodeProps, NodeResizer } from "@xyflow/react";
+import { Handle, Position, NodeProps, NodeResizer, Node } from "@xyflow/react";
 import { EXPANDABLE_TYPES } from "@/features/workspace/utils/nodeTypes";
 import { fireEnterNode } from "@/features/workspace/utils/canvasEvents";
+import type { NodeData } from "@/types/canvas";
 import * as Lucide from "lucide-react";
 import {
   User as UserIcon,
@@ -441,14 +442,14 @@ export function SystemNode({
   type,
   width,
   style,
-}: NodeProps & { style?: NodeStyle }) {
+}: NodeProps<Node<NodeData>> & { style?: NodeStyle }) {
   const [isHovered, setIsHovered] = useState(false);
-  const provider = ((data.provider as string | undefined) ?? "").toLowerCase();
+  const provider = (data.provider ?? "").toLowerCase();
   const isInfrastructure = type === "vpc" || type === "region";
   const isNote = type === "note";
   const isKubernetes = type.startsWith("k8s-");
   const isK8sNamespace = type === "k8s-namespace";
-  const k8sStatus = (data.status as string | undefined) ?? "";
+  const k8sStatus = data.status ?? "";
 
   const zoneLabelSize = width ? Math.max(9, Math.floor(width / 40)) : 9;
   const zoneIconSize = width ? Math.max(12, Math.floor(width / 30)) : 12;
@@ -479,7 +480,7 @@ export function SystemNode({
   };
   const statusBrand =
     isKubernetes && k8sStatus ? statusOverrides[k8sStatus] : null;
-  const userAccent = data.accentColor as string | undefined;
+  const userAccent = data.accentColor;
   const finalColor = userAccent ?? statusBrand?.color ?? brand.color;
   const finalBorder =
     userAccent ?? statusBrand?.borderColor ?? brand.borderColor;
@@ -626,7 +627,7 @@ export function SystemNode({
                   `${Math.max(14, Math.floor((width || 160) / 10))}px`,
               }}
             >
-              {(data.label as string) || "Annotation"}
+              {data.label! || "Annotation"}
             </p>
           </div>
         ) : /* ── STICKY NOTE ── */
@@ -659,7 +660,7 @@ export function SystemNode({
                   `${Math.max(14, Math.floor((width || 192) / 12))}px`,
               }}
             >
-              {(data.label as string) || ""}
+              {data.label! || ""}
             </p>
           </div>
         ) : /* ── INFRASTRUCTURE CONTAINERS (VPC / Region) ── */
@@ -718,7 +719,7 @@ export function SystemNode({
                   color: customFontColor || finalColor,
                 }}
               >
-                / {data.label as string}
+                / {data.label!}
               </span>
             </div>
 
@@ -741,12 +742,12 @@ export function SystemNode({
                 >
                   <path d="M1 1L7 4L1 7V1Z" fill="currentColor" />
                 </svg>
-                {(data.subCanvas as any)?.nodes?.length > 0 && (
+                {data.subCanvas?.nodes && data.subCanvas.nodes.length > 0 && (
                   <span
                     className="text-[7px] font-bold opacity-30 group-hover/enter:opacity-60 transition-opacity"
                     style={{ color: finalColor }}
                   >
-                    {(data.subCanvas as any).nodes.length}
+                    {data.subCanvas.nodes.length}
                   </span>
                 )}
               </button>
@@ -782,7 +783,7 @@ export function SystemNode({
                   style={{ width: zoneIconSize, height: zoneIconSize }}
                   className="text-white"
                 />
-                ns: {data.label as string}
+                ns: {data.label!}
               </div>
             </div>
           </div>
@@ -827,7 +828,11 @@ export function SystemNode({
                 ) {
                   const IconComponent = Lucide[
                     customIconName as keyof typeof Lucide
-                  ] as React.ComponentType<any>;
+                  ] as React.ComponentType<{
+                    size?: number;
+                    className?: string;
+                    style?: React.CSSProperties;
+                  }>;
                   return (
                     <IconComponent
                       size={20}
@@ -864,7 +869,7 @@ export function SystemNode({
                   fontSize: finalFontSize || "13px",
                 }}
               >
-                {data.label as string}
+                {data.label!}
               </span>
               <div className="flex gap-1 mt-1.5 flex-wrap">
                 {Boolean(data.replicas) && (
@@ -936,7 +941,11 @@ export function SystemNode({
                 ) {
                   const IconComponent = Lucide[
                     customIconName as keyof typeof Lucide
-                  ] as React.ComponentType<any>;
+                  ] as React.ComponentType<{
+                    size?: number;
+                    className?: string;
+                    style?: React.CSSProperties;
+                  }>;
                   return (
                     <IconComponent
                       size={20}
@@ -981,7 +990,7 @@ export function SystemNode({
                   fontSize: finalFontSize || "13px",
                 }}
               >
-                {data.label as string}
+                {data.label!}
               </span>
             </div>
 
@@ -1024,10 +1033,10 @@ export function SystemNode({
               className="absolute bottom-full mb-2 left-1/2 -translate-x-1/2 w-48 bg-[#121214] border border-white/10 rounded-lg p-2.5 z-[1000] shadow-2xl backdrop-blur-xl pointer-events-none"
             >
               <div className="text-[11px] font-semibold text-white/90 mb-1">
-                {(data.label as string) || type}
+                {data.label! || type}
               </div>
               <div className="text-[10px] text-white/50 leading-relaxed whitespace-pre-wrap">
-                {data.description as string}
+                {data.description}
               </div>
             </motion.div>
           )}
