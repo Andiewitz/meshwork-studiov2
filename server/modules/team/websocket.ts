@@ -5,7 +5,7 @@ import type { IncomingMessage } from "http";
 import cookie from "cookie";
 import { teamStorage } from "./storage";
 import { db } from "../workspace/db";
-import { sessions, users } from "@shared/schema";
+import { sessions as _sessions, users } from "@shared/schema";
 import { eq } from "drizzle-orm";
 import { verifyToken } from "../auth/jwt";
 import { getRedis, createRedisClient } from "../../lib/redis";
@@ -52,12 +52,12 @@ function ensureRedisSub() {
 }
 
 function getRedisSub() {
-  if (!redisSub) redisSub = createRedisClient();
+  redisSub ??= createRedisClient();
   return redisSub;
 }
 
 function getRedisPub() {
-  if (!redisPub) redisPub = getRedis();
+  redisPub ??= getRedis();
   return redisPub;
 }
 
@@ -78,7 +78,7 @@ function publishToRoom(
       excludeUserId,
       data: message,
     });
-    pub.publish(`ws:room:${workspaceId}`, payload).catch((err: Error) => {
+    pub.publish(`ws:room:${workspaceId}`, payload).catch((err: unknown) => {
       log.error({ err, workspaceId }, "Redis publish failed");
     });
   }
@@ -142,10 +142,7 @@ function broadcastToRoom(
   if (!room) return;
 
   const payload = JSON.stringify(message);
-  const users = Array.from(room.entries());
-  for (let i = 0; i < users.length; i++) {
-    const uid = users[i][0];
-    const user = users[i][1];
+  for (const [uid, user] of room.entries()) {
     if (uid === excludeUserId) continue;
     if (user.ws.readyState === WebSocket.OPEN) {
       user.ws.send(payload);
@@ -161,14 +158,8 @@ function getPresenceList(workspaceId: number): Omit<PresenceUser, "ws">[] {
 }
 
 function removeFromAllRooms(ws: WebSocket) {
-  const allRooms = Array.from(rooms.entries());
-  for (let i = 0; i < allRooms.length; i++) {
-    const workspaceId = allRooms[i][0];
-    const room = allRooms[i][1];
-    const users = Array.from(room.entries());
-    for (let j = 0; j < users.length; j++) {
-      const userId = users[j][0];
-      const user = users[j][1];
+  for (const [workspaceId, room] of rooms.entries()) {
+    for (const [userId, user] of room.entries()) {
       if (user.ws === ws) {
         room.delete(userId);
         publishToRoom(workspaceId, { type: "left", userId });
@@ -177,13 +168,11 @@ function removeFromAllRooms(ws: WebSocket) {
         if (room.size === 0) {
           rooms.delete(workspaceId);
           websocketRoomsActive.set(rooms.size);
-          if (redisSub) {
-            redisSub
-              .unsubscribe(`ws:room:${workspaceId}`)
-              .catch((err: Error) =>
-                log.error({ err }, "Redis unsubscribe failed"),
-              );
-          }
+          redisSub
+            ?.unsubscribe(`ws:room:${workspaceId}`)
+            .catch((err: unknown) =>
+              log.error({ err }, "Redis unsubscribe failed"),
+            );
         }
         return { workspaceId, userId };
       }
@@ -198,7 +187,7 @@ async function resolveSession(
   req: IncomingMessage,
 ): Promise<{ id: string; email: string; firstName: string | null } | null> {
   try {
-    const cookieHeader = req.headers.cookie || "";
+    const cookieHeader = req.headers.cookie ?? "";
     const cookies = cookie.parse(cookieHeader);
     const accessToken = cookies.access_token;
 
@@ -220,7 +209,7 @@ async function resolveSession(
     if (!user) return null;
 
     return user;
-  } catch (err) {
+  } catch (err: unknown) {
     log.error({ err }, "Session resolution error");
     return null;
   }
@@ -329,7 +318,8 @@ export function initializeWebSocket(httpServer: HttpServer) {
               }
             }
 
-            const room = rooms.get(msg.workspaceId)!;
+            const room = rooms.get(msg.workspaceId);
+            if (!room) return;
             room.set(user.id, {
               userId: user.id,
               name: user.firstName || user.email.split("@")[0],
@@ -344,7 +334,7 @@ export function initializeWebSocket(httpServer: HttpServer) {
               {
                 type: "joined",
                 userId: user.id,
-                name: user.firstName || user.email.split("@")[0],
+                name: user.firstName ?? user.email.split("@")[0],
                 color: memberColor,
               },
               user.id,
@@ -369,7 +359,7 @@ export function initializeWebSocket(httpServer: HttpServer) {
 
             const me = room.get(currentUserId);
             if (me) {
-              me.cursor = { x: msg.x || 0, y: msg.y || 0 };
+              me.cursor = { x: msg.x ?? 0, y: msg.y ?? 0 };
             }
 
             // Broadcast cursor to others
@@ -378,8 +368,8 @@ export function initializeWebSocket(httpServer: HttpServer) {
               {
                 type: "cursor",
                 userId: currentUserId,
-                x: msg.x || 0,
-                y: msg.y || 0,
+                x: msg.x ?? 0,
+                y: msg.y ?? 0,
               },
               currentUserId,
             );
@@ -451,7 +441,7 @@ export function initializeWebSocket(httpServer: HttpServer) {
             );
             break;
         }
-      } catch (err) {
+      } catch (err: unknown) {
         log.error({ err }, "Message handling error");
       }
     });
@@ -462,7 +452,7 @@ export function initializeWebSocket(httpServer: HttpServer) {
       removeFromAllRooms(ws);
     });
 
-    ws.on("error", () => {
+    ws.on("error", (_err: unknown) => {
       websocketConnectionsActive.dec();
       clearInterval(heartbeat);
       removeFromAllRooms(ws);
