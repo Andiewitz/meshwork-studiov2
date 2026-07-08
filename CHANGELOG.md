@@ -1,3 +1,9 @@
+## [1.4.11](https://github.com/Andiewitz/meshwork-studiov2/compare/v1.4.10...v1.4.11) (2026-07-08)
+
+### Bug Fixes
+
+- **type-safety:** resolve warnings in ai db.ts and tests ([c95a430](https://github.com/Andiewitz/meshwork-studiov2/commit/c95a430c5894897b609751882460e3583cfeddaf))
+
 ## [1.4.10](https://github.com/Andiewitz/meshwork-studiov2/compare/v1.4.9...v1.4.10) (2026-07-06)
 
 ### Bug Fixes
