@@ -1,9 +1,9 @@
-import type { Express, Request, Response } from "express";
+import type { Express, Request, Response, NextFunction } from "express";
 import { createChildLogger } from "../../lib/logger";
 import passport from "passport";
 import { db } from "./db";
 import { users } from "@shared/schema";
-import { eq, and, inArray } from "drizzle-orm";
+import { eq } from "drizzle-orm";
 import {
   hashPassword,
   verifyPassword,
@@ -25,6 +25,34 @@ import type { AppContext } from "../../lib/registry";
 
 const log = createChildLogger("auth");
 
+/** Typed shape of what passport's local strategy returns */
+interface AuthenticatedUser {
+  id: string;
+  email: string;
+  firstName?: string | null;
+  lastName?: string | null;
+  profileImageUrl?: string | null;
+  authProvider: string;
+  hasNotifiedTeam?: boolean | null;
+  readNotificationIds?: unknown;
+  createdAt?: Date | null;
+}
+
+/** What passport's `info` object looks like on failure */
+interface PassportAuthInfo {
+  message?: string;
+  lockedUntil?: Date;
+}
+
+/** User preferences update shape */
+interface UserPreferencesUpdate {
+  hasNotifiedTeam?: boolean;
+  readNotificationIds?: unknown;
+}
+
+/** Extended request with typed user */
+type AuthenticatedRequest = Request & { user: AuthenticatedUser };
+
 // Register auth-specific routes
 export function registerAuthRoutes(app: Express, context: AppContext): void {
   // Google OAuth routes
@@ -37,46 +65,55 @@ export function registerAuthRoutes(app: Express, context: AppContext): void {
 
   app.get(
     "/api/v1/auth/google/callback",
-    (req: Request, res: Response, next) => {
-      passport.authenticate("google", (err: any, user: any, info: any) => {
-        if (err) {
-          log.warn({ err }, "Google OAuth callback error");
-          return res.redirect("/?auth=login&error=google");
-        }
-        if (!user) {
-          log.warn({ info }, "Google OAuth rejected — no user returned");
-          return res.redirect("/?auth=login&error=google");
-        }
-
-        req.login(user, (err) => {
+    (req: Request, res: Response, next: NextFunction) => {
+      passport.authenticate(
+        "google",
+        (
+          err: Error | null,
+          user: AuthenticatedUser | false,
+          info: PassportAuthInfo,
+        ) => {
           if (err) {
-            log.error(
-              { err, userId: user.id },
-              "Google OAuth session login failed",
-            );
+            log.warn({ err }, "Google OAuth callback error");
+            return res.redirect("/?auth=login&error=google");
+          }
+          if (!user) {
+            log.warn({ info }, "Google OAuth rejected — no user returned");
             return res.redirect("/?auth=login&error=google");
           }
 
-          const { accessToken, refreshToken } = generateTokens(user);
+          req.login(user as Express.User, (loginErr: Error | null) => {
+            if (loginErr) {
+              log.error(
+                { err: loginErr, userId: user.id },
+                "Google OAuth session login failed",
+              );
+              return res.redirect("/?auth=login&error=google");
+            }
 
-          const isProd = process.env.NODE_ENV === "production";
-          res.cookie("access_token", accessToken, {
-            httpOnly: true,
-            secure: isProd,
-            sameSite: "lax",
-            maxAge: 15 * 60 * 1000, // 15 minutes
+            const { accessToken, refreshToken } = generateTokens({
+              id: user.id,
+            });
+
+            const isProd = process.env.NODE_ENV === "production";
+            res.cookie("access_token", accessToken, {
+              httpOnly: true,
+              secure: isProd,
+              sameSite: "lax",
+              maxAge: 15 * 60 * 1000, // 15 minutes
+            });
+
+            res.cookie("refresh_token", refreshToken, {
+              httpOnly: true,
+              secure: isProd,
+              sameSite: "lax",
+              maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
+            });
+
+            return res.redirect("/");
           });
-
-          res.cookie("refresh_token", refreshToken, {
-            httpOnly: true,
-            secure: isProd,
-            sameSite: "lax",
-            maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
-          });
-
-          return res.redirect("/");
-        });
-      })(req, res, next);
+        },
+      )(req, res, next);
     },
   );
 
@@ -86,7 +123,7 @@ export function registerAuthRoutes(app: Express, context: AppContext): void {
     process.env.ENABLE_CSRF === "true" || process.env.NODE_ENV === "production";
   const conditionalCsrf = csrfEnabled
     ? csrfProtection
-    : (_req: any, _res: any, next: any) => next();
+    : (_req: Request, _res: Response, next: NextFunction) => next();
 
   app.post(
     "/api/v1/auth/register",
@@ -102,7 +139,12 @@ export function registerAuthRoutes(app: Express, context: AppContext): void {
       }
       log.info({ email: req.body?.email }, "Register attempt received");
       try {
-        const { email, password, firstName, lastName } = req.body;
+        const { email, password, firstName, lastName } = req.body as {
+          email: string;
+          password: string;
+          firstName?: string;
+          lastName?: string;
+        };
 
         // SECURITY: Validate password strength
         const validation = validatePasswordStrength(password);
@@ -135,17 +177,17 @@ export function registerAuthRoutes(app: Express, context: AppContext): void {
           .values({
             email,
             passwordHash,
-            firstName: firstName || null,
-            lastName: lastName || null,
+            firstName: firstName ?? null,
+            lastName: lastName ?? null,
             authProvider: "email",
           })
           .returning();
 
         // Log the new user in immediately (same as login route)
-        req.login(newUser, (err) => {
-          if (err) {
+        req.login(newUser, (loginErr: Error | null) => {
+          if (loginErr) {
             log.error(
-              { err, userId: newUser.id, email },
+              { err: loginErr, userId: newUser.id, email },
               "Register: req.login (session serialization) failed",
             );
             // Account was created successfully even if auto-login fails — fall back to old behavior
@@ -179,7 +221,7 @@ export function registerAuthRoutes(app: Express, context: AppContext): void {
             );
             // Return user object like login does (for client query cache)
             return res.status(201).json({ user: newUser });
-          } catch (tokenErr: any) {
+          } catch (tokenErr: unknown) {
             log.error(
               { err: tokenErr, userId: newUser.id, email },
               "Register: token generation or cookie setup failed",
@@ -191,7 +233,7 @@ export function registerAuthRoutes(app: Express, context: AppContext): void {
             });
           }
         });
-      } catch (err: any) {
+      } catch (err: unknown) {
         log.error({ err, email: req.body?.email }, "Registration error");
         res
           .status(500)
@@ -208,93 +250,100 @@ export function registerAuthRoutes(app: Express, context: AppContext): void {
     authLimiter,
     conditionalCsrf,
     validate({ body: loginSchema }),
-    (req: Request, res: Response, next) => {
+    (req: Request, res: Response, next: NextFunction) => {
       if (!csrfEnabled) {
         log.debug("CSRF disabled for login (set ENABLE_CSRF=true to enable)");
       }
-      const { email } = req.body || {};
+      const { email } = (req.body ?? {}) as { email?: string };
       log.info({ email }, "Login attempt received");
 
-      passport.authenticate("local", (err: any, user: any, info: any) => {
-        if (err) {
-          log.error(
-            { err, email },
-            "Login: passport authenticate callback error",
-          );
-          return next(err);
-        }
-        if (!user) {
-          log.warn(
-            {
-              email,
-              infoMessage: info?.message,
-              lockedUntil: info?.lockedUntil,
-            },
-            "Login: authentication rejected by strategy",
-          );
-          const response: any = {
-            message:
-              info?.message ||
-              "Authentication failed - please check your credentials",
-          };
-          // Include lockout information if account is locked
-          if (info?.lockedUntil) {
-            response.locked_until = info.lockedUntil;
-          }
-          return res.status(401).json(response);
-        }
-
-        log.info(
-          { userId: user.id, email },
-          "Login: strategy accepted, calling req.login",
-        );
-
-        req.login(user, (err) => {
+      passport.authenticate(
+        "local",
+        (
+          err: Error | null,
+          user: AuthenticatedUser | false,
+          info: PassportAuthInfo,
+        ) => {
           if (err) {
             log.error(
-              { err, userId: user.id, email },
-              "Login: req.login (session serialization) failed",
+              { err, email },
+              "Login: passport authenticate callback error",
             );
             return next(err);
+          }
+          if (!user) {
+            log.warn(
+              {
+                email,
+                infoMessage: info?.message,
+                lockedUntil: info?.lockedUntil,
+              },
+              "Login: authentication rejected by strategy",
+            );
+            const response: { message: string; locked_until?: Date } = {
+              message:
+                info?.message ??
+                "Authentication failed - please check your credentials",
+            };
+            // Include lockout information if account is locked
+            if (info?.lockedUntil) {
+              response.locked_until = info.lockedUntil;
+            }
+            return res.status(401).json(response);
           }
 
           log.info(
             { userId: user.id, email },
-            "Login: req.login successful, generating tokens",
+            "Login: strategy accepted, calling req.login",
           );
 
-          try {
-            const { accessToken, refreshToken } = generateTokens(user);
-
-            const isProd = process.env.NODE_ENV === "production";
-            res.cookie("access_token", accessToken, {
-              httpOnly: true,
-              secure: isProd,
-              sameSite: "lax",
-              maxAge: 15 * 60 * 1000, // 15 minutes
-            });
-
-            res.cookie("refresh_token", refreshToken, {
-              httpOnly: true,
-              secure: isProd,
-              sameSite: "lax",
-              maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
-            });
+          req.login(user as Express.User, (loginErr: Error | null) => {
+            if (loginErr) {
+              log.error(
+                { err: loginErr, userId: user.id, email },
+                "Login: req.login (session serialization) failed",
+              );
+              return next(loginErr);
+            }
 
             log.info(
               { userId: user.id, email },
-              "Login: tokens set, response sent",
+              "Login: req.login successful, generating tokens",
             );
-            return res.json({ user });
-          } catch (tokenErr: any) {
-            log.error(
-              { err: tokenErr, userId: user.id, email },
-              "Login: token generation or cookie setup failed",
-            );
-            return next(tokenErr);
-          }
-        });
-      })(req, res, next);
+
+            try {
+              const { accessToken, refreshToken } = generateTokens(user);
+
+              const isProd = process.env.NODE_ENV === "production";
+              res.cookie("access_token", accessToken, {
+                httpOnly: true,
+                secure: isProd,
+                sameSite: "lax",
+                maxAge: 15 * 60 * 1000, // 15 minutes
+              });
+
+              res.cookie("refresh_token", refreshToken, {
+                httpOnly: true,
+                secure: isProd,
+                sameSite: "lax",
+                maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
+              });
+
+              log.info(
+                { userId: user.id, email },
+                "Login: tokens set, response sent",
+              );
+              return res.json({ user });
+            } catch (tokenErr: unknown) {
+              log.error(
+                { err: tokenErr, userId: user.id, email },
+                "Login: token generation or cookie setup failed",
+              );
+              return next(tokenErr);
+            }
+          });
+        },
+      )(req, res, next);
     },
   );
 
@@ -303,7 +352,7 @@ export function registerAuthRoutes(app: Express, context: AppContext): void {
     "/api/v1/auth/refresh",
     refreshLimiter,
     async (req: Request, res: Response) => {
-      const refreshToken = req.cookies?.refresh_token;
+      const refreshToken = req.cookies?.refresh_token as string | undefined;
 
       if (!refreshToken) {
         return res.status(401).json({ message: "No refresh token provided" });
@@ -348,7 +397,7 @@ export function registerAuthRoutes(app: Express, context: AppContext): void {
           res.clearCookie("refresh_token");
           return res.status(401).json({ message: "User no longer exists" });
         }
-      } catch (dbError) {
+      } catch (dbError: unknown) {
         log.error(
           { err: dbError, userId: payload.userId },
           "Database error during refresh user check",
@@ -375,7 +424,7 @@ export function registerAuthRoutes(app: Express, context: AppContext): void {
   // Logout
   app.post("/api/v1/auth/logout", async (req: Request, res: Response) => {
     // Revoke the current refresh token if it exists
-    const refreshToken = req.cookies?.refresh_token;
+    const refreshToken = req.cookies?.refresh_token as string | undefined;
     if (refreshToken) {
       const payload = verifyToken(refreshToken, "refresh");
       if (payload?.jti) {
@@ -387,9 +436,15 @@ export function registerAuthRoutes(app: Express, context: AppContext): void {
     res.clearCookie("access_token");
     res.clearCookie("refresh_token");
 
-    req.logout((err) => {
-      if (err) {
-        log.error({ err, userId: (req as any).user?.id }, "Logout error");
+    req.logout((logoutErr: Error | null) => {
+      if (logoutErr) {
+        log.error(
+          {
+            err: logoutErr,
+            userId: (req.user as AuthenticatedUser | undefined)?.id,
+          },
+          "Logout error",
+        );
         return res.status(500).json({ message: "Logout failed" });
       }
       res.json({ message: "Logged out successfully" });
@@ -400,17 +455,18 @@ export function registerAuthRoutes(app: Express, context: AppContext): void {
   app.get(
     "/api/v1/auth/me",
     isAuthenticated,
-    async (req: any, res: Response) => {
+    async (req: Request, res: Response) => {
+      const authenticatedReq = req as AuthenticatedRequest;
       try {
-        const userId = req.user.id;
+        const userId = authenticatedReq.user.id;
 
         // E2E bypass — return the mock user directly, skip DB
         if (process.env.E2E_BYPASS_AUTH === "true") {
-          return res.json(req.user);
+          return res.json(authenticatedReq.user);
         }
 
         // Try to fetch from database first
-        let user;
+        let user: AuthenticatedUser | undefined;
         try {
           const [dbUser] = await db
             .select({
@@ -427,7 +483,7 @@ export function registerAuthRoutes(app: Express, context: AppContext): void {
             .from(users)
             .where(eq(users.id, userId));
           user = dbUser;
-        } catch (dbError) {
+        } catch (dbError: unknown) {
           log.error(
             { err: dbError, userId },
             "Database error fetching user in /auth/me",
@@ -445,15 +501,16 @@ export function registerAuthRoutes(app: Express, context: AppContext): void {
             "Using session fallback for /auth/me (development mode)",
           );
           user = {
-            id: req.user.id,
-            email: req.user.email,
-            firstName: req.user.firstName,
-            lastName: req.user.lastName,
-            profileImageUrl: req.user.profileImageUrl,
-            authProvider: req.user.authProvider,
-            hasNotifiedTeam: req.user.hasNotifiedTeam || false,
-            readNotificationIds: req.user.readNotificationIds || [],
-            createdAt: req.user.createdAt || new Date(),
+            id: authenticatedReq.user.id,
+            email: authenticatedReq.user.email,
+            firstName: authenticatedReq.user.firstName,
+            lastName: authenticatedReq.user.lastName,
+            profileImageUrl: authenticatedReq.user.profileImageUrl,
+            authProvider: authenticatedReq.user.authProvider,
+            hasNotifiedTeam: authenticatedReq.user.hasNotifiedTeam ?? false,
+            readNotificationIds:
+              authenticatedReq.user.readNotificationIds ?? [],
+            createdAt: authenticatedReq.user.createdAt ?? new Date(),
           };
         }
 
@@ -462,8 +519,11 @@ export function registerAuthRoutes(app: Express, context: AppContext): void {
         }
 
         res.json(user);
-      } catch (error) {
-        log.error({ err: error, userId: req.user?.id }, "Error fetching user");
+      } catch (error: unknown) {
+        log.error(
+          { err: error, userId: authenticatedReq.user?.id },
+          "Error fetching user",
+        );
         res
           .status(500)
           .json({ message: "Failed to fetch user profile - please try again" });
@@ -475,12 +535,17 @@ export function registerAuthRoutes(app: Express, context: AppContext): void {
   app.patch(
     "/api/v1/user/preferences",
     isAuthenticated,
-    async (req: any, res: Response) => {
+    async (req: Request, res: Response) => {
+      const authenticatedReq = req as AuthenticatedRequest;
       try {
-        const userId = req.user.id;
-        const { hasNotifiedTeam, readNotificationIds } = req.body;
+        const userId = authenticatedReq.user.id;
+        const { hasNotifiedTeam, readNotificationIds } =
+          req.body as UserPreferencesUpdate;
 
-        const updateData: any = {};
+        const updateData: Partial<{
+          hasNotifiedTeam: boolean;
+          readNotificationIds: string[];
+        }> = {};
         if (typeof hasNotifiedTeam === "boolean")
           updateData.hasNotifiedTeam = hasNotifiedTeam;
         if (Array.isArray(readNotificationIds))
@@ -501,9 +566,9 @@ export function registerAuthRoutes(app: Express, context: AppContext): void {
           });
 
         res.json(updatedUser);
-      } catch (error) {
+      } catch (error: unknown) {
         log.error(
-          { err: error, userId: req.user?.id },
+          { err: error, userId: authenticatedReq.user?.id },
           "Error updating preferences",
         );
         res.status(500).json({ message: "Failed to update preferences" });
@@ -515,16 +580,20 @@ export function registerAuthRoutes(app: Express, context: AppContext): void {
   app.patch(
     "/api/v1/user/profile",
     isAuthenticated,
-    async (req: any, res: Response) => {
+    async (req: Request, res: Response) => {
+      const authenticatedReq = req as AuthenticatedRequest;
       try {
-        const userId = req.user.id;
-        const { firstName, lastName } = req.body;
+        const userId = authenticatedReq.user.id;
+        const { firstName, lastName } = req.body as {
+          firstName?: string;
+          lastName?: string;
+        };
 
         const [updatedUser] = await db
           .update(users)
           .set({
-            firstName: firstName || null,
-            lastName: lastName || null,
+            firstName: firstName ?? null,
+            lastName: lastName ?? null,
           })
           .where(eq(users.id, userId))
           .returning({
@@ -538,9 +607,9 @@ export function registerAuthRoutes(app: Express, context: AppContext): void {
           });
 
         res.json(updatedUser);
-      } catch (error) {
+      } catch (error: unknown) {
         log.error(
-          { err: error, userId: req.user?.id },
+          { err: error, userId: authenticatedReq.user?.id },
           "Error updating profile",
         );
         res.status(500).json({ message: "Failed to update profile" });
@@ -554,10 +623,14 @@ export function registerAuthRoutes(app: Express, context: AppContext): void {
     csrfProtection,
     isAuthenticated,
     validate({ body: changePasswordSchema }),
-    async (req: any, res: Response) => {
+    async (req: Request, res: Response) => {
+      const authenticatedReq = req as AuthenticatedRequest;
       try {
-        const userId = req.user.id;
-        const { currentPassword, newPassword } = req.body;
+        const userId = authenticatedReq.user.id;
+        const { currentPassword, newPassword } = req.body as {
+          currentPassword: string;
+          newPassword: string;
+        };
 
         // SECURITY: Validate new password strength
         const validation = validatePasswordStrength(newPassword);
@@ -601,9 +674,9 @@ export function registerAuthRoutes(app: Express, context: AppContext): void {
           .where(eq(users.id, userId));
 
         res.json({ message: "Password changed successfully" });
-      } catch (error) {
+      } catch (error: unknown) {
         log.error(
-          { err: error, userId: req.user?.id },
+          { err: error, userId: authenticatedReq.user?.id },
           "Error changing password",
         );
         res.status(500).json({ message: "Failed to change password" });
@@ -616,9 +689,10 @@ export function registerAuthRoutes(app: Express, context: AppContext): void {
     "/api/v1/user/data",
     csrfProtection,
     isAuthenticated,
-    async (req: any, res: Response) => {
+    async (req: Request, res: Response) => {
+      const authenticatedReq = req as AuthenticatedRequest;
       try {
-        const userId = req.user.id;
+        const userId = authenticatedReq.user.id;
 
         await db.transaction(async (tx) => {
           // Emit event for other modules to clean up user data
@@ -626,9 +700,9 @@ export function registerAuthRoutes(app: Express, context: AppContext): void {
         });
 
         res.json({ message: "All data deleted successfully" });
-      } catch (error) {
+      } catch (error: unknown) {
         log.error(
-          { err: error, userId: req.user?.id },
+          { err: error, userId: authenticatedReq.user?.id },
           "Error deleting user data",
         );
         res.status(500).json({ message: "Failed to delete user data" });
@@ -641,9 +715,10 @@ export function registerAuthRoutes(app: Express, context: AppContext): void {
     "/api/v1/user/account",
     csrfProtection,
     isAuthenticated,
-    async (req: any, res: Response) => {
+    async (req: Request, res: Response) => {
+      const authenticatedReq = req as AuthenticatedRequest;
       try {
-        const userId = req.user.id;
+        const userId = authenticatedReq.user.id;
 
         await db.transaction(async (tx) => {
           // Emit event for other modules to clean up user data
@@ -657,9 +732,9 @@ export function registerAuthRoutes(app: Express, context: AppContext): void {
         req.logout(() => {
           res.json({ message: "Account deleted successfully" });
         });
-      } catch (error) {
+      } catch (error: unknown) {
         log.error(
-          { err: error, userId: req.user?.id },
+          { err: error, userId: authenticatedReq.user?.id },
           "Error deleting account",
         );
         res.status(500).json({ message: "Failed to delete account" });

@@ -10,6 +10,7 @@ import {
   type InsertCollection,
 } from "@shared/schema";
 import { eq, desc, and, isNull, or, inArray } from "drizzle-orm";
+import type { DrizzleTx } from "../../lib/events";
 
 export interface IWorkspaceStorage {
   // Collections (subcollections/folders)
@@ -38,7 +39,7 @@ export interface IWorkspaceStorage {
   ): Promise<Workspace>;
   deleteWorkspace(id: number): Promise<void>;
   duplicateWorkspace(id: number, newTitle?: string): Promise<Workspace>;
-  deleteAllUserData(userId: number, tx?: any): Promise<void>;
+  deleteAllUserData(userId: string, tx?: DrizzleTx): Promise<void>;
 }
 
 export class WorkspaceDatabaseStorage implements IWorkspaceStorage {
@@ -187,11 +188,13 @@ export class WorkspaceDatabaseStorage implements IWorkspaceStorage {
     return duplicated;
   }
 
-  async deleteAllUserData(userId: number, providedTx?: any): Promise<void> {
-    const execute = async (tx: any) => {
-      const userIdStr = String(userId);
-      await tx.delete(workspaces).where(eq(workspaces.userId, userIdStr));
-      await tx.delete(collections).where(eq(collections.userId, userIdStr));
+  async deleteAllUserData(
+    userId: string,
+    providedTx?: DrizzleTx,
+  ): Promise<void> {
+    const execute = async (tx: DrizzleTx) => {
+      await tx.delete(workspaces).where(eq(workspaces.userId, userId));
+      await tx.delete(collections).where(eq(collections.userId, userId));
     };
 
     if (providedTx) {
@@ -326,10 +329,9 @@ export class WorkspaceInMemoryStorage implements IWorkspaceStorage {
     });
   }
 
-  async deleteAllUserData(userId: number): Promise<void> {
-    const userIdStr = String(userId);
-    this.workspaces = this.workspaces.filter((w) => w.userId !== userIdStr);
-    this.collections = this.collections.filter((c) => c.userId !== userIdStr);
+  async deleteAllUserData(userId: string): Promise<void> {
+    this.workspaces = this.workspaces.filter((w) => w.userId !== userId);
+    this.collections = this.collections.filter((c) => c.userId !== userId);
   }
 }
 

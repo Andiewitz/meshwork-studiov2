@@ -7,6 +7,9 @@ const log = createChildLogger("ai-db");
 import * as schema from "@shared/schema";
 import { encryptApiKey, decryptApiKey, generateKeyHint } from "./encryption";
 
+import { type NodePgDatabase } from "drizzle-orm/node-postgres";
+import { type DrizzleTx } from "../../lib/events";
+
 const { Pool } = pg;
 
 const connectionString = process.env.DATABASE_URL;
@@ -17,7 +20,7 @@ if (!connectionString) {
   );
 }
 
-let db: any = null;
+let db: NodePgDatabase<typeof schema>;
 if (connectionString) {
   const pool = new Pool({ connectionString });
   db = drizzle(pool, { schema });
@@ -30,7 +33,8 @@ if (connectionString) {
     insert: () => ({ values: () => Promise.resolve([]) }),
     update: () => ({ set: () => ({ where: () => Promise.resolve({}) }) }),
     delete: () => ({ from: () => ({ where: () => Promise.resolve({}) }) }),
-  };
+    transaction: (callback: any) => callback(db),
+  } as unknown as NodePgDatabase<typeof schema>;
 }
 
 export { db };
@@ -68,7 +72,7 @@ export async function createApiKey(input: CreateKeyInput): Promise<UserApiKey> {
   // user+provider BEFORE inserting the new one. This closes the race window
   // where two concurrent "add key" requests could both land as active.
   // The partial unique index in the schema is the belt; this is the suspenders.
-  return await db.transaction(async (tx: any) => {
+  return await db.transaction(async (tx: DrizzleTx) => {
     // Deactivate existing active key(s) for this user+provider
     await tx
       .update(schema.userApiKeys)

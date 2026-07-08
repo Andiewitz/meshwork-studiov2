@@ -9,6 +9,7 @@ import {
   type InsertEdge,
 } from "@shared/schema";
 import { eq, inArray, sql, and } from "drizzle-orm";
+import type { DrizzleTx } from "../../lib/events";
 
 export interface ICanvasStorage {
   // Canvas operations
@@ -23,7 +24,7 @@ export interface ICanvasStorage {
     fromWorkspaceId: number,
     toWorkspaceId: number,
   ): Promise<void>;
-  deleteAllUserData(userId: number, tx?: any): Promise<void>;
+  deleteAllUserData(userId: string, tx?: DrizzleTx): Promise<void>;
 }
 
 export class CanvasDatabaseStorage implements ICanvasStorage {
@@ -46,7 +47,7 @@ export class CanvasDatabaseStorage implements ICanvasStorage {
     newNodes: InsertNode[],
     newEdges: InsertEdge[],
   ): Promise<void> {
-    await db.transaction(async (tx: any) => {
+    await db.transaction(async (tx) => {
       // 1. Fetch existing IDs
       const existingNodesData = await tx
         .select({ id: nodes.id })
@@ -58,10 +59,10 @@ export class CanvasDatabaseStorage implements ICanvasStorage {
         .where(eq(edges.workspaceId, workspaceId));
 
       const existingNodeIds = new Set<string>(
-        existingNodesData.map((n: any) => n.id),
+        existingNodesData.map((n) => n.id),
       );
       const existingEdgeIds = new Set<string>(
-        existingEdgesData.map((e: any) => e.id),
+        existingEdgesData.map((e) => e.id),
       );
 
       const newNodeIds = new Set<string>(newNodes.map((n) => n.id));
@@ -158,7 +159,7 @@ export class CanvasDatabaseStorage implements ICanvasStorage {
     fromWorkspaceId: number,
     toWorkspaceId: number,
   ): Promise<void> {
-    await db.transaction(async (tx: any) => {
+    await db.transaction(async (tx) => {
       const nodesList = await tx
         .select()
         .from(nodes)
@@ -174,9 +175,7 @@ export class CanvasDatabaseStorage implements ICanvasStorage {
           const chunk = nodesList.slice(i, i + CHUNK_SIZE);
           await tx
             .insert(nodes)
-            .values(
-              chunk.map((n: any) => ({ ...n, workspaceId: toWorkspaceId })),
-            );
+            .values(chunk.map((n) => ({ ...n, workspaceId: toWorkspaceId })));
         }
       }
       if (edgesList.length > 0) {
@@ -184,23 +183,23 @@ export class CanvasDatabaseStorage implements ICanvasStorage {
           const chunk = edgesList.slice(i, i + CHUNK_SIZE);
           await tx
             .insert(edges)
-            .values(
-              chunk.map((e: any) => ({ ...e, workspaceId: toWorkspaceId })),
-            );
+            .values(chunk.map((e) => ({ ...e, workspaceId: toWorkspaceId })));
         }
       }
     });
   }
 
-  async deleteAllUserData(userId: number, providedTx?: any): Promise<void> {
-    const execute = async (tx: any) => {
-      const userIdStr = String(userId);
+  async deleteAllUserData(
+    userId: string,
+    providedTx?: DrizzleTx,
+  ): Promise<void> {
+    const execute = async (tx: DrizzleTx) => {
       const userWorkspaces = await tx
         .select({ id: workspaces.id })
         .from(workspaces)
-        .where(eq(workspaces.userId, userIdStr));
+        .where(eq(workspaces.userId, userId));
 
-      const workspaceIds = userWorkspaces.map((w: any) => w.id);
+      const workspaceIds = userWorkspaces.map((w) => w.id);
       if (workspaceIds.length > 0) {
         await tx.delete(edges).where(inArray(edges.workspaceId, workspaceIds));
         await tx.delete(nodes).where(inArray(nodes.workspaceId, workspaceIds));
@@ -220,19 +219,23 @@ export class CanvasMemStorage implements ICanvasStorage {
   private nodesMap = new Map<string, Node>();
   private edgesMap = new Map<string, Edge>();
 
-  async getNodes(workspaceId: number): Promise<Node[]> {
-    return Array.from(this.nodesMap.values()).filter(
-      (n) => n.workspaceId === workspaceId,
+  getNodes(workspaceId: number): Promise<Node[]> {
+    return Promise.resolve(
+      Array.from(this.nodesMap.values()).filter(
+        (n) => n.workspaceId === workspaceId,
+      ),
     );
   }
 
-  async getEdges(workspaceId: number): Promise<Edge[]> {
-    return Array.from(this.edgesMap.values()).filter(
-      (e) => e.workspaceId === workspaceId,
+  getEdges(workspaceId: number): Promise<Edge[]> {
+    return Promise.resolve(
+      Array.from(this.edgesMap.values()).filter(
+        (e) => e.workspaceId === workspaceId,
+      ),
     );
   }
 
-  async syncCanvas(
+  syncCanvas(
     workspaceId: number,
     newNodes: InsertNode[],
     newEdges: InsertEdge[],
@@ -255,9 +258,10 @@ export class CanvasMemStorage implements ICanvasStorage {
         workspaceId,
       } as Edge);
     }
+    return Promise.resolve();
   }
 
-  async duplicateCanvas(
+  duplicateCanvas(
     fromWorkspaceId: number,
     toWorkspaceId: number,
   ): Promise<void> {
@@ -280,14 +284,16 @@ export class CanvasMemStorage implements ICanvasStorage {
         workspaceId: toWorkspaceId,
       });
     }
+    return Promise.resolve();
   }
 
-  async deleteAllUserData(userId: number): Promise<void> {
+  deleteAllUserData(_userId: string): Promise<void> {
     // In-memory doesn't track workspaces by user directly here,
     // but for completeness we would filter manually if we had workspace metadata.
     // For now, this is a no-op in memory storage since workspaces are deleted in WorkspaceModule
     // and we don't have a strict foreign key constraint in memory.
     // In a real memory implementation, we'd iterate and delete.
+    return Promise.resolve();
   }
 }
 

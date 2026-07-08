@@ -13,6 +13,7 @@ import {
   type TeamRole,
 } from "@shared/schema";
 import { eq, and, inArray, sql } from "drizzle-orm";
+import type { DrizzleTx } from "../../lib/events";
 import crypto from "crypto";
 
 // ─── Invite Code Generator ──────────────────────────────────────────
@@ -80,7 +81,7 @@ export interface ITeamStorage {
     workspaceId: number,
     userId: string,
   ): Promise<TeamRole | "workspace-owner" | null>;
-  deleteAllUserData(userId: string, tx?: any): Promise<void>;
+  deleteAllUserData(userId: string, tx?: DrizzleTx): Promise<void>;
 }
 
 export class TeamDatabaseStorage implements ITeamStorage {
@@ -433,8 +434,11 @@ export class TeamDatabaseStorage implements ITeamStorage {
     return highestRole;
   }
 
-  async deleteAllUserData(userId: string, providedTx?: any): Promise<void> {
-    const execute = async (tx: any) => {
+  async deleteAllUserData(
+    userId: string,
+    providedTx?: DrizzleTx,
+  ): Promise<void> {
+    const execute = async (tx: DrizzleTx) => {
       // Delete teams owned by the user
       // Note: teamMembers and teamWorkspaces have CASCADE on teamId, so they will be deleted automatically.
       await tx.delete(teams).where(eq(teams.ownerId, userId));
