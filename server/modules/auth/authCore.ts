@@ -7,7 +7,7 @@ import memorystore from "memorystore";
 import { getRedis } from "../../lib/redis";
 import { createGoogleStrategy } from "./strategies/google";
 import { createLocalStrategy } from "./strategies/local";
-import { verifyToken } from "./jwt";
+import { verifyToken, isRefreshTokenRevoked } from "./jwt";
 
 const log = createChildLogger("auth");
 
@@ -88,7 +88,7 @@ export async function setupAuth(app: Express) {
   passport.use("local", createLocalStrategy());
 }
 
-export const isAuthenticated: RequestHandler = (req, res, next) => {
+export const isAuthenticated: RequestHandler = async (req, res, next) => {
   // E2E Test Auth Bypass — allow mock dashboard/canvas testing without active session cookie
   if (process.env.E2E_BYPASS_AUTH === "true") {
     req.user = {
@@ -119,6 +119,14 @@ export const isAuthenticated: RequestHandler = (req, res, next) => {
   const payload = verifyToken(accessToken, "access");
   if (!payload) {
     return res.status(401).json({ message: "Access token expired or invalid" });
+  }
+
+  // Check if this specific access token has been explicitly revoked
+  if (payload.jti) {
+    const revoked = await isRefreshTokenRevoked(payload.jti);
+    if (revoked) {
+      return res.status(401).json({ message: "Token has been revoked" });
+    }
   }
 
   // Map the JWT payload to req.user so downstream handlers work seamlessly

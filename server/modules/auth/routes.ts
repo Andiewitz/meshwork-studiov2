@@ -13,6 +13,7 @@ import {
   generateTokens,
   verifyToken,
   revokeRefreshToken,
+  revokeAccessToken,
   isRefreshTokenRevoked,
 } from "./jwt";
 import { isAuthenticated } from "./authCore";
@@ -429,6 +430,15 @@ export function registerAuthRoutes(app: Express, context: AppContext): void {
       const payload = verifyToken(refreshToken, "refresh");
       if (payload?.jti) {
         await revokeRefreshToken(payload.jti);
+      }
+    }
+
+    // Revoke the current access token if it exists (closes the 15-minute revocation gap)
+    const accessToken = req.cookies?.access_token as string | undefined;
+    if (accessToken) {
+      const payload = verifyToken(accessToken, "access");
+      if (payload?.jti) {
+        await revokeAccessToken(payload.jti);
       }
     }
 

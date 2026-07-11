@@ -29,26 +29,26 @@ if (!process.env.JWT_SECRET) {
 export interface JwtPayload {
   userId: string;
   type: "access" | "refresh";
-  // Used for revocation via Redis
-  jti?: string;
+  // Used for revocation via Redis — every token now has one
+  jti: string;
 }
 
 export function generateTokens(user: Pick<User, "id">) {
+  const accessJti = crypto.randomUUID();
   const accessToken = jwt.sign(
-    { userId: user.id, type: "access" },
+    { userId: user.id, type: "access", jti: accessJti },
     JWT_SECRET,
     { expiresIn: ACCESS_TOKEN_EXPIRATION },
   );
 
-  // We add a random 'jti' to the refresh token so it can be uniquely revoked later
-  const jti = crypto.randomUUID();
+  const refreshJti = crypto.randomUUID();
   const refreshToken = jwt.sign(
-    { userId: user.id, type: "refresh", jti },
+    { userId: user.id, type: "refresh", jti: refreshJti },
     JWT_SECRET,
     { expiresIn: REFRESH_TOKEN_EXPIRATION },
   );
 
-  return { accessToken, refreshToken, jti };
+  return { accessToken, refreshToken, accessJti, refreshJti };
 }
 
 export function verifyToken(
@@ -100,7 +100,27 @@ export async function revokeRefreshToken(jti: string): Promise<void> {
 }
 
 /**
- * Checks if a specific refresh token (by its JTI) has been revoked.
+ * Revokes a specific access token by its JTI (JWT ID).
+ * The revocation is stored in Redis for 15 minutes (the max lifetime of an access token).
+ */
+export async function revokeAccessToken(jti: string): Promise<void> {
+  const redis = getRedis();
+  if (!redis) {
+    log.warn("Redis is not available, access token revocation not persisted");
+    return;
+  }
+  // 15 minutes in seconds — matches ACCESS_TOKEN_EXPIRATION
+  const TTL_SECONDS = 15 * 60;
+  try {
+    await redis.setex(`revoked_jti:${jti}`, TTL_SECONDS, "1");
+    log.debug({ jti }, "Access token revoked");
+  } catch (err) {
+    log.error({ err, jti }, "Failed to revoke access token in Redis");
+  }
+}
+
+/**
+ * Checks if a specific token (by its JTI) has been revoked.
  */
 export async function isRefreshTokenRevoked(jti: string): Promise<boolean> {
   const redis = getRedis();
