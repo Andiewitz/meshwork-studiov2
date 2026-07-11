@@ -1,3 +1,9 @@
+# [1.6.0](https://github.com/Andiewitz/meshwork-studiov2/compare/v1.5.0...v1.6.0) (2026-07-11)
+
+### Features
+
+- **auth:** add jti to access tokens, check denylist on every request, revoke both tokens on logout ([9359555](https://github.com/Andiewitz/meshwork-studiov2/commit/93595553b27e89ab7893d9d942a177a31ada7535))
+
 # [1.5.0](https://github.com/Andiewitz/meshwork-studiov2/compare/v1.4.12...v1.5.0) (2026-07-11)
 
 ### Features
