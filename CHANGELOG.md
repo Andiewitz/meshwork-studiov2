@@ -1,3 +1,9 @@
+# [1.7.0](https://github.com/Andiewitz/meshwork-studiov2/compare/v1.6.0...v1.7.0) (2026-07-11)
+
+### Features
+
+- **deploy:** add free-tier EC2 + RDS deployment scripts and docs ([288b2c7](https://github.com/Andiewitz/meshwork-studiov2/commit/288b2c790894d5242f2970818b768b01a4a490d2))
+
 # [1.6.0](https://github.com/Andiewitz/meshwork-studiov2/compare/v1.5.0...v1.6.0) (2026-07-11)
 
 ### Features
