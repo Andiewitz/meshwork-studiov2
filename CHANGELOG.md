@@ -1,3 +1,9 @@
+## [1.4.12](https://github.com/Andiewitz/meshwork-studiov2/compare/v1.4.11...v1.4.12) (2026-07-11)
+
+### Bug Fixes
+
+- **type-safety:** type registry, routes, captcha and auth strategy ([f750a03](https://github.com/Andiewitz/meshwork-studiov2/commit/f750a03260dc770ae195d7e40e833270f32d0e63))
+
 ## [1.4.11](https://github.com/Andiewitz/meshwork-studiov2/compare/v1.4.10...v1.4.11) (2026-07-08)
 
 ### Bug Fixes
