@@ -1,3 +1,9 @@
+# [1.5.0](https://github.com/Andiewitz/meshwork-studiov2/compare/v1.4.12...v1.5.0) (2026-07-11)
+
+### Features
+
+- move AWS Terraform to project root and add migration plan ([956445a](https://github.com/Andiewitz/meshwork-studiov2/commit/956445a9b2eccc95138291e528615f8af9988d2c))
+
 ## [1.4.12](https://github.com/Andiewitz/meshwork-studiov2/compare/v1.4.11...v1.4.12) (2026-07-11)
 
 ### Bug Fixes
