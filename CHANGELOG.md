@@ -1,3 +1,9 @@
+# [1.9.0](https://github.com/Andiewitz/meshwork-studiov2/compare/v1.8.0...v1.9.0) (2026-07-12)
+
+### Features
+
+- **aws:** update database, redis, and secrets layout in env templates ([88bc64b](https://github.com/Andiewitz/meshwork-studiov2/commit/88bc64bd092be644c9bd7962a2ebe523df139887))
+
 # [1.8.0](https://github.com/Andiewitz/meshwork-studiov2/compare/v1.7.0...v1.8.0) (2026-07-12)
 
 ### Features
