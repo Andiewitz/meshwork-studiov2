@@ -1,3 +1,9 @@
+# [1.8.0](https://github.com/Andiewitz/meshwork-studiov2/compare/v1.7.0...v1.8.0) (2026-07-12)
+
+### Features
+
+- **aws:** update environment configuration and rewrite deploy workflow for AWS EC2 ([27b4bb4](https://github.com/Andiewitz/meshwork-studiov2/commit/27b4bb46f2260f8dd9879b64d92b99b49f923d86))
+
 # [1.7.0](https://github.com/Andiewitz/meshwork-studiov2/compare/v1.6.0...v1.7.0) (2026-07-11)
 
 ### Features
