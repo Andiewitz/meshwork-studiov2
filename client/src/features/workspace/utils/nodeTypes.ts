@@ -45,6 +45,7 @@ import {
   Search,
   User as UserIcon,
   Layers,
+  Network,
 } from "lucide-react";
 
 // ── Node types registry for ReactFlow ──
@@ -272,6 +273,12 @@ export const nodeTypesList = [
     type: "template:fintech-saas",
     label: "FinTech SaaS",
     icon: CreditCard,
+    category: "Templates",
+  },
+  {
+    type: "template:meshwork-target-architecture",
+    label: "Meshwork Target Stack",
+    icon: Network,
     category: "Templates",
   },
 ];

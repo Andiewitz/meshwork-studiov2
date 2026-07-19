@@ -2,2397 +2,2720 @@ export interface TemplateDefinition {
   id: string;
   title: string;
   description: string;
-  category: "Featured" | "Cloud Architectures" | "Full-Stack" | "Data Pipelines";
+  category:
+    "Featured" | "Cloud Architectures" | "Full-Stack" | "Data Pipelines";
   nodes: any[];
   edges: any[];
 }
 
 export const PRELOADED_TEMPLATES: TemplateDefinition[] = [
   {
-    "id": "modern-saas-stack",
-    "title": "Modern SaaS",
-    "description": "Full-stack template with Next.js frontend, FastAPI backend, Postgres, and Redis caching.",
-    "category": "Featured",
-    "nodes": [
+    id: "meshwork-target-architecture",
+    title: "Meshwork Target Stack",
+    description:
+      "Target decoupled microservices architecture with gRPC service communication and isolated databases.",
+    category: "Featured",
+    nodes: [
       {
-        "id": "n1",
-        "type": "annotation",
-        "position": {
-          "x": -200,
-          "y": -100
+        id: "n_title",
+        type: "annotation",
+        position: {
+          x: 100,
+          y: -150,
         },
-        "width": 400,
-        "height": 100,
-        "data": {
-          "label": "## Modern SaaS Architecture\nComplete setup with Next.js frontend, FastAPI backend, caching, and a database cluster."
-        }
+        width: 700,
+        height: 120,
+        data: {
+          label:
+            "## Meshwork Target Microservices Architecture\nProduction goal featuring isolated databases, API Gateway routing, Redis caching/queue, and gRPC communication.",
+        },
       },
       {
-        "id": "n2",
-        "type": "user",
-        "position": {
-          "x": -200,
-          "y": 200
+        id: "n_internet",
+        type: "user",
+        position: {
+          x: 450,
+          y: 30,
         },
-        "data": {
-          "label": "Web Client"
-        }
+        data: {
+          label: "Internet Clients",
+        },
       },
       {
-        "id": "n3",
-        "type": "user",
-        "position": {
-          "x": -200,
-          "y": 400
+        id: "n_cloudflare",
+        type: "cdn",
+        position: {
+          x: 450,
+          y: 150,
         },
-        "data": {
-          "label": "Mobile App"
-        }
+        data: {
+          label: "Cloudflare (DNS/WAF/CDN)",
+        },
       },
       {
-        "id": "n4",
-        "type": "cdn",
-        "position": {
-          "x": 50,
-          "y": 200
+        id: "n_nginx",
+        type: "loadBalancer",
+        position: {
+          x: 450,
+          y: 270,
         },
-        "data": {
-          "label": "Cloudflare CDN"
-        }
+        data: {
+          label: "Nginx Proxy",
+        },
       },
       {
-        "id": "n_app_group",
-        "type": "app",
-        "position": {
-          "x": 300,
-          "y": 100
+        id: "n_gateway",
+        type: "gateway",
+        position: {
+          x: 450,
+          y: 390,
         },
-        "width": 250,
-        "height": 400,
-        "data": {
-          "label": "Frontend (Vercel)"
-        }
+        data: {
+          label: "API Gateway (JWT & Validation)",
+        },
       },
       {
-        "id": "n5",
-        "parentId": "n_app_group",
-        "type": "app",
-        "position": {
-          "x": 20,
-          "y": 50
+        id: "n_service_auth",
+        type: "microservice",
+        position: {
+          x: 50,
+          y: 530,
         },
-        "data": {
-          "label": "Next.js SSR"
-        }
+        data: {
+          label: "Auth Service",
+        },
       },
       {
-        "id": "n6",
-        "parentId": "n_app_group",
-        "type": "api",
-        "position": {
-          "x": 20,
-          "y": 200
+        id: "n_service_workspace",
+        type: "microservice",
+        position: {
+          x: 250,
+          y: 530,
         },
-        "data": {
-          "label": "Next.js API Routes"
-        }
+        data: {
+          label: "Workspace Service",
+        },
       },
       {
-        "id": "n_backend_group",
-        "type": "server",
-        "position": {
-          "x": 650,
-          "y": 100
+        id: "n_service_mosh",
+        type: "microservice",
+        position: {
+          x: 450,
+          y: 530,
         },
-        "width": 300,
-        "height": 400,
-        "data": {
-          "label": "Backend Services (AWS)"
-        }
+        data: {
+          label: "Mosh Service",
+        },
       },
       {
-        "id": "n7",
-        "parentId": "n_backend_group",
-        "type": "gateway",
-        "position": {
-          "x": 20,
-          "y": 150
+        id: "n_service_mcp",
+        type: "microservice",
+        position: {
+          x: 650,
+          y: 530,
         },
-        "data": {
-          "label": "API Gateway"
-        }
+        data: {
+          label: "MCP Service",
+        },
       },
       {
-        "id": "n8",
-        "parentId": "n_backend_group",
-        "type": "microservice",
-        "position": {
-          "x": 150,
-          "y": 50
+        id: "n_service_worker",
+        type: "worker",
+        position: {
+          x: 850,
+          y: 530,
         },
-        "data": {
-          "label": "FastAPI Core"
-        }
+        data: {
+          label: "Background Worker",
+        },
       },
       {
-        "id": "n9",
-        "parentId": "n_backend_group",
-        "type": "worker",
-        "position": {
-          "x": 150,
-          "y": 250
+        id: "n_db_postgres",
+        type: "database",
+        position: {
+          x: 50,
+          y: 690,
         },
-        "data": {
-          "label": "Celery Worker"
-        }
+        data: {
+          label: "PostgreSQL\n(auth_db)",
+        },
       },
       {
-        "id": "n_data_group",
-        "type": "region",
-        "position": {
-          "x": 1050,
-          "y": 100
+        id: "n_db_dynamo_nodes",
+        type: "database",
+        position: {
+          x: 250,
+          y: 690,
         },
-        "width": 300,
-        "height": 400,
-        "data": {
-          "label": "Data Layer"
-        }
+        data: {
+          label: "DynamoDB\n(nodes)",
+        },
       },
       {
-        "id": "n10",
-        "parentId": "n_data_group",
-        "type": "database",
-        "position": {
-          "x": 20,
-          "y": 50
+        id: "n_db_dynamo_chat",
+        type: "database",
+        position: {
+          x: 450,
+          y: 690,
         },
-        "data": {
-          "label": "PostgreSQL Primary"
-        }
+        data: {
+          label: "DynamoDB\n(chat_history)",
+        },
       },
       {
-        "id": "n11",
-        "parentId": "n_data_group",
-        "type": "database",
-        "position": {
-          "x": 20,
-          "y": 250
+        id: "n_cache_redis",
+        type: "cache",
+        position: {
+          x: 850,
+          y: 690,
         },
-        "data": {
-          "label": "PostgreSQL Replica"
-        }
+        data: {
+          label: "Redis\n(cache/queue)",
+        },
       },
       {
-        "id": "n12",
-        "parentId": "n_data_group",
-        "type": "cache",
-        "position": {
-          "x": 150,
-          "y": 150
+        id: "n_note_rule",
+        type: "note",
+        position: {
+          x: 630,
+          y: 680,
         },
-        "data": {
-          "label": "Redis Cluster"
-        }
+        width: 200,
+        height: 130,
+        data: {
+          label:
+            "### Service Rules\n- Comm. via gRPC\n- NEVER access other DBs\n- DBs are strictly owned by respective service",
+        },
       },
-      {
-        "id": "n13",
-        "type": "note",
-        "position": {
-          "x": 650,
-          "y": -50
-        },
-        "width": 300,
-        "height": 100,
-        "data": {
-          "label": "All backend services are deployed in an auto-scaling group across 3 availability zones."
-        }
-      }
     ],
-    "edges": [
+    edges: [
       {
-        "id": "e1",
-        "source": "n2",
-        "target": "n4",
-        "animated": true
+        id: "e1",
+        source: "n_internet",
+        target: "n_cloudflare",
+        animated: true,
       },
       {
-        "id": "e2",
-        "source": "n3",
-        "target": "n4",
-        "animated": true
+        id: "e2",
+        source: "n_cloudflare",
+        target: "n_nginx",
+        animated: true,
       },
       {
-        "id": "e3",
-        "source": "n4",
-        "target": "n5",
-        "animated": true
+        id: "e3",
+        source: "n_nginx",
+        target: "n_gateway",
+        animated: true,
       },
       {
-        "id": "e4",
-        "source": "n5",
-        "target": "n6"
+        id: "e_gtw_auth",
+        source: "n_gateway",
+        target: "n_service_auth",
+        animated: true,
       },
       {
-        "id": "e5",
-        "source": "n6",
-        "target": "n7",
-        "animated": true
+        id: "e_gtw_ws",
+        source: "n_gateway",
+        target: "n_service_workspace",
+        animated: true,
       },
       {
-        "id": "e6",
-        "source": "n7",
-        "target": "n8"
+        id: "e_gtw_mosh",
+        source: "n_gateway",
+        target: "n_service_mosh",
+        animated: true,
       },
       {
-        "id": "e7",
-        "source": "n8",
-        "target": "n10"
+        id: "e_gtw_mcp",
+        source: "n_gateway",
+        target: "n_service_mcp",
+        animated: true,
       },
       {
-        "id": "e8",
-        "source": "n8",
-        "target": "n12"
+        id: "e_gtw_wrk",
+        source: "n_gateway",
+        target: "n_service_worker",
+        animated: true,
       },
       {
-        "id": "e9",
-        "source": "n8",
-        "target": "n9",
-        "animated": true
+        id: "e_auth_db",
+        source: "n_service_auth",
+        target: "n_db_postgres",
       },
       {
-        "id": "e10",
-        "source": "n9",
-        "target": "n10"
+        id: "e_ws_db",
+        source: "n_service_workspace",
+        target: "n_db_dynamo_nodes",
       },
       {
-        "id": "e11",
-        "source": "n10",
-        "target": "n11",
-        "animated": true,
-        "style": {
-          "strokeDasharray": "5,5"
-        }
-      }
-    ]
+        id: "e_mosh_db",
+        source: "n_service_mosh",
+        target: "n_db_dynamo_chat",
+      },
+      {
+        id: "e_wrk_db",
+        source: "n_service_worker",
+        target: "n_cache_redis",
+      },
+      {
+        id: "e_grpc_ws_auth",
+        source: "n_service_workspace",
+        target: "n_service_auth",
+        label: "gRPC",
+        style: {
+          strokeDasharray: "5,5",
+        },
+      },
+      {
+        id: "e_grpc_mosh_auth",
+        source: "n_service_mosh",
+        target: "n_service_auth",
+        label: "gRPC",
+        style: {
+          strokeDasharray: "5,5",
+        },
+      },
+      {
+        id: "e_grpc_mcp_auth",
+        source: "n_service_mcp",
+        target: "n_service_auth",
+        label: "gRPC",
+        style: {
+          strokeDasharray: "5,5",
+        },
+      },
+      {
+        id: "e_grpc_mcp_ws",
+        source: "n_service_mcp",
+        target: "n_service_workspace",
+        label: "gRPC",
+        style: {
+          strokeDasharray: "5,5",
+        },
+      },
+      {
+        id: "e_grpc_wrk_ws",
+        source: "n_service_worker",
+        target: "n_service_workspace",
+        label: "gRPC",
+        style: {
+          strokeDasharray: "5,5",
+        },
+      },
+    ],
   },
   {
-    "id": "microservices-k8s",
-    "title": "K8s Microservice",
-    "description": "Highly scalable Kubernetes architecture with event streaming.",
-    "category": "Featured",
-    "nodes": [
+    id: "modern-saas-stack",
+    title: "Modern SaaS",
+    description:
+      "Full-stack template with Next.js frontend, FastAPI backend, Postgres, and Redis caching.",
+    category: "Featured",
+    nodes: [
       {
-        "id": "n1",
-        "type": "annotation",
-        "position": {
-          "x": -100,
-          "y": -100
+        id: "n1",
+        type: "annotation",
+        position: {
+          x: -200,
+          y: -100,
         },
-        "width": 400,
-        "height": 100,
-        "data": {
-          "label": "## Kubernetes Microservices\nHigh-scale event-driven architecture."
-        }
+        width: 400,
+        height: 100,
+        data: {
+          label:
+            "## Modern SaaS Architecture\nComplete setup with Next.js frontend, FastAPI backend, caching, and a database cluster.",
+        },
       },
       {
-        "id": "ns_ingress",
-        "type": "k8s-namespace",
-        "position": {
-          "x": -100,
-          "y": 150
+        id: "n2",
+        type: "user",
+        position: {
+          x: -200,
+          y: 200,
         },
-        "width": 250,
-        "height": 300,
-        "data": {
-          "label": "ingress-nginx"
-        }
+        data: {
+          label: "Web Client",
+        },
       },
       {
-        "id": "n2",
-        "parentId": "ns_ingress",
-        "type": "loadBalancer",
-        "position": {
-          "x": 50,
-          "y": 100
+        id: "n3",
+        type: "user",
+        position: {
+          x: -200,
+          y: 400,
         },
-        "data": {
-          "label": "External LB"
-        }
+        data: {
+          label: "Mobile App",
+        },
       },
       {
-        "id": "ns_apps",
-        "type": "k8s-namespace",
-        "position": {
-          "x": 250,
-          "y": 100
+        id: "n4",
+        type: "cdn",
+        position: {
+          x: 50,
+          y: 200,
         },
-        "width": 400,
-        "height": 500,
-        "data": {
-          "label": "apps"
-        }
+        data: {
+          label: "Cloudflare CDN",
+        },
       },
       {
-        "id": "n3",
-        "parentId": "ns_apps",
-        "type": "k8s-service",
-        "position": {
-          "x": 50,
-          "y": 50
+        id: "n_app_group",
+        type: "app",
+        position: {
+          x: 300,
+          y: 100,
         },
-        "data": {
-          "label": "API Gateway svc"
-        }
+        width: 250,
+        height: 400,
+        data: {
+          label: "Frontend (Vercel)",
+        },
       },
       {
-        "id": "n4",
-        "parentId": "ns_apps",
-        "type": "microservice",
-        "position": {
-          "x": 200,
-          "y": 50
+        id: "n5",
+        parentId: "n_app_group",
+        type: "app",
+        position: {
+          x: 20,
+          y: 50,
         },
-        "data": {
-          "label": "Auth Service"
-        }
+        data: {
+          label: "Next.js SSR",
+        },
       },
       {
-        "id": "n5",
-        "parentId": "ns_apps",
-        "type": "microservice",
-        "position": {
-          "x": 200,
-          "y": 200
+        id: "n6",
+        parentId: "n_app_group",
+        type: "api",
+        position: {
+          x: 20,
+          y: 200,
         },
-        "data": {
-          "label": "Order Service"
-        }
+        data: {
+          label: "Next.js API Routes",
+        },
       },
       {
-        "id": "n6",
-        "parentId": "ns_apps",
-        "type": "microservice",
-        "position": {
-          "x": 200,
-          "y": 350
+        id: "n_backend_group",
+        type: "server",
+        position: {
+          x: 650,
+          y: 100,
         },
-        "data": {
-          "label": "Inventory Service"
-        }
+        width: 300,
+        height: 400,
+        data: {
+          label: "Backend Services (AWS)",
+        },
       },
       {
-        "id": "ns_data",
-        "type": "k8s-namespace",
-        "position": {
-          "x": 750,
-          "y": 100
+        id: "n7",
+        parentId: "n_backend_group",
+        type: "gateway",
+        position: {
+          x: 20,
+          y: 150,
         },
-        "width": 450,
-        "height": 500,
-        "data": {
-          "label": "data-infra"
-        }
+        data: {
+          label: "API Gateway",
+        },
       },
       {
-        "id": "n7",
-        "parentId": "ns_data",
-        "type": "bus",
-        "position": {
-          "x": 50,
-          "y": 200
+        id: "n8",
+        parentId: "n_backend_group",
+        type: "microservice",
+        position: {
+          x: 150,
+          y: 50,
         },
-        "data": {
-          "label": "Kafka Cluster"
-        }
+        data: {
+          label: "FastAPI Core",
+        },
       },
       {
-        "id": "n8",
-        "parentId": "ns_data",
-        "type": "cache",
-        "position": {
-          "x": 250,
-          "y": 50
+        id: "n9",
+        parentId: "n_backend_group",
+        type: "worker",
+        position: {
+          x: 150,
+          y: 250,
         },
-        "data": {
-          "label": "Redis Cache"
-        }
+        data: {
+          label: "Celery Worker",
+        },
       },
       {
-        "id": "n9",
-        "parentId": "ns_data",
-        "type": "database",
-        "position": {
-          "x": 250,
-          "y": 350
+        id: "n_data_group",
+        type: "region",
+        position: {
+          x: 1050,
+          y: 100,
         },
-        "data": {
-          "label": "PostgreSQL DB"
-        }
+        width: 300,
+        height: 400,
+        data: {
+          label: "Data Layer",
+        },
       },
       {
-        "id": "n10",
-        "type": "note",
-        "position": {
-          "x": 250,
-          "y": 650
+        id: "n10",
+        parentId: "n_data_group",
+        type: "database",
+        position: {
+          x: 20,
+          y: 50,
         },
-        "width": 400,
-        "height": 100,
-        "data": {
-          "label": "Services communicate asynchronously via Kafka topics."
-        }
-      }
+        data: {
+          label: "PostgreSQL Primary",
+        },
+      },
+      {
+        id: "n11",
+        parentId: "n_data_group",
+        type: "database",
+        position: {
+          x: 20,
+          y: 250,
+        },
+        data: {
+          label: "PostgreSQL Replica",
+        },
+      },
+      {
+        id: "n12",
+        parentId: "n_data_group",
+        type: "cache",
+        position: {
+          x: 150,
+          y: 150,
+        },
+        data: {
+          label: "Redis Cluster",
+        },
+      },
+      {
+        id: "n13",
+        type: "note",
+        position: {
+          x: 650,
+          y: -50,
+        },
+        width: 300,
+        height: 100,
+        data: {
+          label:
+            "All backend services are deployed in an auto-scaling group across 3 availability zones.",
+        },
+      },
     ],
-    "edges": [
+    edges: [
       {
-        "id": "e1",
-        "source": "n2",
-        "target": "n3",
-        "animated": true
+        id: "e1",
+        source: "n2",
+        target: "n4",
+        animated: true,
       },
       {
-        "id": "e2",
-        "source": "n3",
-        "target": "n4"
+        id: "e2",
+        source: "n3",
+        target: "n4",
+        animated: true,
       },
       {
-        "id": "e3",
-        "source": "n3",
-        "target": "n5"
+        id: "e3",
+        source: "n4",
+        target: "n5",
+        animated: true,
       },
       {
-        "id": "e4",
-        "source": "n3",
-        "target": "n6"
+        id: "e4",
+        source: "n5",
+        target: "n6",
       },
       {
-        "id": "e5",
-        "source": "n4",
-        "target": "n8"
+        id: "e5",
+        source: "n6",
+        target: "n7",
+        animated: true,
       },
       {
-        "id": "e6",
-        "source": "n5",
-        "target": "n7",
-        "animated": true
+        id: "e6",
+        source: "n7",
+        target: "n8",
       },
       {
-        "id": "e7",
-        "source": "n6",
-        "target": "n7",
-        "animated": true
+        id: "e7",
+        source: "n8",
+        target: "n10",
       },
       {
-        "id": "e8",
-        "source": "n7",
-        "target": "n5",
-        "animated": true
+        id: "e8",
+        source: "n8",
+        target: "n12",
       },
       {
-        "id": "e9",
-        "source": "n5",
-        "target": "n9"
+        id: "e9",
+        source: "n8",
+        target: "n9",
+        animated: true,
       },
       {
-        "id": "e10",
-        "source": "n6",
-        "target": "n9"
-      }
-    ]
+        id: "e10",
+        source: "n9",
+        target: "n10",
+      },
+      {
+        id: "e11",
+        source: "n10",
+        target: "n11",
+        animated: true,
+        style: {
+          strokeDasharray: "5,5",
+        },
+      },
+    ],
   },
   {
-    "id": "data-lake-analytics",
-    "title": "Data Analytics",
-    "description": "Modern data stack using S3, Snowflake, and business intelligence tools.",
-    "category": "Featured",
-    "nodes": [
+    id: "microservices-k8s",
+    title: "K8s Microservice",
+    description:
+      "Highly scalable Kubernetes architecture with event streaming.",
+    category: "Featured",
+    nodes: [
       {
-        "id": "n1",
-        "type": "annotation",
-        "position": {
-          "x": 0,
-          "y": -100
+        id: "n1",
+        type: "annotation",
+        position: {
+          x: -100,
+          y: -100,
         },
-        "width": 400,
-        "height": 100,
-        "data": {
-          "label": "## Data Lake & Analytics\nModern data stack extracting data from external sources."
-        }
+        width: 400,
+        height: 100,
+        data: {
+          label:
+            "## Kubernetes Microservices\nHigh-scale event-driven architecture.",
+        },
       },
       {
-        "id": "n2",
-        "type": "api",
-        "position": {
-          "x": 0,
-          "y": 150
+        id: "ns_ingress",
+        type: "k8s-namespace",
+        position: {
+          x: -100,
+          y: 150,
         },
-        "data": {
-          "label": "Salesforce API"
-        }
+        width: 250,
+        height: 300,
+        data: {
+          label: "ingress-nginx",
+        },
       },
       {
-        "id": "n3",
-        "type": "api",
-        "position": {
-          "x": 0,
-          "y": 300
+        id: "n2",
+        parentId: "ns_ingress",
+        type: "loadBalancer",
+        position: {
+          x: 50,
+          y: 100,
         },
-        "data": {
-          "label": "Stripe API"
-        }
+        data: {
+          label: "External LB",
+        },
       },
       {
-        "id": "n4",
-        "type": "database",
-        "position": {
-          "x": 0,
-          "y": 450
+        id: "ns_apps",
+        type: "k8s-namespace",
+        position: {
+          x: 250,
+          y: 100,
         },
-        "data": {
-          "label": "Production DB"
-        }
+        width: 400,
+        height: 500,
+        data: {
+          label: "apps",
+        },
       },
       {
-        "id": "n_elt",
-        "type": "region",
-        "position": {
-          "x": 250,
-          "y": 100
+        id: "n3",
+        parentId: "ns_apps",
+        type: "k8s-service",
+        position: {
+          x: 50,
+          y: 50,
         },
-        "width": 250,
-        "height": 450,
-        "data": {
-          "label": "Data Engineering"
-        }
+        data: {
+          label: "API Gateway svc",
+        },
       },
       {
-        "id": "n5",
-        "parentId": "n_elt",
-        "type": "worker",
-        "position": {
-          "x": 50,
-          "y": 50
+        id: "n4",
+        parentId: "ns_apps",
+        type: "microservice",
+        position: {
+          x: 200,
+          y: 50,
         },
-        "data": {
-          "label": "Airflow Scheduler"
-        }
+        data: {
+          label: "Auth Service",
+        },
       },
       {
-        "id": "n6",
-        "parentId": "n_elt",
-        "type": "worker",
-        "position": {
-          "x": 50,
-          "y": 200
+        id: "n5",
+        parentId: "ns_apps",
+        type: "microservice",
+        position: {
+          x: 200,
+          y: 200,
         },
-        "data": {
-          "label": "Fivetran Connectors"
-        }
+        data: {
+          label: "Order Service",
+        },
       },
       {
-        "id": "n7",
-        "parentId": "n_elt",
-        "type": "worker",
-        "position": {
-          "x": 50,
-          "y": 350
+        id: "n6",
+        parentId: "ns_apps",
+        type: "microservice",
+        position: {
+          x: 200,
+          y: 350,
         },
-        "data": {
-          "label": "dbt Transformations"
-        }
+        data: {
+          label: "Inventory Service",
+        },
       },
       {
-        "id": "n_warehouse",
-        "type": "region",
-        "position": {
-          "x": 600,
-          "y": 100
+        id: "ns_data",
+        type: "k8s-namespace",
+        position: {
+          x: 750,
+          y: 100,
         },
-        "width": 300,
-        "height": 450,
-        "data": {
-          "label": "Data Warehouse"
-        }
+        width: 450,
+        height: 500,
+        data: {
+          label: "data-infra",
+        },
       },
       {
-        "id": "n8",
-        "parentId": "n_warehouse",
-        "type": "storage",
-        "position": {
-          "x": 50,
-          "y": 50
+        id: "n7",
+        parentId: "ns_data",
+        type: "bus",
+        position: {
+          x: 50,
+          y: 200,
         },
-        "data": {
-          "label": "S3 Raw Data Lake"
-        }
+        data: {
+          label: "Kafka Cluster",
+        },
       },
       {
-        "id": "n9",
-        "parentId": "n_warehouse",
-        "type": "snowflake",
-        "position": {
-          "x": 50,
-          "y": 250
+        id: "n8",
+        parentId: "ns_data",
+        type: "cache",
+        position: {
+          x: 250,
+          y: 50,
         },
-        "data": {
-          "label": "Snowflake DWH"
-        }
+        data: {
+          label: "Redis Cache",
+        },
       },
       {
-        "id": "n10",
-        "type": "grafana",
-        "position": {
-          "x": 1000,
-          "y": 250
+        id: "n9",
+        parentId: "ns_data",
+        type: "database",
+        position: {
+          x: 250,
+          y: 350,
         },
-        "data": {
-          "label": "Looker / BI"
-        }
+        data: {
+          label: "PostgreSQL DB",
+        },
       },
       {
-        "id": "n11",
-        "type": "note",
-        "position": {
-          "x": 600,
-          "y": 600
+        id: "n10",
+        type: "note",
+        position: {
+          x: 250,
+          y: 650,
         },
-        "width": 300,
-        "height": 100,
-        "data": {
-          "label": "dbt models run inside Snowflake for high performance ELT."
-        }
-      }
+        width: 400,
+        height: 100,
+        data: {
+          label: "Services communicate asynchronously via Kafka topics.",
+        },
+      },
     ],
-    "edges": [
+    edges: [
       {
-        "id": "e1",
-        "source": "n2",
-        "target": "n6",
-        "animated": true
+        id: "e1",
+        source: "n2",
+        target: "n3",
+        animated: true,
       },
       {
-        "id": "e2",
-        "source": "n3",
-        "target": "n6",
-        "animated": true
+        id: "e2",
+        source: "n3",
+        target: "n4",
       },
       {
-        "id": "e3",
-        "source": "n4",
-        "target": "n6",
-        "animated": true
+        id: "e3",
+        source: "n3",
+        target: "n5",
       },
       {
-        "id": "e4",
-        "source": "n5",
-        "target": "n6"
+        id: "e4",
+        source: "n3",
+        target: "n6",
       },
       {
-        "id": "e5",
-        "source": "n5",
-        "target": "n7"
+        id: "e5",
+        source: "n4",
+        target: "n8",
       },
       {
-        "id": "e6",
-        "source": "n6",
-        "target": "n8",
-        "animated": true
+        id: "e6",
+        source: "n5",
+        target: "n7",
+        animated: true,
       },
       {
-        "id": "e7",
-        "source": "n8",
-        "target": "n9"
+        id: "e7",
+        source: "n6",
+        target: "n7",
+        animated: true,
       },
       {
-        "id": "e8",
-        "source": "n7",
-        "target": "n9"
+        id: "e8",
+        source: "n7",
+        target: "n5",
+        animated: true,
       },
       {
-        "id": "e9",
-        "source": "n9",
-        "target": "n10"
-      }
-    ]
+        id: "e9",
+        source: "n5",
+        target: "n9",
+      },
+      {
+        id: "e10",
+        source: "n6",
+        target: "n9",
+      },
+    ],
   },
   {
-    "id": "multi-region-ha",
-    "title": "Multi-Region HA",
-    "description": "Deploy a highly available architecture across multiple regions with automatic failover.",
-    "category": "Cloud Architectures",
-    "nodes": [
+    id: "data-lake-analytics",
+    title: "Data Analytics",
+    description:
+      "Modern data stack using S3, Snowflake, and business intelligence tools.",
+    category: "Featured",
+    nodes: [
       {
-        "id": "n1",
-        "type": "annotation",
-        "position": {
-          "x": -200,
-          "y": -100
+        id: "n1",
+        type: "annotation",
+        position: {
+          x: 0,
+          y: -100,
         },
-        "width": 500,
-        "height": 100,
-        "data": {
-          "label": "## Multi-Region High Availability\nActive-Active regional failover with global load balancing."
-        }
+        width: 400,
+        height: 100,
+        data: {
+          label:
+            "## Data Lake & Analytics\nModern data stack extracting data from external sources.",
+        },
       },
       {
-        "id": "n2",
-        "type": "user",
-        "position": {
-          "x": -200,
-          "y": 300
+        id: "n2",
+        type: "api",
+        position: {
+          x: 0,
+          y: 150,
         },
-        "data": {
-          "label": "Internet Users"
-        }
+        data: {
+          label: "Salesforce API",
+        },
       },
       {
-        "id": "n3",
-        "type": "route53",
-        "position": {
-          "x": 0,
-          "y": 300
+        id: "n3",
+        type: "api",
+        position: {
+          x: 0,
+          y: 300,
         },
-        "data": {
-          "label": "AWS Route 53"
-        }
+        data: {
+          label: "Stripe API",
+        },
       },
       {
-        "id": "r1",
-        "type": "region",
-        "position": {
-          "x": 300,
-          "y": 50
+        id: "n4",
+        type: "database",
+        position: {
+          x: 0,
+          y: 450,
         },
-        "width": 400,
-        "height": 300,
-        "data": {
-          "label": "us-east-1 (Primary)"
-        }
+        data: {
+          label: "Production DB",
+        },
       },
       {
-        "id": "n4",
-        "parentId": "r1",
-        "type": "loadBalancer",
-        "position": {
-          "x": 20,
-          "y": 100
+        id: "n_elt",
+        type: "region",
+        position: {
+          x: 250,
+          y: 100,
         },
-        "data": {
-          "label": "ALB"
-        }
+        width: 250,
+        height: 450,
+        data: {
+          label: "Data Engineering",
+        },
       },
       {
-        "id": "n5",
-        "parentId": "r1",
-        "type": "server",
-        "position": {
-          "x": 150,
-          "y": 20
+        id: "n5",
+        parentId: "n_elt",
+        type: "worker",
+        position: {
+          x: 50,
+          y: 50,
         },
-        "data": {
-          "label": "Web Tier (EC2 ASG)"
-        }
+        data: {
+          label: "Airflow Scheduler",
+        },
       },
       {
-        "id": "n6",
-        "parentId": "r1",
-        "type": "server",
-        "position": {
-          "x": 150,
-          "y": 180
+        id: "n6",
+        parentId: "n_elt",
+        type: "worker",
+        position: {
+          x: 50,
+          y: 200,
         },
-        "data": {
-          "label": "App Tier (EC2 ASG)"
-        }
+        data: {
+          label: "Fivetran Connectors",
+        },
       },
       {
-        "id": "n7",
-        "parentId": "r1",
-        "type": "database",
-        "position": {
-          "x": 280,
-          "y": 100
+        id: "n7",
+        parentId: "n_elt",
+        type: "worker",
+        position: {
+          x: 50,
+          y: 350,
         },
-        "data": {
-          "label": "RDS Master"
-        }
+        data: {
+          label: "dbt Transformations",
+        },
       },
       {
-        "id": "r2",
-        "type": "region",
-        "position": {
-          "x": 300,
-          "y": 450
+        id: "n_warehouse",
+        type: "region",
+        position: {
+          x: 600,
+          y: 100,
         },
-        "width": 400,
-        "height": 300,
-        "data": {
-          "label": "eu-west-1 (Secondary)"
-        }
+        width: 300,
+        height: 450,
+        data: {
+          label: "Data Warehouse",
+        },
       },
       {
-        "id": "n8",
-        "parentId": "r2",
-        "type": "loadBalancer",
-        "position": {
-          "x": 20,
-          "y": 100
+        id: "n8",
+        parentId: "n_warehouse",
+        type: "storage",
+        position: {
+          x: 50,
+          y: 50,
         },
-        "data": {
-          "label": "ALB"
-        }
+        data: {
+          label: "S3 Raw Data Lake",
+        },
       },
       {
-        "id": "n9",
-        "parentId": "r2",
-        "type": "server",
-        "position": {
-          "x": 150,
-          "y": 20
+        id: "n9",
+        parentId: "n_warehouse",
+        type: "snowflake",
+        position: {
+          x: 50,
+          y: 250,
         },
-        "data": {
-          "label": "Web Tier (EC2 ASG)"
-        }
+        data: {
+          label: "Snowflake DWH",
+        },
       },
       {
-        "id": "n10",
-        "parentId": "r2",
-        "type": "server",
-        "position": {
-          "x": 150,
-          "y": 180
+        id: "n10",
+        type: "grafana",
+        position: {
+          x: 1000,
+          y: 250,
         },
-        "data": {
-          "label": "App Tier (EC2 ASG)"
-        }
+        data: {
+          label: "Looker / BI",
+        },
       },
       {
-        "id": "n11",
-        "parentId": "r2",
-        "type": "database",
-        "position": {
-          "x": 280,
-          "y": 100
+        id: "n11",
+        type: "note",
+        position: {
+          x: 600,
+          y: 600,
         },
-        "data": {
-          "label": "RDS Read Replica"
-        }
+        width: 300,
+        height: 100,
+        data: {
+          label: "dbt models run inside Snowflake for high performance ELT.",
+        },
       },
-      {
-        "id": "n12",
-        "type": "note",
-        "position": {
-          "x": 800,
-          "y": 350
-        },
-        "width": 300,
-        "height": 100,
-        "data": {
-          "label": "Cross-region DB replication keeps the secondary region in sync."
-        }
-      }
     ],
-    "edges": [
+    edges: [
       {
-        "id": "e1",
-        "source": "n2",
-        "target": "n3",
-        "animated": true
+        id: "e1",
+        source: "n2",
+        target: "n6",
+        animated: true,
       },
       {
-        "id": "e2",
-        "source": "n3",
-        "target": "n4",
-        "animated": true
+        id: "e2",
+        source: "n3",
+        target: "n6",
+        animated: true,
       },
       {
-        "id": "e3",
-        "source": "n3",
-        "target": "n8",
-        "animated": true,
-        "style": {
-          "strokeDasharray": "5,5"
-        }
+        id: "e3",
+        source: "n4",
+        target: "n6",
+        animated: true,
       },
       {
-        "id": "e4",
-        "source": "n4",
-        "target": "n5"
+        id: "e4",
+        source: "n5",
+        target: "n6",
       },
       {
-        "id": "e5",
-        "source": "n4",
-        "target": "n6"
+        id: "e5",
+        source: "n5",
+        target: "n7",
       },
       {
-        "id": "e6",
-        "source": "n5",
-        "target": "n6"
+        id: "e6",
+        source: "n6",
+        target: "n8",
+        animated: true,
       },
       {
-        "id": "e7",
-        "source": "n6",
-        "target": "n7"
+        id: "e7",
+        source: "n8",
+        target: "n9",
       },
       {
-        "id": "e8",
-        "source": "n8",
-        "target": "n9"
+        id: "e8",
+        source: "n7",
+        target: "n9",
       },
       {
-        "id": "e9",
-        "source": "n8",
-        "target": "n10"
+        id: "e9",
+        source: "n9",
+        target: "n10",
       },
-      {
-        "id": "e10",
-        "source": "n9",
-        "target": "n10"
-      },
-      {
-        "id": "e11",
-        "source": "n10",
-        "target": "n11"
-      },
-      {
-        "id": "e12",
-        "source": "n7",
-        "target": "n11",
-        "animated": true,
-        "style": {
-          "strokeDasharray": "5,5"
-        }
-      }
-    ]
+    ],
   },
   {
-    "id": "serverless-api",
-    "title": "Serverless API",
-    "description": "Fully managed serverless API with Lambda functions and DynamoDB.",
-    "category": "Cloud Architectures",
-    "nodes": [
+    id: "multi-region-ha",
+    title: "Multi-Region HA",
+    description:
+      "Deploy a highly available architecture across multiple regions with automatic failover.",
+    category: "Cloud Architectures",
+    nodes: [
       {
-        "id": "n1",
-        "type": "annotation",
-        "position": {
-          "x": 0,
-          "y": -100
+        id: "n1",
+        type: "annotation",
+        position: {
+          x: -200,
+          y: -100,
         },
-        "width": 400,
-        "height": 100,
-        "data": {
-          "label": "## Serverless API\nFully managed API utilizing AWS Lambda and DynamoDB."
-        }
+        width: 500,
+        height: 100,
+        data: {
+          label:
+            "## Multi-Region High Availability\nActive-Active regional failover with global load balancing.",
+        },
       },
       {
-        "id": "n2",
-        "type": "user",
-        "position": {
-          "x": 0,
-          "y": 200
+        id: "n2",
+        type: "user",
+        position: {
+          x: -200,
+          y: 300,
         },
-        "data": {
-          "label": "SPA App"
-        }
+        data: {
+          label: "Internet Users",
+        },
       },
       {
-        "id": "n3",
-        "type": "cdn",
-        "position": {
-          "x": 200,
-          "y": 100
+        id: "n3",
+        type: "route53",
+        position: {
+          x: 0,
+          y: 300,
         },
-        "data": {
-          "label": "CloudFront"
-        }
+        data: {
+          label: "AWS Route 53",
+        },
       },
       {
-        "id": "n4",
-        "type": "storage",
-        "position": {
-          "x": 400,
-          "y": 0
+        id: "r1",
+        type: "region",
+        position: {
+          x: 300,
+          y: 50,
         },
-        "data": {
-          "label": "S3 (Frontend)"
-        }
+        width: 400,
+        height: 300,
+        data: {
+          label: "us-east-1 (Primary)",
+        },
       },
       {
-        "id": "n5",
-        "type": "gateway",
-        "position": {
-          "x": 400,
-          "y": 200
+        id: "n4",
+        parentId: "r1",
+        type: "loadBalancer",
+        position: {
+          x: 20,
+          y: 100,
         },
-        "data": {
-          "label": "API Gateway"
-        }
+        data: {
+          label: "ALB",
+        },
       },
       {
-        "id": "n6",
-        "type": "auth0",
-        "position": {
-          "x": 400,
-          "y": 400
+        id: "n5",
+        parentId: "r1",
+        type: "server",
+        position: {
+          x: 150,
+          y: 20,
         },
-        "data": {
-          "label": "Cognito Auth"
-        }
+        data: {
+          label: "Web Tier (EC2 ASG)",
+        },
       },
       {
-        "id": "r1",
-        "type": "region",
-        "position": {
-          "x": 650,
-          "y": 50
+        id: "n6",
+        parentId: "r1",
+        type: "server",
+        position: {
+          x: 150,
+          y: 180,
         },
-        "width": 300,
-        "height": 450,
-        "data": {
-          "label": "Compute & Data"
-        }
+        data: {
+          label: "App Tier (EC2 ASG)",
+        },
       },
       {
-        "id": "n7",
-        "parentId": "r1",
-        "type": "logic",
-        "position": {
-          "x": 50,
-          "y": 50
+        id: "n7",
+        parentId: "r1",
+        type: "database",
+        position: {
+          x: 280,
+          y: 100,
         },
-        "data": {
-          "label": "GetUsers Lambda"
-        }
+        data: {
+          label: "RDS Master",
+        },
       },
       {
-        "id": "n8",
-        "parentId": "r1",
-        "type": "logic",
-        "position": {
-          "x": 50,
-          "y": 150
+        id: "r2",
+        type: "region",
+        position: {
+          x: 300,
+          y: 450,
         },
-        "data": {
-          "label": "CreateUser Lambda"
-        }
+        width: 400,
+        height: 300,
+        data: {
+          label: "eu-west-1 (Secondary)",
+        },
       },
       {
-        "id": "n9",
-        "parentId": "r1",
-        "type": "logic",
-        "position": {
-          "x": 50,
-          "y": 250
+        id: "n8",
+        parentId: "r2",
+        type: "loadBalancer",
+        position: {
+          x: 20,
+          y: 100,
         },
-        "data": {
-          "label": "Billing Lambda"
-        }
+        data: {
+          label: "ALB",
+        },
       },
       {
-        "id": "n10",
-        "parentId": "r1",
-        "type": "database",
-        "position": {
-          "x": 180,
-          "y": 150
+        id: "n9",
+        parentId: "r2",
+        type: "server",
+        position: {
+          x: 150,
+          y: 20,
         },
-        "data": {
-          "label": "DynamoDB Table"
-        }
-      }
+        data: {
+          label: "Web Tier (EC2 ASG)",
+        },
+      },
+      {
+        id: "n10",
+        parentId: "r2",
+        type: "server",
+        position: {
+          x: 150,
+          y: 180,
+        },
+        data: {
+          label: "App Tier (EC2 ASG)",
+        },
+      },
+      {
+        id: "n11",
+        parentId: "r2",
+        type: "database",
+        position: {
+          x: 280,
+          y: 100,
+        },
+        data: {
+          label: "RDS Read Replica",
+        },
+      },
+      {
+        id: "n12",
+        type: "note",
+        position: {
+          x: 800,
+          y: 350,
+        },
+        width: 300,
+        height: 100,
+        data: {
+          label:
+            "Cross-region DB replication keeps the secondary region in sync.",
+        },
+      },
     ],
-    "edges": [
+    edges: [
       {
-        "id": "e1",
-        "source": "n2",
-        "target": "n3"
+        id: "e1",
+        source: "n2",
+        target: "n3",
+        animated: true,
       },
       {
-        "id": "e2",
-        "source": "n3",
-        "target": "n4"
+        id: "e2",
+        source: "n3",
+        target: "n4",
+        animated: true,
       },
       {
-        "id": "e3",
-        "source": "n2",
-        "target": "n5",
-        "animated": true
+        id: "e3",
+        source: "n3",
+        target: "n8",
+        animated: true,
+        style: {
+          strokeDasharray: "5,5",
+        },
       },
       {
-        "id": "e4",
-        "source": "n5",
-        "target": "n6",
-        "style": {
-          "strokeDasharray": "5,5"
-        }
+        id: "e4",
+        source: "n4",
+        target: "n5",
       },
       {
-        "id": "e5",
-        "source": "n5",
-        "target": "n7",
-        "animated": true
+        id: "e5",
+        source: "n4",
+        target: "n6",
       },
       {
-        "id": "e6",
-        "source": "n5",
-        "target": "n8",
-        "animated": true
+        id: "e6",
+        source: "n5",
+        target: "n6",
       },
       {
-        "id": "e7",
-        "source": "n5",
-        "target": "n9",
-        "animated": true
+        id: "e7",
+        source: "n6",
+        target: "n7",
       },
       {
-        "id": "e8",
-        "source": "n7",
-        "target": "n10"
+        id: "e8",
+        source: "n8",
+        target: "n9",
       },
       {
-        "id": "e9",
-        "source": "n8",
-        "target": "n10"
+        id: "e9",
+        source: "n8",
+        target: "n10",
       },
       {
-        "id": "e10",
-        "source": "n9",
-        "target": "n10"
-      }
-    ]
+        id: "e10",
+        source: "n9",
+        target: "n10",
+      },
+      {
+        id: "e11",
+        source: "n10",
+        target: "n11",
+      },
+      {
+        id: "e12",
+        source: "n7",
+        target: "n11",
+        animated: true,
+        style: {
+          strokeDasharray: "5,5",
+        },
+      },
+    ],
   },
   {
-    "id": "event-driven",
-    "title": "Event Pipeline",
-    "description": "Serverless data pipeline using SQS, Lambda, and S3 with built-in monitoring.",
-    "category": "Cloud Architectures",
-    "nodes": [
+    id: "serverless-api",
+    title: "Serverless API",
+    description:
+      "Fully managed serverless API with Lambda functions and DynamoDB.",
+    category: "Cloud Architectures",
+    nodes: [
       {
-        "id": "n1",
-        "type": "annotation",
-        "position": {
-          "x": 0,
-          "y": -100
+        id: "n1",
+        type: "annotation",
+        position: {
+          x: 0,
+          y: -100,
         },
-        "width": 500,
-        "height": 100,
-        "data": {
-          "label": "## Event-Driven Pipeline\nAsynchronous processing workflow using SQS, EventBridge, and Lambda."
-        }
+        width: 400,
+        height: 100,
+        data: {
+          label:
+            "## Serverless API\nFully managed API utilizing AWS Lambda and DynamoDB.",
+        },
       },
       {
-        "id": "n2",
-        "type": "app",
-        "position": {
-          "x": 0,
-          "y": 250
+        id: "n2",
+        type: "user",
+        position: {
+          x: 0,
+          y: 200,
         },
-        "data": {
-          "label": "Order Service"
-        }
+        data: {
+          label: "SPA App",
+        },
       },
       {
-        "id": "n3",
-        "type": "bus",
-        "position": {
-          "x": 250,
-          "y": 250
+        id: "n3",
+        type: "cdn",
+        position: {
+          x: 200,
+          y: 100,
         },
-        "data": {
-          "label": "EventBridge"
-        }
+        data: {
+          label: "CloudFront",
+        },
       },
       {
-        "id": "r1",
-        "type": "region",
-        "position": {
-          "x": 500,
-          "y": 50
+        id: "n4",
+        type: "storage",
+        position: {
+          x: 400,
+          y: 0,
         },
-        "width": 450,
-        "height": 450,
-        "data": {
-          "label": "Event Consumers"
-        }
+        data: {
+          label: "S3 (Frontend)",
+        },
       },
       {
-        "id": "n4",
-        "parentId": "r1",
-        "type": "queue",
-        "position": {
-          "x": 20,
-          "y": 50
+        id: "n5",
+        type: "gateway",
+        position: {
+          x: 400,
+          y: 200,
         },
-        "data": {
-          "label": "Fulfillment SQS"
-        }
+        data: {
+          label: "API Gateway",
+        },
       },
       {
-        "id": "n5",
-        "parentId": "r1",
-        "type": "logic",
-        "position": {
-          "x": 180,
-          "y": 50
+        id: "n6",
+        type: "auth0",
+        position: {
+          x: 400,
+          y: 400,
         },
-        "data": {
-          "label": "Fulfillment Lambda"
-        }
+        data: {
+          label: "Cognito Auth",
+        },
       },
       {
-        "id": "n6",
-        "parentId": "r1",
-        "type": "api",
-        "position": {
-          "x": 330,
-          "y": 50
+        id: "r1",
+        type: "region",
+        position: {
+          x: 650,
+          y: 50,
         },
-        "data": {
-          "label": "3PL API"
-        }
+        width: 300,
+        height: 450,
+        data: {
+          label: "Compute & Data",
+        },
       },
       {
-        "id": "n7",
-        "parentId": "r1",
-        "type": "queue",
-        "position": {
-          "x": 20,
-          "y": 200
+        id: "n7",
+        parentId: "r1",
+        type: "logic",
+        position: {
+          x: 50,
+          y: 50,
         },
-        "data": {
-          "label": "Email SQS"
-        }
+        data: {
+          label: "GetUsers Lambda",
+        },
       },
       {
-        "id": "n8",
-        "parentId": "r1",
-        "type": "logic",
-        "position": {
-          "x": 180,
-          "y": 200
+        id: "n8",
+        parentId: "r1",
+        type: "logic",
+        position: {
+          x: 50,
+          y: 150,
         },
-        "data": {
-          "label": "Email Lambda"
-        }
+        data: {
+          label: "CreateUser Lambda",
+        },
       },
       {
-        "id": "n9",
-        "parentId": "r1",
-        "type": "api",
-        "position": {
-          "x": 330,
-          "y": 200
+        id: "n9",
+        parentId: "r1",
+        type: "logic",
+        position: {
+          x: 50,
+          y: 250,
         },
-        "data": {
-          "label": "SendGrid"
-        }
+        data: {
+          label: "Billing Lambda",
+        },
       },
       {
-        "id": "n10",
-        "parentId": "r1",
-        "type": "queue",
-        "position": {
-          "x": 20,
-          "y": 350
+        id: "n10",
+        parentId: "r1",
+        type: "database",
+        position: {
+          x: 180,
+          y: 150,
         },
-        "data": {
-          "label": "Analytics SQS"
-        }
+        data: {
+          label: "DynamoDB Table",
+        },
       },
-      {
-        "id": "n11",
-        "parentId": "r1",
-        "type": "logic",
-        "position": {
-          "x": 180,
-          "y": 350
-        },
-        "data": {
-          "label": "Analytics Lambda"
-        }
-      },
-      {
-        "id": "n12",
-        "parentId": "r1",
-        "type": "storage",
-        "position": {
-          "x": 330,
-          "y": 350
-        },
-        "data": {
-          "label": "S3 Data Lake"
-        }
-      }
     ],
-    "edges": [
+    edges: [
       {
-        "id": "e1",
-        "source": "n2",
-        "target": "n3",
-        "animated": true
+        id: "e1",
+        source: "n2",
+        target: "n3",
       },
       {
-        "id": "e2",
-        "source": "n3",
-        "target": "n4",
-        "animated": true
+        id: "e2",
+        source: "n3",
+        target: "n4",
       },
       {
-        "id": "e3",
-        "source": "n3",
-        "target": "n7",
-        "animated": true
+        id: "e3",
+        source: "n2",
+        target: "n5",
+        animated: true,
       },
       {
-        "id": "e4",
-        "source": "n3",
-        "target": "n10",
-        "animated": true
+        id: "e4",
+        source: "n5",
+        target: "n6",
+        style: {
+          strokeDasharray: "5,5",
+        },
       },
       {
-        "id": "e5",
-        "source": "n4",
-        "target": "n5",
-        "animated": true
+        id: "e5",
+        source: "n5",
+        target: "n7",
+        animated: true,
       },
       {
-        "id": "e6",
-        "source": "n5",
-        "target": "n6"
+        id: "e6",
+        source: "n5",
+        target: "n8",
+        animated: true,
       },
       {
-        "id": "e7",
-        "source": "n7",
-        "target": "n8",
-        "animated": true
+        id: "e7",
+        source: "n5",
+        target: "n9",
+        animated: true,
       },
       {
-        "id": "e8",
-        "source": "n8",
-        "target": "n9"
+        id: "e8",
+        source: "n7",
+        target: "n10",
       },
       {
-        "id": "e9",
-        "source": "n10",
-        "target": "n11",
-        "animated": true
+        id: "e9",
+        source: "n8",
+        target: "n10",
       },
       {
-        "id": "e10",
-        "source": "n11",
-        "target": "n12"
-      }
-    ]
+        id: "e10",
+        source: "n9",
+        target: "n10",
+      },
+    ],
   },
   {
-    "id": "mern-stack",
-    "title": "MERN Stack",
-    "description": "Classic MongoDB, Express, React, Node.js full-stack application.",
-    "category": "Full-Stack",
-    "nodes": [
+    id: "event-driven",
+    title: "Event Pipeline",
+    description:
+      "Serverless data pipeline using SQS, Lambda, and S3 with built-in monitoring.",
+    category: "Cloud Architectures",
+    nodes: [
       {
-        "id": "n1",
-        "type": "annotation",
-        "position": {
-          "x": -200,
-          "y": -100
+        id: "n1",
+        type: "annotation",
+        position: {
+          x: 0,
+          y: -100,
         },
-        "width": 400,
-        "height": 100,
-        "data": {
-          "label": "## MERN Stack Architecture\nThe classic Mongo, Express, React, Node application."
-        }
+        width: 500,
+        height: 100,
+        data: {
+          label:
+            "## Event-Driven Pipeline\nAsynchronous processing workflow using SQS, EventBridge, and Lambda.",
+        },
       },
       {
-        "id": "n2",
-        "type": "user",
-        "position": {
-          "x": -200,
-          "y": 250
+        id: "n2",
+        type: "app",
+        position: {
+          x: 0,
+          y: 250,
         },
-        "data": {
-          "label": "Client"
-        }
+        data: {
+          label: "Order Service",
+        },
       },
       {
-        "id": "r1",
-        "type": "region",
-        "position": {
-          "x": 50,
-          "y": 100
+        id: "n3",
+        type: "bus",
+        position: {
+          x: 250,
+          y: 250,
         },
-        "width": 800,
-        "height": 350,
-        "data": {
-          "label": "Production Environment"
-        }
+        data: {
+          label: "EventBridge",
+        },
       },
       {
-        "id": "n3",
-        "parentId": "r1",
-        "type": "app",
-        "position": {
-          "x": 50,
-          "y": 150
+        id: "r1",
+        type: "region",
+        position: {
+          x: 500,
+          y: 50,
         },
-        "data": {
-          "label": "React SPA"
-        }
+        width: 450,
+        height: 450,
+        data: {
+          label: "Event Consumers",
+        },
       },
       {
-        "id": "n4",
-        "parentId": "r1",
-        "type": "loadBalancer",
-        "position": {
-          "x": 250,
-          "y": 150
+        id: "n4",
+        parentId: "r1",
+        type: "queue",
+        position: {
+          x: 20,
+          y: 50,
         },
-        "data": {
-          "label": "Nginx Proxy"
-        }
+        data: {
+          label: "Fulfillment SQS",
+        },
       },
       {
-        "id": "n5",
-        "parentId": "r1",
-        "type": "server",
-        "position": {
-          "x": 450,
-          "y": 50
+        id: "n5",
+        parentId: "r1",
+        type: "logic",
+        position: {
+          x: 180,
+          y: 50,
         },
-        "data": {
-          "label": "Express API (Node)"
-        }
+        data: {
+          label: "Fulfillment Lambda",
+        },
       },
       {
-        "id": "n6",
-        "parentId": "r1",
-        "type": "server",
-        "position": {
-          "x": 450,
-          "y": 250
+        id: "n6",
+        parentId: "r1",
+        type: "api",
+        position: {
+          x: 330,
+          y: 50,
         },
-        "data": {
-          "label": "Express API (Node)"
-        }
+        data: {
+          label: "3PL API",
+        },
       },
       {
-        "id": "n7",
-        "parentId": "r1",
-        "type": "database",
-        "position": {
-          "x": 650,
-          "y": 150
+        id: "n7",
+        parentId: "r1",
+        type: "queue",
+        position: {
+          x: 20,
+          y: 200,
         },
-        "data": {
-          "label": "MongoDB Replica Set"
-        }
+        data: {
+          label: "Email SQS",
+        },
       },
       {
-        "id": "n8",
-        "type": "github_actions",
-        "position": {
-          "x": 450,
-          "y": -100
+        id: "n8",
+        parentId: "r1",
+        type: "logic",
+        position: {
+          x: 180,
+          y: 200,
         },
-        "data": {
-          "label": "CI/CD Pipeline"
-        }
-      }
+        data: {
+          label: "Email Lambda",
+        },
+      },
+      {
+        id: "n9",
+        parentId: "r1",
+        type: "api",
+        position: {
+          x: 330,
+          y: 200,
+        },
+        data: {
+          label: "SendGrid",
+        },
+      },
+      {
+        id: "n10",
+        parentId: "r1",
+        type: "queue",
+        position: {
+          x: 20,
+          y: 350,
+        },
+        data: {
+          label: "Analytics SQS",
+        },
+      },
+      {
+        id: "n11",
+        parentId: "r1",
+        type: "logic",
+        position: {
+          x: 180,
+          y: 350,
+        },
+        data: {
+          label: "Analytics Lambda",
+        },
+      },
+      {
+        id: "n12",
+        parentId: "r1",
+        type: "storage",
+        position: {
+          x: 330,
+          y: 350,
+        },
+        data: {
+          label: "S3 Data Lake",
+        },
+      },
     ],
-    "edges": [
+    edges: [
       {
-        "id": "e1",
-        "source": "n2",
-        "target": "n3"
+        id: "e1",
+        source: "n2",
+        target: "n3",
+        animated: true,
       },
       {
-        "id": "e2",
-        "source": "n3",
-        "target": "n4",
-        "animated": true
+        id: "e2",
+        source: "n3",
+        target: "n4",
+        animated: true,
       },
       {
-        "id": "e3",
-        "source": "n4",
-        "target": "n5",
-        "animated": true
+        id: "e3",
+        source: "n3",
+        target: "n7",
+        animated: true,
       },
       {
-        "id": "e4",
-        "source": "n4",
-        "target": "n6",
-        "animated": true
+        id: "e4",
+        source: "n3",
+        target: "n10",
+        animated: true,
       },
       {
-        "id": "e5",
-        "source": "n5",
-        "target": "n7"
+        id: "e5",
+        source: "n4",
+        target: "n5",
+        animated: true,
       },
       {
-        "id": "e6",
-        "source": "n6",
-        "target": "n7"
+        id: "e6",
+        source: "n5",
+        target: "n6",
       },
       {
-        "id": "e7",
-        "source": "n8",
-        "target": "n5",
-        "style": {
-          "strokeDasharray": "5,5"
-        }
+        id: "e7",
+        source: "n7",
+        target: "n8",
+        animated: true,
       },
       {
-        "id": "e8",
-        "source": "n8",
-        "target": "n6",
-        "style": {
-          "strokeDasharray": "5,5"
-        }
+        id: "e8",
+        source: "n8",
+        target: "n9",
       },
       {
-        "id": "e9",
-        "source": "n8",
-        "target": "n3",
-        "style": {
-          "strokeDasharray": "5,5"
-        }
-      }
-    ]
+        id: "e9",
+        source: "n10",
+        target: "n11",
+        animated: true,
+      },
+      {
+        id: "e10",
+        source: "n11",
+        target: "n12",
+      },
+    ],
   },
   {
-    "id": "jamstack-cms",
-    "title": "Jamstack CMS",
-    "description": "Modern static site generation paired with a headless CMS via CDN.",
-    "category": "Full-Stack",
-    "nodes": [
+    id: "mern-stack",
+    title: "MERN Stack",
+    description:
+      "Classic MongoDB, Express, React, Node.js full-stack application.",
+    category: "Full-Stack",
+    nodes: [
       {
-        "id": "n1",
-        "type": "annotation",
-        "position": {
-          "x": 0,
-          "y": -100
+        id: "n1",
+        type: "annotation",
+        position: {
+          x: -200,
+          y: -100,
         },
-        "width": 400,
-        "height": 100,
-        "data": {
-          "label": "## Jamstack with Headless CMS\nGlobal edge delivery for static sites."
-        }
+        width: 400,
+        height: 100,
+        data: {
+          label:
+            "## MERN Stack Architecture\nThe classic Mongo, Express, React, Node application.",
+        },
       },
       {
-        "id": "n2",
-        "type": "user",
-        "position": {
-          "x": 0,
-          "y": 200
+        id: "n2",
+        type: "user",
+        position: {
+          x: -200,
+          y: 250,
         },
-        "data": {
-          "label": "Global Users"
-        }
+        data: {
+          label: "Client",
+        },
       },
       {
-        "id": "n3",
-        "type": "cdn",
-        "position": {
-          "x": 250,
-          "y": 200
+        id: "r1",
+        type: "region",
+        position: {
+          x: 50,
+          y: 100,
         },
-        "data": {
-          "label": "Edge Network (CDN)"
-        }
+        width: 800,
+        height: 350,
+        data: {
+          label: "Production Environment",
+        },
       },
       {
-        "id": "r1",
-        "type": "region",
-        "position": {
-          "x": 500,
-          "y": 50
+        id: "n3",
+        parentId: "r1",
+        type: "app",
+        position: {
+          x: 50,
+          y: 150,
         },
-        "width": 400,
-        "height": 300,
-        "data": {
-          "label": "Content Management"
-        }
+        data: {
+          label: "React SPA",
+        },
       },
       {
-        "id": "n4",
-        "parentId": "r1",
-        "type": "api",
-        "position": {
-          "x": 50,
-          "y": 50
+        id: "n4",
+        parentId: "r1",
+        type: "loadBalancer",
+        position: {
+          x: 250,
+          y: 150,
         },
-        "data": {
-          "label": "Headless CMS"
-        }
+        data: {
+          label: "Nginx Proxy",
+        },
       },
       {
-        "id": "n5",
-        "parentId": "r1",
-        "type": "database",
-        "position": {
-          "x": 250,
-          "y": 50
+        id: "n5",
+        parentId: "r1",
+        type: "server",
+        position: {
+          x: 450,
+          y: 50,
         },
-        "data": {
-          "label": "Content DB"
-        }
+        data: {
+          label: "Express API (Node)",
+        },
       },
       {
-        "id": "n6",
-        "parentId": "r1",
-        "type": "github_actions",
-        "position": {
-          "x": 50,
-          "y": 200
+        id: "n6",
+        parentId: "r1",
+        type: "server",
+        position: {
+          x: 450,
+          y: 250,
         },
-        "data": {
-          "label": "Static Builder"
-        }
+        data: {
+          label: "Express API (Node)",
+        },
       },
       {
-        "id": "n7",
-        "parentId": "r1",
-        "type": "storage",
-        "position": {
-          "x": 250,
-          "y": 200
+        id: "n7",
+        parentId: "r1",
+        type: "database",
+        position: {
+          x: 650,
+          y: 150,
         },
-        "data": {
-          "label": "Object Storage"
-        }
-      }
+        data: {
+          label: "MongoDB Replica Set",
+        },
+      },
+      {
+        id: "n8",
+        type: "github_actions",
+        position: {
+          x: 450,
+          y: -100,
+        },
+        data: {
+          label: "CI/CD Pipeline",
+        },
+      },
     ],
-    "edges": [
+    edges: [
       {
-        "id": "e1",
-        "source": "n2",
-        "target": "n3"
+        id: "e1",
+        source: "n2",
+        target: "n3",
       },
       {
-        "id": "e2",
-        "source": "n4",
-        "target": "n5"
+        id: "e2",
+        source: "n3",
+        target: "n4",
+        animated: true,
       },
       {
-        "id": "e3",
-        "source": "n4",
-        "target": "n6",
-        "animated": true,
-        "style": {
-          "strokeDasharray": "5,5"
-        }
+        id: "e3",
+        source: "n4",
+        target: "n5",
+        animated: true,
       },
       {
-        "id": "e4",
-        "source": "n6",
-        "target": "n7",
-        "animated": true
+        id: "e4",
+        source: "n4",
+        target: "n6",
+        animated: true,
       },
       {
-        "id": "e5",
-        "source": "n7",
-        "target": "n3"
-      }
-    ]
+        id: "e5",
+        source: "n5",
+        target: "n7",
+      },
+      {
+        id: "e6",
+        source: "n6",
+        target: "n7",
+      },
+      {
+        id: "e7",
+        source: "n8",
+        target: "n5",
+        style: {
+          strokeDasharray: "5,5",
+        },
+      },
+      {
+        id: "e8",
+        source: "n8",
+        target: "n6",
+        style: {
+          strokeDasharray: "5,5",
+        },
+      },
+      {
+        id: "e9",
+        source: "n8",
+        target: "n3",
+        style: {
+          strokeDasharray: "5,5",
+        },
+      },
+    ],
   },
   {
-    "id": "nextjs-app-router",
-    "title": "NextJS Auth0",
-    "description": "Next.js App Router with PostgreSQL database and Auth0 identity.",
-    "category": "Full-Stack",
-    "nodes": [
+    id: "jamstack-cms",
+    title: "Jamstack CMS",
+    description:
+      "Modern static site generation paired with a headless CMS via CDN.",
+    category: "Full-Stack",
+    nodes: [
       {
-        "id": "n1",
-        "type": "annotation",
-        "position": {
-          "x": 0,
-          "y": -100
+        id: "n1",
+        type: "annotation",
+        position: {
+          x: 0,
+          y: -100,
         },
-        "width": 400,
-        "height": 100,
-        "data": {
-          "label": "## Next.js + Auth0 + PlanetScale\nModern enterprise-grade React stack."
-        }
+        width: 400,
+        height: 100,
+        data: {
+          label:
+            "## Jamstack with Headless CMS\nGlobal edge delivery for static sites.",
+        },
       },
       {
-        "id": "n2",
-        "type": "user",
-        "position": {
-          "x": 0,
-          "y": 250
+        id: "n2",
+        type: "user",
+        position: {
+          x: 0,
+          y: 200,
         },
-        "data": {
-          "label": "Web Client"
-        }
+        data: {
+          label: "Global Users",
+        },
       },
       {
-        "id": "r1",
-        "type": "region",
-        "position": {
-          "x": 250,
-          "y": 50
+        id: "n3",
+        type: "cdn",
+        position: {
+          x: 250,
+          y: 200,
         },
-        "width": 550,
-        "height": 450,
-        "data": {
-          "label": "Vercel Infrastructure"
-        }
+        data: {
+          label: "Edge Network (CDN)",
+        },
       },
       {
-        "id": "n3",
-        "parentId": "r1",
-        "type": "cdn",
-        "position": {
-          "x": 50,
-          "y": 200
+        id: "r1",
+        type: "region",
+        position: {
+          x: 500,
+          y: 50,
         },
-        "data": {
-          "label": "Edge CDN"
-        }
+        width: 400,
+        height: 300,
+        data: {
+          label: "Content Management",
+        },
       },
       {
-        "id": "n4",
-        "parentId": "r1",
-        "type": "app",
-        "position": {
-          "x": 250,
-          "y": 50
+        id: "n4",
+        parentId: "r1",
+        type: "api",
+        position: {
+          x: 50,
+          y: 50,
         },
-        "data": {
-          "label": "Next.js App Router"
-        }
+        data: {
+          label: "Headless CMS",
+        },
       },
       {
-        "id": "n5",
-        "parentId": "r1",
-        "type": "logic",
-        "position": {
-          "x": 250,
-          "y": 200
+        id: "n5",
+        parentId: "r1",
+        type: "database",
+        position: {
+          x: 250,
+          y: 50,
         },
-        "data": {
-          "label": "Server Actions"
-        }
+        data: {
+          label: "Content DB",
+        },
       },
       {
-        "id": "n6",
-        "parentId": "r1",
-        "type": "api",
-        "position": {
-          "x": 250,
-          "y": 350
+        id: "n6",
+        parentId: "r1",
+        type: "github_actions",
+        position: {
+          x: 50,
+          y: 200,
         },
-        "data": {
-          "label": "API Routes"
-        }
+        data: {
+          label: "Static Builder",
+        },
       },
       {
-        "id": "n7",
-        "parentId": "r1",
-        "type": "cache",
-        "position": {
-          "x": 400,
-          "y": 200
+        id: "n7",
+        parentId: "r1",
+        type: "storage",
+        position: {
+          x: 250,
+          y: 200,
         },
-        "data": {
-          "label": "KV Cache"
-        }
+        data: {
+          label: "Object Storage",
+        },
       },
-      {
-        "id": "n8",
-        "type": "auth0",
-        "position": {
-          "x": 900,
-          "y": 100
-        },
-        "data": {
-          "label": "Auth0 Identity"
-        }
-      },
-      {
-        "id": "n9",
-        "type": "database",
-        "position": {
-          "x": 900,
-          "y": 400
-        },
-        "data": {
-          "label": "PlanetScale DB"
-        }
-      }
     ],
-    "edges": [
+    edges: [
       {
-        "id": "e1",
-        "source": "n2",
-        "target": "n3",
-        "animated": true
+        id: "e1",
+        source: "n2",
+        target: "n3",
       },
       {
-        "id": "e2",
-        "source": "n3",
-        "target": "n4"
+        id: "e2",
+        source: "n4",
+        target: "n5",
       },
       {
-        "id": "e3",
-        "source": "n3",
-        "target": "n5",
-        "animated": true
+        id: "e3",
+        source: "n4",
+        target: "n6",
+        animated: true,
+        style: {
+          strokeDasharray: "5,5",
+        },
       },
       {
-        "id": "e4",
-        "source": "n3",
-        "target": "n6",
-        "animated": true
+        id: "e4",
+        source: "n6",
+        target: "n7",
+        animated: true,
       },
       {
-        "id": "e5",
-        "source": "n5",
-        "target": "n7"
+        id: "e5",
+        source: "n7",
+        target: "n3",
       },
-      {
-        "id": "e6",
-        "source": "n6",
-        "target": "n7"
-      },
-      {
-        "id": "e7",
-        "source": "n5",
-        "target": "n8",
-        "style": {
-          "strokeDasharray": "5,5"
-        }
-      },
-      {
-        "id": "e8",
-        "source": "n6",
-        "target": "n8",
-        "style": {
-          "strokeDasharray": "5,5"
-        }
-      },
-      {
-        "id": "e9",
-        "source": "n5",
-        "target": "n9",
-        "animated": true
-      },
-      {
-        "id": "e10",
-        "source": "n6",
-        "target": "n9",
-        "animated": true
-      }
-    ]
+    ],
   },
   {
-    "id": "real-time-streaming",
-    "title": "Streaming Pipe",
-    "description": "High-throughput streaming pipeline using Kafka, Clickhouse, and Grafana.",
-    "category": "Data Pipelines",
-    "nodes": [
+    id: "nextjs-app-router",
+    title: "NextJS Auth0",
+    description:
+      "Next.js App Router with PostgreSQL database and Auth0 identity.",
+    category: "Full-Stack",
+    nodes: [
       {
-        "id": "n1",
-        "type": "annotation",
-        "position": {
-          "x": 0,
-          "y": -100
+        id: "n1",
+        type: "annotation",
+        position: {
+          x: 0,
+          y: -100,
         },
-        "width": 500,
-        "height": 100,
-        "data": {
-          "label": "## Real-time Telemetry Streaming\nHigh-throughput streaming pipeline using Kafka, Clickhouse, and Grafana."
-        }
+        width: 400,
+        height: 100,
+        data: {
+          label:
+            "## Next.js + Auth0 + PlanetScale\nModern enterprise-grade React stack.",
+        },
       },
       {
-        "id": "n2",
-        "type": "app",
-        "position": {
-          "x": 0,
-          "y": 250
+        id: "n2",
+        type: "user",
+        position: {
+          x: 0,
+          y: 250,
         },
-        "data": {
-          "label": "IoT Devices"
-        }
+        data: {
+          label: "Web Client",
+        },
       },
       {
-        "id": "n3",
-        "type": "gateway",
-        "position": {
-          "x": 200,
-          "y": 250
+        id: "r1",
+        type: "region",
+        position: {
+          x: 250,
+          y: 50,
         },
-        "data": {
-          "label": "Telemetry Ingestion"
-        }
+        width: 550,
+        height: 450,
+        data: {
+          label: "Vercel Infrastructure",
+        },
       },
       {
-        "id": "r1",
-        "type": "region",
-        "position": {
-          "x": 450,
-          "y": 50
+        id: "n3",
+        parentId: "r1",
+        type: "cdn",
+        position: {
+          x: 50,
+          y: 200,
         },
-        "width": 550,
-        "height": 450,
-        "data": {
-          "label": "Data Platform"
-        }
+        data: {
+          label: "Edge CDN",
+        },
       },
       {
-        "id": "n4",
-        "parentId": "r1",
-        "type": "bus",
-        "position": {
-          "x": 50,
-          "y": 200
+        id: "n4",
+        parentId: "r1",
+        type: "app",
+        position: {
+          x: 250,
+          y: 50,
         },
-        "data": {
-          "label": "Kafka Cluster"
-        }
+        data: {
+          label: "Next.js App Router",
+        },
       },
       {
-        "id": "n5",
-        "parentId": "r1",
-        "type": "worker",
-        "position": {
-          "x": 250,
-          "y": 50
+        id: "n5",
+        parentId: "r1",
+        type: "logic",
+        position: {
+          x: 250,
+          y: 200,
         },
-        "data": {
-          "label": "Flink Streaming"
-        }
+        data: {
+          label: "Server Actions",
+        },
       },
       {
-        "id": "n6",
-        "parentId": "r1",
-        "type": "worker",
-        "position": {
-          "x": 250,
-          "y": 350
+        id: "n6",
+        parentId: "r1",
+        type: "api",
+        position: {
+          x: 250,
+          y: 350,
         },
-        "data": {
-          "label": "Kafka Connect"
-        }
+        data: {
+          label: "API Routes",
+        },
       },
       {
-        "id": "n7",
-        "parentId": "r1",
-        "type": "clickhouse",
-        "position": {
-          "x": 400,
-          "y": 200
+        id: "n7",
+        parentId: "r1",
+        type: "cache",
+        position: {
+          x: 400,
+          y: 200,
         },
-        "data": {
-          "label": "Clickhouse OLAP"
-        }
+        data: {
+          label: "KV Cache",
+        },
       },
       {
-        "id": "n8",
-        "type": "grafana",
-        "position": {
-          "x": 1100,
-          "y": 250
+        id: "n8",
+        type: "auth0",
+        position: {
+          x: 900,
+          y: 100,
         },
-        "data": {
-          "label": "Grafana Dashboards"
-        }
-      }
+        data: {
+          label: "Auth0 Identity",
+        },
+      },
+      {
+        id: "n9",
+        type: "database",
+        position: {
+          x: 900,
+          y: 400,
+        },
+        data: {
+          label: "PlanetScale DB",
+        },
+      },
     ],
-    "edges": [
+    edges: [
       {
-        "id": "e1",
-        "source": "n2",
-        "target": "n3",
-        "animated": true
+        id: "e1",
+        source: "n2",
+        target: "n3",
+        animated: true,
       },
       {
-        "id": "e2",
-        "source": "n3",
-        "target": "n4",
-        "animated": true
+        id: "e2",
+        source: "n3",
+        target: "n4",
       },
       {
-        "id": "e3",
-        "source": "n4",
-        "target": "n5",
-        "animated": true
+        id: "e3",
+        source: "n3",
+        target: "n5",
+        animated: true,
       },
       {
-        "id": "e4",
-        "source": "n5",
-        "target": "n4",
-        "animated": true
+        id: "e4",
+        source: "n3",
+        target: "n6",
+        animated: true,
       },
       {
-        "id": "e5",
-        "source": "n4",
-        "target": "n6",
-        "animated": true
+        id: "e5",
+        source: "n5",
+        target: "n7",
       },
       {
-        "id": "e6",
-        "source": "n6",
-        "target": "n7",
-        "animated": true
+        id: "e6",
+        source: "n6",
+        target: "n7",
       },
       {
-        "id": "e7",
-        "source": "n5",
-        "target": "n7",
-        "animated": true
+        id: "e7",
+        source: "n5",
+        target: "n8",
+        style: {
+          strokeDasharray: "5,5",
+        },
       },
       {
-        "id": "e8",
-        "source": "n7",
-        "target": "n8"
-      }
-    ]
+        id: "e8",
+        source: "n6",
+        target: "n8",
+        style: {
+          strokeDasharray: "5,5",
+        },
+      },
+      {
+        id: "e9",
+        source: "n5",
+        target: "n9",
+        animated: true,
+      },
+      {
+        id: "e10",
+        source: "n6",
+        target: "n9",
+        animated: true,
+      },
+    ],
   },
   {
-    "id": "batch-processing",
-    "title": "Batch Processing",
-    "description": "Daily batch processing pipeline pulling from S3 into Snowflake.",
-    "category": "Data Pipelines",
-    "nodes": [
+    id: "real-time-streaming",
+    title: "Streaming Pipe",
+    description:
+      "High-throughput streaming pipeline using Kafka, Clickhouse, and Grafana.",
+    category: "Data Pipelines",
+    nodes: [
       {
-        "id": "n1",
-        "type": "annotation",
-        "position": {
-          "x": 0,
-          "y": -100
+        id: "n1",
+        type: "annotation",
+        position: {
+          x: 0,
+          y: -100,
         },
-        "width": 500,
-        "height": 100,
-        "data": {
-          "label": "## Nightly Batch Processing\nExtract, Transform, Load (ETL) pipeline with Spark and S3."
-        }
+        width: 500,
+        height: 100,
+        data: {
+          label:
+            "## Real-time Telemetry Streaming\nHigh-throughput streaming pipeline using Kafka, Clickhouse, and Grafana.",
+        },
       },
       {
-        "id": "n2",
-        "type": "database",
-        "position": {
-          "x": 0,
-          "y": 250
+        id: "n2",
+        type: "app",
+        position: {
+          x: 0,
+          y: 250,
         },
-        "data": {
-          "label": "App DB (MySQL)"
-        }
+        data: {
+          label: "IoT Devices",
+        },
       },
       {
-        "id": "n3",
-        "type": "api",
-        "position": {
-          "x": 0,
-          "y": 400
+        id: "n3",
+        type: "gateway",
+        position: {
+          x: 200,
+          y: 250,
         },
-        "data": {
-          "label": "Sales API"
-        }
+        data: {
+          label: "Telemetry Ingestion",
+        },
       },
       {
-        "id": "r1",
-        "type": "region",
-        "position": {
-          "x": 250,
-          "y": 50
+        id: "r1",
+        type: "region",
+        position: {
+          x: 450,
+          y: 50,
         },
-        "width": 600,
-        "height": 550,
-        "data": {
-          "label": "AWS Big Data Setup"
-        }
+        width: 550,
+        height: 450,
+        data: {
+          label: "Data Platform",
+        },
       },
       {
-        "id": "n4",
-        "parentId": "r1",
-        "type": "logic",
-        "position": {
-          "x": 50,
-          "y": 50
+        id: "n4",
+        parentId: "r1",
+        type: "bus",
+        position: {
+          x: 50,
+          y: 200,
         },
-        "data": {
-          "label": "AWS Step Functions"
-        }
+        data: {
+          label: "Kafka Cluster",
+        },
       },
       {
-        "id": "n5",
-        "parentId": "r1",
-        "type": "storage",
-        "position": {
-          "x": 50,
-          "y": 200
+        id: "n5",
+        parentId: "r1",
+        type: "worker",
+        position: {
+          x: 250,
+          y: 50,
         },
-        "data": {
-          "label": "S3 Raw Zone"
-        }
+        data: {
+          label: "Flink Streaming",
+        },
       },
       {
-        "id": "n6",
-        "parentId": "r1",
-        "type": "worker",
-        "position": {
-          "x": 250,
-          "y": 200
+        id: "n6",
+        parentId: "r1",
+        type: "worker",
+        position: {
+          x: 250,
+          y: 350,
         },
-        "data": {
-          "label": "EMR Spark Cluster"
-        }
+        data: {
+          label: "Kafka Connect",
+        },
       },
       {
-        "id": "n7",
-        "parentId": "r1",
-        "type": "storage",
-        "position": {
-          "x": 450,
-          "y": 200
+        id: "n7",
+        parentId: "r1",
+        type: "clickhouse",
+        position: {
+          x: 400,
+          y: 200,
         },
-        "data": {
-          "label": "S3 Curated Zone"
-        }
+        data: {
+          label: "Clickhouse OLAP",
+        },
       },
       {
-        "id": "n8",
-        "parentId": "r1",
-        "type": "database",
-        "position": {
-          "x": 450,
-          "y": 400
+        id: "n8",
+        type: "grafana",
+        position: {
+          x: 1100,
+          y: 250,
         },
-        "data": {
-          "label": "Redshift DWH"
-        }
+        data: {
+          label: "Grafana Dashboards",
+        },
       },
-      {
-        "id": "n9",
-        "type": "note",
-        "position": {
-          "x": 900,
-          "y": 250
-        },
-        "width": 300,
-        "height": 150,
-        "data": {
-          "label": "Spark jobs process the data and write Parquet files to the Curated Zone."
-        }
-      }
     ],
-    "edges": [
+    edges: [
       {
-        "id": "e1",
-        "source": "n2",
-        "target": "n5"
+        id: "e1",
+        source: "n2",
+        target: "n3",
+        animated: true,
       },
       {
-        "id": "e2",
-        "source": "n3",
-        "target": "n5"
+        id: "e2",
+        source: "n3",
+        target: "n4",
+        animated: true,
       },
       {
-        "id": "e3",
-        "source": "n4",
-        "target": "n6",
-        "style": {
-          "strokeDasharray": "5,5"
-        }
+        id: "e3",
+        source: "n4",
+        target: "n5",
+        animated: true,
       },
       {
-        "id": "e4",
-        "source": "n5",
-        "target": "n6",
-        "animated": true
+        id: "e4",
+        source: "n5",
+        target: "n4",
+        animated: true,
       },
       {
-        "id": "e5",
-        "source": "n6",
-        "target": "n7",
-        "animated": true
+        id: "e5",
+        source: "n4",
+        target: "n6",
+        animated: true,
       },
       {
-        "id": "e6",
-        "source": "n7",
-        "target": "n8"
-      }
-    ]
+        id: "e6",
+        source: "n6",
+        target: "n7",
+        animated: true,
+      },
+      {
+        id: "e7",
+        source: "n5",
+        target: "n7",
+        animated: true,
+      },
+      {
+        id: "e8",
+        source: "n7",
+        target: "n8",
+      },
+    ],
   },
   {
-    "id": "log-analytics",
-    "title": "Log Analytics",
-    "description": "Centralized logging with Elasticsearch and Kibana for fast operational insights.",
-    "category": "Data Pipelines",
-    "nodes": [
+    id: "batch-processing",
+    title: "Batch Processing",
+    description:
+      "Daily batch processing pipeline pulling from S3 into Snowflake.",
+    category: "Data Pipelines",
+    nodes: [
       {
-        "id": "n1",
-        "type": "annotation",
-        "position": {
-          "x": 0,
-          "y": -100
+        id: "n1",
+        type: "annotation",
+        position: {
+          x: 0,
+          y: -100,
         },
-        "width": 400,
-        "height": 100,
-        "data": {
-          "label": "## ELK Log Analytics Stack\nCentralized logging and operational metrics."
-        }
+        width: 500,
+        height: 100,
+        data: {
+          label:
+            "## Nightly Batch Processing\nExtract, Transform, Load (ETL) pipeline with Spark and S3.",
+        },
       },
       {
-        "id": "r1",
-        "type": "region",
-        "position": {
-          "x": 0,
-          "y": 100
+        id: "n2",
+        type: "database",
+        position: {
+          x: 0,
+          y: 250,
         },
-        "width": 300,
-        "height": 400,
-        "data": {
-          "label": "Application Cluster"
-        }
+        data: {
+          label: "App DB (MySQL)",
+        },
       },
       {
-        "id": "n2",
-        "parentId": "r1",
-        "type": "microservice",
-        "position": {
-          "x": 50,
-          "y": 50
+        id: "n3",
+        type: "api",
+        position: {
+          x: 0,
+          y: 400,
         },
-        "data": {
-          "label": "Frontend Pods"
-        }
+        data: {
+          label: "Sales API",
+        },
       },
       {
-        "id": "n3",
-        "parentId": "r1",
-        "type": "microservice",
-        "position": {
-          "x": 50,
-          "y": 200
+        id: "r1",
+        type: "region",
+        position: {
+          x: 250,
+          y: 50,
         },
-        "data": {
-          "label": "Backend Pods"
-        }
+        width: 600,
+        height: 550,
+        data: {
+          label: "AWS Big Data Setup",
+        },
       },
       {
-        "id": "r2",
-        "type": "region",
-        "position": {
-          "x": 400,
-          "y": 100
+        id: "n4",
+        parentId: "r1",
+        type: "logic",
+        position: {
+          x: 50,
+          y: 50,
         },
-        "width": 600,
-        "height": 400,
-        "data": {
-          "label": "Monitoring & Logging"
-        }
+        data: {
+          label: "AWS Step Functions",
+        },
       },
       {
-        "id": "n4",
-        "parentId": "r2",
-        "type": "worker",
-        "position": {
-          "x": 50,
-          "y": 120
+        id: "n5",
+        parentId: "r1",
+        type: "storage",
+        position: {
+          x: 50,
+          y: 200,
         },
-        "data": {
-          "label": "Fluentd/Logstash"
-        }
+        data: {
+          label: "S3 Raw Zone",
+        },
       },
       {
-        "id": "n5",
-        "parentId": "r2",
-        "type": "search",
-        "position": {
-          "x": 250,
-          "y": 120
+        id: "n6",
+        parentId: "r1",
+        type: "worker",
+        position: {
+          x: 250,
+          y: 200,
         },
-        "data": {
-          "label": "Elasticsearch Cluster"
-        }
+        data: {
+          label: "EMR Spark Cluster",
+        },
       },
       {
-        "id": "n6",
-        "parentId": "r2",
-        "type": "grafana",
-        "position": {
-          "x": 450,
-          "y": 50
+        id: "n7",
+        parentId: "r1",
+        type: "storage",
+        position: {
+          x: 450,
+          y: 200,
         },
-        "data": {
-          "label": "Kibana Dashboard"
-        }
+        data: {
+          label: "S3 Curated Zone",
+        },
       },
       {
-        "id": "n7",
-        "parentId": "r2",
-        "type": "prometheus",
-        "position": {
-          "x": 250,
-          "y": 250
+        id: "n8",
+        parentId: "r1",
+        type: "database",
+        position: {
+          x: 450,
+          y: 400,
         },
-        "data": {
-          "label": "Prometheus Metrics"
-        }
+        data: {
+          label: "Redshift DWH",
+        },
       },
       {
-        "id": "n8",
-        "parentId": "r2",
-        "type": "grafana",
-        "position": {
-          "x": 450,
-          "y": 250
+        id: "n9",
+        type: "note",
+        position: {
+          x: 900,
+          y: 250,
         },
-        "data": {
-          "label": "Grafana"
-        }
-      }
+        width: 300,
+        height: 150,
+        data: {
+          label:
+            "Spark jobs process the data and write Parquet files to the Curated Zone.",
+        },
+      },
     ],
-    "edges": [
+    edges: [
       {
-        "id": "e1",
-        "source": "n2",
-        "target": "n4",
-        "animated": true
+        id: "e1",
+        source: "n2",
+        target: "n5",
       },
       {
-        "id": "e2",
-        "source": "n3",
-        "target": "n4",
-        "animated": true
+        id: "e2",
+        source: "n3",
+        target: "n5",
       },
       {
-        "id": "e3",
-        "source": "n2",
-        "target": "n7",
-        "animated": true,
-        "style": {
-          "strokeDasharray": "5,5"
-        }
+        id: "e3",
+        source: "n4",
+        target: "n6",
+        style: {
+          strokeDasharray: "5,5",
+        },
       },
       {
-        "id": "e4",
-        "source": "n3",
-        "target": "n7",
-        "animated": true,
-        "style": {
-          "strokeDasharray": "5,5"
-        }
+        id: "e4",
+        source: "n5",
+        target: "n6",
+        animated: true,
       },
       {
-        "id": "e5",
-        "source": "n4",
-        "target": "n5",
-        "animated": true
+        id: "e5",
+        source: "n6",
+        target: "n7",
+        animated: true,
       },
       {
-        "id": "e6",
-        "source": "n5",
-        "target": "n6"
+        id: "e6",
+        source: "n7",
+        target: "n8",
+      },
+    ],
+  },
+  {
+    id: "log-analytics",
+    title: "Log Analytics",
+    description:
+      "Centralized logging with Elasticsearch and Kibana for fast operational insights.",
+    category: "Data Pipelines",
+    nodes: [
+      {
+        id: "n1",
+        type: "annotation",
+        position: {
+          x: 0,
+          y: -100,
+        },
+        width: 400,
+        height: 100,
+        data: {
+          label:
+            "## ELK Log Analytics Stack\nCentralized logging and operational metrics.",
+        },
       },
       {
-        "id": "e7",
-        "source": "n7",
-        "target": "n8"
-      }
-    ]
-  }
+        id: "r1",
+        type: "region",
+        position: {
+          x: 0,
+          y: 100,
+        },
+        width: 300,
+        height: 400,
+        data: {
+          label: "Application Cluster",
+        },
+      },
+      {
+        id: "n2",
+        parentId: "r1",
+        type: "microservice",
+        position: {
+          x: 50,
+          y: 50,
+        },
+        data: {
+          label: "Frontend Pods",
+        },
+      },
+      {
+        id: "n3",
+        parentId: "r1",
+        type: "microservice",
+        position: {
+          x: 50,
+          y: 200,
+        },
+        data: {
+          label: "Backend Pods",
+        },
+      },
+      {
+        id: "r2",
+        type: "region",
+        position: {
+          x: 400,
+          y: 100,
+        },
+        width: 600,
+        height: 400,
+        data: {
+          label: "Monitoring & Logging",
+        },
+      },
+      {
+        id: "n4",
+        parentId: "r2",
+        type: "worker",
+        position: {
+          x: 50,
+          y: 120,
+        },
+        data: {
+          label: "Fluentd/Logstash",
+        },
+      },
+      {
+        id: "n5",
+        parentId: "r2",
+        type: "search",
+        position: {
+          x: 250,
+          y: 120,
+        },
+        data: {
+          label: "Elasticsearch Cluster",
+        },
+      },
+      {
+        id: "n6",
+        parentId: "r2",
+        type: "grafana",
+        position: {
+          x: 450,
+          y: 50,
+        },
+        data: {
+          label: "Kibana Dashboard",
+        },
+      },
+      {
+        id: "n7",
+        parentId: "r2",
+        type: "prometheus",
+        position: {
+          x: 250,
+          y: 250,
+        },
+        data: {
+          label: "Prometheus Metrics",
+        },
+      },
+      {
+        id: "n8",
+        parentId: "r2",
+        type: "grafana",
+        position: {
+          x: 450,
+          y: 250,
+        },
+        data: {
+          label: "Grafana",
+        },
+      },
+    ],
+    edges: [
+      {
+        id: "e1",
+        source: "n2",
+        target: "n4",
+        animated: true,
+      },
+      {
+        id: "e2",
+        source: "n3",
+        target: "n4",
+        animated: true,
+      },
+      {
+        id: "e3",
+        source: "n2",
+        target: "n7",
+        animated: true,
+        style: {
+          strokeDasharray: "5,5",
+        },
+      },
+      {
+        id: "e4",
+        source: "n3",
+        target: "n7",
+        animated: true,
+        style: {
+          strokeDasharray: "5,5",
+        },
+      },
+      {
+        id: "e5",
+        source: "n4",
+        target: "n5",
+        animated: true,
+      },
+      {
+        id: "e6",
+        source: "n5",
+        target: "n6",
+      },
+      {
+        id: "e7",
+        source: "n7",
+        target: "n8",
+      },
+    ],
+  },
 ];
