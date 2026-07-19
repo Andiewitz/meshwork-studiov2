@@ -1,3 +1,9 @@
+# [1.10.0](https://github.com/Andiewitz/meshwork-studiov2/compare/v1.9.0...v1.10.0) (2026-07-19)
+
+### Features
+
+- **templates:** add Meshwork Target Stack microservice blueprint template ([cb0ba0d](https://github.com/Andiewitz/meshwork-studiov2/commit/cb0ba0d26fd7affd38b9593f974d2769098ee94a))
+
 # [1.9.0](https://github.com/Andiewitz/meshwork-studiov2/compare/v1.8.0...v1.9.0) (2026-07-12)
 
 ### Features
