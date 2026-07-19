@@ -176,6 +176,356 @@ Every node and edge carries an \`ai\` sub-object — never rendered directly in 
 A full Draft-07 JSON Schema covering every field, enum, and constraint lives at \`docs/canvas-schema.json\` in the repository. Integrate it with any JSON Schema validator (e.g. Ajv) to validate canvas payloads in CI pipelines, import tools, or external editors. The \`validateAndRepairCanvas\` runtime utility in \`client/src/lib/ai-canvas-utils.ts\` performs a repair pass instead of hard rejection — correcting types, deduplicating IDs, and placing orphaned nodes at safe fallback coordinates.
     `,
   },
+  {
+    id: 6,
+    title: "Working with JSON in Meshwork",
+    subtitle:
+      "Programmatically build, import, and manipulate diagrams using the Meshwork canvas JSON format.",
+    date: "July 20, 2026",
+    category: "Technical",
+    readTime: "14 min read",
+    author: "Meshwork Engineering",
+    content: `
+## Overview
+
+Every canvas in Meshwork is backed by a plain JSON document. You can write it by hand, generate it from code, or pipe it in from AI models — and Meshwork will render it faithfully. This guide walks through the full schema, every valid node type, edge options, nesting rules, and a complete worked example you can paste directly into the API.
+
+## The Top-Level Document
+
+\`\`\`json
+{
+  "nodes": [ ...Node[] ],
+  "edges": [ ...Edge[] ]
+}
+\`\`\`
+
+That's it. Two arrays. POST this to \`/api/v1/workspaces/:id/canvas\` and the canvas renders immediately.
+
+## Node Schema
+
+\`\`\`json
+{
+  "id": "string (required, unique)",
+  "type": "string (required, see type registry below)",
+  "position": { "x": 0, "y": 0 },
+  "data": {
+    "label": "Human-readable name",
+    "category": "optional grouping label",
+    "description": "optional longer description",
+    "provider": "optional e.g. 'postgresql', 'aws'",
+    "tags": ["optional", "string", "array"]
+  },
+  "style": {
+    "width": 192,
+    "height": 72,
+    "background": "#1a1a2e",
+    "border": "1px solid #444",
+    "opacity": 1,
+    "fontSize": 13
+  },
+  "parentId": "optional — ID of a container node",
+  "extent": "parent"
+}
+\`\`\`
+
+> [!IMPORTANT]
+> \`id\` must be globally unique within a document. Duplicate IDs will be automatically deduplicated by the repair utility — the second occurrence gets a \`_dup\` suffix appended.
+
+## Complete Node Type Registry
+
+Meshwork has three groups of node types.
+
+### Core (17 types — cover ~95% of diagrams)
+
+| Type | Visual Label | Use For |
+|---|---|---|
+| \`server\` | Server | Any backend process, VM, EC2 instance |
+| \`database\` | Database | Any SQL/NoSQL database (Postgres, MySQL, Mongo) |
+| \`cache\` | Redis | In-memory stores, Redis, Memcached |
+| \`gateway\` | API Gateway | API gateways, reverse proxies, entry points |
+| \`loadBalancer\` | Load Balancer | ALB, NLB, NGINX upstream |
+| \`microservice\` | Docker | Containerised services, pods |
+| \`worker\` | Worker | Background jobs, Celery, BullMQ workers |
+| \`logic\` | Lambda | Serverless functions, AWS Lambda, Edge Functions |
+| \`queue\` | Queue | SQS, RabbitMQ, AMQP |
+| \`bus\` | Kafka | Event buses, Kafka, NATS JetStream |
+| \`storage\` | Storage (S3) | Object stores, S3, GCS, Azure Blob |
+| \`cdn\` | CDN | Cloudflare, CloudFront, Fastly |
+| \`vpc\` | VPC | Network boundary containers |
+| \`region\` | Region | Geographic or logical grouping containers |
+| \`user\` | User | End users, external actors |
+| \`app\` | Client App | Frontend apps, mobile clients |
+| \`api\` | External API | Third-party APIs and webhooks |
+
+### Vendor-Specific (14 types)
+
+| Type | Renders As |
+|---|---|
+| \`search\` | Elasticsearch |
+| \`influxdb\` | InfluxDB |
+| \`snowflake\` | Snowflake |
+| \`clickhouse\` | ClickHouse |
+| \`route53\` | AWS Route 53 |
+| \`nats\` | NATS |
+| \`socketio\` | Socket.io |
+| \`github_actions\` | GitHub Actions |
+| \`jenkins\` | Jenkins |
+| \`gitlab\` | GitLab CI |
+| \`argocd\` | Argo CD |
+| \`vault\` | HashiCorp Vault |
+| \`auth0\` | Auth0 |
+| \`waf\` | WAF |
+| \`prometheus\` | Prometheus |
+| \`grafana\` | Grafana |
+| \`datadog\` | Datadog |
+| \`stripe\` | Stripe |
+| \`twilio\` | Twilio |
+| \`shopify\` | Shopify |
+
+### Annotation & Layout Types
+
+| Type | Use For |
+|---|---|
+| \`annotation\` | Markdown headers rendered above diagrams — supports \`## H2\` syntax |
+| \`note\` | Inline sticky notes with plain text or markdown |
+| \`junction\` | Invisible routing point for edge bundling |
+| \`k8s-pod\` | Kubernetes Pod |
+| \`k8s-deployment\` | Kubernetes Deployment |
+| \`k8s-replicaset\` | Kubernetes ReplicaSet |
+| \`k8s-statefulset\` | Kubernetes StatefulSet |
+| \`k8s-daemonset\` | Kubernetes DaemonSet |
+| \`k8s-service\` | Kubernetes Service |
+| \`k8s-ingress\` | Kubernetes Ingress |
+| \`k8s-configmap\` | Kubernetes ConfigMap |
+| \`k8s-secret\` | Kubernetes Secret |
+| \`k8s-pvc\` | Kubernetes PVC |
+| \`k8s-job\` | Kubernetes Job |
+| \`k8s-cronjob\` | Kubernetes CronJob |
+| \`k8s-hpa\` | Kubernetes HPA |
+| \`k8s-namespace\` | Kubernetes Namespace (container) |
+
+## Type Aliases — Flexible Input
+
+The renderer accepts common aliases and normalises them automatically. You don't need to memorise the exact type keys:
+
+| You write | Meshwork renders |
+|---|---|
+| \`postgres\`, \`postgresql\`, \`mysql\`, \`mongodb\` | \`database\` |
+| \`redis\`, \`memcached\` | \`cache\` |
+| \`nginx\`, \`haproxy\` | \`loadBalancer\` |
+| \`lambda\`, \`function\`, \`serverless\` | \`logic\` |
+| \`kafka\`, \`eventbridge\`, \`pubsub\` | \`bus\` |
+| \`s3\`, \`gcs\`, \`blob\` | \`storage\` |
+| \`cloudflare\`, \`cloudfront\` | \`cdn\` |
+| \`docker\`, \`container\`, \`service\` | \`microservice\` |
+| \`elasticsearch\`, \`opensearch\` | \`search\` |
+| \`anything unknown\` | \`server\` (fallback) |
+
+## Edge Schema
+
+\`\`\`json
+{
+  "id": "e-unique-id",
+  "source": "source-node-id",
+  "target": "target-node-id",
+  "type": "smoothstep",
+  "label": "gRPC",
+  "animated": true,
+  "style": {
+    "stroke": "#6366f1",
+    "strokeWidth": 2,
+    "strokeDasharray": "5,5"
+  },
+  "markerEnd": {
+    "type": "arrowclosed",
+    "color": "#6366f1"
+  },
+  "data": {
+    "label": "gRPC",
+    "description": "Internal service call"
+  }
+}
+\`\`\`
+
+**Edge type options:**
+- \`smoothstep\` — rounded right-angle routing (default, recommended)
+- \`step\` — sharp right-angle routing
+- \`bezier\` — curved spline
+- \`straight\` — direct line
+
+**Using \`animated: true\`** renders marching-ant dashes, indicating active data flow. Use it for real-time connections, streams, and event buses.
+
+**Using \`strokeDasharray: "5,5"\`** renders a static dashed line — ideal for async or gRPC calls.
+
+## Nesting Nodes Inside Containers
+
+Container types (\`vpc\`, \`region\`, \`k8s-namespace\`, \`app\`, \`microservice\`, \`server\`) can hold child nodes. To nest a node:
+
+1. Give the container a large enough \`style.width\` / \`style.height\`
+2. Set \`parentId\` on each child to the container's \`id\`
+3. Set \`extent: "parent"\` on each child
+4. Use coordinates relative to the container's top-left corner (not global canvas)
+
+\`\`\`json
+{
+  "id": "vpc-prod",
+  "type": "vpc",
+  "position": { "x": 100, "y": 100 },
+  "style": { "width": 500, "height": 400 },
+  "data": { "label": "Production VPC" }
+},
+{
+  "id": "api-svc",
+  "type": "gateway",
+  "parentId": "vpc-prod",
+  "extent": "parent",
+  "position": { "x": 50, "y": 80 },
+  "data": { "label": "API Gateway" }
+}
+\`\`\`
+
+> [!NOTE]
+> Containers must appear **before** their children in the \`nodes\` array. Order matters for the renderer to correctly resolve parent dimensions before mounting children.
+
+## Annotations & Notes
+
+Use \`annotation\` nodes to add section headers to diagrams. The \`label\` field supports markdown headings:
+
+\`\`\`json
+{
+  "id": "header",
+  "type": "annotation",
+  "position": { "x": 0, "y": -120 },
+  "width": 600,
+  "height": 100,
+  "data": {
+    "label": "## My Architecture\\nBuilt for scale and resilience."
+  }
+}
+\`\`\`
+
+Use \`note\` nodes for inline callouts and commentary anywhere on the canvas.
+
+## Complete Worked Example
+
+A minimal three-tier web app in pure JSON — paste this directly into the canvas API:
+
+\`\`\`json
+{
+  "nodes": [
+    {
+      "id": "header",
+      "type": "annotation",
+      "position": { "x": 50, "y": -100 },
+      "width": 500, "height": 80,
+      "data": { "label": "## Three-Tier Web App" }
+    },
+    {
+      "id": "client",
+      "type": "user",
+      "position": { "x": 200, "y": 0 },
+      "data": { "label": "Browser Client" }
+    },
+    {
+      "id": "cdn",
+      "type": "cdn",
+      "position": { "x": 200, "y": 120 },
+      "data": { "label": "Cloudflare CDN" }
+    },
+    {
+      "id": "lb",
+      "type": "loadBalancer",
+      "position": { "x": 200, "y": 240 },
+      "data": { "label": "NGINX Proxy" }
+    },
+    {
+      "id": "api",
+      "type": "gateway",
+      "position": { "x": 200, "y": 360 },
+      "data": { "label": "API Gateway" }
+    },
+    {
+      "id": "svc",
+      "type": "microservice",
+      "position": { "x": 50, "y": 500 },
+      "data": { "label": "App Service" }
+    },
+    {
+      "id": "db",
+      "type": "database",
+      "position": { "x": 350, "y": 500 },
+      "data": { "label": "PostgreSQL", "provider": "postgresql" }
+    },
+    {
+      "id": "cache",
+      "type": "cache",
+      "position": { "x": 50, "y": 680 },
+      "data": { "label": "Redis Cache" }
+    }
+  ],
+  "edges": [
+    { "id": "e1", "source": "client", "target": "cdn", "animated": true },
+    { "id": "e2", "source": "cdn", "target": "lb", "animated": true },
+    { "id": "e3", "source": "lb", "target": "api", "animated": true },
+    { "id": "e4", "source": "api", "target": "svc" },
+    { "id": "e5", "source": "svc", "target": "db" },
+    {
+      "id": "e6", "source": "svc", "target": "cache",
+      "label": "cache lookup",
+      "style": { "strokeDasharray": "5,5" }
+    }
+  ]
+}
+\`\`\`
+
+## Generating JSON Programmatically
+
+Since it's just JSON, any language works:
+
+\`\`\`typescript
+// TypeScript example — generate a service mesh diagram
+const services = ["auth", "workspace", "mosh", "mcp", "worker"];
+
+const nodes = services.map((name, i) => ({
+  id: \`svc-\${name}\`,
+  type: "microservice",
+  position: { x: i * 200, y: 0 },
+  data: { label: \`\${name.charAt(0).toUpperCase() + name.slice(1)} Service\` },
+}));
+
+const edges = services.slice(1).map((name) => ({
+  id: \`e-\${name}-auth\`,
+  source: \`svc-\${name}\`,
+  target: "svc-auth",
+  label: "gRPC",
+  style: { strokeDasharray: "5,5" },
+}));
+
+const canvas = { nodes, edges };
+
+await fetch(\`/api/v1/workspaces/\${workspaceId}/canvas\`, {
+  method: "POST",
+  headers: { "Content-Type": "application/json" },
+  body: JSON.stringify(canvas),
+});
+\`\`\`
+
+## Validation & Error Handling
+
+The canvas API runs the \`validateAndRepairCanvas\` pass on every import. Rather than rejecting malformed JSON, it heals it:
+
+- Unknown \`type\` values fall back to \`server\`
+- Duplicate \`id\` values get a \`_dup\` suffix
+- Nodes missing \`position\` are placed at \`{ x: 0, y: 0 }\`
+- Edges referencing nonexistent node IDs are silently dropped
+- Non-canonical \`width\`/\`height\` values are reset to type defaults
+
+This means AI-generated JSON — which is often slightly malformed — renders correctly without manual fixup.
+
+> [!TIP]
+> To validate your JSON before sending it, use the \`validateAndRepairCanvas\` function directly. Import it from \`@/lib/ai-canvas-utils\` in the client, or run it via the Node.js backend in a pre-import step.
+    `,
+  },
 ];
 
 // Helper to extract headings from markdown for the right-side TOC
