@@ -1,3 +1,9 @@
+# [1.11.0](https://github.com/Andiewitz/meshwork-studiov2/compare/v1.10.0...v1.11.0) (2026-07-19)
+
+### Features
+
+- **templates:** replace Data Analytics template with Meshwork Target Stack template ([326ef06](https://github.com/Andiewitz/meshwork-studiov2/commit/326ef06b61545709cc23465337d4a838b8790d80))
+
 # [1.10.0](https://github.com/Andiewitz/meshwork-studiov2/compare/v1.9.0...v1.10.0) (2026-07-19)
 
 ### Features
