@@ -71,7 +71,7 @@ export async function registerRoutes(
   TeamModule.initialize(app, context);
 
   // Initialize Metrics Module (background collector + history API)
-  await MetricsModule.initialize(app);
+  await MetricsModule.initialize(app, context);
 
   log.info("All modules initialized");
 

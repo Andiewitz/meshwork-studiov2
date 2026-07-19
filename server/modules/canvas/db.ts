@@ -1,28 +1,21 @@
-import { drizzle } from "drizzle-orm/node-postgres";
-import pg from "pg";
-import * as schema from "@shared/schema";
+/**
+ * Canvas module database access.
+ * Uses the shared server-wide pool from server/lib/db.
+ */
+import { db, pool } from "../../lib/db";
 import { createChildLogger } from "../../lib/logger";
 
 const log = createChildLogger("canvas-db");
 
-const { Pool } = pg;
+export { db, pool };
 
-const connectionString = process.env.WORKSPACE_DATABASE_URL || process.env.DATABASE_URL;
-
-if (!connectionString) {
-    log.warn("WORKSPACE_DATABASE_URL not set, falling back to in-memory mode if configured");
-}
-
-export const pool = new Pool({ connectionString: connectionString || "postgres://" });
-export const db = drizzle(pool, { schema });
-
-// Create tables if they don't exist
+// Create canvas-domain tables if they don't exist.
 async function createTables() {
-    if (!connectionString) return;
+  if (!process.env.DATABASE_URL) return;
 
-    try {
-        // Create nodes table for canvas elements
-        await pool.query(`
+  try {
+    // Create nodes table for canvas elements
+    await pool.query(`
             CREATE TABLE IF NOT EXISTS nodes (
                 id TEXT NOT NULL,
                 workspace_id INTEGER NOT NULL,
@@ -34,8 +27,8 @@ async function createTables() {
                 PRIMARY KEY (id, workspace_id)
             );
         `);
-        // Migration: Ensure the composite unique constraint exists if the table was created with only 'id' as PK
-        await pool.query(`
+    // Migration: Ensure the composite unique constraint exists if the table was created with only 'id' as PK
+    await pool.query(`
             DO $$ 
             BEGIN 
                 IF EXISTS (
@@ -50,10 +43,10 @@ async function createTables() {
                 END IF;
             END $$;
         `);
-        log.info("Nodes table created/verified");
+    log.info("Nodes table created/verified");
 
-        // Create edges table for connections
-        await pool.query(`
+    // Create edges table for connections
+    await pool.query(`
             CREATE TABLE IF NOT EXISTS edges (
                 id TEXT NOT NULL,
                 workspace_id INTEGER NOT NULL,
@@ -67,8 +60,8 @@ async function createTables() {
                 PRIMARY KEY (id, workspace_id)
             );
         `);
-        // Migration: Ensure the composite unique constraint exists if the table was created with only 'id' as PK
-        await pool.query(`
+    // Migration: Ensure the composite unique constraint exists if the table was created with only 'id' as PK
+    await pool.query(`
             DO $$ 
             BEGIN 
                 IF EXISTS (
@@ -83,10 +76,10 @@ async function createTables() {
                 END IF;
             END $$;
         `);
-        log.info("Edges table created/verified");
+    log.info("Edges table created/verified");
 
-        // Safe column migrations - ADD COLUMN IF NOT EXISTS is idempotent
-        await pool.query(`
+    // Safe column migrations - ADD COLUMN IF NOT EXISTS is idempotent
+    await pool.query(`
             ALTER TABLE nodes ADD COLUMN IF NOT EXISTS style JSONB;
             ALTER TABLE nodes ADD COLUMN IF NOT EXISTS width INTEGER;
             ALTER TABLE nodes ADD COLUMN IF NOT EXISTS height INTEGER;
@@ -95,11 +88,10 @@ async function createTables() {
             ALTER TABLE edges ADD COLUMN IF NOT EXISTS style JSONB;
             ALTER TABLE edges ADD COLUMN IF NOT EXISTS marker_end JSONB;
         `);
-        log.info("Canvas table columns migrated (style, dimensions)");
-
-    } catch (err) {
-        log.error({ err }, "Failed to create tables");
-    }
+    log.info("Canvas table columns migrated (style, dimensions)");
+  } catch (err) {
+    log.error({ err }, "Failed to create tables");
+  }
 }
 
 createTables();

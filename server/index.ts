@@ -3,7 +3,7 @@ import { logger, createChildLogger } from "./lib/logger";
 const log = createChildLogger("server");
 log.info("Starting initialization phase 0...");
 import express, { type Request, Response, NextFunction } from "express";
-import { db } from "./modules/workspace/db";
+import { db } from "./lib/db";
 import { sql } from "drizzle-orm";
 import { registerRoutes } from "./routes";
 import { serveStatic } from "./static";

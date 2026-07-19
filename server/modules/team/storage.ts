@@ -1,4 +1,4 @@
-import { db } from "../workspace/db";
+import { db } from "../../lib/db";
 import {
   teams,
   teamMembers,

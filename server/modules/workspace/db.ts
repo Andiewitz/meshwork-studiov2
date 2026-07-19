@@ -1,31 +1,26 @@
-import { drizzle } from "drizzle-orm/node-postgres";
-import pg from "pg";
-import * as schema from "@shared/schema";
+/**
+ * Workspace module database access.
+ * Uses the shared server-wide pool from server/lib/db.
+ */
+import { db, pool } from "../../lib/db";
 import { createChildLogger } from "../../lib/logger";
 
 const log = createChildLogger("workspace-db");
 
-const { Pool } = pg;
+export { db, pool };
 
-const connectionString = process.env.WORKSPACE_DATABASE_URL || process.env.DATABASE_URL;
-
-if (!connectionString) {
-    log.warn("WORKSPACE_DATABASE_URL not set, falling back to in-memory mode if configured");
-}
-
-export const pool = new Pool({ connectionString: connectionString || "postgres://" });
-export const db = drizzle(pool, { schema });
-
-// Create tables if they don't exist
+// Create workspace-domain tables if they don't exist.
+// NOTE: Teams/team_members DDL has been removed — those tables are the
+// responsibility of the team module.
 async function createTables() {
-    if (!connectionString) return;
+  if (!process.env.DATABASE_URL) return;
 
-    try {
-        // Enable pgcrypto for gen_random_uuid()
-        await pool.query(`CREATE EXTENSION IF NOT EXISTS pgcrypto;`);
+  try {
+    // Enable pgcrypto for gen_random_uuid()
+    await pool.query(`CREATE EXTENSION IF NOT EXISTS pgcrypto;`);
 
-        // Create collections table for workspace organization
-        await pool.query(`
+    // Create collections table for workspace organization
+    await pool.query(`
             CREATE TABLE IF NOT EXISTS collections (
                 id SERIAL PRIMARY KEY,
                 title TEXT NOT NULL,
@@ -35,10 +30,10 @@ async function createTables() {
                 created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
             );
         `);
-        log.info("Collections table created/verified");
+    log.info("Collections table created/verified");
 
-        // Create workspaces table
-        await pool.query(`
+    // Create workspaces table
+    await pool.query(`
             CREATE TABLE IF NOT EXISTS workspaces (
                 id SERIAL PRIMARY KEY,
                 title TEXT NOT NULL,
@@ -56,74 +51,37 @@ async function createTables() {
                 tags JSONB DEFAULT '[]'::jsonb
             );
         `);
-        log.info("Workspaces table created/verified");
-
-        // Create teams table
-        await pool.query(`
-            CREATE TABLE IF NOT EXISTS teams (
-                id VARCHAR PRIMARY KEY DEFAULT gen_random_uuid(),
-                name VARCHAR(64) NOT NULL,
-                invite_code VARCHAR(8) UNIQUE NOT NULL,
-                owner_id VARCHAR NOT NULL,
-                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-            );
-        `);
-        log.info("Teams table created/verified");
-
-        // Create team_members table
-        await pool.query(`
-            CREATE TABLE IF NOT EXISTS team_members (
-                id VARCHAR PRIMARY KEY DEFAULT gen_random_uuid(),
-                team_id VARCHAR NOT NULL REFERENCES teams(id) ON DELETE CASCADE,
-                user_id VARCHAR NOT NULL,
-                role VARCHAR(16) NOT NULL DEFAULT 'member',
-                color VARCHAR(7) NOT NULL,
-                joined_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-            );
-        `);
-        log.info("Team Members table created/verified");
-
-        // Create team_workspaces table
-        await pool.query(`
-            CREATE TABLE IF NOT EXISTS team_workspaces (
-                id VARCHAR PRIMARY KEY DEFAULT gen_random_uuid(),
-                team_id VARCHAR NOT NULL REFERENCES teams(id) ON DELETE CASCADE,
-                workspace_id INTEGER NOT NULL REFERENCES workspaces(id) ON DELETE CASCADE,
-                shared_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-            );
-        `);
-        log.info("Team Workspaces table created/verified");
-
-    } catch (err) {
-        log.error({ err }, "Failed to create tables");
-    }
+    log.info("Workspaces table created/verified");
+  } catch (err) {
+    log.error({ err }, "Failed to create tables");
+  }
 }
 
 // Safe column migrations — ADD COLUMN IF NOT EXISTS is idempotent, never drops data
 async function runMigrations() {
-    if (!connectionString) return;
+  if (!process.env.DATABASE_URL) return;
 
-    try {
-        // v1.1: Add is_favorite to workspaces
-        await pool.query(`
+  try {
+    // v1.1: Add is_favorite to workspaces
+    await pool.query(`
             ALTER TABLE workspaces ADD COLUMN IF NOT EXISTS is_favorite BOOLEAN DEFAULT false;
         `);
-        // v1.2: Add updated_at to workspaces
-        await pool.query(`
+    // v1.2: Add updated_at to workspaces
+    await pool.query(`
             ALTER TABLE workspaces ADD COLUMN IF NOT EXISTS updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP;
         `);
-        // v1.3: Add description, author, ai_context, groups, and tags to workspaces
-        await pool.query(`
+    // v1.3: Add description, author, ai_context, groups, and tags to workspaces
+    await pool.query(`
             ALTER TABLE workspaces ADD COLUMN IF NOT EXISTS description TEXT;
             ALTER TABLE workspaces ADD COLUMN IF NOT EXISTS author TEXT;
             ALTER TABLE workspaces ADD COLUMN IF NOT EXISTS ai_context TEXT;
             ALTER TABLE workspaces ADD COLUMN IF NOT EXISTS groups JSONB DEFAULT '[]'::jsonb;
             ALTER TABLE workspaces ADD COLUMN IF NOT EXISTS tags JSONB DEFAULT '[]'::jsonb;
         `);
-        log.info("Migrations verified (is_favorite, updated_at, metadata)");
-    } catch (err) {
-        log.error({ err }, "Migration failed");
-    }
+    log.info("Migrations verified (is_favorite, updated_at, metadata)");
+  } catch (err) {
+    log.error({ err }, "Migration failed");
+  }
 }
 
 createTables().then(() => runMigrations());

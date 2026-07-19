@@ -5,7 +5,7 @@ import { z } from "zod";
 import { csrfProtection } from "../../middleware/csrf";
 import { createChildLogger } from "../../lib/logger";
 import type { AppContext } from "../../lib/registry";
-import { canEditWorkspace, canDeleteWorkspace } from "../team/permissions";
+import { canEditWorkspace, canDeleteWorkspace } from "../../lib/permissions";
 import type { ITeamStorage } from "../team/storage";
 
 const log = createChildLogger("workspace");

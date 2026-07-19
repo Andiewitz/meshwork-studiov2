@@ -1,42 +1,16 @@
+/**
+ * AI module database access.
+ * Uses the shared server-wide pool from server/lib/db.
+ */
 import { eq, and, desc } from "drizzle-orm";
-import { drizzle } from "drizzle-orm/node-postgres";
-import pg from "pg";
+import { db } from "../../lib/db";
 import { createChildLogger } from "../../lib/logger";
 
 const log = createChildLogger("ai-db");
 import * as schema from "@shared/schema";
 import { encryptApiKey, decryptApiKey, generateKeyHint } from "./encryption";
 
-import { type NodePgDatabase } from "drizzle-orm/node-postgres";
 import { type DrizzleTx } from "../../lib/events";
-
-const { Pool } = pg;
-
-const connectionString = process.env.DATABASE_URL;
-
-if (!connectionString) {
-  log.error(
-    "DATABASE_URL not set. AI module will fall back to placeholder mode.",
-  );
-}
-
-let db: NodePgDatabase<typeof schema>;
-if (connectionString) {
-  const pool = new Pool({ connectionString });
-  db = drizzle(pool, { schema });
-} else {
-  // Placeholder db for development without database
-  db = {
-    select: () => ({
-      from: () => ({ where: () => ({ limit: () => Promise.resolve([]) }) }),
-    }),
-    insert: () => ({ values: () => Promise.resolve([]) }),
-    update: () => ({ set: () => ({ where: () => Promise.resolve({}) }) }),
-    delete: () => ({ from: () => ({ where: () => Promise.resolve({}) }) }),
-    transaction: (callback: (tx: NodePgDatabase<typeof schema>) => unknown) =>
-      callback(db),
-  } as unknown as NodePgDatabase<typeof schema>;
-}
 
 export { db };
 
@@ -237,3 +211,5 @@ export async function hasKeyForProvider(
 
   return result.length > 0;
 }
+
+log.info("AI db module initialized (using shared pool)");

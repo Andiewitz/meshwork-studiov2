@@ -1,4 +1,5 @@
 import type { Express, Request, Response } from "express";
+import type { AppContext } from "../../lib/registry";
 import { pool } from "./db";
 import { createMetricsTable } from "./db";
 import { startCollector } from "./collector";
@@ -7,7 +8,7 @@ import { createChildLogger } from "../../lib/logger";
 const log = createChildLogger("metrics-module");
 
 export const MetricsModule = {
-  async initialize(app: Express) {
+  async initialize(app: Express, _context: AppContext) {
     try {
       await createMetricsTable();
       startCollector(30000); // snapshot every 30s

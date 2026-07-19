@@ -1,29 +1,33 @@
+/**
+ * Auth module database access.
+ * Uses the shared server-wide pool from server/lib/db.
+ * The auth module supports an optional AUTH_DATABASE_URL env var for cases
+ * where auth data is on a separate Postgres instance (e.g., a dedicated auth
+ * database). If AUTH_DATABASE_URL is not set, it falls back to the shared pool.
+ */
 import { drizzle } from "drizzle-orm/node-postgres";
 import pg from "pg";
 import * as schema from "@shared/schema";
+import { db as sharedDb, pool as sharedPool } from "../../lib/db";
 import { createChildLogger } from "../../lib/logger";
 
 const log = createChildLogger("auth-db");
 
 const { Pool } = pg;
 
-const connectionString =
-  process.env.AUTH_DATABASE_URL || process.env.DATABASE_URL;
+// Only create a separate pool if AUTH_DATABASE_URL explicitly points
+// to a different database. Otherwise reuse the shared pool.
+const authConnectionString = process.env.AUTH_DATABASE_URL;
 
-if (!connectionString) {
-  log.warn(
-    "AUTH_DATABASE_URL not set, falling back to in-memory mode if configured",
-  );
-}
+export const pool = authConnectionString
+  ? new Pool({ connectionString: authConnectionString })
+  : sharedPool;
 
-export const pool = new Pool({
-  connectionString: connectionString || "postgres://",
-});
-export const db = drizzle(pool, { schema });
+export const db = authConnectionString ? drizzle(pool, { schema }) : sharedDb;
 
 // Create tables if they don't exist
 async function createTables() {
-  if (!connectionString) return;
+  if (!authConnectionString && !process.env.DATABASE_URL) return;
 
   try {
     // Enable pgcrypto for gen_random_uuid()
@@ -46,8 +50,6 @@ async function createTables() {
             );
         `);
     log.info("Users table created/verified");
-
-    // Session storage has been moved to Redis!
 
     // Create login_attempts table for account lockout protection
     // eslint-disable-next-line no-secrets/no-secrets
@@ -72,7 +74,7 @@ async function createTables() {
 
 // Safe column migrations — ADD COLUMN IF NOT EXISTS is idempotent, never drops data
 async function runMigrations() {
-  if (!connectionString) return;
+  if (!authConnectionString && !process.env.DATABASE_URL) return;
 
   try {
     // v1.1: Add notification preference columns to users

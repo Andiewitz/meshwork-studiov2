@@ -1,18 +1,16 @@
-import { drizzle } from "drizzle-orm/node-postgres";
-import pg from "pg";
-import * as schema from "@shared/schema";
+/**
+ * Metrics module database access.
+ * Uses the shared server-wide pool from server/lib/db.
+ */
+import { db, pool } from "../../lib/db";
 import { createChildLogger } from "../../lib/logger";
 
 const log = createChildLogger("metrics-db");
-const { Pool } = pg;
 
-const connectionString = process.env.DATABASE_URL;
-
-export const pool = new Pool({ connectionString: connectionString || "postgres://" });
-export const db = drizzle(pool, { schema });
+export { db, pool };
 
 export async function createMetricsTable() {
-  if (!connectionString) {
+  if (!process.env.DATABASE_URL) {
     log.warn("DATABASE_URL not set, metrics snapshots disabled");
     return;
   }
