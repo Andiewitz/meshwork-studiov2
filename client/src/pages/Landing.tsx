@@ -17,6 +17,7 @@ import {
 } from "../features/workspace/utils/preloadedTemplates";
 import { Helmet } from "react-helmet-async";
 import { MeshworkLogo } from "@/components/MeshworkLogo";
+import { PromptInput } from "@/components/ui/ai-chat-input";
 
 const Home = () => {
   const containerRef = useRef<HTMLDivElement>(null);
@@ -183,11 +184,26 @@ const Home = () => {
           </motion.h1>
           <motion.p
             variants={itemVariants}
-            className="text-[1.125rem] sm:text-[1.25rem] text-white/60 font-medium tracking-wide max-w-[650px] mb-10"
+            className="text-[1.125rem] sm:text-[1.25rem] text-white/60 font-medium tracking-wide max-w-[650px] mb-8"
           >
             Go from prompt to production with automated infrastructure, seamless
             scaling, and more.
           </motion.p>
+          <motion.div
+            variants={itemVariants}
+            className="w-full max-w-xl flex justify-center mb-8"
+          >
+            <PromptInput
+              initialExpanded={true}
+              onSubmit={(val) => {
+                if (val.trim()) {
+                  localStorage.setItem("meshwork_pending_prompt", val);
+                }
+                setLocation("/register");
+              }}
+              placeholder="Describe your infrastructure, e.g. A multi-region Kubernetes cluster..."
+            />
+          </motion.div>
           <motion.div variants={itemVariants} className="flex gap-4">
             <button
               onClick={() => setLocation("/register")}
