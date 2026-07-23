@@ -1,0 +1,13 @@
+User-agent: *
+Allow: /
+Allow: /login
+Allow: /register
+Allow: /terms
+Allow: /privacy
+Disallow: /api/
+Disallow: /admin/
+Disallow: /workspace/
+Disallow: /settings
+Disallow: /dev
+
+Sitemap: https://meshwork-studio.duckdns.org/sitemap.xml
