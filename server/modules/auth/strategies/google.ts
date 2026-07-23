@@ -18,7 +18,11 @@ export function createGoogleStrategy() {
     return null;
   }
 
-  const callbackURL = `${process.env.APP_URL || "http://localhost:5000"}/api/auth/google/callback`;
+  const baseUrl = (process.env.APP_URL || "http://localhost:5000").replace(
+    /\/$/,
+    "",
+  );
+  const callbackURL = `${baseUrl}/api/v1/auth/google/callback`;
 
   return new GoogleStrategy(
     {

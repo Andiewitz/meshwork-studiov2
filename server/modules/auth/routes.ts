@@ -59,9 +59,23 @@ export function registerAuthRoutes(app: Express, context: AppContext): void {
   // Google OAuth routes
   app.get(
     "/api/v1/auth/google",
-    passport.authenticate("google", {
-      scope: ["profile", "email"],
-    }),
+    (req: Request, res: Response, next: NextFunction) => {
+      const isConfigured =
+        process.env.NODE_ENV === "test" ||
+        (Boolean(process.env.GOOGLE_CLIENT_ID) &&
+          Boolean(process.env.GOOGLE_CLIENT_SECRET));
+
+      if (!isConfigured) {
+        log.warn(
+          "Google OAuth attempted but strategy is not configured (missing GOOGLE_CLIENT_ID or GOOGLE_CLIENT_SECRET)",
+        );
+        return res.redirect("/?auth=login&error=google_not_configured");
+      }
+
+      passport.authenticate("google", {
+        scope: ["profile", "email"],
+      })(req, res, next);
+    },
   );
 
   app.get(

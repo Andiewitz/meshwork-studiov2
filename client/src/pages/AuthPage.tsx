@@ -75,6 +75,11 @@ function LoginForm() {
         "Google sign-in failed. Your account may not be linked, or access was denied.",
       );
       window.history.replaceState({}, "", window.location.pathname);
+    } else if (err === "google_not_configured") {
+      setOauthError(
+        "Google sign-in is not configured on this server. Please set GOOGLE_CLIENT_ID and GOOGLE_CLIENT_SECRET in your .env file.",
+      );
+      window.history.replaceState({}, "", window.location.pathname);
     }
   }, []);
 

@@ -105,11 +105,26 @@ describe("OAuth Routes Integration Tests", () => {
     mockAuthenticateBehavior = "success";
   });
 
-  describe("GET /api/auth/google", () => {
-    it("should redirect to Google login authorization page", async () => {
+  describe("GET /api/v1/auth/google", () => {
+    it("should redirect to Google login authorization page when configured", async () => {
       const res = await request(app).get("/api/v1/auth/google");
       expect(res.status).toBe(302);
       expect(res.header.location).toContain("accounts.google.com");
+    });
+
+    it("should redirect to login with error when OAuth is not configured", async () => {
+      const origEnv = process.env.NODE_ENV;
+      process.env.NODE_ENV = "development";
+      delete process.env.GOOGLE_CLIENT_ID;
+      delete process.env.GOOGLE_CLIENT_SECRET;
+
+      const res = await request(app).get("/api/v1/auth/google");
+      expect(res.status).toBe(302);
+      expect(res.header.location).toBe(
+        "/?auth=login&error=google_not_configured",
+      );
+
+      process.env.NODE_ENV = origEnv;
     });
   });
 
