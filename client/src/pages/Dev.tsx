@@ -827,10 +827,25 @@ export default function DevDocs() {
     </div>
   );
 
+  const canonicalUrl = `https://meshwork-studio.duckdns.org/docs`;
+  const pageTitle = `${activePost.title} — Meshwork Studio Docs`;
+  const pageDescription = activePost.subtitle;
+
   return (
-    <div className="flex min-h-[calc(100vh-64px)] bg-[#0A0A0A] text-white">
+    <div className="flex min-h-screen bg-[#0A0A0A] text-white">
       <Helmet>
-        <title>Dev Docs — Meshwork Studio</title>
+        <title>{pageTitle}</title>
+        <meta name="description" content={pageDescription} />
+        <link rel="canonical" href={canonicalUrl} />
+        <meta property="og:title" content={pageTitle} />
+        <meta property="og:description" content={pageDescription} />
+        <meta property="og:type" content="article" />
+        <meta property="og:url" content={canonicalUrl} />
+        <meta property="og:site_name" content="Meshwork Studio" />
+        <meta name="twitter:card" content="summary" />
+        <meta name="twitter:title" content={pageTitle} />
+        <meta name="twitter:description" content={pageDescription} />
+        <meta name="robots" content="index, follow" />
       </Helmet>
       {/* Desktop Sidebar */}
       <aside className="hidden lg:block w-[280px] shrink-0 sticky top-16 h-[calc(100vh-64px)] overflow-hidden">
@@ -889,7 +904,9 @@ export default function DevDocs() {
           {/* Breadcrumbs & Copy */}
           <div className="flex items-center justify-between mb-10">
             <div className="flex items-center gap-2 text-[13px] font-medium text-white/40 font-sans tracking-wide">
-              <span>Dev</span>
+              <a href="/docs" className="hover:text-white/70 transition-colors">
+                Docs
+              </a>
               <ChevronRight className="w-3.5 h-3.5" />
               <span>{activePost.category}</span>
               <ChevronRight className="w-3.5 h-3.5" />

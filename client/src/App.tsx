@@ -29,6 +29,7 @@ const lazyMap = {
   Settings: React.lazy(() => import("@/pages/Settings")),
   Workspace: React.lazy(() => import("@/pages/Workspace")),
   Dev: React.lazy(() => import("@/pages/Dev")),
+  Docs: React.lazy(() => import("@/pages/Dev")),
   Team: React.lazy(() => import("@/pages/Team")),
   Templates: React.lazy(() => import("@/pages/Templates")),
   TermsOfService: React.lazy(() => import("@/pages/TermsOfService")),
@@ -43,6 +44,7 @@ const {
   Settings,
   Workspace,
   Dev,
+  Docs,
   Team,
   Templates,
   TermsOfService,
@@ -60,6 +62,7 @@ else if (currentPath === "/settings") void import("@/pages/Settings");
 else if (currentPath.startsWith("/workspace/"))
   void import("@/pages/Workspace");
 else if (currentPath === "/dev") void import("@/pages/Dev");
+else if (currentPath === "/docs") void import("@/pages/Dev");
 else if (currentPath === "/team") void import("@/pages/Team");
 else if (currentPath === "/templates") void import("@/pages/Templates");
 else if (currentPath === "/terms") void import("@/pages/TermsOfService");
@@ -174,6 +177,24 @@ function Router() {
               <PrivacyPolicy />
             </Route>
           </Switch>
+        </motion.div>
+      </AnimatePresence>
+    );
+  }
+
+  // Public docs page — no login required, Google-indexable
+  if (location === "/docs") {
+    return (
+      <AnimatePresence mode="wait">
+        <motion.div
+          key="docs"
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          exit={{ opacity: 0 }}
+          transition={{ duration: 0.4 }}
+          className="min-h-screen"
+        >
+          <Docs />
         </motion.div>
       </AnimatePresence>
     );

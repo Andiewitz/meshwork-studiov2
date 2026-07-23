@@ -2,6 +2,7 @@ User-agent: *
 Allow: /
 Allow: /login
 Allow: /register
+Allow: /docs
 Allow: /terms
 Allow: /privacy
 Disallow: /api/
